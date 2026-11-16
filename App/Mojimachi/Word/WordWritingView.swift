@@ -14,9 +14,10 @@ struct WordWritingView: View {
 
   init(
     activity: WritingActivity = WritingActivity(),
+    start: String? = nil,
     onShowPlaced: @escaping (WordKind) -> Void = { _ in }
   ) {
-    _model = State(initialValue: WordModel(activity: activity))
+    _model = State(initialValue: WordModel(activity: activity, start: start))
     self.onShowPlaced = onShowPlaced
   }
 

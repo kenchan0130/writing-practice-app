@@ -7,11 +7,14 @@ enum PackLibrary {
   static let m0Characters = Array("そりくるまふねてんしやかせういぬこすほゆたつきものでじぼゃ")
 
   static func hiragana(_ char: Character) -> CharacterData? {
-    guard let scalar = char.unicodeScalars.first else { return nil }
-    let name = "hira.\(String(scalar.value, radix: 16))"
+    character(char, script: .hiragana)
+  }
+
+  static func character(_ char: Character, script: KanaScript) -> CharacterData? {
+    guard let name = KanaTable.characterID(char, script: script) else { return nil }
     guard
       let url = Bundle.main.url(
-        forResource: name, withExtension: "json", subdirectory: "Packs/hira"),
+        forResource: name, withExtension: "json", subdirectory: "Packs/\(script.packPrefix)"),
       let data = try? Data(contentsOf: url)
     else { return nil }
     return try? JSONDecoder().decode(CharacterData.self, from: data)

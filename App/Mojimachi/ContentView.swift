@@ -6,7 +6,9 @@ import SwiftUI
 /// 仮のホームと、画面の行き来（D101）。ホームのボタン3つから入り、「←」でホームへ戻る。
 struct ContentView: View {
   enum Screen: String, CaseIterable {
-    case letter = "もじ"
+    case map = "もじ"
+    case card = "字のカード"
+    case letter = "かく"
     case word = "ことば"
     case town = "まち"
     case closet = "クローゼット"
@@ -15,16 +17,49 @@ struct ContentView: View {
   /// nil はホーム。
   @State private var screen: Screen? = {
     #if DEBUG
-      // 確かめ用: `-screen word|town|letter|closet` でその画面を直接開く。
+      // 確かめ用: `-screen word|town|letter|closet|map` でその画面を直接開く。
+      // `-mapChar そ` でその字のカードを開く。
       if let name = UserDefaults.standard.string(forKey: "screen"),
         let screen = Screen.allCases.first(where: { "\($0)" == name })
       {
         return screen
       }
+      if let char = UserDefaults.standard.string(forKey: "mapChar")?.first,
+        KanaTable.script(of: char) != nil
+      {
+        return .card
+      }
     #endif
     return nil
   }()
 
+  @State private var mapSelection: MapSelection = {
+    var selection = MapSelection()
+    #if DEBUG
+      // 確かめ用: `-mapChar ニ` でその字の文字、`-mapScript katakana`、`-mapPage extra`、`-mapHalf 1`。
+      let defaults = UserDefaults.standard
+      if let char = defaults.string(forKey: "mapChar")?.first,
+        let script = KanaTable.script(of: char)
+      {
+        selection.script = script
+      }
+      if defaults.string(forKey: "mapScript") == "katakana" { selection.script = .katakana }
+      if defaults.string(forKey: "mapPage") == "extra" { selection.page = .extra }
+      selection.half = defaults.integer(forKey: "mapHalf")
+    #endif
+    return selection
+  }()
+  /// 字のカードで選んでいる字（書く画面へ入る字）。
+  @State private var cardChar: Character? = {
+    #if DEBUG
+      return UserDefaults.standard.string(forKey: "mapChar")?.first
+    #else
+      return nil
+    #endif
+  }()
+  /// ことば画面を字のカードから開いたか（「←」の戻り先）。
+  @State private var wordFromCard = false
+  @State private var wordStart: String?
   @State private var activity = WritingActivity()
   @State private var gate = ParentGate(random: { Double.random(in: 0..<1) })
   @State private var showsGate = false
@@ -39,7 +74,7 @@ struct ContentView: View {
       if let screen {
         VStack(spacing: 0) {
           HStack {
-            BackButton(activity: activity) { self.screen = nil }
+            BackButton(activity: activity) { goBack() }
             Spacer()
           }
           .padding(.horizontal, 32)
@@ -96,14 +131,50 @@ struct ContentView: View {
   @ViewBuilder
   private func content(_ screen: Screen) -> some View {
     switch screen {
-    case .letter: WritingCanvasView(activity: activity)
+    case .map:
+      MapView(selection: $mapSelection) { char in
+        cardChar = char
+        self.screen = .card
+      }
+      #if DEBUG
+        .frame(
+          maxWidth: UserDefaults.standard.double(forKey: "mapMaxWidth") > 0
+            ? UserDefaults.standard.double(forKey: "mapMaxWidth") : .infinity)
+      #endif
+    case .card:
+      if let cardChar {
+        CharacterCardView(
+          char: cardChar,
+          onWrite: { self.screen = .letter },
+          onWord: { text in
+            wordStart = text
+            wordFromCard = true
+            self.screen = .word
+          })
+      }
+    case .letter: WritingCanvasView(activity: activity, start: cardChar)
     case .word:
-      WordWritingView(activity: activity) { kind in
+      WordWritingView(activity: activity, start: wordStart) { kind in
+        wordFromCard = false
         self.screen = kind == .clothes ? .closet : .town
       }
     case .town: TownView()
     case .closet: TownView(layer: .closet)
     }
+  }
+
+  /// 「←」で一つ前へ（D101）。書く画面は字のカード、字のカードは文字の地図、地図はホーム。
+  private func goBack() {
+    switch screen {
+    case .letter: screen = cardChar == nil ? nil : .card
+    case .card: screen = .map
+    case .word where wordFromCard:
+      wordFromCard = false
+      wordStart = nil
+      screen = .card
+    default: screen = nil
+    }
+    if screen == nil { cardChar = nil }
   }
 
   /// ホーム: 大きなボタン3つ。顔と歯車は上に置く。
@@ -149,9 +220,11 @@ struct ContentView: View {
       Spacer()
       HStack(spacing: 40) {
         HomeButton(title: "もじ", systemImage: "character.book.closed.fill", color: .orange) {
-          screen = .letter
+          screen = .map
         }
         HomeButton(title: "ことば", systemImage: "text.bubble.fill", color: .blue) {
+          wordStart = nil
+          wordFromCard = false
           screen = .word
         }
         HomeButton(title: "まち", systemImage: "house.fill", color: .green) {
