@@ -173,9 +173,21 @@ final class WordModel {
     /// 確かめ用: お手本どおりに全部の字を書いたことにする（`-simulateWord YES`）。
     func simulateWriting() {
       var guardCount = 0
+      var colorIndex = 0
+      let switching = UserDefaults.standard.bool(forKey: "penSwitch")
+      let stopping = UserDefaults.standard.bool(forKey: "penSwitchStop")
       while let flow, !flow.finished, let character = flow.current, guardCount < 50 {
         guardCount += 1
-        for stroke in character.strokes {
+        for (number, stroke) in character.strokes.enumerated() {
+          // `-penSwitch YES` で、1画ごとにペンの色を変える（色が線ごとに残る確かめ用。D88）。
+          // `-penSwitchStop YES` は、最後の字の最後の画の手前で止める。
+          if switching {
+            if stopping, flow.index == word.count - 1, number == character.strokes.count - 1 {
+              return
+            }
+            store.setPenColor(PenColor.allCases[colorIndex % PenColor.allCases.count])
+            colorIndex += 1
+          }
           let line = stroke.centerlinePoints()
           strokes.append(recorder.drawn(line))
           lines.append(line)

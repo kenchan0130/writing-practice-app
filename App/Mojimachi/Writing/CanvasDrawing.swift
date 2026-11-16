@@ -63,10 +63,11 @@ enum CanvasDrawing {
 
   /// 太さが変わる線を、点どうしをつなぐ短い線で描く。
   static func ink(
-    _ points: [DrawnPoint], in context: inout GraphicsContext, color: Color = inkColor,
+    _ points: [DrawnPoint], in context: inout GraphicsContext, color: Color? = nil,
     opacity: Double = 1
   ) {
-    let color = color.opacity(opacity)
+    // 色は、書いたときに線へ付けた色（D88）。
+    let color = (color ?? points.first?.color.color ?? inkColor).opacity(opacity)
     if points.count == 1, let point = points.first {
       let r = point.width / 2
       context.fill(
