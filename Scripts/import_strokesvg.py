@@ -2,7 +2,7 @@
 """strokesvg（Klee One をなぞったかなの書き順データ）を、もじまちの文字のデータ（D106・D128）に直す。
 
 使い方:
-  python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> <出力先のフォルダ> <strokesvg のコミット>
+  python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana か dist/katakana> <出力先のフォルダ> <strokesvg のコミット> [ID の頭（hira / kata）]
 
 - 各画の中心線を、マス 0〜1000 の座標（y は下向き）の3次ベジェの並びに直す。
 - 各画の輪郭（Klee One の形）は、お手本の表示に使うため、閉じた部分ごとの「始点と3次ベジェの並び」にする（円弧も直す。座標は中心線と同じ 0〜1000）。
@@ -277,7 +277,7 @@ def scaled(v):
     return round(v * SCALE)
 
 
-def convert(svg_path, commit):
+def convert(svg_path, commit, prefix="hira"):
     root = ET.parse(svg_path).getroot()
     char = root.get("data-strokesvg")
     outlines = {}
@@ -302,7 +302,11 @@ def convert(svg_path, commit):
     result = []
     for el in sorted(list(strokes_group), key=order_of):
         parts = [el] if el.tag == f"{SVG_NS}path" else list(el.iter(f"{SVG_NS}path"))
-        start, segments = parse_path(parts[0].get("d"))
+        # 中心線にも円弧が入っていることがあるので、円弧も扱える読み方で読む。
+        centerline = parse_outline(parts[0].get("d"))
+        if len(centerline) != 1:
+            raise ValueError(f"{svg_path.name}: 中心線が1本ではない")
+        start, segments = centerline[0]["start"], centerline[0]["segments"]
         result.append(
             {
                 "start": [scaled(start[0]), scaled(start[1])],
@@ -318,7 +322,7 @@ def convert(svg_path, commit):
     code = f"{ord(char):04x}"
     return {
         "schema": 1,
-        "id": f"hira.{code}",
+        "id": f"{prefix}.{code}",
         "char": char,
         "rev": 1,
         "source": {"name": "strokesvg", "commit": commit, "license": "OFL-1.1 (Klee One)"},
@@ -329,10 +333,11 @@ def convert(svg_path, commit):
 
 def main():
     src, out, commit = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]
+    prefix = sys.argv[4] if len(sys.argv) > 4 else "hira"
     out.mkdir(parents=True, exist_ok=True)
     count = 0
     for svg in sorted(src.glob("*.svg")):
-        data = convert(svg, commit)
+        data = convert(svg, commit, prefix)
         (out / f"{data['id']}.json").write_text(json.dumps(data, ensure_ascii=False, indent=1) + "\n")
         count += 1
     print(f"{count} 字を書き出した")

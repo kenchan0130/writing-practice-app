@@ -11,10 +11,11 @@
 
 - `make test`: 画面や端末に頼らない部品（`Packages/`）のテスト。**プルリクエストの前に必ず通す**（D129・D130）。
 - `make build` / `make lint` / `make format`
+- `make app-test`: アプリの購入の流れを、iPad のシミュレータと StoreKit の試し用の設定（`App/Mojimachi.storekit`）で確かめる（Mac だけ。CI では動かさない）。
 - `make content-check`: 文字のデータを確かめる（画数が教科書と合うか など）。
 - `make judge-report`: 判定の部品ができたら実装する。
-- KanjiVG との照らし合わせ: `python3 -I Scripts/compare_kanjivg.py <KanjiVG の kanji フォルダ> Content/Packs/hira Content/Packs/hira/kanjivg-check.md`（データを作り直したら必ず動かす）
-- 文字のデータの作り直し: `python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> Content/Packs/hira <コミット>`
+- KanjiVG との照らし合わせ: `python3 -I Scripts/compare_kanjivg.py <KanjiVG の kanji フォルダ> Content/Packs/hira Content/Packs/hira/kanjivg-check.md`（カタカナは `kata`。データを作り直したら必ず動かす）
+- 文字のデータの作り直し: `python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> Content/Packs/hira <コミット> hira`（カタカナは `dist/katakana` と `Content/Packs/kata`、最後を `kata`）。続けて `python3 -I Scripts/make_small_kana.py Content/Packs`（っ・ッ）と `python3 -I Scripts/set_endings.py Content/Packs/hira`（終わり方の下書き）を動かす。
 
 ## 作り（D104・D105・D109）
 

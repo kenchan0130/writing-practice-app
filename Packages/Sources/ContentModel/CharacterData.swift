@@ -17,6 +17,8 @@ public struct CharacterData: Sendable, Hashable, Codable {
     public var name: String
     public var commit: String?
     public var license: String
+    /// 元の字を縮めて作った字（っ・ッ）の、元の字。
+    public var derivedFrom: String?
   }
 
   /// 画の終わり方。まだ決めていない画は nil。

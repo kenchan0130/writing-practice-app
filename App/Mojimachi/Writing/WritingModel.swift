@@ -2,7 +2,9 @@ import ContentModel
 import Foundation
 import JudgeKit
 import Observation
+import PracticeKit
 import QuartzCore
+import RecordKit
 import StrokeKit
 
 /// 画面に描く1点（書く場所の座標、ポイント）。
@@ -11,38 +13,67 @@ struct DrawnPoint {
   var width: Double
 }
 
-/// 書く画面の仮のモデル（M0 前半）。流れの判断（判定・待ち時間）は、あとで Packages の関数と TCA に移す（D105）。
+/// 書く画面の仮のモデル（M0 前半）。4ステップの流れは PracticeKit に任せる（D105）。
+/// 画面と流れの状態は、あとで TCA に移す（D105）。
 @Observable
 final class WritingModel {
   /// 書き終えた画（表示用）。
   private(set) var strokes: [[DrawnPoint]] = []
-  /// 書いている画（表示用）。
-  private(set) var current: [DrawnPoint] = []
-  /// 次の位置の予測（表示だけに使い、記録しない）。
-  private(set) var predicted: [DrawnPoint] = []
-  /// 書き終えた画の記録（マスの 0〜1000 の座標。D106）。
-  private(set) var samples: [StrokeSample] = []
-
-  /// 入力が届いた時刻（遅れの目安を出すため）。
-  private(set) var lastInputTime: TimeInterval = 0
-
-  var side: Double = 0
-  var width = StrokeWidth()
+  /// 入力を、画面に描く線と記録の線に直す。
+  private(set) var recorder = StrokeRecorder()
+  var side: Double {
+    get { recorder.side }
+    set { recorder.side = newValue }
+  }
 
   /// 練習している字（D78 の M0 の字を順に）。
   private(set) var character: CharacterData?
   private var characterIndex = 0
-  /// 判定の結果（D107）。書き直すと消える。
+  /// 1文字の練習の流れ（§3.2）。
+  private(set) var flow: PracticeFlow?
+  /// ④ の判定の結果（D107）。
   private(set) var result: JudgeResult?
+  /// 練習が終わったときのほめ方。
+  private(set) var finishedRating: Rating?
+  /// 書き始めを光らせる画（②③で違う画を書いたとき。D47）。
+  private(set) var hintStroke: Int?
   /// 「できた！」を光らせるか（D77）。
   private(set) var highlightsDone = false
-  var preset: JudgePreset = .hajimete
+  /// 書いた画ごとの終わり方（D145）。見分けられなかった画は nil。
+  private(set) var writtenEndings: [CharacterData.Ending?] = []
+  /// 書いた画（マス 0〜1000。学習記録のアルバムと再生に使う。§3.8）。
+  private var writtenLines: [Polyline] = []
+  /// 直前のステップ（学習記録に、ステップが進んだか戻ったかを残すため）。
+  private var lastStep: PracticeStep?
+  /// 合格したうえで出す、終わり方のヒント（D145）。
+  private(set) var endingHint: EndingHint?
+  /// ① の書き順のアニメーションを始めた時刻。
+  private(set) var animationStart: Date?
+  /// 判定のおまかせ設定（保護者用の画面と共通。D22）。
+  var preset: JudgePreset {
+    get { store.preset }
+    set {
+      guard newValue != store.preset else { return }
+      store.preset = newValue
+      restartCharacter()
+    }
+  }
 
+  /// ④ に合格した「慣れた字」（試作ではアプリを閉じると消える）。ことばの画面と共通。
+  private let store = ProgressStore.shared
   private var judgeTask: Task<Void, Never>?
+  private var animationTask: Task<Void, Never>?
+
+  /// ① で1画を描く秒数と、画のあいだの秒数。
+  /// 1画のアニメーションの時間（保護者用の画面の「お手本の速さ」で変わる）。
+  static var strokeAnimationDuration: Double { 0.9 * ProgressStore.shared.modelSpeed.factor }
+  static let strokeAnimationGap = 0.3
 
   init() {
     loadCharacter()
   }
+
+  var step: PracticeStep? { flow?.step }
 
   /// 「つぎの もじ」（試作だけのボタン）。
   func nextCharacter() {
@@ -50,137 +81,240 @@ final class WritingModel {
     loadCharacter()
   }
 
-  /// 「できた！」（D56）。いつでも押せる。
+  /// 同じ字を最初からやり直す。
+  func restartCharacter() {
+    loadCharacter()
+  }
+
+  /// 「できた！」（④。D56）。いつでも押せる。
   func judgeNow() {
     judgeTask?.cancel()
-    guard let character, !samples.isEmpty else { return }
-    let written = samples.map { sample in sample.points.map { Point($0.x, $0.y) } }
-    result = Judge(character: character).judge(written: written, preset: preset)
     highlightsDone = false
+    apply(flow?.handle(.doneWriting) ?? [])
+  }
+
+  /// 「ひとつ もどす」（④。D56）。
+  func undo() {
+    guard step == .jibunde, !strokes.isEmpty else { return }
+    strokes.removeLast()
+    if !writtenEndings.isEmpty { writtenEndings.removeLast() }
+    if !writtenLines.isEmpty { writtenLines.removeLast() }
+    apply(flow?.handle(.undo) ?? [])
+  }
+
+  /// 「ぜんぶ けす」（④。D56）。
+  func clear() {
+    guard step == .jibunde else { return }
+    strokes = []
+    writtenEndings = []
+    writtenLines = []
+    apply(flow?.handle(.clear) ?? [])
+  }
+
+  private func loadCharacter() {
+    judgeTask?.cancel()
+    animationTask?.cancel()
+    character = PackLibrary.hiragana(PackLibrary.m0Characters[characterIndex])
+    strokes = []
+    writtenEndings = []
+    writtenLines = []
+    endingHint = nil
+    result = nil
+    finishedRating = nil
+    hintStroke = nil
+    highlightsDone = false
+    guard let character else {
+      flow = nil
+      return
+    }
+    flow = PracticeFlow(
+      character: character, preset: preset, mastered: store.mastered.contains(character.id))
+    lastStep = flow?.step
+    if flow?.step == .miru { startAnimation() }
+  }
+
+  /// ① みる: 書き順のアニメーション。終わったら ② に進む。
+  private func startAnimation() {
+    guard let count = character?.strokes.count else { return }
+    animationStart = Date()
+    if let char = character?.char { VoicePlayer.shared.speak(char) }
+    let total = Double(count) * (Self.strokeAnimationDuration + Self.strokeAnimationGap)
+    animationTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(total))
+      guard !Task.isCancelled, let self else { return }
+      self.animationStart = nil
+      self.apply(self.flow?.handle(.animationFinished) ?? [])
+    }
+  }
+
+  /// 流れからの指示を画面に映す。
+  private func apply(_ effects: [PracticeEffect]) {
+    for effect in effects {
+      switch effect {
+      case .keepStroke:
+        hintStroke = nil
+        // 1画書けたら、ド→レ→ミと高くなる音（§3.9）。
+        SoundPlayer.shared.play(.stroke(max(strokes.count - 1, 0)))
+      case .rejectStroke(let hint):
+        // 違う画はふわっと消して、書き始めを光らせる（D47）。
+        if !strokes.isEmpty { strokes.removeLast() }
+        if !writtenEndings.isEmpty { writtenEndings.removeLast() }
+        if !writtenLines.isEmpty { writtenLines.removeLast() }
+        hintStroke = hint
+      case .stepChanged(let step):
+        recordStepChange(from: lastStep, to: step)
+        lastStep = step
+        strokes = []
+        writtenEndings = []
+        writtenLines = []
+        hintStroke = nil
+        if step == .miru { startAnimation() }
+      case .showResult(let result):
+        self.result = result
+        if !result.passed { record(stage: .jibunde, passed: false, issues: result.issues) }
+      case .finished(let rating, let rescued):
+        finishedRating = rating
+        SoundPlayer.shared.play(.praise)
+        if let stage = step.flatMap(Self.recordStage) {
+          record(stage: stage, passed: !rescued, rescued: rescued, issues: result?.issues ?? [])
+        }
+        if !rescued, step == .jibunde, let mismatch = endingMismatch() {
+          // 終わり方がお手本と違うときは、はなまるにしない（合否は変えない。D145）。
+          if rating == .hanamaru { finishedRating = .nijumaru }
+          if store.showsEndingHints { endingHint = mismatch }
+        }
+      }
+    }
   }
 
   #if DEBUG
-    /// 確かめ用: お手本の中心線をそのまま書いたことにして判定する（シミュレータでは線を書けないため）。
-    /// 起動の引数 `-simulateWriting YES` で使う。
-    func simulateModelWriting() {
+    /// 確かめ用: お手本の中心線をそのまま書いたことにして、流れを進める（シミュレータでは線を書けないため）。
+    /// 起動の引数 `-simulateWriting YES` で最後まで、`-simulateUntil nazoru` などでそのステップまで進める。
+    func simulateModelWriting(until target: PracticeStep? = nil) {
       guard let character else { return }
-      clear()
-      let mapping = GridMapping(side: side)
-      for stroke in character.strokes {
-        let points = stroke.centerlinePoints().map { StrokePoint(x: $0.x, y: $0.y, time: 0) }
-        samples.append(StrokeSample(input: .pencil, points: points))
-        strokes.append(
-          points.map {
-            let p = mapping.fromGrid(x: $0.x, y: $0.y)
-            return DrawnPoint(location: CGPoint(x: p.x, y: p.y), width: width.base)
-          })
+      animationTask?.cancel()
+      animationStart = nil
+      var guardCount = 0
+      while let flow, !flow.finished, flow.step != target, guardCount < 100 {
+        guardCount += 1
+        if flow.step == .miru {
+          apply(self.flow?.handle(.animationFinished) ?? [])
+          continue
+        }
+        for stroke in character.strokes {
+          let line = stroke.centerlinePoints()
+          strokes.append(recorder.drawn(line))
+          writtenLines.append(line)
+          // `-simulateEndingHint YES` で、どの画も「とめ」で書いたことにする（ヒントの確かめ用）。
+          writtenEndings.append(
+            UserDefaults.standard.bool(forKey: "simulateEndingHint") ? .tome : nil)
+          apply(self.flow?.handle(.strokeEnded(line)) ?? [])
+        }
+        if self.flow?.step == .jibunde, target != .jibunde {
+          apply(self.flow?.handle(.doneWriting) ?? [])
+        }
       }
-      judgeNow()
     }
   #endif
 
-  private func loadCharacter() {
-    character = PackLibrary.hiragana(PackLibrary.m0Characters[characterIndex])
-    clear()
-  }
-
-  /// 書き終わりの合図（D56・D77 の試作）。お手本の画数まで書いて1秒止まったら判定し、
-  /// 足りないまま3秒止まったら「できた！」を光らせる。分けた線・つなげた線の当てはめは JudgeKit の次の版で足す。
+  /// 書き終わりの合図（④。D56・D77 の試作）。お手本の画数まで書いて1秒止まったら判定し、
+  /// 足りないまま3秒止まったら「できた！」を光らせる。
   private func scheduleJudge() {
     judgeTask?.cancel()
     highlightsDone = false
-    guard let expected = character?.strokes.count else { return }
-    let enough = samples.count >= expected
+    guard step == .jibunde, let signal = flow?.endSignal, !strokes.isEmpty else { return }
     judgeTask = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(enough ? 1 : 3))
-      guard !Task.isCancelled, let self else { return }
-      if enough { self.judgeNow() } else { self.highlightsDone = true }
+      // 書き終わりの合図（D77）: すべての画に当てはまったら1秒で判定、
+      // 足りなければ3秒で「できた！」を光らせ、3画以上多ければすぐ光らせる。
+      switch signal {
+      case .highlightNow:
+        self?.highlightsDone = true
+      case .judgeAfterPause:
+        try? await Task.sleep(for: .seconds(1))
+        guard !Task.isCancelled else { return }
+        self?.judgeNow()
+      case .highlightAfterPause:
+        try? await Task.sleep(for: .seconds(3))
+        guard !Task.isCancelled else { return }
+        self?.highlightsDone = true
+      }
     }
   }
 
-  private var currentInput: StrokeInput = .finger
-  private var currentRaw: [StrokePoint] = []
-  private var pendingForce: [NSNumber: Int] = [:]
+  private static func recordStage(_ step: PracticeStep) -> CharacterRecord.Stage? {
+    switch step {
+    case .miru: nil
+    case .nazoru: .nazoru
+    case .usuku: .usuku
+    case .jibunde: .jibunde
+    }
+  }
+
+  /// ステップが進んだら前のステップを合格として、戻ったら書き直しとして残す（§3.8）。
+  private func recordStepChange(from old: PracticeStep?, to new: PracticeStep) {
+    guard let old, let stage = Self.recordStage(old), old != new else { return }
+    let forward = Self.recordStage(new).map { $0 > stage } ?? false
+    record(stage: stage, passed: forward, issues: [])
+  }
+
+  /// 学習記録に1行足す（D25・D44）。
+  private func record(
+    stage: CharacterRecord.Stage, passed: Bool, rescued: Bool = false, issues: [JudgeIssue]
+  ) {
+    guard let character else { return }
+    var reasons = issues.map(RecordMapping.reason)
+    if passed, endingMismatch() != nil { reasons.append(.ending) }
+    store.record(
+      CharacterRecord(
+        date: Date(), characterID: character.id, stage: stage, passed: passed, rescued: rescued,
+        reasons: Array(Set(reasons)).sorted { $0.rawValue < $1.rawValue },
+        strokes: RecordMapping.strokes(writtenLines)))
+  }
 
   func handle(_ event: StrokeInputEvent, convert: (CGPoint) -> CGPoint) {
-    switch event {
-    case .began(let input, let point):
+    guard let step, step != .miru, finishedRating == nil else { return }
+    if case .began = event {
       judgeTask?.cancel()
       highlightsDone = false
-      if result != nil {
-        // 判定のあとに書き始めたら、書き直しとして始める。
+      if result != nil, result?.passed == false {
+        // ④ で合わなかったあとに書き始めたら、書き直しとして始める。
         result = nil
         strokes = []
-        samples = []
+        writtenEndings = []
+        writtenLines = []
       }
-      currentInput = input
-      currentRaw = []
-      current = []
-      pendingForce = [:]
-      append(point, convert: convert)
-    case .moved(let points, let predictedPoints):
-      for point in points { append(point, convert: convert) }
-      predicted = predictedPoints.map {
-        DrawnPoint(location: convert($0.location), width: current.last?.width ?? width.base)
-      }
-    case .forceUpdated(let index, let force):
-      guard let position = pendingForce[index], position < current.count else { return }
-      currentRaw[position].force = force
-      current[position].width = width.width(force: force, speed: 0)
-    case .ended:
-      finishStroke()
-    case .cancelled:
-      current = []
-      currentRaw = []
-      predicted = []
     }
-  }
-
-  /// 「ひとつ もどす」（D56）。
-  func undo() {
-    guard !strokes.isEmpty else { return }
-    strokes.removeLast()
-    samples.removeLast()
-    result = nil
-  }
-
-  /// 「ぜんぶ けす」（D56）。
-  func clear() {
-    judgeTask?.cancel()
-    strokes = []
-    samples = []
-    current = []
-    predicted = []
-    result = nil
-    highlightsDone = false
-  }
-
-  private func append(_ point: StrokeInputPoint, convert: (CGPoint) -> CGPoint) {
-    let location = convert(point.location)
-    let speed: Double
-    if let last = currentRaw.last, let lastDrawn = current.last, point.time > last.time {
-      let dx = Double(location.x - lastDrawn.location.x)
-      let dy = Double(location.y - lastDrawn.location.y)
-      speed = (dx * dx + dy * dy).squareRoot() / (point.time - last.time)
-    } else {
-      speed = 0
-    }
-    let grid = GridMapping(side: side).toGrid(x: Double(location.x), y: Double(location.y))
-    if let index = point.estimationIndex { pendingForce[index] = currentRaw.count }
-    currentRaw.append(StrokePoint(x: grid.x, y: grid.y, time: point.time, force: point.force))
-    current.append(
-      DrawnPoint(location: location, width: width.width(force: point.force, speed: speed)))
-    lastInputTime = point.time
-  }
-
-  private func finishStroke() {
-    if !current.isEmpty {
-      strokes.append(current)
-      samples.append(StrokeSample(input: currentInput, points: currentRaw))
-    }
-    current = []
-    currentRaw = []
-    predicted = []
+    guard let finished = recorder.handle(event, convert: convert) else { return }
+    strokes.append(finished.drawn)
+    writtenEndings.append(EndingAnalysis.classify(finished.line, times: finished.times))
+    writtenLines.append(finished.line)
+    apply(flow?.handle(.strokeEnded(finished.line)) ?? [])
     scheduleJudge()
+  }
+
+  /// ④ で合格したとき、終わり方がお手本と違う最初の画を探す（D145）。
+  /// 分けた線・つなげた線は画の対応がずれるので出さない。
+  private func endingMismatch() -> EndingHint? {
+    guard let character, result?.splitOrJoined != true else { return nil }
+    let model = character.strokes.map(\.end)
+    guard let index = EndingAnalysis.hintStroke(model: model, written: writtenEndings),
+      let expected = model[index]
+    else { return nil }
+    return EndingHint(stroke: index, expected: expected)
+  }
+}
+
+/// 終わり方のヒント（D145）。
+struct EndingHint: Equatable {
+  var stroke: Int
+  var expected: CharacterData.Ending
+
+  /// 子どもに見せることば（ひらがな。§3.2）。
+  var message: String {
+    switch expected {
+    case .tome: "ここは ぴたっと とめると きれいだよ"
+    case .hane: "ここは ぴょんと はねると きれいだよ"
+    case .harai: "ここは すーっと はらうと きれいだよ"
+    }
   }
 }

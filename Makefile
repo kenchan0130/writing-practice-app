@@ -17,6 +17,10 @@ build: ## 部品をビルドする
 app-build: ## アプリを iPad のシミュレータ向けにビルドする（署名なし）
 	xcodebuild build -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -quiet
 
+.PHONY: app-test
+app-test: ## アプリの購入の流れを、iPad のシミュレータで確かめる（StoreKit の試し用の設定。署名なし）
+	xcodebuild test -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M5)' CODE_SIGNING_ALLOWED=NO -quiet
+
 .PHONY: format
 format: ## swift-format で書式を整える
 	swift format --in-place --recursive --parallel $(PACKAGES)
@@ -26,8 +30,8 @@ lint: ## swift-format で書式を確かめる
 	swift format lint --strict --recursive --parallel $(PACKAGES)
 
 .PHONY: judge-report
-judge-report: ## 判定の誤りの割合を表で出す（D107・D120。判定の部品ができたら作る）
-	@echo "judge-report: 判定の部品（JudgeKit）ができたら実装する" && exit 1
+judge-report: ## 判定の効き方を、わざと崩した線で表にする（D79・D107。正解の付いた線が集まったらそれも足す）
+	swift run --package-path $(PACKAGES) JudgeReport Content/Packs/hira
 
 .PHONY: content-check
 content-check: ## 文字とことばのデータを確かめる（D66・D106・D114。ことばの決まり D68・D70・D75 はことばのデータができたら足す）

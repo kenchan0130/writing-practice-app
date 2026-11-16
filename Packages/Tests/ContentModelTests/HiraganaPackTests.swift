@@ -62,3 +62,54 @@ struct HiraganaPackTests {
     #expect(missing.isEmpty, "足りない字: \(String(missing))")
   }
 }
+
+/// `Content/Packs/kata` のデータを確かめる（`content-check` の一部）。
+@Suite("カタカナのパック")
+struct KatakanaPackTests {
+  static let packDirectory = HiraganaPackTests.packDirectory
+    .deletingLastPathComponent()
+    .appendingPathComponent("kata")
+
+  static func loadAll() throws -> [CharacterData] {
+    let files = try FileManager.default.contentsOfDirectory(
+      at: packDirectory, includingPropertiesForKeys: nil
+    )
+    .filter { $0.pathExtension == "json" }
+    return try files.map {
+      try JSONDecoder().decode(CharacterData.self, from: Data(contentsOf: $0))
+    }
+  }
+
+  @Test("すべてのファイルを読めて、データの決まりに合う")
+  func decodesAndValidates() throws {
+    let all = try Self.loadAll()
+    #expect(all.count >= 81)
+    let problems = all.flatMap { $0.problems() }
+    #expect(problems.isEmpty, "\(problems.joined(separator: "\n"))")
+  }
+
+  @Test("ID が kata. と字の番号になっている")
+  func idMatchesCharacter() throws {
+    for data in try Self.loadAll() {
+      let code = String(data.char.unicodeScalars.first!.value, radix: 16)
+      #expect(data.id == "kata.\(code)", "\(data.char)")
+    }
+  }
+
+  @Test("画数が教科書の画数と合う（D66）")
+  func strokeCountsMatchTextbook() throws {
+    var mismatches: [String] = []
+    var unknown: [String] = []
+    for data in try Self.loadAll() {
+      guard let expected = StrokeCounts.katakana(Character(data.char)) else {
+        unknown.append(data.char)
+        continue
+      }
+      if data.strokes.count != expected {
+        mismatches.append("\(data.char): データ \(data.strokes.count) 画、教科書 \(expected) 画")
+      }
+    }
+    #expect(mismatches.isEmpty, "\(mismatches.joined(separator: "\n"))")
+    #expect(unknown.isEmpty, "表にない字: \(unknown.joined())")
+  }
+}

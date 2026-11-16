@@ -30,6 +30,46 @@ public enum StrokeCounts {
     "っ": "つ", "ゃ": "や", "ゅ": "ゆ", "ょ": "よ",
   ]
 
+  public static let katakanaBase: [Character: Int] = [
+    "ア": 2, "イ": 2, "ウ": 3, "エ": 3, "オ": 3,
+    "カ": 2, "キ": 3, "ク": 2, "ケ": 3, "コ": 2,
+    "サ": 3, "シ": 3, "ス": 2, "セ": 2, "ソ": 2,
+    "タ": 3, "チ": 3, "ツ": 3, "テ": 3, "ト": 2,
+    "ナ": 2, "ニ": 2, "ヌ": 2, "ネ": 4, "ノ": 1,
+    "ハ": 2, "ヒ": 2, "フ": 1, "ヘ": 1, "ホ": 4,
+    "マ": 2, "ミ": 3, "ム": 2, "メ": 2, "モ": 3,
+    "ヤ": 2, "ユ": 2, "ヨ": 3,
+    "ラ": 2, "リ": 2, "ル": 2, "レ": 1, "ロ": 3,
+    "ワ": 2, "ヲ": 3, "ン": 2, "ー": 1,
+  ]
+
+  /// カタカナの画数。濁音は元の字に2画、半濁音は1画を足す。小さい字は元の字と同じ。
+  public static func katakana(_ char: Character) -> Int? {
+    if let count = katakanaBase[char] { return count }
+    if char == "ヴ", let count = katakanaBase["ウ"] { return count + 2 }
+    // カタカナとひらがなは同じ並びなので、ひらがなの表で元の字を探し、カタカナに戻して数える。
+    guard let hira = shift(char, by: -0x60) else { return nil }
+    if let base = dakuten[hira], let kata = shift(base, by: 0x60), let count = katakanaBase[kata] {
+      return count + 2
+    }
+    if let base = handakuten[hira], let kata = shift(base, by: 0x60),
+      let count = katakanaBase[kata]
+    {
+      return count + 1
+    }
+    if let base = small[hira], let kata = shift(base, by: 0x60), let count = katakanaBase[kata] {
+      return count
+    }
+    return nil
+  }
+
+  private static func shift(_ char: Character, by offset: Int) -> Character? {
+    guard char.unicodeScalars.count == 1, let scalar = char.unicodeScalars.first,
+      let shifted = Unicode.Scalar(UInt32(Int(scalar.value) + offset))
+    else { return nil }
+    return Character(shifted)
+  }
+
   /// ひらがなの画数。表にない字は nil。
   public static func hiragana(_ char: Character) -> Int? {
     if let count = hiraganaBase[char] { return count }
