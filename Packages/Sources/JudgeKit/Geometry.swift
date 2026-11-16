@@ -25,6 +25,13 @@ public struct Point: Sendable, Hashable {
 /// 1画の線（点の並び）。
 public typealias Polyline = [Point]
 
+extension CharacterData.Stroke {
+  /// 中心線を細かい点の並びにする（お手本どおりに書いた線の代わりなどに使う）。
+  public func centerlinePoints(stepsPerSegment: Int = 16) -> Polyline {
+    Geometry.polyline(of: self, stepsPerSegment: stepsPerSegment)
+  }
+}
+
 enum Geometry {
   /// お手本の1画の中心線（3次ベジェの並び）を、細かい点の並びにする。
   static func polyline(of stroke: CharacterData.Stroke, stepsPerSegment: Int = 16) -> Polyline {
