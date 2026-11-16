@@ -15,11 +15,11 @@ build: ## 部品をビルドする
 
 .PHONY: app-build
 app-build: ## アプリを iPad のシミュレータ向けにビルドする（署名なし）
-	xcodebuild build -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -quiet
+	xcodebuild build -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -skipMacroValidation -quiet
 
 .PHONY: app-test
 app-test: ## アプリの購入の流れを、iPad のシミュレータで確かめる（StoreKit の試し用の設定。署名なし）
-	xcodebuild test -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M5)' CODE_SIGNING_ALLOWED=NO -quiet
+	xcodebuild test -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M5)' CODE_SIGNING_ALLOWED=NO -skipMacroValidation -quiet
 
 .PHONY: format
 format: ## swift-format で書式を整える
