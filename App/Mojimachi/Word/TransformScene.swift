@@ -1,16 +1,19 @@
+import ContentModel
 import SpriteKit
 import UIKit
 
 /// 変身の演出（D43・D55・D110 の試作）。子どもの線が粒になって浮き上がり、物の形に集まって物になり、走りだす。
-/// 絵は仮（SF Symbols）。動きの型は「乗り物＝走る」だけ。
+/// 絵は仮（SF Symbols）。動きの型は3つ: 乗り物＝走る、四つ足の動物＝歩いてはねる、服＝ハンガーで揺れる（D53・D110）。
 final class TransformScene: SKScene {
   private let lines: [[CGPoint]]
   private let objectImage: UIImage
   private let colors: [UIColor]
+  private let kind: WordKind
   var onFinished: (() -> Void)?
 
   /// - Parameter lines: 子どもが書いた線（このシーンの座標。左上が原点）。`colors` は線ごとの書いたときの色（D88）。
-  init(size: CGSize, lines: [[CGPoint]], colors: [UIColor], objectImage: UIImage) {
+  init(size: CGSize, lines: [[CGPoint]], colors: [UIColor], objectImage: UIImage, kind: WordKind) {
+    self.kind = kind
     self.lines = lines
     self.objectImage = objectImage
     self.colors = colors
@@ -71,8 +74,16 @@ final class TransformScene: SKScene {
           object.run(.fadeIn(withDuration: 0.25))
         },
         .wait(forDuration: 0.4),
-        .run { [weak self] in self?.drive(object) },
+        .run { [weak self] in self?.move(object) },
       ]))
+  }
+
+  private func move(_ object: SKNode) {
+    switch kind {
+    case .vehicle: drive(object)
+    case .animal: walk(object)
+    case .clothes: sway(object)
+    }
   }
 
   /// 乗り物の型: はずみながら走る（D110 の型の試作）。
@@ -87,6 +98,61 @@ final class TransformScene: SKScene {
     object.run(.group([.repeat(bounce, count: 6), run])) { [weak self] in
       self?.onFinished?()
     }
+  }
+
+  /// 四つ足の動物の型: ぴょんぴょんはずんで歩き、たちどまって、向きを変えて戻る。
+  private func walk(_ object: SKNode) {
+    let hop = SKAction.group([
+      .sequence([.moveBy(x: 0, y: 26, duration: 0.14), .moveBy(x: 0, y: -26, duration: 0.14)]),
+      .sequence([.rotate(toAngle: 0.08, duration: 0.14), .rotate(toAngle: -0.05, duration: 0.14)]),
+    ])
+    let step = size.width * 0.12
+    func trot(_ direction: CGFloat) -> SKAction {
+      .group([
+        .repeat(hop, count: 3),
+        .moveBy(x: direction * step, y: 0, duration: 0.84),
+      ])
+    }
+    let stop = SKAction.group([.rotate(toAngle: 0, duration: 0.1), .wait(forDuration: 0.5)])
+    // 向きは、左右を反転して変える（スケールの符号）。
+    let turn = SKAction.sequence([.scaleX(to: -1, duration: 0.12)])
+    let turnBack = SKAction.sequence([.scaleX(to: 1, duration: 0.12)])
+    object.run(
+      .sequence([trot(1), stop, trot(1), stop, turn, trot(-1), stop, turnBack, trot(-1)])
+    ) { [weak self] in
+      object.zRotation = 0
+      self?.onFinished?()
+    }
+  }
+
+  /// 服の型: ハンガーにかかって、ゆらゆら揺れる（クローゼットの試作。D53）。
+  private func sway(_ object: SKNode) {
+    guard let sprite = object as? SKSpriteNode else { return }
+    // 上の端を支点にして吊るす。
+    let top = sprite.position.y + sprite.size.height * 0.42
+    sprite.anchorPoint = CGPoint(x: 0.5, y: 0.92)
+    sprite.position = CGPoint(x: sprite.position.x, y: top)
+    let rail = SKShapeNode(
+      rect: CGRect(x: size.width * 0.15, y: top + 28, width: size.width * 0.7, height: 6),
+      cornerRadius: 3)
+    rail.fillColor = UIColor(red: 0.55, green: 0.38, blue: 0.22, alpha: 1)
+    rail.strokeColor = .clear
+    rail.alpha = 0
+    addChild(rail)
+    let hook = SKShapeNode(rect: CGRect(x: -2, y: 0, width: 4, height: 30))
+    hook.fillColor = UIColor.gray
+    hook.strokeColor = .clear
+    hook.position = CGPoint(x: sprite.position.x, y: top)
+    hook.alpha = 0
+    addChild(hook)
+    rail.run(.fadeIn(withDuration: 0.2))
+    hook.run(.fadeIn(withDuration: 0.2))
+    let swing = SKAction.sequence([
+      .rotate(toAngle: 0.22, duration: 0.5), .rotate(toAngle: -0.22, duration: 1.0),
+      .rotate(toAngle: 0.12, duration: 0.8), .rotate(toAngle: -0.06, duration: 0.7),
+      .rotate(toAngle: 0, duration: 0.5),
+    ])
+    sprite.run(swing) { [weak self] in self?.onFinished?() }
   }
 
   /// 子どもの線から、粒の出発点を同じ間かくで取る。

@@ -4,6 +4,7 @@ import JudgeKit
 import Observation
 import PracticeKit
 import RecordKit
+import UIKit
 
 /// ことばを書く画面のモデル（試作。D46・D55・D56）。流れは PracticeKit の WordFlow に任せる。
 @Observable
@@ -33,17 +34,36 @@ final class WordModel {
   }
 
   init() {
+    #if DEBUG
+      // 確かめ用: `-word いぬ` でそのことばから始める。
+      if let text = UserDefaults.standard.string(forKey: "word"),
+        let index = PlaceholderArt.words.firstIndex(where: { $0.entry.text == text })
+      {
+        wordIndex = index
+      }
+    #endif
     loadWord()
   }
 
-  var word: String { PlaceholderArt.vehicleWords[wordIndex].word }
-  var symbol: String { PlaceholderArt.vehicleWords[wordIndex].symbol }
+  var word: String { PlaceholderArt.words[wordIndex].entry.text }
+  var symbol: String { PlaceholderArt.words[wordIndex].symbol }
+  var kind: WordKind { PlaceholderArt.words[wordIndex].entry.kind }
+  var artColor: UIColor { PlaceholderArt.words[wordIndex].color }
   var currentCharacter: CharacterData? { flow?.current }
   var mode: PracticeStep? { flow?.mode }
   var progress: Double { flow?.progress ?? 0 }
 
   func nextWord() {
-    wordIndex = (wordIndex + 1) % PlaceholderArt.vehicleWords.count
+    wordIndex = (wordIndex + 1) % PlaceholderArt.words.count
+    loadWord()
+  }
+
+  /// ことばを選ぶ（3つの型をまたいで選べる）。
+  func select(_ text: String) {
+    guard let index = PlaceholderArt.words.firstIndex(where: { $0.entry.text == text }) else {
+      return
+    }
+    wordIndex = index
     loadWord()
   }
 
@@ -51,7 +71,7 @@ final class WordModel {
 
   /// まちに置く（D53 の「動きまわる」型の試作）。
   func placeInTown() {
-    store.place(PlacedObject(word: word, symbol: symbol))
+    store.place(PlacedObject(word: word, symbol: symbol, kind: kind))
   }
 
   /// 「できた！」（じぶんで の字。D56）。

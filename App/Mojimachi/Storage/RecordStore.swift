@@ -1,3 +1,4 @@
+import ContentModel
 import CoreData
 import Foundation
 import RecordKit
@@ -68,7 +69,10 @@ final class RecordStore {
         guard let id = row.value(forKey: "id") as? UUID else { return nil }
         return PlacedObject(
           id: id, word: row.value(forKey: "word") as? String ?? "",
-          symbol: row.value(forKey: "symbol") as? String ?? "")
+          symbol: row.value(forKey: "symbol") as? String ?? "",
+          // 古い行には種類がない。乗り物として読む。
+          kind: (row.value(forKey: "kind") as? String).flatMap(WordKind.init(rawValue:))
+            ?? .vehicle)
       }
   }
 
@@ -120,6 +124,7 @@ final class RecordStore {
     row.setValue(Date(), forKey: "date")
     row.setValue(object.word, forKey: "word")
     row.setValue(object.symbol, forKey: "symbol")
+    row.setValue(object.kind.rawValue, forKey: "kind")
     row.setValue(Self.dataVersion, forKey: "dataVersion")
     save()
   }
@@ -279,7 +284,11 @@ final class RecordStore {
           attribute("word", .string),
           attribute("generation", .integer64, optional: false, defaultValue: 0),
         ]),
-      entity("PlacedObjectRow", [attribute("word", .string), attribute("symbol", .string)]),
+      entity(
+        "PlacedObjectRow",
+        [
+          attribute("word", .string), attribute("symbol", .string), attribute("kind", .string),
+        ]),
       entity("ResetMarker", []),
       entity(
         "ProfileRow",

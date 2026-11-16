@@ -1,17 +1,41 @@
+import ContentModel
 import UIKit
 
-/// 絵ができるまでの仮の絵（SF Symbols）。M0 の乗り物の型のことば（D78）。
+/// 絵ができるまでの仮の絵（SF Symbols）。M0 の3つの型のことば（D78）。ことばの一覧は WordCatalog。
 enum PlaceholderArt {
-  static let vehicleWords: [(word: String, symbol: String)] = [
-    ("くるま", "car.side.fill"),
-    ("ふね", "ferry.fill"),
-    ("でんしゃ", "tram.fill"),
-    ("じてんしゃ", "bicycle"),
-    ("しんかんせん", "train.side.front.car"),
+  struct Item {
+    let entry: WordEntry
+    let symbol: String
+    let color: UIColor
+  }
+
+  private static let vehicleColor = UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1)
+  private static let animalColor = UIColor(red: 0.62, green: 0.4, blue: 0.2, alpha: 1)
+  private static let clothesColor = UIColor(red: 0.25, green: 0.45, blue: 0.85, alpha: 1)
+
+  /// SF Symbols に無い物（うし・うま・しか・くま・そり・ゆかた）は、近い物で代わりにする。
+  private static let symbols: [String: String] = [
+    "そり": "figure.skiing.downhill", "くるま": "car.side.fill", "ふね": "ferry.fill",
+    "でんしゃ": "tram.fill", "じてんしゃ": "bicycle", "しんかんせん": "train.side.front.car",
+    "うし": "pawprint.fill", "いぬ": "dog.fill", "ねこ": "cat.fill", "うま": "pawprint.fill",
+    "くま": "pawprint.fill", "しか": "pawprint.fill", "りす": "hare.fill",
+    "ふく": "tshirt.fill", "くつ": "shoe.fill", "ぼうし": "hat.widebrim.fill",
+    "ゆかた": "figure.stand.dress", "くつした": "shoe.2.fill", "きもの": "jacket.fill",
   ]
 
+  static let words: [Item] = WordCatalog.all.map { entry in
+    let color: UIColor =
+      switch entry.kind {
+      case .vehicle: vehicleColor
+      case .animal: animalColor
+      case .clothes: clothesColor
+      }
+    return Item(
+      entry: entry, symbol: symbols[entry.text] ?? "questionmark.square.dashed", color: color)
+  }
+
   static func symbol(for word: String) -> String {
-    vehicleWords.first { $0.word == word }?.symbol ?? "questionmark.square.dashed"
+    words.first { $0.entry.text == word }?.symbol ?? "questionmark.square.dashed"
   }
 
   /// 仮の絵を、`size` 四方の画像にする。

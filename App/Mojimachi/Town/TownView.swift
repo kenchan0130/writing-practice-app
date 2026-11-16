@@ -1,7 +1,7 @@
 import SpriteKit
 import SwiftUI
 
-/// わたしのまち（試作。D8・D53）。置いた乗り物が、道を行ったり来たりする（「動きまわる」型）。
+/// わたしのまち（試作。D8・D53）。乗り物と動物は動きまわり、服は横木にかかって揺れる（D53）。
 struct TownView: View {
   private let store = ProgressStore.shared
   @State private var scene = TownScene()
@@ -21,10 +21,14 @@ struct TownView: View {
           .onAppear {
             scene.size = proxy.size
             #if DEBUG
-              // 確かめ用: `-seedTown YES` で、乗り物を置いた状態にする。
+              // 確かめ用: `-seedTown YES` で、3つの型を1つずつ（くるま・いぬ・ねこ・うま・ふく・ぼうし）置く。
               if UserDefaults.standard.bool(forKey: "seedTown"), store.placed.isEmpty {
-                for item in PlaceholderArt.vehicleWords {
-                  store.place(PlacedObject(word: item.word, symbol: item.symbol))
+                let seeds = ["くるま", "いぬ", "でんしゃ", "ねこ", "ふく", "うま", "ぼうし", "ふね", "ゆかた"]
+                for text in seeds {
+                  guard let item = PlaceholderArt.words.first(where: { $0.entry.text == text })
+                  else { continue }
+                  store.place(
+                    PlacedObject(word: text, symbol: item.symbol, kind: item.entry.kind))
                 }
               }
             #endif
@@ -37,9 +41,11 @@ struct TownView: View {
   }
 }
 
-/// まちの場面（SpriteKit）。空・道・置いた物。
+/// まちの場面（SpriteKit）。空・草・置いた物。乗り物と動物は動きまわり、服は横木にかかる（D53）。
 final class TownScene: SKScene {
   private var shown: Set<UUID> = []
+  /// 横木にかけた服の数（かけ場所の番号に使う）。
+  private var shownClothes = 0
 
   override init() {
     super.init(size: CGSize(width: 1000, height: 700))
@@ -67,30 +73,110 @@ final class TownScene: SKScene {
       node.removeFromParent()
     }
     shown = shown.intersection(ids)
+    var clothesCount = 0
     for (index, object) in placed.enumerated() where !shown.contains(object.id) {
       shown.insert(object.id)
+      let color = PlaceholderArt.words.first { $0.entry.text == object.word }?.color
       let image = PlaceholderArt.image(
         symbol: object.symbol, size: 240,
-        color: UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1))
+        color: color ?? UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1))
       let node = SKSpriteNode(texture: SKTexture(image: image))
       node.name = object.id.uuidString
       node.size = CGSize(width: 160, height: 160)
-      let lane = CGFloat(index % 3)
-      // 物が重ならないよう、出発の位置と道の高さを散らす。
-      let startX = 120 + CGFloat((index * 3) % 7) * max(size.width - 320, 100) / 7
-      node.position = CGPoint(x: startX, y: size.height * 0.08 + lane * size.height * 0.07)
-      node.zPosition = 3 - lane
       addChild(node)
-      let distance = max(size.width - 240 - startX, 80)
-      let duration = 3.0 + Double(index % 3)
-      node.run(
-        .repeatForever(
-          .sequence([
-            .moveBy(x: distance, y: 0, duration: duration),
-            .scaleX(to: -1, duration: 0.1),
-            .moveBy(x: -distance, y: 0, duration: duration),
-            .scaleX(to: 1, duration: 0.1),
-          ])))
+      switch object.kind {
+      case .vehicle: roamVehicle(node, index: index)
+      case .animal: roamAnimal(node, index: index)
+      case .clothes:
+        hangClothes(node, slot: clothesCount + shownClothes)
+        clothesCount += 1
+      }
     }
+    shownClothes += clothesCount
+  }
+
+  /// 乗り物: 道をはずみながら行ったり来たりする。
+  private func roamVehicle(_ node: SKSpriteNode, index: Int) {
+    let lane = CGFloat(index % 3)
+    // 物が重ならないよう、出発の位置と道の高さを散らす。
+    let startX = 120 + CGFloat((index * 3) % 7) * max(size.width - 320, 100) / 7
+    node.position = CGPoint(x: startX, y: size.height * 0.08 + lane * size.height * 0.07)
+    node.zPosition = 3 - lane
+    let distance = max(size.width - 240 - startX, 80)
+    let duration = 3.0 + Double(index % 3)
+    node.run(
+      .repeatForever(
+        .sequence([
+          .moveBy(x: distance, y: 0, duration: duration),
+          .scaleX(to: -1, duration: 0.1),
+          .moveBy(x: -distance, y: 0, duration: duration),
+          .scaleX(to: 1, duration: 0.1),
+        ])))
+  }
+
+  /// 四つ足の動物: 草の上をぴょんぴょん歩き、ときどきたちどまって、向きを変える。
+  private func roamAnimal(_ node: SKSpriteNode, index: Int) {
+    let lane = CGFloat(index % 3)
+    let startX = 160 + CGFloat((index * 5) % 7) * max(size.width - 380, 100) / 7
+    node.position = CGPoint(x: startX, y: size.height * 0.14 + lane * size.height * 0.05)
+    node.zPosition = 3 - lane
+    let distance = max(size.width - 320 - startX, 100)
+    let hop = SKAction.sequence([
+      .moveBy(x: 0, y: 22, duration: 0.14), .moveBy(x: 0, y: -22, duration: 0.14),
+    ])
+    func trot(_ x: CGFloat) -> SKAction {
+      let steps = max(Int(abs(x) / 50), 2)
+      return .group([
+        .repeat(hop, count: steps),
+        .moveBy(x: x, y: 0, duration: 0.28 * Double(steps)),
+      ])
+    }
+    let pause = SKAction.wait(forDuration: 0.8 + Double(index % 3) * 0.4)
+    node.run(
+      .repeatForever(
+        .sequence([
+          .wait(forDuration: Double(index % 4) * 0.3),
+          trot(distance / 2), pause, trot(distance / 2), pause,
+          .scaleX(to: -1, duration: 0.12),
+          trot(-distance / 2), pause, trot(-distance / 2), pause,
+          .scaleX(to: 1, duration: 0.12),
+        ])))
+  }
+
+  /// 服: 空の高いところの横木にハンガーでかかって、ゆらゆら揺れる（クローゼットの試作。D53）。
+  private func hangClothes(_ node: SKSpriteNode, slot: Int) {
+    let perRow = max(Int((size.width - 160) / 150), 1)
+    let column = slot % perRow
+    let row = slot / perRow
+    let railY = size.height - 30 - CGFloat(row) * 190
+    if row == 0, childNode(withName: "rail") == nil {
+      let rail = SKShapeNode(
+        rect: CGRect(x: 40, y: railY, width: size.width - 80, height: 6), cornerRadius: 3)
+      rail.fillColor = UIColor(red: 0.55, green: 0.38, blue: 0.22, alpha: 1)
+      rail.strokeColor = .clear
+      rail.name = "rail"
+      rail.zPosition = 1
+      addChild(rail)
+    }
+    node.size = CGSize(width: 120, height: 120)
+    node.anchorPoint = CGPoint(x: 0.5, y: 0.92)
+    node.position = CGPoint(x: 100 + CGFloat(column) * 150, y: railY - 18)
+    node.zPosition = 2
+    let hook = SKShapeNode(rect: CGRect(x: -2, y: 0, width: 4, height: 18))
+    hook.fillColor = .gray
+    hook.strokeColor = .clear
+    hook.position = .zero
+    node.addChild(hook)
+    let amplitude = 0.12 + 0.03 * CGFloat(slot % 3)
+    let swing = SKAction.sequence([
+      .rotate(toAngle: amplitude, duration: 0.9), .rotate(toAngle: -amplitude, duration: 1.8),
+      .rotate(toAngle: 0, duration: 0.9),
+    ])
+    swing.timingMode = .easeInEaseOut
+    node.run(
+      .sequence([
+        .wait(forDuration: Double(slot % 5) * 0.4),
+        .repeatForever(swing),
+      ]))
   }
 }
