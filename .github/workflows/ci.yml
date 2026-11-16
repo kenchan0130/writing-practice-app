@@ -25,7 +25,8 @@ jobs:
           persist-credentials: false
       - name: Show toolchain
         run: swift --version
+      # コンテナに make が入っていないことがあるので、Makefile と同じコマンドを直接動かす。
       - name: Lint
-        run: make lint
+        run: swift format lint --strict --recursive --parallel Packages
       - name: Test
-        run: make test
+        run: swift test --package-path Packages
