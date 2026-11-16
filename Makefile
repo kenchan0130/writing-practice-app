@@ -30,5 +30,5 @@ judge-report: ## 判定の誤りの割合を表で出す（D107・D120。判定�
 	@echo "judge-report: 判定の部品（JudgeKit）ができたら実装する" && exit 1
 
 .PHONY: content-check
-content-check: ## 文字とことばのデータを確かめる（D68・D70・D75・D106・D114。データができたら作る）
-	@echo "content-check: 文字とことばのデータができたら実装する" && exit 1
+content-check: ## 文字とことばのデータを確かめる（D66・D106・D114。ことばの決まり D68・D70・D75 はことばのデータができたら足す）
+	swift test --package-path $(PACKAGES) --filter ContentModelTests
