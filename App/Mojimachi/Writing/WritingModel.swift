@@ -1,4 +1,5 @@
 import ContentModel
+import EntitlementKit
 import Foundation
 import JudgeKit
 import Observation
@@ -33,6 +34,9 @@ final class WritingModel {
   /// 練習している字（D78 の M0 の字を順に）。
   private(set) var character: CharacterData?
   private var characterIndex = 0
+  /// 順に練習する字（試作では M0 の字。文字の地図から入ったときは、その文字の表の順）。
+  private var sequence = PackLibrary.m0Characters
+  private var script = KanaScript.hiragana
   /// 1文字の練習の流れ（§3.2）。
   private(set) var flow: PracticeFlow?
   /// ④ の判定の結果（D107）。
@@ -73,8 +77,17 @@ final class WritingModel {
   static var strokeAnimationDuration: Double { 0.9 * ProgressStore.shared.modelSpeed.factor }
   static let strokeAnimationGap = 0.3
 
-  init(activity: WritingActivity) {
+  /// `start` を渡すと、その字から始める（文字の地図から。D101）。
+  init(activity: WritingActivity, start: Character? = nil) {
     self.activity = activity
+    if let start, let startScript = KanaTable.script(of: start) {
+      let entitlements = PurchaseStore.shared.entitlements
+      script = startScript
+      sequence = KanaTable.all(startScript).filter {
+        entitlements.canWrite($0, in: startScript.entitlementScript)
+      }
+      characterIndex = sequence.firstIndex(of: start) ?? 0
+    }
     loadCharacter()
   }
 
@@ -82,7 +95,7 @@ final class WritingModel {
 
   /// 「つぎの もじ」（試作だけのボタン）。
   func nextCharacter() {
-    characterIndex = (characterIndex + 1) % PackLibrary.m0Characters.count
+    characterIndex = (characterIndex + 1) % sequence.count
     loadCharacter()
   }
 
@@ -119,7 +132,7 @@ final class WritingModel {
   private func loadCharacter() {
     judgeTask?.cancel()
     animationTask?.cancel()
-    character = PackLibrary.hiragana(PackLibrary.m0Characters[characterIndex])
+    character = PackLibrary.character(sequence[characterIndex], script: script)
     strokes = []
     writtenEndings = []
     writtenLines = []

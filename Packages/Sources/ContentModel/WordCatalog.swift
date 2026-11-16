@@ -29,4 +29,9 @@ public enum WordCatalog {
   public static func entry(for text: String) -> WordEntry? {
     all.first { $0.text == text }
   }
+
+  /// その字を含むことば（字のカードに出す。D101）。
+  public static func words(containing char: Character) -> [WordEntry] {
+    all.filter { $0.text.contains(char) }
+  }
 }

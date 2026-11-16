@@ -9,8 +9,8 @@ struct WritingCanvasView: View {
   @State private var model: WritingModel
   @State private var showsLatency = false
 
-  init(activity: WritingActivity = WritingActivity()) {
-    _model = State(initialValue: WritingModel(activity: activity))
+  init(activity: WritingActivity = WritingActivity(), start: Character? = nil) {
+    _model = State(initialValue: WritingModel(activity: activity, start: start))
   }
 
   var body: some View {

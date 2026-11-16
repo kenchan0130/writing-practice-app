@@ -35,7 +35,8 @@ final class WordModel {
     set { recorder.side = newValue }
   }
 
-  init(activity: WritingActivity) {
+  /// `start` を渡すと、そのことばから始める（字のカードから。D101）。
+  init(activity: WritingActivity, start: String? = nil) {
     self.activity = activity
     #if DEBUG
       // 確かめ用: `-word いぬ` でそのことばから始める。
@@ -45,6 +46,9 @@ final class WordModel {
         wordIndex = index
       }
     #endif
+    if let start, let index = PlaceholderArt.words.firstIndex(where: { $0.entry.text == start }) {
+      wordIndex = index
+    }
     loadWord()
   }
 
