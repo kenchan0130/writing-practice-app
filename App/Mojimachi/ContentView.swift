@@ -1,11 +1,9 @@
-import StrokeKit
 import SwiftUI
 
-/// M0 前半の仮の画面。書く画面（D109）に置き換える。
+/// M0 前半の仮の入口。いまは書く画面だけを出す（D135）。
 struct ContentView: View {
   var body: some View {
-    Text("もじまち")
-      .font(.largeTitle)
+    WritingCanvasView()
   }
 }
 
