@@ -32,7 +32,7 @@
 
 | 名前 | 版 | ライセンス | 層 | 用途 | 通信の確認日 | 代わりの案 |
 |---|---|---|---|---|---|---|
-| TCA（swift-composable-architecture。https://github.com/pointfreeco/swift-composable-architecture 【人の確認待ち】） | 1.26.2（2026-08-28 公開。最新） | MIT | A | 画面と流れの状態（D105）。いまは保護者用の確認の流れ（`ParentGateFeature`）だけ。アプリの本体だけに入れ、`Packages/` には入れない | 2026-11-17（ソース検索: 通信・分析なし。下の注） | @Observable の上の自前の小さな仕組み（D105 の切り替え先） |
+| TCA（swift-composable-architecture。https://github.com/pointfreeco/swift-composable-architecture 【確認済み 2026-11-17 ユーザー】） | 1.26.2（2026-08-28 公開。最新） | MIT | A | 画面と流れの状態（D105）。いまは保護者用の確認の流れ（`ParentGateFeature`）だけ。アプリの本体だけに入れ、`Packages/` には入れない | 2026-11-17（ソース検索: 通信・分析なし。下の注） | @Observable の上の自前の小さな仕組み（D105 の切り替え先） |
 | swift-dependencies | 1.17.2 | MIT | A | TCA が使う。時刻などを差し替える | 2026-11-17 | TCA と一緒 |
 | swift-case-paths | 1.10.0 | MIT | A | TCA が使う | 2026-11-17 | TCA と一緒 |
 | swift-identified-collections | 1.1.1 | MIT | A | TCA が使う | 2026-11-17 | TCA と一緒 |
@@ -49,7 +49,7 @@
 
 - 承認: 2026-11-17 ユーザー。方針: 最新版を使う（2026-11-17 ユーザーの方針）。版は `exact:`（`project.pbxproj` の `exactVersion`）で固定し、`App/Mojimachi.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` をコミットする。
 - 通信の確認（2026-11-17）: 上の 12 個（swift-collections と swift-syntax 以外）の `Sources` を `URLSession`・`NWConnection`・`NWPathMonitor`・`URLRequest`・`import Network`・`CFNetwork`・Analytics・telemetry で検索した。通信や送信をするコードはない。見つかったのは、swift-dependencies が「`urlSession` を差し替える」ための入口（`DependencyValues.urlSession`。使わなければ動かない）と、swift-custom-dump が `URLRequest` の値を表示するための型の対応だけ。TCA と swift-sharing は `PrivacyInfo.xcprivacy` を持ち、追跡なし・集める情報なし（使う API は UserDefaults と ファイルの日時）。swift-collections・swift-syntax は検索していない（Apple の公式）。
-- 【人の確認待ち】URL は人が開いて、本物か確かめる（CLAUDE.md の決まり）。pointfreeco の公式（GitHub の星は約 1.5 万、MIT）。
+- 【確認済み 2026-11-17 ユーザー】URL は人が開いて、本物か確かめた（CLAUDE.md の決まり）。pointfreeco の公式（GitHub の星は約 1.5 万、MIT）。
 - マクロ: Xcode で入れるときは、マクロの信頼の確認が出る。コマンドでは `-skipMacroValidation`（`Makefile`）で省く。Xcode Cloud の設定（マクロの確認を省く方法）はまだ入れていない（人の判断待ち）。swift-syntax はビルド時に Apple のサーバー（download.swift.org）から作り置きを取ることがある（ビルドの道具の通信。アプリは通信しない）。
 - ビルド時間は `docs/reports/tca-build-time.md`。
 
