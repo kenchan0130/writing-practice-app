@@ -16,6 +16,8 @@ final class WordModel {
   /// 書き終えた字の線（変身に使う。字ごと、書く場所の座標）。
   private(set) var writtenCharacters: [[[DrawnPoint]]] = []
   private(set) var recorder = StrokeRecorder()
+  /// 書いている間と直後は「←」を効かせない（D101）。
+  let activity: WritingActivity
   private(set) var hintStroke: Int?
   /// じぶんで で合わなかったときに出す結果（お手本を重ねて見せる。D56）。
   private(set) var missResult: JudgeResult?
@@ -33,7 +35,8 @@ final class WordModel {
     set { recorder.side = newValue }
   }
 
-  init() {
+  init(activity: WritingActivity) {
+    self.activity = activity
     #if DEBUG
       // 確かめ用: `-word いぬ` でそのことばから始める。
       if let text = UserDefaults.standard.string(forKey: "word"),
@@ -95,6 +98,7 @@ final class WordModel {
   }
 
   func handle(_ event: StrokeInputEvent, convert: (CGPoint) -> CGPoint) {
+    activity.track(event)
     guard !wordDone, flow?.finished == false else { return }
     if case .began = event {
       judgeTask?.cancel()

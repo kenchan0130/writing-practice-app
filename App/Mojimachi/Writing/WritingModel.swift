@@ -23,6 +23,8 @@ final class WritingModel {
   private(set) var strokes: [[DrawnPoint]] = []
   /// 入力を、画面に描く線と記録の線に直す。
   private(set) var recorder = StrokeRecorder()
+  /// 書いている間と直後は「←」を効かせない（D101）。
+  let activity: WritingActivity
   var side: Double {
     get { recorder.side }
     set { recorder.side = newValue }
@@ -71,7 +73,8 @@ final class WritingModel {
   static var strokeAnimationDuration: Double { 0.9 * ProgressStore.shared.modelSpeed.factor }
   static let strokeAnimationGap = 0.3
 
-  init() {
+  init(activity: WritingActivity) {
+    self.activity = activity
     loadCharacter()
   }
 
@@ -274,6 +277,7 @@ final class WritingModel {
   }
 
   func handle(_ event: StrokeInputEvent, convert: (CGPoint) -> CGPoint) {
+    activity.track(event)
     guard let step, step != .miru, finishedRating == nil else { return }
     if case .began = event {
       judgeTask?.cancel()

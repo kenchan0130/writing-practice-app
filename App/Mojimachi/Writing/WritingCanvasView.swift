@@ -6,8 +6,12 @@ import SwiftUI
 
 /// 書く画面（M0 前半の試作。D109）。4ステップ（みる・なぞる・うすく・じぶんで）で練習する（§3.2）。
 struct WritingCanvasView: View {
-  @State private var model = WritingModel()
+  @State private var model: WritingModel
   @State private var showsLatency = false
+
+  init(activity: WritingActivity = WritingActivity()) {
+    _model = State(initialValue: WritingModel(activity: activity))
+  }
 
   var body: some View {
     VStack(spacing: 24) {
