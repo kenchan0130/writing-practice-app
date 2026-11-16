@@ -7,8 +7,6 @@ public struct CharacterData: Sendable, Hashable, Codable {
   /// データの版。直したら上げる（D114）。
   public var rev: Int
   public var source: Source?
-  /// 輪郭（`Stroke.outlines`）の座標の大きさ。
-  public var outlineViewBox: Double?
   public var strokes: [Stroke]
   /// 正解の書き順（複数持てる。D66）。先頭がお手本。
   public var orders: [[Int]]
@@ -34,9 +32,15 @@ public struct CharacterData: Sendable, Hashable, Codable {
     /// 各区間は `[c1x, c1y, c2x, c2y, x, y]`。
     public var segments: [[Double]]
     public var end: Ending?
-    /// お手本の表示に使う輪郭（SVG の path。座標は `outlineViewBox` 四方）。
-    /// 自分と交わる画は部品ごとに分かれているので、並びで持つ。
-    public var outlines: [String]?
+    /// お手本の表示に使う輪郭（Klee One の形）。閉じた部分ごとの「始点と3次ベジェの並び」。座標は中心線と同じ。
+    public var outline: [Subpath]?
+  }
+
+  /// 閉じた輪郭の1つ。
+  public struct Subpath: Sendable, Hashable, Codable {
+    public var start: [Double]
+    /// 各区間は `[c1x, c1y, c2x, c2y, x, y]`。
+    public var segments: [[Double]]
   }
 }
 

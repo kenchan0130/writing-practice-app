@@ -1,37 +1,76 @@
+import ContentModel
+import JudgeKit
 import QuartzCore
 import SwiftUI
 
-/// 書く画面（M0 前半の試作。D109）。マスに書くと線が出る。
+/// 書く画面（M0 前半の試作。D109）。お手本を薄く出し、書き終わったら判定する（D107）。
 struct WritingCanvasView: View {
   @State private var model = WritingModel()
   @State private var showsLatency = false
 
   var body: some View {
     VStack(spacing: 24) {
+      header
       GeometryReader { proxy in
         let side = min(proxy.size.width, proxy.size.height)
         canvas
           .frame(width: side, height: side)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .onAppear { model.side = side }
+          .onAppear {
+            model.side = side
+            #if DEBUG
+              if UserDefaults.standard.bool(forKey: "simulateWriting") {
+                model.simulateModelWriting()
+              }
+            #endif
+          }
           .onChange(of: side) { _, newValue in model.side = newValue }
       }
       HStack(spacing: 32) {
         ToolButton(title: "ひとつ もどす", systemImage: "arrow.uturn.backward") { model.undo() }
         ToolButton(title: "ぜんぶ けす", systemImage: "trash") { model.clear() }
+        ToolButton(
+          title: "できた！", systemImage: "checkmark.circle.fill", highlighted: model.highlightsDone
+        ) { model.judgeNow() }
       }
       #if DEBUG
-        Toggle("遅れの目安を表示", isOn: $showsLatency)
+        HStack(spacing: 24) {
+          Picker("判定", selection: $model.preset) {
+            Text("はじめて").tag(JudgePreset.hajimete)
+            Text("なれてきた").tag(JudgePreset.naretekita)
+            Text("しっかり").tag(JudgePreset.shikkari)
+            Text("きっちり").tag(JudgePreset.kicchiri)
+          }
+          .pickerStyle(.segmented)
           .fixedSize()
+          Button("つぎの もじ") { model.nextCharacter() }
+          Toggle("遅れの目安", isOn: $showsLatency).fixedSize()
+        }
       #endif
     }
     .padding(32)
     .defersSystemGestures(on: .all)
   }
 
+  /// 練習している字と、判定の結果。
+  private var header: some View {
+    HStack(spacing: 24) {
+      Text(model.character?.char ?? "")
+        .font(.system(size: 56, weight: .bold))
+      Spacer()
+      if let result = model.result {
+        ResultBadge(result: result)
+      }
+    }
+    .frame(height: 80)
+  }
+
   private var canvas: some View {
     Canvas { context, size in
       drawGuide(in: &context, size: size)
+      if let character = model.character {
+        drawModel(character, in: &context, size: size)
+      }
       for stroke in model.strokes { draw(stroke, in: &context) }
       draw(model.current, in: &context)
       if let last = model.current.last {
@@ -48,6 +87,27 @@ struct WritingCanvasView: View {
     .clipShape(RoundedRectangle(cornerRadius: 12))
     .gesture(StrokeInputGesture { event, convert in model.handle(event, convert: convert) })
     .accessibilityLabel("もじを かく ばしょ")
+  }
+
+  /// お手本の字（Klee One の形の輪郭）を薄く描く（③うすく。D55・D106）。
+  private func drawModel(
+    _ character: CharacterData, in context: inout GraphicsContext, size: CGSize
+  ) {
+    let scale = size.width / 1000
+    var path = Path()
+    for stroke in character.strokes {
+      for sub in stroke.outline ?? [] where sub.start.count == 2 {
+        path.move(to: CGPoint(x: sub.start[0] * scale, y: sub.start[1] * scale))
+        for s in sub.segments where s.count == 6 {
+          path.addCurve(
+            to: CGPoint(x: s[4] * scale, y: s[5] * scale),
+            control1: CGPoint(x: s[0] * scale, y: s[1] * scale),
+            control2: CGPoint(x: s[2] * scale, y: s[3] * scale))
+        }
+        path.closeSubpath()
+      }
+    }
+    context.fill(path, with: .color(.gray.opacity(0.25)))
   }
 
   /// マスと十字の補助線。
@@ -91,6 +151,7 @@ struct WritingCanvasView: View {
 private struct ToolButton: View {
   var title: String
   var systemImage: String
+  var highlighted = false
   var action: () -> Void
 
   var body: some View {
@@ -103,6 +164,54 @@ private struct ToolButton: View {
     }
     .buttonStyle(.bordered)
     .buttonBorderShape(.roundedRectangle(radius: 24))
+    .tint(highlighted ? .orange : .accentColor)
+    .scaleEffect(highlighted ? 1.08 : 1)
+    .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: highlighted)
+  }
+}
+
+/// 判定の結果（試作。ほめる演出は M0 で作り込む）。バツ印は使わない（§3.2）。
+private struct ResultBadge: View {
+  var result: JudgeResult
+
+  var body: some View {
+    VStack(alignment: .trailing, spacing: 4) {
+      Text(title).font(.system(size: 40, weight: .heavy)).foregroundStyle(color)
+      #if DEBUG
+        if !result.issues.isEmpty {
+          Text(result.issues.map(describe).joined(separator: " / "))
+            .font(.caption).foregroundStyle(.secondary)
+        }
+      #endif
+    }
+  }
+
+  private var title: String {
+    switch result.rating {
+    case .hanamaru: "はなまる！"
+    case .nijumaru: "にじゅうまる！"
+    case .maru: "まる！"
+    case nil: "もういちど かいてみよう"
+    }
+  }
+
+  private var color: Color {
+    switch result.rating {
+    case .hanamaru: .pink
+    case .nijumaru: .orange
+    case .maru: .green
+    case nil: .blue
+    }
+  }
+
+  private func describe(_ issue: JudgeIssue) -> String {
+    switch issue {
+    case .strokeCount(let expected, let actual): "画数 \(actual)/\(expected)"
+    case .order(let written, let model): "書き順 \(written + 1)→\(model + 1)"
+    case .direction(let model): "\(model + 1)画目の向き"
+    case .mirrored: "鏡の字"
+    case .shape(let model, let distance): "\(model + 1)画目の形 \(Int(distance))"
+    }
   }
 }
 
