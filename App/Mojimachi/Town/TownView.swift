@@ -4,12 +4,17 @@ import SwiftUI
 /// わたしのまち（試作。D8・D53）。乗り物と動物は動きまわり、服は横木にかかって揺れる（D53）。
 struct TownView: View {
   private let store = ProgressStore.shared
-  @State private var scene = TownScene()
+  @State private var scene: TownScene
+
+  init(layer: TownScene.Layer = .town) {
+    _scene = State(initialValue: TownScene(layer: layer))
+  }
 
   /// まちの看板（「ゆうとの まち」。呼び名がなければ「わたしの まち」。§3.9）。
   private var title: String {
     let name = store.currentProfile?.name.trimmingCharacters(in: .whitespaces) ?? ""
-    return name.isEmpty ? "わたしの まち" : "\(name)の まち"
+    let base = scene.layer == .closet ? "クローゼット" : "まち"
+    return name.isEmpty ? (scene.layer == .closet ? "わたしの クローゼット" : "わたしの まち") : "\(name)の \(base)"
   }
 
   var body: some View {
@@ -21,16 +26,7 @@ struct TownView: View {
           .onAppear {
             scene.size = proxy.size
             #if DEBUG
-              // 確かめ用: `-seedTown YES` で、3つの型を1つずつ（くるま・いぬ・ねこ・うま・ふく・ぼうし）置く。
-              if UserDefaults.standard.bool(forKey: "seedTown"), store.placed.isEmpty {
-                let seeds = ["くるま", "いぬ", "でんしゃ", "ねこ", "ふく", "うま", "ぼうし", "ふね", "ゆかた"]
-                for text in seeds {
-                  guard let item = PlaceholderArt.words.first(where: { $0.entry.text == text })
-                  else { continue }
-                  store.place(
-                    PlacedObject(word: text, symbol: item.symbol, kind: item.entry.kind))
-                }
-              }
+              debugSeedTown(store)
             #endif
             scene.show(store.placed)
           }
@@ -41,22 +37,46 @@ struct TownView: View {
   }
 }
 
+#if DEBUG
+  /// 確かめ用: `-seedTown YES` で、3つの型を1つずつ（くるま・いぬ・ねこ・うま・ふく・ぼうし）置く。
+  @MainActor func debugSeedTown(_ store: ProgressStore) {
+    guard UserDefaults.standard.bool(forKey: "seedTown"), store.placed.isEmpty else { return }
+    let seeds = ["くるま", "いぬ", "でんしゃ", "ねこ", "ふく", "うま", "ぼうし", "ふね", "ゆかた"]
+    for text in seeds {
+      guard let item = PlaceholderArt.words.first(where: { $0.entry.text == text }) else {
+        continue
+      }
+      store.place(PlacedObject(word: text, symbol: item.symbol, kind: item.entry.kind))
+    }
+  }
+#else
+  @MainActor func debugSeedTown(_ store: ProgressStore) {}
+#endif
+
 /// まちの場面（SpriteKit）。空・草・置いた物。乗り物と動物は動きまわり、服は横木にかかる（D53）。
 final class TownScene: SKScene {
+  /// まち（乗り物と動物）か、クローゼット（服）か。
+  enum Layer { case town, closet }
+  let layer: Layer
   private var shown: Set<UUID> = []
   /// 横木にかけた服の数（かけ場所の番号に使う）。
   private var shownClothes = 0
 
-  override init() {
+  init(layer: Layer = .town) {
+    self.layer = layer
     super.init(size: CGSize(width: 1000, height: 700))
     scaleMode = .resizeFill
-    backgroundColor = UIColor(red: 0.78, green: 0.9, blue: 1, alpha: 1)
+    backgroundColor =
+      layer == .closet
+      ? UIColor(red: 1, green: 0.93, blue: 0.84, alpha: 1)
+      : UIColor(red: 0.78, green: 0.9, blue: 1, alpha: 1)
   }
 
   required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
   override func didChangeSize(_ oldSize: CGSize) {
     childNode(withName: "road")?.removeFromParent()
+    guard layer == .town else { return }
     let road = SKShapeNode(rect: CGRect(x: 0, y: 0, width: size.width, height: size.height * 0.3))
     road.fillColor = UIColor(red: 0.55, green: 0.75, blue: 0.45, alpha: 1)
     road.strokeColor = .clear
@@ -66,7 +86,8 @@ final class TownScene: SKScene {
   }
 
   /// 置いた物の一覧に合わせて、足したり消したりする（子どもを切り替えたときなど）。
-  func show(_ placed: [PlacedObject]) {
+  func show(_ all: [PlacedObject]) {
+    let placed = all.filter { ($0.kind == .clothes) == (layer == .closet) }
     let ids = Set(placed.map(\.id))
     for node in children
     where node.name.flatMap(UUID.init(uuidString:)).map({ !ids.contains($0) }) ?? false {

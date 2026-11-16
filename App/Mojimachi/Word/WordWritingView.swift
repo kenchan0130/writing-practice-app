@@ -5,11 +5,20 @@ import SwiftUI
 
 /// ことばを書く画面（試作。D46・D55）。1字ずつ書き、物が下から色づき、書けたら変身する（D43）。
 struct WordWritingView: View {
-  @State private var model = WordModel()
+  @State private var model: WordModel
   @State private var transform: TransformScene?
   @State private var transformFinished = false
   @State private var showsFirstPenPicker = ProgressStore.shared.needsPenColorChoice
-  var onShowTown: () -> Void = {}
+  /// 置いたあとに見せる画面へ行く（服はクローゼット、ほかはまち。D101）。
+  var onShowPlaced: (WordKind) -> Void = { _ in }
+
+  init(
+    activity: WritingActivity = WritingActivity(),
+    onShowPlaced: @escaping (WordKind) -> Void = { _ in }
+  ) {
+    _model = State(initialValue: WordModel(activity: activity))
+    self.onShowPlaced = onShowPlaced
+  }
 
   var body: some View {
     VStack(spacing: 20) {
@@ -160,15 +169,23 @@ struct WordWritingView: View {
 
   /// ことばを選ぶ（乗り物・四つ足・服をまたぐ。大きい絵のボタンを横に並べる）。
   private var wordPicker: some View {
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 12) {
-        ForEach(PlaceholderArt.words, id: \.entry.text) { item in
-          WordPickButton(item: item, selected: item.entry.text == model.word) {
-            model.select(item.entry.text)
+    ScrollViewReader { proxy in
+      ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 12) {
+          ForEach(PlaceholderArt.words, id: \.entry.text) { item in
+            WordPickButton(item: item, selected: item.entry.text == model.word) {
+              model.select(item.entry.text)
+            }
+            .id(item.entry.text)
           }
         }
+        .padding(.horizontal, 4)
       }
-      .padding(.horizontal, 4)
+      // 選んだことばが見えるように、横に送る。
+      .onAppear { proxy.scrollTo(model.word, anchor: .center) }
+      .onChange(of: model.word) { _, word in
+        withAnimation { proxy.scrollTo(word, anchor: .center) }
+      }
     }
     .frame(height: 112)
   }
@@ -177,13 +194,16 @@ struct WordWritingView: View {
     HStack(spacing: 32) {
       if model.wordDone {
         if transformFinished {
-          WordButton(title: "まちに おく", systemImage: "house.fill") {
+          WordButton(
+            title: model.kind == .clothes ? "クローゼットを みる" : "まちを みる",
+            systemImage: model.kind == .clothes ? "hanger" : "house.fill"
+          ) {
+            let kind = model.kind
             model.placeInTown()
-            onShowTown()
-            model.nextWord()
+            onShowPlaced(kind)
           }
         }
-        WordButton(title: "つぎの ことば", systemImage: "arrow.right.circle.fill") {
+        WordButton(title: "もういっこ", systemImage: "arrow.right.circle.fill") {
           model.nextWord()
         }
       } else if model.mode == .jibunde {
