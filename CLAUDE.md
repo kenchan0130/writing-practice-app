@@ -11,7 +11,7 @@
 
 - `make test`: 画面や端末に頼らない部品（`Packages/`）のテスト。**プルリクエストの前に必ず通す**（D129・D130）。
 - `make build` / `make lint` / `make format`
-- `make app-test`: アプリの購入の流れを、iPad のシミュレータと StoreKit の試し用の設定（`App/Mojimachi.storekit`）で確かめる（Mac だけ。CI では動かさない）。
+- `make app-test`: アプリの購入の流れと、押して画面を行き来する流れ（XCUITest。`App/MojimachiUITests`）を、iPad のシミュレータで確かめる。StoreKit の試し用の設定は `App/Mojimachi.storekit`（Mac だけ。CI では動かさない。約2分）。
 - `make content-check`: 文字のデータを確かめる（画数が教科書と合うか など）。
 - `make judge-report`: 判定の部品ができたら実装する。
 - KanjiVG との照らし合わせ: `python3 -I Scripts/compare_kanjivg.py <KanjiVG の kanji フォルダ> Content/Packs/hira Content/Packs/hira/kanjivg-check.md`（カタカナは `kata`。データを作り直したら必ず動かす）

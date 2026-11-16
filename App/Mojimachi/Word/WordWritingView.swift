@@ -81,6 +81,9 @@ struct WordWritingView: View {
             .background(current ? Color.yellow.opacity(0.3) : .clear, in: .rect(cornerRadius: 10))
         }
       }
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(model.word)
+      .accessibilityIdentifier("wordHeader")
       Spacer()
       ColoringSilhouette(
         symbol: model.symbol, progress: model.progress, color: Color(uiColor: model.artColor)
