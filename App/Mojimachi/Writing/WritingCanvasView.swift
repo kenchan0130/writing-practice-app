@@ -8,8 +8,6 @@ import SwiftUI
 struct WritingCanvasView: View {
   @State private var model = WritingModel()
   @State private var showsLatency = false
-  /// ペンの色。画面の再描画のきっかけになるよう、ここで読む。
-  private var ink: Color { ProgressStore.shared.penColor.color }
 
   var body: some View {
     VStack(spacing: 24) {
@@ -111,11 +109,10 @@ struct WritingCanvasView: View {
 
   /// 子どもが書いた線。
   private func drawWriting(in context: inout GraphicsContext, size: CGSize) {
-    let color = ink
-    for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context, color: color) }
-    CanvasDrawing.ink(model.recorder.current, in: &context, color: color)
+    for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context) }
+    CanvasDrawing.ink(model.recorder.current, in: &context)
     if let last = model.recorder.current.last {
-      CanvasDrawing.ink([last] + model.recorder.predicted, in: &context, color: color, opacity: 0.5)
+      CanvasDrawing.ink([last] + model.recorder.predicted, in: &context, opacity: 0.5)
     }
     if showsLatency, model.recorder.lastInputTime > 0 {
       let delay = (CACurrentMediaTime() - model.recorder.lastInputTime) * 1000

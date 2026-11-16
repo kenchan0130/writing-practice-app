@@ -11,6 +11,8 @@ import StrokeKit
 struct DrawnPoint {
   var location: CGPoint
   var width: Double
+  /// 書いたときのペンの色。あとで色を変えても、この線は変わらない（D88）。
+  var color: PenColor = ProgressStore.shared.penColor
 }
 
 /// 書く画面の仮のモデル（M0 前半）。4ステップの流れは PracticeKit に任せる（D105）。

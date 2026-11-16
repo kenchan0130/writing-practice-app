@@ -10,8 +10,6 @@ struct WordWritingView: View {
   @State private var transformFinished = false
   @State private var showsFirstPenPicker = ProgressStore.shared.needsPenColorChoice
   var onShowTown: () -> Void = {}
-  /// ペンの色。画面の再描画のきっかけになるよう、ここで読む。
-  private var ink: Color { ProgressStore.shared.penColor.color }
 
   var body: some View {
     VStack(spacing: 20) {
@@ -107,9 +105,8 @@ struct WordWritingView: View {
               pulse: pulse)
           }
         }
-        let color = ink
-        for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context, color: color) }
-        CanvasDrawing.ink(model.recorder.current, in: &context, color: color)
+        for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context) }
+        CanvasDrawing.ink(model.recorder.current, in: &context)
       }
     }
     .background(Color(red: 0.98, green: 0.96, blue: 0.92))
@@ -135,6 +132,7 @@ struct WordWritingView: View {
     let originX = (size.width - cell * CGFloat(count)) / 2
     let side = CGFloat(max(model.side, 1))
     var lines: [[CGPoint]] = []
+    var colors: [UIColor] = []
     for (index, strokes) in model.writtenCharacters.enumerated() {
       let left: CGFloat = originX + CGFloat(index) * cell
       let top: CGFloat = size.height * 0.05
@@ -145,13 +143,13 @@ struct WordWritingView: View {
           return CGPoint(x: x, y: y)
         }
         lines.append(points)
+        colors.append((stroke.first?.color ?? .default).uiColor)
       }
     }
     let image = PlaceholderArt.image(
       symbol: model.symbol, size: 600, color: UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1))
     let scene = TransformScene(
-      size: size, lines: lines, objectImage: image,
-      inkColor: ProgressStore.shared.penColor.uiColor)
+      size: size, lines: lines, colors: colors, objectImage: image)
     scene.onFinished = { transformFinished = true }
     DispatchQueue.main.async { transform = scene }
     return scene

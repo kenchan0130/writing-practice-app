@@ -6,14 +6,14 @@ import UIKit
 final class TransformScene: SKScene {
   private let lines: [[CGPoint]]
   private let objectImage: UIImage
-  private let inkColor: UIColor
+  private let colors: [UIColor]
   var onFinished: (() -> Void)?
 
-  /// - Parameter lines: 子どもが書いた線（このシーンの座標。左上が原点）。
-  init(size: CGSize, lines: [[CGPoint]], objectImage: UIImage, inkColor: UIColor) {
+  /// - Parameter lines: 子どもが書いた線（このシーンの座標。左上が原点）。`colors` は線ごとの書いたときの色（D88）。
+  init(size: CGSize, lines: [[CGPoint]], colors: [UIColor], objectImage: UIImage) {
     self.lines = lines
     self.objectImage = objectImage
-    self.inkColor = inkColor
+    self.colors = colors
     super.init(size: size)
     backgroundColor = .clear
     scaleMode = .resizeFill
@@ -39,10 +39,10 @@ final class TransformScene: SKScene {
     let texture = dotTexture()
     for (i, source) in sources.enumerated() {
       let dot = SKSpriteNode(texture: texture)
-      dot.color = inkColor
+      dot.color = source.color
       dot.colorBlendFactor = 1
       dot.setScale(0.6)
-      dot.position = sceneTop(source)
+      dot.position = sceneTop(source.point)
       addChild(dot)
       let target = targets.isEmpty ? dot.position : targets[i % targets.count]
       // 浮き上がって、くるくる回りながら物の形に集まる（D43）。
@@ -90,9 +90,13 @@ final class TransformScene: SKScene {
   }
 
   /// 子どもの線から、粒の出発点を同じ間かくで取る。
-  private func sampledInk(count: Int) -> [CGPoint] {
-    let all = lines.flatMap { $0 }
-    guard !all.isEmpty else { return [CGPoint(x: size.width / 2, y: size.height / 2)] }
+  private func sampledInk(count: Int) -> [(point: CGPoint, color: UIColor)] {
+    let all = lines.enumerated().flatMap { index, line in
+      line.map { (point: $0, color: colors.indices.contains(index) ? colors[index] : .black) }
+    }
+    guard !all.isEmpty else {
+      return [(CGPoint(x: size.width / 2, y: size.height / 2), UIColor.black)]
+    }
     let stride = max(Double(all.count) / Double(count), 1)
     return (0..<min(count, all.count)).map { all[Int(Double($0) * stride) % all.count] }
   }
