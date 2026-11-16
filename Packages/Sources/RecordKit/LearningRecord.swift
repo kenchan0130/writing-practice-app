@@ -127,6 +127,15 @@ public struct PeriodSummary: Sendable, Hashable {
   public var days: Int
 }
 
+/// スタンプカードの1日。
+public struct StampDay: Sendable, Hashable {
+  /// その日の 0 時。
+  public var date: Date
+  /// 練習してスタンプが押された日。
+  public var stamped: Bool
+  public var isToday: Bool
+}
+
 /// 学習記録。子ども1人ぶん。
 public struct LearningLog: Sendable, Hashable, Codable {
   public var characters: [CharacterRecord]
@@ -193,6 +202,26 @@ public struct LearningLog: Sendable, Hashable, Codable {
       return today(now: now, calendar: calendar)
     }
     return summary(in: week, calendar: calendar)
+  }
+
+  /// `interval` の間の、練習した日（その日の 0 時）。スタンプカードと同じもの（§3.8）。
+  public func practiceDays(in interval: DateInterval, calendar: Calendar) -> Set<Date> {
+    let dates =
+      currentCharacters.map(\.date) + currentWords.map(\.date)
+    return Set(dates.filter { interval.contains($0) }.map { calendar.startOfDay(for: $0) })
+  }
+
+  /// こんしゅうの7日（週の始まりから）と、練習した日の印。休んだ日があっても途切れとは見せない（D17）。
+  public func stampWeek(now: Date, calendar: Calendar) -> [StampDay] {
+    let start =
+      calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? calendar.startOfDay(for: now)
+    let end = calendar.date(byAdding: .day, value: 7, to: start) ?? now
+    let days = practiceDays(in: DateInterval(start: start, end: end), calendar: calendar)
+    let today = calendar.startOfDay(for: now)
+    return (0..<7).compactMap { offset in
+      guard let day = calendar.date(byAdding: .day, value: offset, to: start) else { return nil }
+      return StampDay(date: day, stamped: days.contains(day), isToday: day == today)
+    }
   }
 
   // MARK: - もじの地図

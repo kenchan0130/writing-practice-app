@@ -4,6 +4,24 @@
 
   /// 確かめ用の学習記録（`-openRecords YES`）。お手本の線を少しずらして、書いた線の代わりにする。
   enum DebugSeed {
+    /// きょうの字を `count` 字と、きのうの1字を足す（ホームの確かめ用。`-seedRecords N`）。
+    static func today(count: Int) {
+      let store = ProgressStore.shared
+      let now = Date()
+      let chars = Array("あいうえおかきくけこ")
+      for (i, char) in chars.prefix(count).enumerated() {
+        store.record(
+          CharacterRecord(
+            date: now.addingTimeInterval(Double(i)),
+            characterID: "hira.\(String(char.unicodeScalars.first!.value, radix: 16))",
+            stage: .nazoru, passed: true))
+      }
+      store.record(
+        CharacterRecord(
+          date: now.addingTimeInterval(-86_400), characterID: "hira.3055", stage: .nazoru,
+          passed: true))
+    }
+
     static func records() {
       let store = ProgressStore.shared
       guard store.log.characters.isEmpty else { return }

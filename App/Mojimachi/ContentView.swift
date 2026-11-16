@@ -1,5 +1,6 @@
 import ContentModel
 import ParentGateKit
+import RecordKit
 import SwiftUI
 
 /// 仮のホームと、画面の行き来（D101）。ホームのボタン3つから入り、「←」でホームへ戻る。
@@ -81,6 +82,9 @@ struct ContentView: View {
     #if DEBUG
       .onAppear {
         if UserDefaults.standard.bool(forKey: "showGate") { showsGate = true }
+        // 確かめ用: `-seedRecords 3` できょうの字を3つ入れる。
+        let seeded = UserDefaults.standard.integer(forKey: "seedRecords")
+        if seeded > 0 { DebugSeed.today(count: seeded) }
         if UserDefaults.standard.string(forKey: "openParent") != nil {
           DebugSeed.records()
           showsParentArea = true
@@ -134,6 +138,15 @@ struct ContentView: View {
       .padding(.horizontal, 32)
       .padding(.top, 12)
       Spacer()
+      HStack(alignment: .top, spacing: 32) {
+        HomeCharacter(reachedGoal: goalReached)
+        VStack(spacing: 20) {
+          TodayGoalCard(goal: goal, done: todayCount)
+          StampCard(days: store.log.stampWeek(now: Date(), calendar: .current))
+        }
+      }
+      .padding(.horizontal, 32)
+      Spacer()
       HStack(spacing: 40) {
         HomeButton(title: "もじ", systemImage: "character.book.closed.fill", color: .orange) {
           screen = .letter
@@ -149,6 +162,14 @@ struct ContentView: View {
       Spacer()
     }
   }
+
+  /// きょうの もくひょう（D17）。いまの子の字の数。
+  private var goal: Int { store.currentProfile?.dailyGoal ?? 5 }
+  /// きょう練習した字の数（同じ字は1つ。§3.8）。
+  private var todayCount: Int {
+    store.log.today(now: Date(), calendar: .current).characters
+  }
+  private var goalReached: Bool { todayCount >= goal }
 
   private func openParentArea() {
     if gate.isOpen(at: Date().timeIntervalSince1970) {
@@ -173,11 +194,96 @@ private struct HomeButton: View {
         Text(title).font(.system(size: 36, weight: .bold))
       }
       .foregroundStyle(.white)
-      .frame(maxWidth: 280, minHeight: 240)
+      .frame(maxWidth: 280, minHeight: 200)
       .frame(maxWidth: .infinity)
       .background(color.gradient, in: .rect(cornerRadius: 36))
     }
     .buttonStyle(.plain)
+  }
+}
+
+/// ホームのキャラクター。絵はまだ仮（SF Symbol）。キャラクター3人は D134 の Rive で作る。
+private struct HomeCharacter: View {
+  var reachedGoal: Bool
+
+  var body: some View {
+    VStack(spacing: 12) {
+      Text(reachedGoal ? "すごい！\nできたね！" : "こんにちは！\nいっしょに かこう")
+        .font(.system(size: 28, weight: .bold))
+        .multilineTextAlignment(.center)
+        .padding(20)
+        .background(.white, in: .rect(cornerRadius: 28))
+        .overlay(alignment: .bottom) {
+          Image(systemName: "arrowtriangle.down.fill")
+            .foregroundStyle(.white)
+            .offset(y: 14)
+        }
+        .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
+      Image(systemName: reachedGoal ? "party.popper.fill" : "pawprint.fill")
+        .font(.system(size: 96))
+        .foregroundStyle(.white)
+        .frame(width: 180, height: 180)
+        .background(Color.pink.gradient, in: .circle)
+        .padding(.top, 12)
+    }
+    .frame(width: 300)
+    .accessibilityElement(children: .combine)
+  }
+}
+
+/// きょうの もくひょう: 星の数が目標、光った星が書けた字。ことばは短く、数字は使わない（D17）。
+private struct TodayGoalCard: View {
+  var goal: Int
+  var done: Int
+
+  var body: some View {
+    VStack(spacing: 12) {
+      Text("きょうの もくひょう").font(.system(size: 28, weight: .bold))
+      HStack(spacing: 8) {
+        ForEach(0..<goal, id: \.self) { index in
+          Image(systemName: index < done ? "star.fill" : "star")
+            .font(.system(size: goal > 5 ? 36 : 48))
+            .foregroundStyle(index < done ? Color.yellow : Color.gray.opacity(0.5))
+        }
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .padding(20)
+    .background(Color.yellow.opacity(0.15), in: .rect(cornerRadius: 28))
+    .accessibilityElement(children: .combine)
+  }
+}
+
+/// スタンプカード: こんしゅうの7日。練習した日にスタンプ。休んだ日は空のまま（D17）。
+private struct StampCard: View {
+  var days: [StampDay]
+
+  private static let names = ["にち", "げつ", "か", "すい", "もく", "きん", "ど"]
+
+  var body: some View {
+    VStack(spacing: 12) {
+      Text("スタンプカード").font(.system(size: 28, weight: .bold))
+      HStack(spacing: 6) {
+        ForEach(days, id: \.date) { day in
+          VStack(spacing: 6) {
+            Text(Self.names[Calendar.current.component(.weekday, from: day.date) - 1])
+              .font(.system(size: 18, weight: .bold))
+              .foregroundStyle(.secondary)
+            Image(systemName: day.stamped ? "heart.circle.fill" : "circle.dashed")
+              .font(.system(size: 40))
+              .foregroundStyle(day.stamped ? Color.pink : Color.gray.opacity(0.4))
+              .padding(3)
+              .background {
+                if day.isToday { Circle().stroke(Color.orange, lineWidth: 4) }
+              }
+          }
+        }
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .padding(20)
+    .background(Color.pink.opacity(0.1), in: .rect(cornerRadius: 28))
+    .accessibilityElement(children: .combine)
   }
 }
 

@@ -42,6 +42,28 @@ struct LearningRecordTests {
     #expect(week == PeriodSummary(characters: 2, words: 1, days: 2))
   }
 
+  @Test("スタンプカード: 今週の7日に、練習した日だけ印が付く（字でもことばでも）")
+  func stampWeek() {
+    var log = LearningLog()
+    log.append(
+      CharacterRecord(
+        date: Self.date(day: -1, hour: 8), characterID: "hira.3042", stage: .nazoru, passed: true))
+    log.append(WordRecord(date: Self.date(day: 1, hour: 23), word: "くるま"))
+    // 先週の日曜は入らない。
+    log.append(
+      CharacterRecord(
+        date: Self.date(day: -2), characterID: "hira.3044", stage: .nazoru, passed: true))
+    let week = log.stampWeek(now: Self.date(hour: 20), calendar: Self.calendar)
+    #expect(week.count == 7)
+    // 月曜（11/16）から日曜（11/22）。
+    #expect(week.map(\.stamped) == [true, false, true, false, false, false, false])
+    #expect(week.map(\.isToday) == [false, true, false, false, false, false, false])
+    #expect(week[0].date == Self.calendar.startOfDay(for: Self.date(day: -1)))
+    let days = log.practiceDays(
+      in: DateInterval(start: Self.date(day: -3), end: Self.date(day: 3)), calendar: Self.calendar)
+    #expect(days.count == 3)
+  }
+
   @Test("もじの地図: まだ → れんしゅうちゅう → なぞって かけた → 何も見ないで かけた")
   func mapStates() {
     var log = LearningLog()

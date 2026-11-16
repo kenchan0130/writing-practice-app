@@ -152,7 +152,9 @@ final class TransformScene: SKScene {
       .rotate(toAngle: 0.12, duration: 0.8), .rotate(toAngle: -0.06, duration: 0.7),
       .rotate(toAngle: 0, duration: 0.5),
     ])
-    sprite.run(swing) { [weak self] in self?.onFinished?() }
+    // 揺れは続けるが、ボタンは3秒ほどで出す。
+    sprite.run(.repeatForever(swing))
+    run(.wait(forDuration: 3)) { [weak self] in self?.onFinished?() }
   }
 
   /// 子どもの線から、粒の出発点を同じ間かくで取る。
