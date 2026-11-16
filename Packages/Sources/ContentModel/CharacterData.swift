@@ -12,6 +12,8 @@ public struct CharacterData: Sendable, Hashable, Codable {
   public var strokes: [Stroke]
   /// 正解の書き順（複数持てる。D66）。先頭がお手本。
   public var orders: [[Int]]
+  /// 鏡に映した字を見るか（左右対称に近い字は false。D107）。nil は見る。
+  public var mirrorCheck: Bool?
 
   public struct Source: Sendable, Hashable, Codable {
     public var name: String
