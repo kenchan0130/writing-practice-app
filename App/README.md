@@ -9,4 +9,6 @@
 - `Mojimachi/` はフォルダの同期（ファイルを足しても `project.pbxproj` は変わらない）
 - `../Packages` をローカルのパッケージとして参照する
 
+- バージョンは `Config/Version.xcconfig`（手元は 0.0.0）。リリースのビルドでは Xcode Cloud がタグから書き換え、ビルド番号は Xcode Cloud が付ける（`ci_scripts/ci_pre_xcodebuild.sh`。D142）
+
 ビルド: `make app-build`（iPad のシミュレータ向け、署名なし）

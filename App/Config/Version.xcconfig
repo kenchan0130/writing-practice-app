@@ -1,0 +1,4 @@
+// アプリのバージョン（D142）。
+// リリースのビルドでは、Xcode Cloud がタグ（v1.2.3）から書き換える（ci_scripts/ci_pre_xcodebuild.sh）。
+// 手元のビルドは 0.0.0 のまま。ビルド番号は Xcode Cloud が付ける。
+MARKETING_VERSION = 0.0.0

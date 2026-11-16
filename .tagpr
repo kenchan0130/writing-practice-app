@@ -1,6 +1,7 @@
 [tagpr]
   vPrefix = true
   releaseBranch = main
-  versionFile = version
+  # バージョンはタグだけに持つ。アプリのバージョンはリリースのビルドでタグから作る（D142）。
+  versionFile = -
   changelog = true
   release = draft
