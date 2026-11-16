@@ -1,4 +1,5 @@
-# ライブラリの更新の提案（D147）。ライブラリは原則最新の版を使うので、待たずに提案させる。
+# ライブラリの更新の提案（D147）。足すときは最新の版を使い、更新は公開から7日待って提案させる
+# （乗っ取られた版をすぐ入れないため。脆弱性の修正は待たない）。
 # 変更内容を読み、テストを通してから人が入れる（自動では入れない）。
 version: 2
 updates:
@@ -8,11 +9,11 @@ updates:
     schedule:
       interval: daily
     cooldown:
-      default-days: 0
+      default-days: 7
   # GitHub Actions（コミットの SHA で固定した `uses:`）。
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: daily
     cooldown:
-      default-days: 0
+      default-days: 7
