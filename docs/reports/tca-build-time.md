@@ -28,6 +28,6 @@ D105 の「M0 で測る」の最初の測定。TCA 1.26.2（2026-08-28 公開。
 
 ## 注意
 
-- マクロは信頼の確認が要る。コマンドでは `-skipMacroValidation`（`Makefile` に入れた）。Xcode Cloud で省く方法はまだ入れていない。
-- 【人の確認待ち】CLAUDE.md の決まりどおり、パッケージの URL を人が開いて、本物か確かめる: https://github.com/pointfreeco/swift-composable-architecture
+- マクロは信頼の確認が要る。コマンドでは `-skipMacroValidation`（`Makefile`）、Xcode Cloud では `App/ci_scripts/ci_post_clone.sh` で確認を飛ばす（2026-11-17 ユーザーの判断）。
+- パッケージの URL は、2026-11-17 にユーザーが開いて本物と確かめた: https://github.com/pointfreeco/swift-composable-architecture
 - 版・ライセンス・通信の確認は `docs/dependencies.md`。
