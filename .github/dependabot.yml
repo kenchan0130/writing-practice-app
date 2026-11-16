@@ -1,0 +1,18 @@
+# ライブラリの更新の提案（D147）。ライブラリは原則最新の版を使うので、待たずに提案させる。
+# 変更内容を読み、テストを通してから人が入れる（自動では入れない）。
+version: 2
+updates:
+  # アプリの Swift のライブラリ（Xcode のプロジェクトの Package.resolved）。
+  - package-ecosystem: swift
+    directory: /App
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 0
+  # GitHub Actions（コミットの SHA で固定した `uses:`）。
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    cooldown:
+      default-days: 0
