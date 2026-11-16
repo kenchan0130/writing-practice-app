@@ -9,12 +9,16 @@ let package = Package(
     .macOS(.v26),
   ],
   products: [
-    .library(name: "StrokeKit", targets: ["StrokeKit"])
+    .library(name: "StrokeKit", targets: ["StrokeKit"]),
+    .library(name: "ContentModel", targets: ["ContentModel"]),
   ],
   targets: [
     // 線の記録の形（D106）。判定・書く画面・作成の道具・テストのセットで共通に使う。
     .target(name: "StrokeKit"),
     .testTarget(name: "StrokeKitTests", dependencies: ["StrokeKit"]),
+    // 文字とことばのデータの形と、その決まりの確かめ（D106・D114）。
+    .target(name: "ContentModel"),
+    .testTarget(name: "ContentModelTests", dependencies: ["ContentModel"]),
   ],
   swiftLanguageModes: [.v6]
 )

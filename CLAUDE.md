@@ -11,7 +11,9 @@
 
 - `make test`: 画面や端末に頼らない部品（`Packages/`）のテスト。**プルリクエストの前に必ず通す**（D129・D130）。
 - `make build` / `make lint` / `make format`
-- `make judge-report`・`make content-check`: 判定の部品と文字・ことばのデータができたら実装する。
+- `make content-check`: 文字のデータを確かめる（画数が教科書と合うか など）。
+- `make judge-report`: 判定の部品ができたら実装する。
+- 文字のデータの作り直し: `python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> Content/Packs/hira <コミット>`
 
 ## 作り（D104・D105・D109）
 

@@ -41,6 +41,12 @@
 - アプリ（A）: TCA、swift-dependencies、swift-sharing、swift-clocks、swift-collections、swift-async-algorithms、swift-numerics、swift-algorithms、Sentry（D103）
 - M0 で試す: BezierKit（D106）
 
+## データの出どころ（ライブラリではないが、アプリに入るもの）
+
+| 名前 | 版 | ライセンス | 用途 | 置き場 |
+|---|---|---|---|---|
+| strokesvg | `e4c2c91` | かなは OFL 1.1（Klee One から作られたもの）、それ以外は MIT | ひらがなの書き順と字の形（D128） | `Content/Packs/hira`（`LICENSE`・`NOTICE.md`） |
+
 ## 使わないもの
 
 - Firebase、RevenueCat など、通信やデータ送信をするもの（Sentry はクラッシュの情報だけ）。
