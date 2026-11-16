@@ -38,6 +38,16 @@
                ReferencedContainer = "container:Mojimachi.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "A10000000000000000000070"
+               BuildableName = "MojimachiUITests.xctest"
+               BlueprintName = "MojimachiUITests"
+               ReferencedContainer = "container:Mojimachi.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
