@@ -13,30 +13,36 @@ public enum JudgePreset: String, Sendable, CaseIterable, Codable {
 public struct JudgeConfig: Sendable, Hashable, Codable {
   /// 1画の形の違い（点どうしの平均の距離。マス 0〜1000）がこれ以下なら合格。
   public var shapeTolerance: Double
+  /// 1画の中でいちばん離れた点の距離がこれ以下なら合格（ゆがみ・途中で止めた画を見つける）。
+  public var maxDeviation: Double
   /// 書き順を見るか（D22）。
   public var checksOrder: Bool
   /// 向きを見るか（D22）。
   public var checksDirection: Bool
   /// 鏡の字を見るか（D22）。
   public var checksMirror: Bool
+  /// 1画を分けて書いた線・2画をつなげた線を合格にするか（D56・D84）。
+  public var allowsSplitAndJoin: Bool
 
   public init(
-    shapeTolerance: Double, checksOrder: Bool = true, checksDirection: Bool = true,
-    checksMirror: Bool = true
+    shapeTolerance: Double, maxDeviation: Double? = nil, checksOrder: Bool = true,
+    checksDirection: Bool = true, checksMirror: Bool = true, allowsSplitAndJoin: Bool = true
   ) {
     self.shapeTolerance = shapeTolerance
+    self.maxDeviation = maxDeviation ?? shapeTolerance * 1.7
     self.checksOrder = checksOrder
     self.checksDirection = checksDirection
     self.checksMirror = checksMirror
+    self.allowsSplitAndJoin = allowsSplitAndJoin
   }
 
-  /// 仮の値。M0 で合わせる。
+  /// わざと崩した線（`make judge-report`）で合わせた仮の値。M0 で正解の付いた線（D79・D120）で合わせ直す。
   public static func preset(_ preset: JudgePreset) -> JudgeConfig {
     switch preset {
-    case .hajimete: JudgeConfig(shapeTolerance: 150)
-    case .naretekita: JudgeConfig(shapeTolerance: 120)
-    case .shikkari: JudgeConfig(shapeTolerance: 95)
-    case .kicchiri: JudgeConfig(shapeTolerance: 75)
+    case .hajimete: JudgeConfig(shapeTolerance: 70, maxDeviation: 125)
+    case .naretekita: JudgeConfig(shapeTolerance: 55, maxDeviation: 105)
+    case .shikkari: JudgeConfig(shapeTolerance: 45, maxDeviation: 90, allowsSplitAndJoin: false)
+    case .kicchiri: JudgeConfig(shapeTolerance: 35, maxDeviation: 75, allowsSplitAndJoin: false)
     }
   }
 
@@ -68,6 +74,8 @@ public enum JudgeIssue: Sendable, Hashable, Codable {
   case direction(model: Int)
   case mirrored
   case shape(model: Int, distance: Double)
+  /// 画の一部が大きく離れている（ゆがみ・途中で止めた画など）。
+  case deviation(model: Int, distance: Double)
 }
 
 public struct JudgeResult: Sendable, Hashable {
@@ -76,11 +84,24 @@ public struct JudgeResult: Sendable, Hashable {
   public var issues: [JudgeIssue]
   /// 画ごとの形の違い（お手本の画の順）。
   public var shapeDistances: [Double]
+  /// 画ごとのいちばん離れた点の距離（お手本の画の順）。
+  public var maxDistances: [Double] = []
+  /// 1画を分けて書いた線、または2画をつなげた線として読みとったか（D77）。
+  public var splitOrJoined = false
+}
+
+/// ②③の1画ずつの判定の結果（D47）。
+public enum StrokeCheck: Sendable, Hashable {
+  case ok
+  /// 書くべき画ではない画を書いた（書き順のまちがい）。
+  case wrongStroke
+  case direction
+  case shape
 }
 
 /// 判定（D107）。画面や端末に頼らない（D104）。
 public struct Judge: Sendable {
-  public var character: CharacterData
+  public let character: CharacterData
   private let model: [Polyline]
 
   public init(character: CharacterData) {
@@ -88,23 +109,111 @@ public struct Judge: Sendable {
     self.model = character.strokes.map { Geometry.resample(Geometry.polyline(of: $0)) }
   }
 
+  /// 2本の線の形の違い（いちばん離れた点の距離）。確かめ用の道具で、崩し方の大きさを測るのに使う。
+  public static func deviation(_ a: Polyline, _ b: Polyline) -> Double {
+    Geometry.shapeDifference(Geometry.resample(a), Geometry.resample(b)).max
+  }
+
   /// ④じぶんで の判定。字全体の位置と大きさをお手本に合わせてから比べる。
   public func judge(written: [Polyline], preset: JudgePreset) -> JudgeResult {
     let config = JudgeConfig.preset(preset)
     let resampled = written.map { Geometry.resample($0) }
-    let aligned = Geometry.align(resampled, to: model)
+    var aligned = Geometry.align(resampled, to: model)
+    var splitOrJoined = false
+    if aligned.count != model.count, let regrouped = regroup(aligned) {
+      // 分けた線・つなげた線を、お手本の画数にまとめ直して読みとる（D77）。
+      // まとめ直しても形が合わなければ、画数がちがうものとして扱う。
+      let trial = evaluate(regrouped, config: config)
+      let shapeOK = !trial.issues.contains {
+        switch $0 {
+        case .shape, .deviation: true
+        default: false
+        }
+      }
+      if shapeOK {
+        aligned = regrouped
+        splitOrJoined = true
+      }
+    }
     var result = evaluate(aligned, config: config)
+    result.splitOrJoined = splitOrJoined
+    if splitOrJoined, !config.allowsSplitAndJoin {
+      result.issues.insert(
+        .strokeCount(expected: model.count, actual: written.count), at: 0)
+      result.passed = false
+    }
     guard result.passed else { return result }
-    let stricter = evaluate(aligned, config: .stricter(than: preset))
+    var stricterConfig = JudgeConfig.stricter(than: preset)
+    stricterConfig.allowsSplitAndJoin = true
+    let stricter = evaluate(aligned, config: stricterConfig)
     let maxDistance = result.shapeDistances.max() ?? 0
-    if stricter.passed, preset != .kicchiri || maxDistance <= config.shapeTolerance * 0.6 {
+    let maxDeviation = result.maxDistances.max() ?? 0
+    let roomy =
+      maxDistance <= config.shapeTolerance * 0.7 && maxDeviation <= config.maxDeviation * 0.7
+    let topTier =
+      maxDistance <= config.shapeTolerance * 0.6 && maxDeviation <= config.maxDeviation * 0.6
+    if stricter.passed, preset != .kicchiri || topTier {
       result.rating = .hanamaru
-    } else if maxDistance <= config.shapeTolerance * 0.7 {
+    } else if roomy {
       result.rating = .nijumaru
     } else {
       result.rating = .maru
     }
     return result
+  }
+
+  /// ④じぶんで の書き終わりの合図（D77）。1画書き終えるたびに呼ぶ。
+  public enum EndSignal: Sendable, Equatable {
+    /// お手本のすべての画に線が当てはまった。1秒止まったら自動で判定する。
+    case judgeAfterPause
+    /// 当てはまらない画が残っている。3秒止まったら「できた！」を光らせる。
+    case highlightAfterPause
+    /// 書いた画がお手本より3つ以上多い。すぐに「できた！」を光らせる。
+    case highlightNow
+  }
+
+  /// 書いた線がお手本のすべての画に当てはまるかを見て、書き終わりの合図を決める（D77）。
+  /// 分けた線・つなげた線も、まとめ直して形が合えば当てはまったとみなす。
+  public func endSignal(for written: [Polyline]) -> EndSignal {
+    guard !written.isEmpty else { return .highlightAfterPause }
+    if written.count >= model.count + 3 { return .highlightNow }
+    let aligned = Geometry.align(written.map { Geometry.resample($0) }, to: model)
+    let lines = aligned.count == model.count ? aligned : regroup(aligned)
+    guard let lines else { return .highlightAfterPause }
+    // 当てはまったかどうかは、いちばんやさしい設定の形の基準で見る（判定そのものは別）。
+    let trial = evaluate(lines, config: JudgeConfig.preset(.hajimete))
+    let shapeOK = !trial.issues.contains {
+      switch $0 {
+      case .shape, .deviation: true
+      default: false
+      }
+    }
+    // 画数どおりに書いたときは、形が合わなくても判定に進める（結果で伝える）。
+    return shapeOK || aligned.count == model.count ? .judgeAfterPause : .highlightAfterPause
+  }
+
+  /// ②なぞる・③うすく の1画ずつの判定（D47）。マスの中の位置で比べる（字全体を合わせない）。
+  public func judgeStroke(_ written: Polyline, expected index: Int, preset: JudgePreset)
+    -> StrokeCheck
+  {
+    guard model.indices.contains(index), written.count > 1 else { return .wrongStroke }
+    let line = Geometry.resample(written)
+    let config = JudgeConfig.preset(preset)
+    // なぞる・うすく はお手本の上をたどるので、形の違いは ④ より広めに許す。
+    let tolerance = config.shapeTolerance * 1.4
+    let deviationLimit = config.maxDeviation * 1.4
+    let ends = Geometry.endpointDifference(line, model[index])
+    let shape = Geometry.shapeDifference(line, model[index])
+    if shape.mean > tolerance || shape.max > deviationLimit {
+      // 別の画に近ければ「ちがう画」、どれにも近くなければ「形」。
+      let other = model.indices.filter { $0 != index }.contains {
+        let d = Geometry.shapeDifference(line, model[$0])
+        return d.mean <= tolerance && d.max <= deviationLimit
+      }
+      return other ? .wrongStroke : .shape
+    }
+    if config.checksDirection, ends.backward < ends.forward * 0.6 { return .direction }
+    return .ok
   }
 
   func evaluate(_ written: [Polyline], config: JudgeConfig) -> JudgeResult {
@@ -126,27 +235,117 @@ public struct Judge: Sendable {
     // 書き順を気にせず、いちばん合う当て方を探す（D107 ③④）。
     let assignment = bestAssignment(written)
     var distances = Array(repeating: 0.0, count: model.count)
+    var maxDistances = Array(repeating: 0.0, count: model.count)
     for (w, m) in assignment.enumerated() {
       if config.checksOrder, w != m { issues.append(.order(written: w, model: m)) }
-      let forward = Geometry.meanDistance(written[w], model[m])
-      let backward = Geometry.meanDistance(written[w].reversed(), model[m])
-      if config.checksDirection, backward < forward * 0.6 {
+      let ends = Geometry.endpointDifference(written[w], model[m])
+      if config.checksDirection, ends.backward < ends.forward * 0.6 {
         issues.append(.direction(model: m))
       }
-      let distance = min(forward, backward)
-      distances[m] = distance
-      if distance > config.shapeTolerance { issues.append(.shape(model: m, distance: distance)) }
+      let shape = Geometry.shapeDifference(written[w], model[m])
+      distances[m] = shape.mean
+      maxDistances[m] = shape.max
+      if shape.mean > config.shapeTolerance {
+        issues.append(.shape(model: m, distance: shape.mean))
+      } else if shape.max > config.maxDeviation {
+        issues.append(.deviation(model: m, distance: shape.max))
+      }
     }
     return JudgeResult(
-      passed: issues.isEmpty, rating: nil, issues: issues, shapeDistances: distances)
+      passed: issues.isEmpty, rating: nil, issues: issues, shapeDistances: distances,
+      maxDistances: maxDistances)
+  }
+
+  /// 当てはめに使う、1画どうしの違い（形と、書き始め・書き終わりの位置。向きは問わない）。
+  private func cost(_ line: Polyline, _ m: Int) -> Double {
+    let ends = Geometry.endpointDifference(line, model[m])
+    return Geometry.shapeDifference(line, model[m]).mean + min(ends.forward, ends.backward) / 4
   }
 
   private func totalDistance(_ written: [Polyline], assignment: [Int]) -> Double {
-    zip(written, assignment).reduce(0) { total, pair in
-      let line = pair.0
-      let m = model[pair.1]
-      return total + min(Geometry.meanDistance(line, m), Geometry.meanDistance(line.reversed(), m))
+    zip(written, assignment).reduce(0) { $0 + cost($1.0, $1.1) }
+  }
+
+  /// 書いた線を、書いた順のままお手本の画に当て直す（D77）。
+  /// 1画を2〜3本に分けて書いた線はつなげ、2画を1本でつなげて書いた線は2つに分ける。
+  /// うまく当てられなければ nil（画数がちがう）。
+  func regroup(_ written: [Polyline]) -> [Polyline]? {
+    let n = written.count
+    let m = model.count
+    guard n > 0, m > 0 else { return nil }
+    // best[i][j]: 書いた線の i 本目までで、お手本の j 画目までを当てたときの違いの合計。
+    var best = Array(repeating: Array(repeating: Double.infinity, count: m + 1), count: n + 1)
+    var step = Array(repeating: Array(repeating: (0, 0), count: m + 1), count: n + 1)
+    best[0][0] = 0
+    let gapLimit = 150.0
+    func joined(_ lines: ArraySlice<Polyline>) -> Polyline? {
+      var out: Polyline = []
+      for line in lines {
+        if let last = out.last, let first = line.first, last.distance(to: first) > gapLimit {
+          return nil
+        }
+        out += line
+      }
+      return out
     }
+    for i in 0..<n {
+      for j in 0..<m where best[i][j].isFinite {
+        // 書いた k 本（1〜3）を、お手本の1画に当てる。
+        for k in 1...3 where i + k <= n {
+          guard let line = joined(written[i..<(i + k)]) else { break }
+          let c = best[i][j] + cost(line, j)
+          if c < best[i + k][j + 1] {
+            best[i + k][j + 1] = c
+            step[i + k][j + 1] = (k, 1)
+          }
+        }
+        // 書いた1本を、お手本の2画に当てる。
+        if j + 2 <= m, let parts = split(written[i], at: j) {
+          let c = best[i][j] + cost(parts.0, j) + cost(parts.1, j + 1)
+          if c < best[i + 1][j + 2] {
+            best[i + 1][j + 2] = c
+            step[i + 1][j + 2] = (1, 2)
+          }
+        }
+      }
+    }
+    guard best[n][m].isFinite else { return nil }
+    var result: [Polyline] = []
+    var i = n
+    var j = m
+    while i > 0 || j > 0 {
+      let (k, l) = step[i][j]
+      if l == 1 {
+        guard let line = joined(written[(i - k)..<i]) else { return nil }
+        result.insert(line, at: 0)
+      } else {
+        guard let parts = split(written[i - 1], at: j - 2) else { return nil }
+        result.insert(contentsOf: [parts.0, parts.1], at: 0)
+      }
+      i -= k
+      j -= l
+    }
+    return result
+  }
+
+  /// 書いた1本を、お手本の `j` 画目と `j + 1` 画目に分ける。前の部分は `j` 画目の終わりに
+  /// いちばん近いところまで、後ろの部分は `j + 1` 画目の始まりにいちばん近いところから。
+  /// あいだの「つなぎの線」は、どちらの画にも入れない。
+  private func split(_ line: Polyline, at j: Int) -> (Polyline, Polyline)? {
+    guard line.count >= 4, let end = model[j].last, let start = model[j + 1].first else {
+      return nil
+    }
+    guard
+      let k1 = (1..<(line.count - 2)).min(by: {
+        line[$0].distance(to: end) < line[$1].distance(to: end)
+      })
+    else { return nil }
+    guard
+      let k2 = ((k1 + 1)..<(line.count - 1)).min(by: {
+        line[$0].distance(to: start) < line[$1].distance(to: start)
+      })
+    else { return nil }
+    return (Array(line[...k1]), Array(line[k2...]))
   }
 
   /// 書いた画とお手本の画の1対1の当て方のうち、形の違いの合計がいちばん小さいもの。
@@ -156,9 +355,7 @@ public struct Judge: Sendable {
     var cost = Array(repeating: Array(repeating: 0.0, count: n), count: n)
     for w in 0..<n {
       for m in 0..<n {
-        cost[w][m] = min(
-          Geometry.meanDistance(written[w], model[m]),
-          Geometry.meanDistance(written[w].reversed(), model[m]))
+        cost[w][m] = self.cost(written[w], m)
       }
     }
     var best = Array(0..<n)

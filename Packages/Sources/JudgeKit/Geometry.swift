@@ -130,6 +130,48 @@ enum Geometry {
     return zip(a, b).reduce(0) { $0 + $1.0.distance(to: $1.1) } / Double(a.count)
   }
 
+  /// 2本の線（同じ点の数に置き直したもの）の、点どうしのいちばん大きい距離。
+  static func maxDistance(_ a: Polyline, _ b: Polyline) -> Double {
+    guard a.count == b.count, !a.isEmpty else { return .infinity }
+    return zip(a, b).reduce(0) { max($0, $1.0.distance(to: $1.1)) }
+  }
+
+  /// 点から線（折れ線）までのいちばん近い距離。
+  static func distance(from p: Point, to line: Polyline) -> Double {
+    guard let first = line.first else { return .infinity }
+    guard line.count > 1 else { return p.distance(to: first) }
+    var best = Double.infinity
+    for (a, b) in zip(line, line.dropFirst()) {
+      let ab = b - a
+      let lengthSquared = ab.x * ab.x + ab.y * ab.y
+      let t =
+        lengthSquared > 0
+        ? max(0, min(1, ((p.x - a.x) * ab.x + (p.y - a.y) * ab.y) / lengthSquared)) : 0
+      best = min(best, p.distance(to: a + ab * t))
+    }
+    return best
+  }
+
+  /// 2本の線の形の違い（D107 ②）。点の番号どうしではなく、それぞれの点から相手の線の
+  /// いちばん近いところまでの距離で比べる（線の長さや書く速さの違いに強い）。両方向の平均と最大。
+  static func shapeDifference(_ a: Polyline, _ b: Polyline) -> (mean: Double, max: Double) {
+    guard !a.isEmpty, !b.isEmpty else { return (.infinity, .infinity) }
+    let ab = a.map { distance(from: $0, to: b) }
+    let ba = b.map { distance(from: $0, to: a) }
+    let mean = (ab.reduce(0, +) / Double(ab.count) + ba.reduce(0, +) / Double(ba.count)) / 2
+    return (mean, max(ab.max() ?? 0, ba.max() ?? 0))
+  }
+
+  /// 書き始めと書き終わりの位置の違い。向きどおり（forward）と逆向き（backward）。
+  static func endpointDifference(_ a: Polyline, _ b: Polyline) -> (
+    forward: Double, backward: Double
+  ) {
+    guard let a0 = a.first, let a1 = a.last, let b0 = b.first, let b1 = b.last else {
+      return (.infinity, .infinity)
+    }
+    return (a0.distance(to: b0) + a1.distance(to: b1), a0.distance(to: b1) + a1.distance(to: b0))
+  }
+
   /// 線の書き始めから書き終わりへの向き（長さ1）。
   static func direction(of line: Polyline) -> Point {
     guard let first = line.first, let last = line.last else { return Point(0, 0) }

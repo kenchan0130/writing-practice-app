@@ -1,25 +1,31 @@
 import ContentModel
 import JudgeKit
+import PracticeKit
 import QuartzCore
 import SwiftUI
 
-/// 書く画面（M0 前半の試作。D109）。お手本を薄く出し、書き終わったら判定する（D107）。
+/// 書く画面（M0 前半の試作。D109）。4ステップ（みる・なぞる・うすく・じぶんで）で練習する（§3.2）。
 struct WritingCanvasView: View {
   @State private var model = WritingModel()
   @State private var showsLatency = false
+  /// ペンの色。画面の再描画のきっかけになるよう、ここで読む。
+  private var ink: Color { ProgressStore.shared.penColor.color }
 
   var body: some View {
     VStack(spacing: 24) {
       header
       GeometryReader { proxy in
-        let side = min(proxy.size.width, proxy.size.height)
+        let side =
+          min(proxy.size.width, proxy.size.height) * (ProgressStore.shared.largeGrid ? 1 : 0.85)
         canvas
           .frame(width: side, height: side)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
           .onAppear {
             model.side = side
             #if DEBUG
-              if UserDefaults.standard.bool(forKey: "simulateWriting") {
+              if let until = UserDefaults.standard.string(forKey: "simulateUntil") {
+                model.simulateModelWriting(until: PracticeStep(rawValue: until))
+              } else if UserDefaults.standard.bool(forKey: "simulateWriting") {
                 model.simulateModelWriting()
               }
             #endif
@@ -27,12 +33,24 @@ struct WritingCanvasView: View {
           .onChange(of: side) { _, newValue in model.side = newValue }
       }
       HStack(spacing: 32) {
-        ToolButton(title: "ひとつ もどす", systemImage: "arrow.uturn.backward") { model.undo() }
-        ToolButton(title: "ぜんぶ けす", systemImage: "trash") { model.clear() }
-        ToolButton(
-          title: "できた！", systemImage: "checkmark.circle.fill", highlighted: model.highlightsDone
-        ) { model.judgeNow() }
+        if model.finishedRating != nil {
+          ToolButton(title: "もういちど", systemImage: "arrow.counterclockwise") {
+            model.restartCharacter()
+          }
+          ToolButton(title: "つぎの もじ", systemImage: "arrow.right.circle.fill") {
+            model.nextCharacter()
+          }
+        } else if model.step == .jibunde {
+          // ④ だけに置く（②③は違う画が消えるので置かない。D56）。
+          ToolButton(title: "ひとつ もどす", systemImage: "arrow.uturn.backward") { model.undo() }
+          ToolButton(title: "ぜんぶ けす", systemImage: "trash") { model.clear() }
+          ToolButton(
+            title: "できた！", systemImage: "checkmark.circle.fill",
+            highlighted: model.highlightsDone
+          ) { model.judgeNow() }
+        }
       }
+      .frame(minHeight: 120)
       #if DEBUG
         HStack(spacing: 24) {
           Picker("判定", selection: $model.preset) {
@@ -44,12 +62,15 @@ struct WritingCanvasView: View {
           .pickerStyle(.segmented)
           .fixedSize()
           Button("つぎの もじ") { model.nextCharacter() }
+          Text(model.step.map(stepName) ?? "").foregroundStyle(.secondary)
           Toggle("遅れの目安", isOn: $showsLatency).fixedSize()
         }
       #endif
     }
     .padding(32)
     .defersSystemGestures(on: .all)
+    .overlay(alignment: penStandAlignment()) { PenStandButton().padding(24) }
+    .overlay(alignment: .top) { CaptionBubble().padding(.top, 12) }
   }
 
   /// 練習している字と、判定の結果。
@@ -58,7 +79,14 @@ struct WritingCanvasView: View {
       Text(model.character?.char ?? "")
         .font(.system(size: 56, weight: .bold))
       Spacer()
-      if let result = model.result {
+      if let hint = model.endingHint {
+        Label(hint.message, systemImage: "lightbulb.fill")
+          .font(.title3.bold())
+          .foregroundStyle(.orange)
+      }
+      if let rating = model.finishedRating {
+        RatingBadge(rating: rating)
+      } else if let result = model.result {
         ResultBadge(result: result)
       }
     }
@@ -66,21 +94,13 @@ struct WritingCanvasView: View {
   }
 
   private var canvas: some View {
-    Canvas { context, size in
-      drawGuide(in: &context, size: size)
-      if let character = model.character {
-        drawModel(character, in: &context, size: size)
-      }
-      for stroke in model.strokes { draw(stroke, in: &context) }
-      draw(model.current, in: &context)
-      if let last = model.current.last {
-        draw([last] + model.predicted, in: &context, opacity: 0.5)
-      }
-      if showsLatency, model.lastInputTime > 0 {
-        let delay = (CACurrentMediaTime() - model.lastInputTime) * 1000
-        context.draw(
-          Text(String(format: "入力から描画まで %.1f ms", delay)).font(.caption).foregroundStyle(.gray),
-          at: CGPoint(x: size.width - 110, y: 16))
+    TimelineView(.animation(paused: model.step != .miru && model.hintStroke == nil)) { timeline in
+      Canvas { context, size in
+        CanvasDrawing.guide(in: &context, size: size)
+        if let character = model.character {
+          drawStep(character, in: &context, size: size, now: timeline.date)
+        }
+        drawWriting(in: &context, size: size)
       }
     }
     .background(Color(red: 0.98, green: 0.96, blue: 0.92))
@@ -89,62 +109,100 @@ struct WritingCanvasView: View {
     .accessibilityLabel("もじを かく ばしょ")
   }
 
-  /// お手本の字（Klee One の形の輪郭）を薄く描く（③うすく。D55・D106）。
-  private func drawModel(
-    _ character: CharacterData, in context: inout GraphicsContext, size: CGSize
+  /// 子どもが書いた線。
+  private func drawWriting(in context: inout GraphicsContext, size: CGSize) {
+    let color = ink
+    for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context, color: color) }
+    CanvasDrawing.ink(model.recorder.current, in: &context, color: color)
+    if let last = model.recorder.current.last {
+      CanvasDrawing.ink([last] + model.recorder.predicted, in: &context, color: color, opacity: 0.5)
+    }
+    if showsLatency, model.recorder.lastInputTime > 0 {
+      let delay = (CACurrentMediaTime() - model.recorder.lastInputTime) * 1000
+      context.draw(
+        Text(String(format: "入力から描画まで %.1f ms", delay)).font(.caption).foregroundStyle(.gray),
+        at: CGPoint(x: size.width - 110, y: 16))
+    }
+  }
+
+  /// ステップごとのお手本（§3.2）。
+  private func drawStep(
+    _ character: CharacterData, in context: inout GraphicsContext, size: CGSize, now: Date
   ) {
     let scale = size.width / 1000
-    var path = Path()
-    for stroke in character.strokes {
-      for sub in stroke.outline ?? [] where sub.start.count == 2 {
-        path.move(to: CGPoint(x: sub.start[0] * scale, y: sub.start[1] * scale))
-        for s in sub.segments where s.count == 6 {
-          path.addCurve(
-            to: CGPoint(x: s[4] * scale, y: s[5] * scale),
-            control1: CGPoint(x: s[0] * scale, y: s[1] * scale),
-            control2: CGPoint(x: s[2] * scale, y: s[3] * scale))
-        }
-        path.closeSubpath()
-      }
-    }
-    context.fill(path, with: .color(.gray.opacity(0.25)))
-  }
-
-  /// マスと十字の補助線。
-  private func drawGuide(in context: inout GraphicsContext, size: CGSize) {
-    var cross = Path()
-    cross.move(to: CGPoint(x: size.width / 2, y: 0))
-    cross.addLine(to: CGPoint(x: size.width / 2, y: size.height))
-    cross.move(to: CGPoint(x: 0, y: size.height / 2))
-    cross.addLine(to: CGPoint(x: size.width, y: size.height / 2))
-    context.stroke(
-      cross, with: .color(.orange.opacity(0.35)), style: StrokeStyle(lineWidth: 2, dash: [10, 8]))
-    context.stroke(
-      Path(CGRect(origin: .zero, size: size)), with: .color(.orange.opacity(0.6)), lineWidth: 4)
-  }
-
-  /// 太さが変わる線を、点どうしをつなぐ短い線で描く。
-  private func draw(_ points: [DrawnPoint], in context: inout GraphicsContext, opacity: Double = 1)
-  {
-    let color = Color(red: 0.17, green: 0.3, blue: 0.6).opacity(opacity)
-    if points.count == 1, let point = points.first {
-      let r = point.width / 2
+    switch model.step {
+    case .miru:
+      // ① みる: お手本を薄く出し、書き順のとおりに1画ずつ線を引いていく。
       context.fill(
-        Path(
-          ellipseIn: CGRect(
-            x: point.location.x - r, y: point.location.y - r, width: r * 2, height: r * 2)),
-        with: .color(color))
-      return
-    }
-    for (a, b) in zip(points, points.dropFirst()) {
-      var segment = Path()
-      segment.move(to: a.location)
-      segment.addLine(to: b.location)
+        CanvasDrawing.outline(character.strokes, scale: scale), with: .color(.gray.opacity(0.18)))
+      let elapsed = model.animationStart.map { now.timeIntervalSince($0) } ?? 0
+      let per = WritingModel.strokeAnimationDuration + WritingModel.strokeAnimationGap
+      for (i, stroke) in character.strokes.enumerated() {
+        let progress = min(
+          max((elapsed - Double(i) * per) / WritingModel.strokeAnimationDuration, 0), 1)
+        guard progress > 0 else { break }
+        let points = stroke.centerlinePoints()
+        let shown = points.prefix(max(2, Int(Double(points.count) * progress)))
+        var path = Path()
+        path.addLines(shown.map { CGPoint(x: $0.x * scale, y: $0.y * scale) })
+        context.stroke(
+          path, with: .color(Color(red: 0.9, green: 0.35, blue: 0.2)),
+          style: StrokeStyle(lineWidth: 18, lineCap: .round, lineJoin: .round))
+        if progress < 1, let tip = shown.last {
+          context.fill(CanvasDrawing.dot(at: tip, scale: scale, radius: 16), with: .color(.orange))
+        }
+      }
+    case .nazoru:
+      // ② なぞる: 太いお手本と、書き始めの印（●）。
+      context.fill(
+        CanvasDrawing.outline(character.strokes, scale: scale), with: .color(.gray.opacity(0.4)))
+      drawStartMarker(character, in: &context, scale: scale, now: now)
+    case .usuku:
+      // ③ うすく: お手本を点線だけで。
       context.stroke(
-        segment, with: .color(color),
-        style: StrokeStyle(lineWidth: (a.width + b.width) / 2, lineCap: .round, lineJoin: .round))
+        CanvasDrawing.outline(character.strokes, scale: scale), with: .color(.gray.opacity(0.5)),
+        style: StrokeStyle(lineWidth: 2, dash: [6, 6]))
+      if model.hintStroke != nil {
+        drawStartMarker(character, in: &context, scale: scale, now: now)
+      }
+    case .jibunde:
+      // ④ じぶんで: 何も出さない。判定のあとはお手本を重ねる（§3.2）。
+      if model.result != nil {
+        context.fill(
+          CanvasDrawing.outline(character.strokes, scale: scale), with: .color(.gray.opacity(0.22)))
+      }
+      // 終わり方のヒント: その画の終わりに印をつける（D145）。
+      if let hint = model.endingHint, character.strokes.indices.contains(hint.stroke),
+        let end = character.strokes[hint.stroke].centerlinePoints().last
+      {
+        context.stroke(
+          CanvasDrawing.dot(at: end, scale: scale, radius: 28), with: .color(.orange),
+          style: StrokeStyle(lineWidth: 5, dash: [6, 5]))
+      }
+    case nil:
+      break
     }
   }
+
+  /// 次に書く画の書き始めの印。違う画を書いたあとは、光らせる（D47）。
+  private func drawStartMarker(
+    _ character: CharacterData, in context: inout GraphicsContext, scale: Double, now: Date
+  ) {
+    guard let flow = model.flow, flow.expectedStroke < character.strokes.count else { return }
+    let pulse = model.hintStroke == nil ? 0 : (sin(now.timeIntervalSinceReferenceDate * 6) + 1) * 6
+    CanvasDrawing.startMarker(
+      for: character.strokes[flow.expectedStroke], in: &context, scale: scale, pulse: pulse)
+  }
+
+  private func stepName(_ step: PracticeStep) -> String {
+    switch step {
+    case .miru: "① みる"
+    case .nazoru: "② なぞる"
+    case .usuku: "③ うすく"
+    case .jibunde: "④ じぶんで"
+    }
+  }
+
 }
 
 /// 子どもが押すボタン。押せる部分は 2cm 角（約104ポイント）以上（D101）。
@@ -167,6 +225,25 @@ private struct ToolButton: View {
     .tint(highlighted ? .orange : .accentColor)
     .scaleEffect(highlighted ? 1.08 : 1)
     .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: highlighted)
+  }
+}
+
+/// 練習が終わったときのほめ方（試作。演出は M0 で作り込む。§3.3）。
+private struct RatingBadge: View {
+  var rating: Rating
+
+  var body: some View {
+    Text(title)
+      .font(.system(size: 40, weight: .heavy))
+      .foregroundStyle(rating == .hanamaru ? .pink : rating == .nijumaru ? .orange : .green)
+  }
+
+  private var title: String {
+    switch rating {
+    case .hanamaru: "はなまる！"
+    case .nijumaru: "にじゅうまる！"
+    case .maru: "まる！"
+    }
   }
 }
 
@@ -211,6 +288,7 @@ private struct ResultBadge: View {
     case .direction(let model): "\(model + 1)画目の向き"
     case .mirrored: "鏡の字"
     case .shape(let model, let distance): "\(model + 1)画目の形 \(Int(distance))"
+    case .deviation(let model, let distance): "\(model + 1)画目のずれ \(Int(distance))"
     }
   }
 }

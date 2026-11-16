@@ -1,0 +1,226 @@
+import Foundation
+import JudgeKit
+import Observation
+import RecordKit
+
+/// 練習の進み具合（D44）。学習記録とまちの物は端末に保存する（RecordStore）。
+/// 保護者用の設定は、いまは UserDefaults に置く。
+@Observable
+final class ProgressStore {
+  static let shared = ProgressStore()
+
+  private let records: RecordStore
+
+  /// 子どもたち（D16・D19）。
+  private(set) var profiles: ProfileList
+  /// いま使っている子。iPad ごとに「いつも使う子」として覚える（D16）。
+  private(set) var currentProfileID: UUID
+  /// 子どもの切り替えに保護者用の確認を求めるか（§5.3。初期値はオフ）。
+  var confirmsProfileSwitch: Bool {
+    didSet { defaults.set(confirmsProfileSwitch, forKey: "confirmsProfileSwitch") }
+  }
+
+  /// プロフィールの顔（仮の絵）。
+  static let faces = [
+    "hare.fill", "tortoise.fill", "cat.fill", "dog.fill", "bird.fill", "fish.fill", "ladybug.fill",
+    "teddybear.fill",
+  ]
+
+  /// いまの子のペンの色（選んでいなければ青。D88）。
+  var penColor: PenColor { currentProfile?.penColor ?? .default }
+  /// まだペンの色を選んでいない（はじめての起動で1回選ぶ。D88）。
+  var needsPenColorChoice: Bool { currentProfile?.penColor == nil }
+
+  func setPenColor(_ color: PenColor) {
+    guard var profile = currentProfile else { return }
+    profile.penColor = color
+    updateProfile(profile)
+  }
+
+  var currentProfile: Profile? { profiles.profile(currentProfileID) }
+
+  /// 学習記録（D25）。書き足すのは `record` から。
+  private(set) var log: LearningLog
+  /// まちに置いた物（D43・D53）。
+  private(set) var placed: [PlacedObject]
+  /// 最後に保存した時刻（保護者用の画面の「iCloud とデータ」に出す。D63）。
+  private(set) var lastSaved: Date?
+
+  /// ④ に合格した「慣れた字」（D56）。記録から計算する。
+  var mastered: Set<String> {
+    Set(log.map.filter { $0.value == .wroteAlone }.map(\.key))
+  }
+
+  /// 判定のおまかせ設定（D22）。
+  var preset: JudgePreset {
+    didSet { defaults.set(preset.rawValue, forKey: "preset") }
+  }
+  /// とめ・はね・はらいのヒントを出す（D145）。
+  var showsEndingHints: Bool {
+    didSet { defaults.set(showsEndingHints, forKey: "showsEndingHints") }
+  }
+  /// 保護者用の確認で iPad のパスコードも求める（D64）。
+  var requiresDeviceAuth: Bool {
+    didSet { defaults.set(requiresDeviceAuth, forKey: "requiresDeviceAuth") }
+  }
+  /// 不具合の情報を送る（D123）。
+  var sendsCrashReports: Bool {
+    didSet { defaults.set(sendsCrashReports, forKey: "sendsCrashReports") }
+  }
+
+  // MARK: - 音と表示（§5.3）
+
+  /// お手本（書き順のアニメーション）の速さ。
+  enum ModelSpeed: String, CaseIterable {
+    case slow
+    case normal
+    case fast
+
+    /// 1画にかける時間の倍率。
+    var factor: Double {
+      switch self {
+      case .slow: 1.5
+      case .normal: 1
+      case .fast: 0.65
+      }
+    }
+  }
+
+  var voiceVolume: Double { didSet { defaults.set(voiceVolume, forKey: "voiceVolume") } }
+  var bgmVolume: Double { didSet { defaults.set(bgmVolume, forKey: "bgmVolume") } }
+  var effectVolume: Double { didSet { defaults.set(effectVolume, forKey: "effectVolume") } }
+  /// おとなしモード（声も含めてすべての音を止める。§3.9）。
+  var quietMode: Bool { didSet { defaults.set(quietMode, forKey: "quietMode") } }
+  /// 字幕（吹き出し）。最初はオン（§3.9）。
+  var showsSubtitles: Bool { didSet { defaults.set(showsSubtitles, forKey: "showsSubtitles") } }
+  var modelSpeed: ModelSpeed { didSet { defaults.set(modelSpeed.rawValue, forKey: "modelSpeed") } }
+  /// マスを大きくする。
+  var largeGrid: Bool { didSet { defaults.set(largeGrid, forKey: "largeGrid") } }
+  /// 筆圧を使う（D66。最初はオン）。
+  var usesPressure: Bool { didSet { defaults.set(usesPressure, forKey: "usesPressure") } }
+
+  private let defaults: UserDefaults
+
+  init(records: RecordStore = ProgressStore.makeRecordStore(), defaults: UserDefaults = .standard) {
+    self.records = records
+    self.defaults = defaults
+    var list = ProfileList(profiles: records.loadProfiles())
+    if list.profiles.isEmpty {
+      // はじめての起動では、名前のない子を1人作っておく（呼び名はあとで保護者が決める）。
+      let first = Profile(name: "", face: Self.faces[0])
+      records.save(first)
+      list.add(first)
+    }
+    #if DEBUG
+      // 確かめ用の起動の引数 `-penColor red` で、色を決めておく。
+      if let key = defaults.string(forKey: "penColor"), let color = PenColor(rawValue: key),
+        var first = list.profiles.first
+      {
+        first.penColor = color
+        list.update(first)
+      }
+    #endif
+    profiles = list
+    let preferred = defaults.string(forKey: "currentProfile").flatMap(UUID.init(uuidString:))
+    let current = list.current(preferred: preferred)?.id ?? list.profiles[0].id
+    currentProfileID = current
+    log = records.loadLog(profile: current)
+    placed = records.loadPlaced(profile: current)
+    confirmsProfileSwitch = defaults.bool(forKey: "confirmsProfileSwitch")
+    voiceVolume = defaults.object(forKey: "voiceVolume") as? Double ?? 0.8
+    bgmVolume = defaults.object(forKey: "bgmVolume") as? Double ?? 0.5
+    effectVolume = defaults.object(forKey: "effectVolume") as? Double ?? 0.7
+    quietMode = defaults.bool(forKey: "quietMode")
+    showsSubtitles = defaults.object(forKey: "showsSubtitles") as? Bool ?? true
+    modelSpeed =
+      defaults.string(forKey: "modelSpeed").flatMap(ModelSpeed.init(rawValue:)) ?? .normal
+    largeGrid = defaults.bool(forKey: "largeGrid")
+    usesPressure = defaults.object(forKey: "usesPressure") as? Bool ?? true
+    preset = defaults.string(forKey: "preset").flatMap(JudgePreset.init(rawValue:)) ?? .hajimete
+    showsEndingHints = defaults.object(forKey: "showsEndingHints") as? Bool ?? true
+    requiresDeviceAuth = defaults.bool(forKey: "requiresDeviceAuth")
+    sendsCrashReports = defaults.object(forKey: "sendsCrashReports") as? Bool ?? true
+  }
+
+  /// 確かめ用の起動の引数 `-inMemoryStore YES` で、保存しないで動かす。
+  static func makeRecordStore() -> RecordStore {
+    #if DEBUG
+      if UserDefaults.standard.bool(forKey: "inMemoryStore") { return RecordStore(url: nil) }
+    #endif
+    return RecordStore()
+  }
+
+  func record(_ record: CharacterRecord) {
+    log.append(record)
+    records.append(log.characters.last ?? record, profile: currentProfileID)
+    lastSaved = records.lastSaved
+  }
+
+  func record(_ record: WordRecord) {
+    log.append(record)
+    records.append(log.words.last ?? record, profile: currentProfileID)
+    lastSaved = records.lastSaved
+  }
+
+  func place(_ object: PlacedObject) {
+    placed.append(object)
+    records.append(object, profile: currentProfileID)
+    lastSaved = records.lastSaved
+  }
+
+  /// 「記録だけリセット」（D19・§6.3）。その子の記録だけ。まちの物と設定は残す。
+  func resetRecords(of id: UUID? = nil) {
+    let id = id ?? currentProfileID
+    records.appendReset(profile: id)
+    if id == currentProfileID { log.reset() }
+    lastSaved = records.lastSaved
+  }
+
+  /// 全員の記録のリセット（§5.3）。
+  func resetAllRecords() {
+    for profile in profiles.profiles { resetRecords(of: profile.id) }
+  }
+
+  // MARK: - 子どもたち
+
+  /// 使う子を切り替え、その子の記録とまちを読む。
+  func switchProfile(to id: UUID) {
+    guard profiles.profile(id) != nil else { return }
+    currentProfileID = id
+    defaults.set(id.uuidString, forKey: "currentProfile")
+    log = records.loadLog(profile: id)
+    placed = records.loadPlaced(profile: id)
+  }
+
+  @discardableResult
+  func addProfile(_ profile: Profile) -> Bool {
+    guard profiles.add(profile) else { return false }
+    records.save(profile)
+    lastSaved = records.lastSaved
+    return true
+  }
+
+  func updateProfile(_ profile: Profile) {
+    profiles.update(profile)
+    records.save(profile)
+    lastSaved = records.lastSaved
+  }
+
+  /// プロフィールと、その子の記録を消す（最後の1人は消さない）。
+  func deleteProfile(_ id: UUID) {
+    guard profiles.remove(id) else { return }
+    records.deleteProfile(id)
+    if id == currentProfileID, let first = profiles.profiles.first { switchProfile(to: first.id) }
+    lastSaved = records.lastSaved
+  }
+
+  /// 保存している行の数。
+  var savedRowCount: Int { records.rowCount() }
+}
+
+/// まちに置いた物（試作）。
+struct PlacedObject: Identifiable, Hashable {
+  var id = UUID()
+  var word: String
+  var symbol: String
+}
