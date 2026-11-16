@@ -1,3 +1,4 @@
+import ComposableArchitecture
 import ContentModel
 import ParentGateKit
 import RecordKit
@@ -61,13 +62,16 @@ struct ContentView: View {
   @State private var wordFromCard = false
   @State private var wordStart: String?
   @State private var activity = WritingActivity()
-  @State private var gate = ParentGate(random: { Double.random(in: 0..<1) })
+  @State private var gateStore = Store(initialState: ParentGateFeature.State()) {
+    ParentGateFeature()
+  }
   @State private var showsGate = false
   @State private var showsParentArea = false
   @State private var showsProfilePicker = false
   /// 子どもの切り替えのために保護者用の確認を出しているか。
   @State private var gateForSwitch = false
   private let store = ProgressStore.shared
+  private var gate: ParentGate { gateStore.gate }
 
   var body: some View {
     Group {
@@ -87,7 +91,7 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showsGate) {
       ParentGateSheet(
-        gate: $gate,
+        store: gateStore,
         onPassed: {
           showsGate = false
           if gateForSwitch {
@@ -110,7 +114,7 @@ struct ContentView: View {
     }
     .fullScreenCover(isPresented: $showsParentArea) {
       ParentAreaView {
-        gate.close()
+        gateStore.send(.close)
         showsParentArea = false
       }
     }
