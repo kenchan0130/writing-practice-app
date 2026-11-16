@@ -13,6 +13,10 @@ test: ## 画面や端末に頼らない部品のテストを動かす（PR の�
 build: ## 部品をビルドする
 	swift build --package-path $(PACKAGES)
 
+.PHONY: app-build
+app-build: ## アプリを iPad のシミュレータ向けにビルドする（署名なし）
+	xcodebuild build -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -quiet
+
 .PHONY: format
 format: ## swift-format で書式を整える
 	swift format --in-place --recursive --parallel $(PACKAGES)
