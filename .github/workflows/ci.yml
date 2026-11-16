@@ -1,0 +1,32 @@
+name: CI
+
+# 下書きのあいだは動かさない。下書きでなくなったときと、そのあとの更新だけ動かす（D130）。
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    if: github.event.pull_request.draft == false
+    # macOS のランナーは数が少なく、非公開にすると高いので Linux で動かす（D141）。
+    # 画面や端末に頼らない部品（Packages/）は Linux の Swift でも動く作りにする。
+    runs-on: ubuntu-latest
+    container: swift:6.4.2-noble@sha256:23d9b28ad97fb1cf1999edc3a0cb265ee915ed42299a9344e7173d5a6d2b05f4
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Show toolchain
+        run: swift --version
+      # コンテナに make が入っていないことがあるので、Makefile と同じコマンドを直接動かす。
+      - name: Lint
+        run: swift format lint --strict --recursive --parallel Packages
+      - name: Test
+        run: swift test --package-path Packages
