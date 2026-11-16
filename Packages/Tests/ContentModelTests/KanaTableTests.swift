@@ -31,9 +31,34 @@ struct KanaTableTests {
       #expect(table.characters.count == 46)
       #expect(Set(table.characters).count == 46)
     }
-    #expect(KanaTable.main(.hiragana).cells[0][0] == "あ")
-    #expect(KanaTable.main(.hiragana).cells[4][2] == "そ")
-    #expect(KanaTable.main(.hiragana).cells[1][7] == nil)
+    // あ行が右（D146）。見た目の一番左の列はわ行。
+    let hira = KanaTable.main(.hiragana)
+    #expect(hira.cells[0][9] == "あ")
+    #expect(hira.cells[4][9] == "お")
+    #expect(hira.cells[0][0] == "わ")
+    #expect(hira.cells[2][0] == "ん")
+    #expect(hira.cells[4][7] == "そ")
+    #expect(hira.cells[1][2] == nil)
+    #expect(hira.cells.map { $0[0] } == ["わ", nil, "ん", nil, "を"])
+    #expect(hira.cells.map { $0[9] } == ["あ", "い", "う", "え", "お"])
+    #expect(KanaTable.main(.katakana).cells[0][9] == "ア")
+    #expect(KanaTable.main(.katakana).cells[0][0] == "ワ")
+  }
+
+  @Test("濁音と小さい字も、右から左（D146）")
+  func extraDirection() {
+    let dakuon = KanaTable.dakuon(.hiragana)
+    #expect(dakuon.cells[0] == ["ぱ", "ば", "だ", "ざ", "が"])
+    #expect(dakuon.cells.map { $0[4] } == ["が", "ぎ", "ぐ", "げ", "ご"])
+    #expect(KanaTable.dakuon(.katakana).cells[0][4] == "ガ")
+    let small = KanaTable.small(.hiragana)
+    #expect(small.cells[0].first == "ょ")
+    #expect(small.cells[0].last == "ぁ")
+    #expect(KanaTable.small(.katakana).cells[0].last == "ァ")
+    // 折り返しても、先頭の字が右上。
+    let wrapped = small.wrappedRightToLeft(perRow: 6)
+    #expect(wrapped.cells[0] == ["っ", "ぉ", "ぇ", "ぅ", "ぃ", "ぁ"])
+    #expect(wrapped.cells[1] == [nil, nil, nil, "ょ", "ゅ", "ゃ"])
   }
 
   @Test("地図の字は、ぜんぶ字のデータにある")
@@ -61,12 +86,13 @@ struct KanaTableTests {
       let halves = KanaTable.halves(script)
       #expect(halves.count == 2)
       #expect(halves[0].columnCount == 5 && halves[1].columnCount == 5)
-      #expect(halves[0].characters.first == KanaTable.main(script).characters.first)
       #expect(Set(halves.flatMap(\.characters)) == Set(KanaTable.main(script).characters))
       #expect(halves.flatMap(\.characters).count == 46)
     }
-    #expect(KanaTable.halves(.hiragana)[0].cells[0].last == "な")
-    #expect(KanaTable.halves(.hiragana)[1].cells[0].first == "は")
+    // 前の半分は あ〜な で、あ行が右（D146）。
+    #expect(KanaTable.halves(.hiragana)[0].cells[0] == ["な", "た", "さ", "か", "あ"])
+    #expect(KanaTable.halves(.hiragana)[1].cells[0] == ["わ", "ら", "や", "ま", "は"])
+    #expect(KanaTable.halves(.katakana)[0].cells[0].last == "ア")
   }
 
   @Test("地図の字に重なりがない")

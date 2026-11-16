@@ -1,5 +1,7 @@
-/// 文字の地図の並べ方（D101・D125）。画面に頼らない。
-/// 表は行が「あいうえお」の段、列が「あかさたなはまやらわ」の行（左から右）。字のない所は nil。
+/// 文字の地図の並べ方（D101・D125・D146）。画面に頼らない。
+/// 壁に貼る50音表と同じ向き。表は行が「あいうえお」の段（上から下）。
+/// 列は「あ行」が一番右で、右から左へ「あかさたなはまやらわ」。つまり `cells[行][0]` が見た目の一番左（わ行）。
+/// 字のない所は nil。
 public enum KanaScript: String, Sendable, Hashable, CaseIterable {
   case hiragana
   case katakana
@@ -22,17 +24,28 @@ public struct KanaGrid: Sendable, Hashable {
 
   public var rowCount: Int { cells.count }
   public var columnCount: Int { cells.first?.count ?? 0 }
-  /// 字がある所だけを、上の行から左の列の順に並べる。
+  /// 字がある所だけを、上の行から、左の列から右の列の順に並べる（見た目の順）。
   public var characters: [Character] { cells.flatMap { $0 }.compactMap { $0 } }
 
   /// 列の範囲だけを取り出す。
   public func columns(_ range: Range<Int>) -> KanaGrid {
     KanaGrid(cells: cells.map { Array($0[range]) })
   }
+
+  /// 1段の表を、右から左へ読む向きのまま `perRow` 字ずつの段に折り返す（D146）。
+  /// 先頭の字が右上。足りない所は左側が nil になる。
+  public func wrappedRightToLeft(perRow: Int) -> KanaGrid {
+    let logical = Array((cells.first ?? []).reversed())
+    let rows = stride(from: 0, to: logical.count, by: perRow).map { start in
+      let chunk = Array(logical[start..<min(start + perRow, logical.count)])
+      return Array(repeating: nil, count: perRow - chunk.count) + Array(chunk.reversed())
+    }
+    return KanaGrid(cells: rows)
+  }
 }
 
 public enum KanaTable {
-  /// 50音表（10列×5段）。や行は「い・え」、わ行は「い・え」が空き、「ん」はわ行の「う」の段に置く。
+  /// 50音表（10列×5段。あ行が右。D146）。や行は「い・え」、わ行は「い・え」が空き、「ん」はわ行の「う」の段に置く。
   public static func main(_ script: KanaScript) -> KanaGrid {
     let columns: [[Character?]] =
       switch script {
@@ -55,12 +68,13 @@ public enum KanaTable {
   }
 
   /// 「あ行〜な行」と「は行〜わ行」の2つに分けた表（D125。狭いとき）。
+  /// 先に「あ行〜な行」。どちらも右から左の向き（D146）なので、あ行〜な行は表の右半分。
   public static func halves(_ script: KanaScript) -> [KanaGrid] {
     let table = main(script)
-    return [table.columns(0..<5), table.columns(5..<10)]
+    return [table.columns(5..<10), table.columns(0..<5)]
   }
 
-  /// 濁音・半濁音（5列×5段）。
+  /// 濁音・半濁音（5列×5段）。が行が右（D146）。
   public static func dakuon(_ script: KanaScript) -> KanaGrid {
     let columns: [[Character?]] =
       switch script {
@@ -78,13 +92,13 @@ public enum KanaTable {
     return transposed(columns)
   }
 
-  /// 小さい字（と、カタカナの「ヴ」「ー」）。1段に並べる。
+  /// 小さい字（と、カタカナの「ヴ」「ー」）。1段に並べる。ぁが右で、右から左（D146）。
   public static func small(_ script: KanaScript) -> KanaGrid {
     switch script {
     case .hiragana:
-      KanaGrid(cells: [["ぁ", "ぃ", "ぅ", "ぇ", "ぉ", "っ", "ゃ", "ゅ", "ょ"]])
+      KanaGrid(cells: [["ぁ", "ぃ", "ぅ", "ぇ", "ぉ", "っ", "ゃ", "ゅ", "ょ"].reversed()])
     case .katakana:
-      KanaGrid(cells: [["ァ", "ィ", "ゥ", "ェ", "ォ", "ッ", "ャ", "ュ", "ョ", "ヴ", "ー"]])
+      KanaGrid(cells: [["ァ", "ィ", "ゥ", "ェ", "ォ", "ッ", "ャ", "ュ", "ョ", "ヴ", "ー"].reversed()])
     }
   }
 
@@ -104,9 +118,10 @@ public enum KanaTable {
     KanaScript.allCases.first { all($0).contains(char) }
   }
 
+  /// 行（あ行から順）を、あ行が右になるように並べて表にする。
   private static func transposed(_ columns: [[Character?]]) -> KanaGrid {
     let rows = columns.first?.count ?? 0
-    return KanaGrid(cells: (0..<rows).map { row in columns.map { $0[row] } })
+    return KanaGrid(cells: (0..<rows).map { row in columns.reversed().map { $0[row] } })
   }
 }
 
