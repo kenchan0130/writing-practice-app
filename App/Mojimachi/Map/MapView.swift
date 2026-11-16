@@ -29,7 +29,7 @@ struct MapSelection: Equatable {
   var half = 0
 }
 
-/// 文字の地図（D101・D125）。50音表の形で字を並べ、押すと字のカードへ。
+/// 文字の地図（D101・D125・D146）。壁の50音表と同じく、あ行を右に置いて字を並べ、押すと字のカードへ。
 struct MapView: View {
   @Binding var selection: MapSelection
   var onSelect: (Character) -> Void
@@ -118,7 +118,7 @@ struct MapView: View {
 
   private func gridView(_ grid: KanaGrid, cell: Double, wraps: Bool = false) -> some View {
     let columns = grid.columnCount
-    let rows = wraps ? chunk(grid.cells[0], by: 6) : grid.cells
+    let rows = wraps ? grid.wrappedRightToLeft(perRow: 6).cells : grid.cells
     return VStack(spacing: MapLayout.gap) {
       ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
         HStack(spacing: MapLayout.gap) {
@@ -135,10 +135,6 @@ struct MapView: View {
       }
     }
     .frame(minWidth: Double(columns) * cell)
-  }
-
-  private func chunk(_ row: [Character?], by size: Int) -> [[Character?]] {
-    stride(from: 0, to: row.count, by: size).map { Array(row[$0..<min($0 + size, row.count)]) }
   }
 
   private func state(of char: Character) -> MapState {
@@ -199,12 +195,21 @@ private struct MapCell: View {
   var locked: Bool
   var action: () -> Void
 
+  private static let smallKana: Set<Character> = Set("ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ")
+  private var isSmallKana: Bool { Self.smallKana.contains(char) }
+
   var body: some View {
     Button(action: action) {
+      // 小さい字（ゃ・っ など）は、字を小さくして左下に寄せ、ふつうの字と見分けられるようにする。
       Text(String(char))
-        .font(.system(size: size * 0.5, weight: .bold))
+        .font(.system(size: size * (isSmallKana ? 0.36 : 0.5), weight: .bold))
         .foregroundStyle(locked ? Color.secondary : Color.primary)
-        .frame(width: size - 8, height: size - 8)
+        .frame(
+          width: size - 8, height: size - 8, alignment: isSmallKana ? .bottomLeading : .center
+        )
+        .padding(
+          isSmallKana ? EdgeInsets(top: 0, leading: 10, bottom: 8, trailing: 0) : EdgeInsets()
+        )
         .background(state.fill, in: .rect(cornerRadius: 14))
         .overlay(alignment: .topTrailing) { badge }
         .frame(width: size, height: size)
