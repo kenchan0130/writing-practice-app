@@ -67,6 +67,8 @@ struct WritingCanvasView: View {
           Text(model.step.map(stepName) ?? "").foregroundStyle(.secondary)
           Toggle("遅れの目安", isOn: $showsLatency).fixedSize()
         }
+        // 角のペンたてと重ならないように、両側をあける。
+        .padding(.horizontal, 140)
       #endif
     }
     .padding(32)
