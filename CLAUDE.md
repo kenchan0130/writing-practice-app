@@ -4,7 +4,7 @@
 
 ## 方針
 
-- 品質が高く、子ども向けで親しめるアプリを作るためなら、どんな方法でも使う（D132）。迷ったら品質と子どもが親しめるかを優先する。
+- 品質が高く、子ども向けで親しめるアプリを作るためなら、どんな方法でも使う（D132）。迷ったら品質と子どもが親しめるかを優先する。ライセンスは素材やデータを選ぶ判断の材料にしない（D144）。
 - 設計を変えるときは `docs/design.md` の決定表に新しい D 番号を足し、関係する章も直す。古い決定には「D〇〇 で変更」と書き添える。
 
 ## コマンド
@@ -13,6 +13,7 @@
 - `make build` / `make lint` / `make format`
 - `make content-check`: 文字のデータを確かめる（画数が教科書と合うか など）。
 - `make judge-report`: 判定の部品ができたら実装する。
+- KanjiVG との照らし合わせ: `python3 -I Scripts/compare_kanjivg.py <KanjiVG の kanji フォルダ> Content/Packs/hira Content/Packs/hira/kanjivg-check.md`（データを作り直したら必ず動かす）
 - 文字のデータの作り直し: `python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> Content/Packs/hira <コミット>`
 
 ## 作り（D104・D105・D109）
