@@ -1,3 +1,4 @@
+import ContentModel
 import Foundation
 import JudgeKit
 import Observation
@@ -223,4 +224,6 @@ struct PlacedObject: Identifiable, Hashable {
   var id = UUID()
   var word: String
   var symbol: String
+  /// ことばの種類（置き方と動きを決める。D53）。
+  var kind: WordKind = .vehicle
 }

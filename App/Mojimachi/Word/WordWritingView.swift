@@ -33,6 +33,7 @@ struct WordWritingView: View {
           transformView
         }
       }
+      wordPicker
       buttons
     }
     .padding(32)
@@ -71,8 +72,10 @@ struct WordWritingView: View {
         }
       }
       Spacer()
-      ColoringSilhouette(symbol: model.symbol, progress: model.progress)
-        .frame(width: 140, height: 100)
+      ColoringSilhouette(
+        symbol: model.symbol, progress: model.progress, color: Color(uiColor: model.artColor)
+      )
+      .frame(width: 140, height: 100)
     }
   }
 
@@ -147,12 +150,27 @@ struct WordWritingView: View {
       }
     }
     let image = PlaceholderArt.image(
-      symbol: model.symbol, size: 600, color: UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1))
+      symbol: model.symbol, size: 600, color: model.artColor)
     let scene = TransformScene(
-      size: size, lines: lines, colors: colors, objectImage: image)
+      size: size, lines: lines, colors: colors, objectImage: image, kind: model.kind)
     scene.onFinished = { transformFinished = true }
     DispatchQueue.main.async { transform = scene }
     return scene
+  }
+
+  /// ことばを選ぶ（乗り物・四つ足・服をまたぐ。大きい絵のボタンを横に並べる）。
+  private var wordPicker: some View {
+    ScrollView(.horizontal, showsIndicators: false) {
+      HStack(spacing: 12) {
+        ForEach(PlaceholderArt.words, id: \.entry.text) { item in
+          WordPickButton(item: item, selected: item.entry.text == model.word) {
+            model.select(item.entry.text)
+          }
+        }
+      }
+      .padding(.horizontal, 4)
+    }
+    .frame(height: 112)
   }
 
   private var buttons: some View {
@@ -180,13 +198,14 @@ struct WordWritingView: View {
 private struct ColoringSilhouette: View {
   var symbol: String
   var progress: Double
+  var color: Color = .red
 
   var body: some View {
     let image = Image(systemName: symbol).resizable().scaledToFit()
     image.foregroundStyle(.gray.opacity(0.3))
       .overlay {
         GeometryReader { proxy in
-          image.foregroundStyle(.red)
+          image.foregroundStyle(color)
             .mask(alignment: .bottom) {
               Rectangle().frame(height: proxy.size.height * progress)
                 .frame(maxHeight: .infinity, alignment: .bottom)
@@ -214,5 +233,33 @@ private struct WordButton: View {
     }
     .buttonStyle(.bordered)
     .buttonBorderShape(.roundedRectangle(radius: 24))
+  }
+}
+
+/// ことばを選ぶ絵のボタン（約104pt 以上。D101）。
+private struct WordPickButton: View {
+  var item: PlaceholderArt.Item
+  var selected: Bool
+  var action: () -> Void
+
+  var body: some View {
+    Button(action: action) {
+      VStack(spacing: 4) {
+        Image(systemName: item.symbol)
+          .font(.system(size: 40))
+          .foregroundStyle(Color(uiColor: item.color))
+          .frame(height: 48)
+        Text(item.entry.text).font(.subheadline.bold()).foregroundStyle(.primary)
+      }
+      .frame(width: 108, height: 108)
+      .background(
+        selected ? Color.yellow.opacity(0.35) : Color.gray.opacity(0.1),
+        in: .rect(cornerRadius: 20)
+      )
+      .overlay {
+        if selected { RoundedRectangle(cornerRadius: 20).stroke(Color.accentColor, lineWidth: 3) }
+      }
+    }
+    .buttonStyle(.plain)
   }
 }

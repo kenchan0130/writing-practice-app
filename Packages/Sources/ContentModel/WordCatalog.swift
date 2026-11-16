@@ -1,0 +1,32 @@
+/// ことばの種類。動きの型と置き方の型を決める（D53・D110）。
+public enum WordKind: String, Sendable, CaseIterable, Codable {
+  /// 乗り物: はずみながら走る。
+  case vehicle
+  /// 四つ足の動物: 歩く・はねる・たちどまって向きを変える。
+  case animal
+  /// 服: 着る。ハンガーにかかって揺れる。
+  case clothes
+}
+
+/// ことば 1つ（絵は持たない。絵はアプリ側）。
+public struct WordEntry: Sendable, Hashable {
+  public let text: String
+  public let kind: WordKind
+
+  public init(_ text: String, _ kind: WordKind) {
+    self.text = text
+    self.kind = kind
+  }
+}
+
+/// M0 後半の約20語（D78）。
+public enum WordCatalog {
+  public static let all: [WordEntry] =
+    ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん"].map { WordEntry($0, .vehicle) }
+    + ["うし", "いぬ", "ねこ", "うま", "くま", "しか", "りす"].map { WordEntry($0, .animal) }
+    + ["ふく", "くつ", "ぼうし", "ゆかた", "くつした", "きもの"].map { WordEntry($0, .clothes) }
+
+  public static func entry(for text: String) -> WordEntry? {
+    all.first { $0.text == text }
+  }
+}
