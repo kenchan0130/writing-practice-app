@@ -76,6 +76,9 @@
 | 名前 | 版 | ライセンス | 用途 |
 |---|---|---|---|
 | fonttools（`pyftsubset` の元になる Python のライブラリ） | 4.68.0（2026-11-17 に使用。一時的な venv に入れた。PyPI の `fonttools`） | MIT | 書体を使う字だけに減らす（`Scripts/subset_fonts.py`） |
+| numpy | 2.5.5（2026-11-17 に使用。一時的な venv。PyPI の `numpy`） | BSD-3-Clause | 効果音の波形を調べる（`Scripts/analyze_sfx.py`。開発用のみ。`docs/reports/sfx-analysis.md`） |
+| scipy | 1.18.1（同上） | BSD-3-Clause | 同上（フィルタ・スペクトル） |
+| matplotlib | 3.11.2（同上） | matplotlib のライセンス（PSF 系の寛容なもの） | 同上（波形とスペクトログラムの図） |
 
 ## 使わないもの
 
