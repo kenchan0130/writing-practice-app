@@ -152,10 +152,12 @@ struct ContentView: View {
         if seeded > 0 { DebugSeed.today(count: seeded) }
         // 確かめ用: `-seedGrowth YES` で、あ行・か行を「はな」、さ行を「つぼみ」、た行を「め」にする。
         if UserDefaults.standard.bool(forKey: "seedGrowth") { DebugSeed.growth() }
-        if UserDefaults.standard.string(forKey: "openParent") != nil {
+        // 確かめ用: `-seedSamples YES` で見本の記録を入れる。iCloud の同期が動いているときは入れない
+        // （本物のデータに混ざって iCloud に上がるため）。`-localOnlyStore YES` などと一緒に使う。
+        if UserDefaults.standard.bool(forKey: "seedSamples"), !store.isSyncRunning {
           DebugSeed.records()
-          showsParentArea = true
         }
+        if UserDefaults.standard.string(forKey: "openParent") != nil { showsParentArea = true }
       }
     #endif
   }
