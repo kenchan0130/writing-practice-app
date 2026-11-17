@@ -1,3 +1,4 @@
+import CloudKit
 import ContentModel
 import CoreData
 import Foundation
@@ -15,19 +16,112 @@ final class RecordStore {
   let container: NSPersistentContainer
   private var context: NSManagedObjectContext { container.viewContext }
 
-  /// - Parameter url: 保存するファイル。nil ならメモリの中だけ（確かめ用）。
-  init(url: URL? = RecordStore.defaultURL) {
+  /// iCloud のコンテナ（D44）。家族の共有（共有データベース）は次の段階で足す。いまは自分の非公開データベース。
+  nonisolated static let cloudContainerID = "iCloud.io.github.kenchan0130.mojimachi"
+
+  /// 同期の出来事を知らせる（保護者用の画面に出す。D63）。
+  enum SyncEvent {
+    case exported(Date)
+    case imported(Date)
+    case failed(SyncProblem)
+    /// 別の iPad の変更が入った。画面の読み直しが要る。
+    case remoteChange
+  }
+
+  /// 同期の問題の種類（保護者用の画面の文言を決める）。
+  enum SyncProblem: Equatable {
+    case notSignedIn
+    case quotaExceeded
+    case other
+  }
+
+  /// 確かめ用の起動か（テスト、または `-localOnlyStore YES`）。この起動では iCloud に触れない。
+  nonisolated static var isLocalOnlyRun: Bool {
+    if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return true }
+    #if DEBUG
+      return UserDefaults.standard.bool(forKey: "localOnlyStore")
+    #else
+      return false
+    #endif
+  }
+
+  /// 署名ありのビルドか（Info.plist の `MojimachiCloudKitEnabled` は、ビルド時に
+  /// `CODE_SIGNING_ALLOWED` が入る）。署名なしだと iCloud の権利がなく、`CKContainer` や
+  /// Core Data の iCloud の準備で落ちるため、使う前にここで確かめる。
+  nonisolated static var hasCloudEntitlement: Bool {
+    (Bundle.main.object(forInfoDictionaryKey: "MojimachiCloudKitEnabled") as? String) == "YES"
+  }
+
+  /// 同期の出来事を受け取る。
+  var onSyncEvent: ((SyncEvent) -> Void)?
+  /// iCloud の同期が実際に動いているか。
+  let syncing: Bool
+  private var observers: [any NSObjectProtocol] = []
+
+  /// - Parameters:
+  ///   - url: 保存するファイル。nil ならメモリの中だけ（確かめ用。iCloud は使わない）。
+  ///   - cloudSync: iCloud と同期するか。サインインしていないときは、標準のしくみが
+  ///     同期せずに待つ（保存先は開く）。確かめ用の起動（`isLocalOnlyRun`）では同期しない。
+  init(url: URL? = RecordStore.defaultURL, cloudSync: Bool = false) {
     container = NSPersistentCloudKitContainer(name: "Mojimachi", managedObjectModel: Self.model)
     let description = NSPersistentStoreDescription(url: url ?? URL(fileURLWithPath: "/dev/null"))
-    // iCloud のコンテナを用意するまでは、端末の中だけに保存する（D44）。
-    description.cloudKitContainerOptions = nil
+    syncing = cloudSync && url != nil && !Self.isLocalOnlyRun && Self.hasCloudEntitlement
+    description.cloudKitContainerOptions =
+      syncing
+      ? NSPersistentCloudKitContainerOptions(containerIdentifier: Self.cloudContainerID) : nil
     description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+    description.setOption(
+      true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
     container.persistentStoreDescriptions = [description]
     container.loadPersistentStores { _, error in
       if let error { Self.lastError = error }
     }
     context.automaticallyMergesChangesFromParent = true
     context.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
+    if syncing { observeSync() }
+  }
+
+  /// 同期の出来事を見張る（D63）。
+  private func observeSync() {
+    let center = NotificationCenter.default
+    observers.append(
+      center.addObserver(
+        forName: NSPersistentCloudKitContainer.eventChangedNotification, object: container,
+        queue: .main
+      ) { [weak self] note in
+        let event =
+          note.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
+          as? NSPersistentCloudKitContainer.Event
+        let result = event.flatMap(Self.syncResult)
+        MainActor.assumeIsolated { if let result { self?.onSyncEvent?(result) } }
+      })
+    observers.append(
+      center.addObserver(
+        forName: .NSPersistentStoreRemoteChange, object: container.persistentStoreCoordinator,
+        queue: .main
+      ) { [weak self] _ in
+        MainActor.assumeIsolated { self?.onSyncEvent?(.remoteChange) }
+      })
+  }
+
+  /// 終わった出来事だけを、保護者用の画面向けの形にする。
+  private nonisolated static func syncResult(_ event: NSPersistentCloudKitContainer.Event)
+    -> SyncEvent?
+  {
+    guard let end = event.endDate else { return nil }
+    if let error = event.error {
+      let code = (error as? CKError)?.code
+      switch code {
+      case .notAuthenticated?, .accountTemporarilyUnavailable?: return .failed(.notSignedIn)
+      case .quotaExceeded?: return .failed(.quotaExceeded)
+      default: return .failed(.other)
+      }
+    }
+    switch event.type {
+    case .export: return .exported(end)
+    case .import: return .imported(end)
+    default: return nil
+    }
   }
 
   /// 保存に失敗したときの最後のエラー（子どもには見せず、保護者用の画面にだけ出す。D117）。

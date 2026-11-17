@@ -7,7 +7,10 @@ final class FlowUITests: XCTestCase {
   @MainActor override func setUp() async throws {
     continueAfterFailure = false
     app = XCUIApplication()
-    app.launchArguments = ["-inMemoryStore", "YES", "-penColor", "blue", "-fakePurchases", "none"]
+    app.launchArguments = [
+      "-inMemoryStore", "YES", "-localOnlyStore", "YES", "-penColor", "blue", "-fakePurchases",
+      "none",
+    ]
     app.launch()
   }
 
