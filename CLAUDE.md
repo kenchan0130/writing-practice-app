@@ -21,7 +21,7 @@
 
 - Swift 6（厳しい並行処理のチェック）。SwiftUI のアプリで、画面と流れの状態は TCA。
 - `Packages/` の部品（線の記録、判定、文字とことばのデータ、記録の計算、課金の権利、動きの計算）は、画面や端末に頼らない普通の Swift にし、Mac の `swift test` で確かめる。**Linux の Swift でも動くようにする**（CI は Linux。D141）。UIKit・SwiftUI・SpriteKit・Core Data・StoreKit を `Packages/` の部品に入れない。Apple だけの Foundation の機能を使うときは `#if canImport` で分ける。
-- UIKit は、書く画面の入力の受け取り、iCloud の共有の招待画面、メールの下書きだけ。
+- UIKit は、書く画面の入力の受け取り、メールの下書きだけ（家族の共有は作らない。D148）。
 - 書式は swift-format（`.swift-format`）。
 
 ## ライブラリ（D104。詳しくは `docs/dependencies.md`）
