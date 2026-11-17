@@ -32,7 +32,7 @@ struct ParentGateTests {
   @Test("問題文の例")
   func questionText() {
     let q = GateQuestion(left: 14, right: 6)
-    #expect(q.japanese == "十四 かける 六 の こたえを いれてください")
+    #expect(q.japanese == "十四かける六の答えを入力してください")
     #expect(q.english == "Enter fourteen times six")
     #expect(q.answer == 84)
   }

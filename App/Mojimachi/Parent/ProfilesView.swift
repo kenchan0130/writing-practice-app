@@ -17,7 +17,7 @@ struct ProfilesView: View {
               ProfileFace(face: profile.face, size: 44)
               VStack(alignment: .leading) {
                 Text(profile.displayName.isEmpty ? "（呼び名なし）" : profile.displayName)
-                Text("きょうの もくひょう \(profile.dailyGoal) 字").font(.caption)
+                Text("今日の目標 \(profile.dailyGoal) 字").font(.caption)
                   .foregroundStyle(.secondary)
               }
               Spacer()
@@ -66,7 +66,7 @@ private struct ProfileEditor: View {
     Form {
       Section("呼び名") {
         TextField("ひらがなで（例: ゆうと）", text: $profile.name)
-        Picker("つけることば", selection: $profile.honorific) {
+        Picker("呼び名の敬称", selection: $profile.honorific) {
           ForEach(Profile.Honorific.allCases, id: \.self) { h in
             Text(h == .none ? "なし" : h.suffix).tag(h)
           }
@@ -100,7 +100,7 @@ private struct ProfileEditor: View {
           Text("右").tag(Profile.Handedness.right)
           Text("左").tag(Profile.Handedness.left)
         }
-        Picker("きょうの もくひょう", selection: $profile.dailyGoal) {
+        Picker("今日の目標", selection: $profile.dailyGoal) {
           ForEach(Profile.dailyGoals, id: \.self) { Text("\($0) 字").tag($0) }
         }
       }
@@ -113,7 +113,7 @@ private struct ProfileEditor: View {
           .disabled(store.currentProfileID == profile.id)
         }
         Section {
-          HoldToConfirmButton(title: "この子の記録だけ リセット") {
+          HoldToConfirmButton(title: "この子の記録だけリセット") {
             store.resetRecords(of: profile.id)
             onDone()
           }

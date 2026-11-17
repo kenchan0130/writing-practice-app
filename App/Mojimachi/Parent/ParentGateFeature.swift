@@ -60,7 +60,7 @@ nonisolated struct ParentGateFeature {
   enum Action: Equatable {
     /// 画面が開いた。入力とメッセージを空にする。
     case opened
-    /// キーパッドの 0〜9・「けす」・「OK」。
+    /// キーパッドの 0〜9・「消す」・「OK」。
     case keyPressed(String)
     case cancelTapped
     case deviceAuthFinished(Bool)
@@ -83,7 +83,7 @@ nonisolated struct ParentGateFeature {
 
       case .keyPressed(let key):
         switch key {
-        case "けす":
+        case "消す":
           state.input = ""
         case "OK":
           return submit(&state)
@@ -128,9 +128,9 @@ nonisolated struct ParentGateFeature {
       }
       return .send(.passed)
     case .wrong(let remaining):
-      state.message = "もういちど どうぞ。あと \(remaining) 回 ためせます"
+      state.message = "もう一度どうぞ。あと \(remaining) 回試せます"
     case .locked(let until):
-      state.message = "\(Int(until - now) + 1) 秒 まってから ためしてください"
+      state.message = "\(Int(until - now) + 1) 秒待ってから試してください"
     }
     return .none
   }

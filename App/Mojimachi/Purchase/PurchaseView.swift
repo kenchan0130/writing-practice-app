@@ -9,26 +9,26 @@ struct PurchaseView: View {
   var body: some View {
     Form {
       Section {
-        LabeledContent("使えるもじ") {
+        LabeledContent("使える文字") {
           Text("\(purchases.entitlements.unlockedScriptCount) / \(Script.allCases.count)")
         }
         ForEach(Script.allCases, id: \.self) { script in
           LabeledContent(Self.name(script)) {
-            Text(purchases.entitlements.isUnlocked(script) ? "つかえます" : "おためし")
+            Text(purchases.entitlements.isUnlocked(script) ? "使えます" : "お試し")
               .foregroundStyle(purchases.entitlements.isUnlocked(script) ? .green : .secondary)
           }
         }
       }
       Section {
         if purchases.entitlements.offers.isEmpty {
-          Text("ぜんぶ ひらいています").font(.headline)
+          Text("すべて開いています").font(.headline)
         }
         ForEach(purchases.entitlements.offers, id: \.self) { id in
           HStack {
             VStack(alignment: .leading, spacing: 4) {
               Text(Self.title(id)).font(.headline)
               if id.isAllOpen {
-                Text("これから ふえる もじの パック も、ついかの おかねなしで つかえます（もじ いがいの きのうは ふくみません）")
+                Text("これから増える文字のパックも、追加の料金なしで使えます（文字以外の機能は含みません）")
                   .font(.caption).foregroundStyle(.secondary)
               }
             }
@@ -44,13 +44,13 @@ struct PurchaseView: View {
       } header: {
         Text("商品")
       } footer: {
-        Text("ひらがなは ずっと無料です。ファミリー共有で家族も使えます。")
+        Text("ひらがなはずっと無料です。ファミリー共有で家族も使えます。")
       }
       Section {
         Button("購入を復元") { Task { await purchases.restore() } }
           .disabled(purchases.isWorking)
       }
-      Section("おためしで書けるもの") {
+      Section("お試しで書けるもの") {
         ForEach(Script.paid, id: \.self) { script in
           LabeledContent(Self.name(script)) {
             Text(
@@ -68,16 +68,16 @@ struct PurchaseView: View {
     switch script {
     case .hiragana: "ひらがな"
     case .katakana: "カタカナ"
-    case .abc: "ABC・すうじ"
+    case .abc: "ABC・数字"
     }
   }
 
   static func title(_ id: ProductID) -> String {
     switch id {
-    case .allOpen: "ぜんぶ ひらく（これからの もじも）"
-    case .allOpenForOneOwner: "ぜんぶ ひらく（パックを 1つ もっている ひと）"
-    case .katakanaPack: "カタカナ パック"
-    case .abcPack: "ABC・すうじ パック"
+    case .allOpen: "すべての文字（これから追加する文字も）"
+    case .allOpenForOneOwner: "すべての文字（パックを1つ購入済みの方）"
+    case .katakanaPack: "カタカナパック"
+    case .abcPack: "ABC・数字パック"
     }
   }
 }

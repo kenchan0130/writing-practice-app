@@ -126,14 +126,14 @@ final class FlowUITests: XCTestCase {
     let gear = app.descendants(matching: .any)["保護者用の画面"].firstMatch
     XCTAssertTrue(gear.waitForExistence(timeout: 10), "歯車が見つからない")
     gear.press(forDuration: 2.5)
-    XCTAssertTrue(app.staticTexts["おとなのひとへ"].waitForExistence(timeout: 10), "確認の画面が出ない")
+    XCTAssertTrue(app.staticTexts["保護者の方へ"].waitForExistence(timeout: 10), "確認の画面が出ない")
   }
 
   @MainActor func testParentGateCancel() {
     openGate()
     app.buttons["やめる"].tap()
     let gone = NSPredicate(format: "exists == false")
-    expectation(for: gone, evaluatedWith: app.staticTexts["おとなのひとへ"])
+    expectation(for: gone, evaluatedWith: app.staticTexts["保護者の方へ"])
     waitForExpectations(timeout: 10)
     XCTAssertTrue(button("もじ").exists)
   }
@@ -149,10 +149,12 @@ final class FlowUITests: XCTestCase {
       app.navigationBars["保護者用の画面"].waitForExistence(timeout: 10), "保護者用の画面が開かない")
   }
 
-  /// 「十四 かける 六 の こたえを …」から積を出す（十二〜十九、三〜九）。
+  /// 「十四かける六の答えを …」から積を出す（十二〜十九、三〜九）。
   @MainActor private static func product(of text: String) -> Int? {
-    let parts = text.components(separatedBy: " ")
-    guard parts.count >= 3, let left = kanji(parts[0]), let right = kanji(parts[2]) else {
+    let parts = text.components(separatedBy: "かける")
+    guard parts.count == 2, let left = kanji(parts[0]),
+      let right = kanji(String(parts[1].prefix(while: { $0 != "の" })))
+    else {
       return nil
     }
     return left * right

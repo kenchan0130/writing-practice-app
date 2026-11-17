@@ -55,14 +55,14 @@ struct ParentGateFeatureTests {
       await store.send(.keyPressed("OK")) {
         $0.input = ""
         _ = $0.gate.answer(1, at: 1000)
-        $0.message = "もういちど どうぞ。あと \(remaining) 回 ためせます"
+        $0.message = "もう一度どうぞ。あと \(remaining) 回試せます"
       }
     }
     await Self.type(store, "1")
     await store.send(.keyPressed("OK")) {
       $0.input = ""
       _ = $0.gate.answer(1, at: 1000)
-      $0.message = "31 秒 まってから ためしてください"
+      $0.message = "31 秒待ってから試してください"
     }
     #expect(!store.state.gate.isOpen(at: 1000))
     // ロック中は正しい答えでも通らない。
@@ -70,7 +70,7 @@ struct ParentGateFeatureTests {
     await store.send(.keyPressed("OK")) {
       $0.input = ""
       _ = $0.gate.answer(36, at: 1000)
-      $0.message = "31 秒 まってから ためしてください"
+      $0.message = "31 秒待ってから試してください"
     }
     #expect(store.state.outcome == nil)
   }
@@ -100,11 +100,11 @@ struct ParentGateFeatureTests {
     }
   }
 
-  @Test("やめるで閉じる。けすで入力を消す")
+  @Test("やめるで閉じる。「消す」で入力を消す")
   func cancelAndClear() async {
     let store = Self.store()
     await Self.type(store, "12")
-    await store.send(.keyPressed("けす")) { $0.input = "" }
+    await store.send(.keyPressed("消す")) { $0.input = "" }
     await store.send(.cancelTapped) { $0.outcome = .cancelled }
     await store.send(.opened) { $0.outcome = nil }
   }

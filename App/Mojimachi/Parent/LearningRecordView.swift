@@ -10,21 +10,21 @@ struct LearningRecordView: View {
 
   var body: some View {
     List {
-      Section("きょう / こんしゅう") {
-        summaryRow("きょう", log.today(now: Date(), calendar: .current))
-        summaryRow("こんしゅう", log.thisWeek(now: Date(), calendar: .current))
+      Section("今日 / 今週") {
+        summaryRow("今日", log.today(now: Date(), calendar: .current))
+        summaryRow("今週", log.thisWeek(now: Date(), calendar: .current))
       }
       Section {
         CharacterMapGrid(map: log.map)
       } header: {
-        Text("もじの地図")
+        Text("文字の地図")
       } footer: {
         MapLegend()
       }
-      Section("にがてな もじ") {
+      Section("苦手な字") {
         let weak = log.weakCharacters
         if weak.isEmpty {
-          Text("いまは ありません").foregroundStyle(.secondary)
+          Text("今はありません").foregroundStyle(.secondary)
         }
         ForEach(weak, id: \.characterID) { item in
           HStack(spacing: 16) {
@@ -49,7 +49,7 @@ struct LearningRecordView: View {
           ForEach(album, id: \.characterID) { entry in AlbumCard(entry: entry) }
         }
       } header: {
-        Text("せいちょう アルバム")
+        Text("成長アルバム")
       } footer: {
         Text("はじめて書いた字と、最近の字を並べています。")
       }
@@ -61,7 +61,7 @@ struct LearningRecordView: View {
         Text("「\(Self.char(item.characterID))」を書いた動き").font(.title2.bold())
         StrokeReplay(strokes: item.latestMiss.strokes ?? [])
           .frame(width: 360, height: 360)
-        Button("とじる") { replaying = nil }
+        Button("閉じる") { replaying = nil }
       }
       .padding(32)
     }
@@ -69,7 +69,7 @@ struct LearningRecordView: View {
 
   private func summaryRow(_ title: String, _ summary: PeriodSummary) -> some View {
     LabeledContent(title) {
-      Text("\(summary.characters) 字・ことば \(summary.words) こ・\(summary.days) 日")
+      Text("\(summary.characters) 字・ことば \(summary.words) 個・\(summary.days) 日")
     }
   }
 
@@ -82,7 +82,7 @@ struct LearningRecordView: View {
   }
 }
 
-/// 再生する にがてな もじ（シートに渡すため）。
+/// 再生する苦手な字（シートに渡すため）。
 private struct ReplayItem: Identifiable {
   var weak: WeakCharacter
   var id: String { weak.characterID }
@@ -135,9 +135,9 @@ private struct MapLegend: View {
   static func name(_ state: MapState) -> String {
     switch state {
     case .notYet: "まだ（たね）"
-    case .practicing: "れんしゅうちゅう（め）"
-    case .traced: "なぞって かけた（つぼみ）"
-    case .wroteAlone: "何も見ないで かけた（はな）"
+    case .practicing: "練習中（め）"
+    case .traced: "なぞって書けた（つぼみ）"
+    case .wroteAlone: "何も見ないで書けた（はな）"
     }
   }
 
@@ -153,7 +153,7 @@ private struct MapLegend: View {
   }
 }
 
-/// せいちょう アルバムの1文字（D83）。
+/// 成長アルバムの1文字（D83）。
 private struct AlbumCard: View {
   var entry: AlbumEntry
 
@@ -169,9 +169,9 @@ private struct AlbumCard: View {
         }
       }
       HStack(spacing: 8) {
-        page("はじめて", entry.first, traced: entry.firstWasTraced)
+        page("最初", entry.first, traced: entry.firstWasTraced)
         Image(systemName: "arrow.right").foregroundStyle(.secondary)
-        page("さいきん", entry.latest, traced: false)
+        page("最近", entry.latest, traced: false)
       }
     }
     .padding(12)
@@ -184,7 +184,7 @@ private struct AlbumCard: View {
         .frame(width: 80, height: 80)
       Text(title).font(.caption)
       if traced {
-        Text("なぞって かいたよ").font(.caption2).foregroundStyle(.secondary)
+        Text("なぞって書いた").font(.caption2).foregroundStyle(.secondary)
       }
     }
   }

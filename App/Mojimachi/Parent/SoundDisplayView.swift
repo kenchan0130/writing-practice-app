@@ -8,20 +8,19 @@ struct SoundDisplayView: View {
     Form {
       Section {
         volume("声", $store.voiceVolume)
-        volume("BGM", $store.bgmVolume)
         volume("効果音", $store.effectVolume)
-        Toggle("おとなしモード", isOn: $store.quietMode)
+        Toggle("すべての音を消す", isOn: $store.quietMode)
       } header: {
         Text("音")
       } footer: {
-        Text("おとなしモードでは、声も含めてすべての音を止めます。iPad が消音のときも音は出ません。")
+        Text("オンにすると、声も効果音もすべて止めます。iPad が消音のときも、音は出ません。")
       }
       Section {
-        Toggle("字幕（吹き出し）を出す", isOn: $store.showsSubtitles)
+        Toggle("字幕（吹き出し）を表示", isOn: $store.showsSubtitles)
         Picker("お手本の速さ", selection: $store.modelSpeed) {
-          Text("ゆっくり").tag(ProgressStore.ModelSpeed.slow)
-          Text("ふつう").tag(ProgressStore.ModelSpeed.normal)
-          Text("はやい").tag(ProgressStore.ModelSpeed.fast)
+          Text("遅い").tag(ProgressStore.ModelSpeed.slow)
+          Text("普通").tag(ProgressStore.ModelSpeed.normal)
+          Text("速い").tag(ProgressStore.ModelSpeed.fast)
         }
         Toggle("マスを大きくする", isOn: $store.largeGrid)
       } header: {
