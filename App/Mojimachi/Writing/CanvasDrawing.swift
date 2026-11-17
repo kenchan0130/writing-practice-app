@@ -7,7 +7,7 @@ enum CanvasDrawing {
   /// いまの子のペンの色（D88）。
   static var inkColor: Color { ProgressStore.shared.penColor.color }
 
-  /// マスと十字の補助線。
+  /// マスと十字の補助線（十字だけ。罫線は引かない。D152）。
   static func guide(in context: inout GraphicsContext, size: CGSize) {
     var cross = Path()
     cross.move(to: CGPoint(x: size.width / 2, y: 0))
@@ -15,9 +15,11 @@ enum CanvasDrawing {
     cross.move(to: CGPoint(x: 0, y: size.height / 2))
     cross.addLine(to: CGPoint(x: size.width, y: size.height / 2))
     context.stroke(
-      cross, with: .color(.orange.opacity(0.35)), style: StrokeStyle(lineWidth: 2, dash: [10, 8]))
+      cross, with: .color(Theme.accent.opacity(0.4)),
+      style: StrokeStyle(lineWidth: 2, dash: [10, 8]))
     context.stroke(
-      Path(CGRect(origin: .zero, size: size)), with: .color(.orange.opacity(0.6)), lineWidth: 4)
+      Path(CGRect(origin: .zero, size: size)), with: .color(Theme.accent.opacity(0.7)),
+      lineWidth: 4)
   }
 
   /// お手本の字（Klee One の形の輪郭。D55・D106）。
@@ -44,21 +46,37 @@ enum CanvasDrawing {
         x: p.x * scale - radius, y: p.y * scale - radius, width: radius * 2, height: radius * 2))
   }
 
-  /// 次に書く画の書き始めの印と、向きを示す矢印（②。D47）。`pulse` で光らせる。
+  /// 次に書く画の書き始めの印（ピンクの丸に何画目かの番号。D152）と、向きを示す矢印（②。D47）。
+  /// `pulse` で光らせる。`number` は 1 から。
   static func startMarker(
-    for stroke: CharacterData.Stroke, in context: inout GraphicsContext, scale: Double,
-    pulse: Double
+    for stroke: CharacterData.Stroke, number: Int, in context: inout GraphicsContext,
+    scale: Double, pulse: Double
   ) {
     let points = stroke.centerlinePoints()
     guard let start = points.first else { return }
-    context.fill(dot(at: start, scale: scale, radius: 14 + pulse), with: .color(.green))
+    let pink = Theme.pink
     if points.count > 6 {
       var arrow = Path()
       arrow.addLines(points.prefix(7).map { CGPoint(x: $0.x * scale, y: $0.y * scale) })
       context.stroke(
-        arrow, with: .color(.green.opacity(0.8)),
+        arrow, with: .color(pink.opacity(0.75)),
         style: StrokeStyle(lineWidth: 6, lineCap: .round, dash: [2, 8]))
     }
+    // 丸の大きさは画面の大きさ（ポイント）で決める。
+    let center = CGPoint(x: start.x * scale, y: start.y * scale)
+    let radius = 24 + pulse
+    context.fill(
+      Path(
+        ellipseIn: CGRect(
+          x: center.x - radius - 4, y: center.y - radius - 4, width: (radius + 4) * 2,
+          height: (radius + 4) * 2)), with: .color(.white.opacity(0.9)))
+    context.fill(
+      Path(
+        ellipseIn: CGRect(
+          x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)),
+      with: .color(pink))
+    context.draw(
+      Text("\(number)").font(.ui(26, bold: true)).foregroundStyle(.white), at: center)
   }
 
   /// 太さが変わる線を、点どうしをつなぐ短い線で描く。

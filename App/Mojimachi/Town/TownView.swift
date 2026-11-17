@@ -19,10 +19,11 @@ struct TownView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text(title).font(.system(size: 40, weight: .bold))
+      Text(title).font(.learning(40)).foregroundStyle(Theme.ink)
       GeometryReader { proxy in
         SpriteView(scene: scene)
-          .clipShape(RoundedRectangle(cornerRadius: 16))
+          .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.paper))
+          .softShadow()
           .onAppear {
             scene.size = proxy.size
             #if DEBUG

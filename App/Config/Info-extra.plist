@@ -4,6 +4,13 @@
 <dict>
 	<key>MojimachiCloudKitEnabled</key>
 	<string>$(CODE_SIGNING_ALLOWED)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>KleeOne-Regular.ttf</string>
+		<string>KleeOne-SemiBold.ttf</string>
+		<string>ZenMaruGothic-Medium.ttf</string>
+		<string>ZenMaruGothic-Bold.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

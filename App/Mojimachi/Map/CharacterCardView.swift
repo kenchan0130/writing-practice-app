@@ -16,19 +16,28 @@ struct CharacterCardView: View {
   var body: some View {
     VStack(spacing: 32) {
       Text(String(char))
-        .font(.system(size: 220, weight: .bold))
+        .font(.learning(220))
+        .foregroundStyle(Theme.ink)
         .frame(maxWidth: .infinity)
-        .frame(height: 260)
+        .frame(height: 280)
+        .background(Theme.paper, in: .rect(cornerRadius: Theme.Radius.paper))
+        .overlay(
+          RoundedRectangle(cornerRadius: Theme.Radius.paper).stroke(
+            Theme.accent.opacity(0.7), lineWidth: 4)
+        )
+        .softShadow()
+        .padding(.horizontal, 48)
       Button(action: onWrite) {
         Label("かく", systemImage: "pencil.line")
-          .font(.system(size: 56, weight: .bold))
+          .font(.ui(56, bold: true))
           .foregroundStyle(.white)
           .frame(maxWidth: 480, minHeight: 140)
-          .background(Color.orange.gradient, in: .rect(cornerRadius: 40))
+          .background(Theme.accent.gradient, in: .rect(cornerRadius: 70))
+          .softShadow()
       }
       .buttonStyle(.plain)
       if !words.isEmpty {
-        Text("この もじの ことば").font(.system(size: 28, weight: .bold)).foregroundStyle(.secondary)
+        Text("この もじの ことば").font(.ui(28, bold: true)).foregroundStyle(Theme.inkSoft)
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 20) {
             ForEach(words, id: \.entry.text) { item in
@@ -57,11 +66,12 @@ private struct WordCard: View {
           .font(.system(size: 64))
           .foregroundStyle(Color(item.color))
           .frame(height: 80)
-        Text(item.entry.text).font(.system(size: 30, weight: .bold)).foregroundStyle(.primary)
+        Text(item.entry.text).font(.learning(30)).foregroundStyle(Theme.ink)
       }
       .frame(minWidth: 160, minHeight: 180)
       .padding(.horizontal, 12)
-      .background(Color(item.color).opacity(0.12), in: .rect(cornerRadius: 28))
+      .background(Color(item.color).opacity(0.12), in: .rect(cornerRadius: Theme.Radius.card))
+      .softShadow()
     }
     .buttonStyle(.plain)
   }

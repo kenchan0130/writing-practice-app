@@ -33,7 +33,6 @@ struct MapSelection: Equatable {
 struct MapView: View {
   @Binding var selection: MapSelection
   var onSelect: (Character) -> Void
-  @State private var showsLockedHelp = false
   private let store = ProgressStore.shared
   private let purchases = PurchaseStore.shared
 
@@ -42,6 +41,7 @@ struct MapView: View {
       let decision = MapLayout.decide(width: proxy.size.width)
       VStack(spacing: 20) {
         scriptSwitch
+        GrowthBadge(summary: ScriptGrowthSummary(script: selection.script, log: store.log))
         pageSwitch
         if selection.page == .basic && decision.split {
           halfSwitch
@@ -54,9 +54,6 @@ struct MapView: View {
       .padding(.horizontal, MapLayout.edge)
       .padding(.bottom, 24)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    .alert("おとなのひとに おねがいしてね", isPresented: $showsLockedHelp) {
-      Button("わかった") {}
     }
   }
 
@@ -120,6 +117,8 @@ struct MapView: View {
     let columns = grid.columnCount
     let rows = wraps ? grid.wrappedRightToLeft(perRow: 6).cells : grid.cells
     return VStack(spacing: MapLayout.gap) {
+      // 1段だけの表（小さい字）は全体で1つの行。それ以外は列が行。
+      if grid.rowCount > 1 { gardenMarkers(grid, cell: cell) }
       ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
         HStack(spacing: MapLayout.gap) {
           ForEach(Array(row.enumerated()), id: \.offset) { _, char in
@@ -133,8 +132,28 @@ struct MapView: View {
           }
         }
       }
+      if grid.rowCount == 1, isGarden(grid.characters) {
+        GardenMarker().padding(.top, 4)
+      }
     }
     .frame(minWidth: Double(columns) * cell)
+  }
+
+  /// 列（あ行・か行 …）の上に、行の字がすべて「はな」になった印を出す（はなばたけ。D151）。
+  private func gardenMarkers(_ grid: KanaGrid, cell: Double) -> some View {
+    HStack(spacing: MapLayout.gap) {
+      ForEach(0..<grid.columnCount, id: \.self) { column in
+        let chars = grid.cells.compactMap { $0[column] }
+        ZStack {
+          if isGarden(chars) { GardenMarker(size: 28) }
+        }
+        .frame(width: cell, height: 28)
+      }
+    }
+  }
+
+  private func isGarden(_ chars: [Character]) -> Bool {
+    RowGrowth.isGarden(chars.map(state(of:)))
   }
 
   private func state(of char: Character) -> MapState {
@@ -149,40 +168,26 @@ struct MapView: View {
 
   private func tapped(_ char: Character) {
     if isLocked(char) {
-      showsLockedHelp = true
+      PopPresenter.shared.notice("おとなのひとに おねがいしてね")
     } else {
       onSelect(char)
     }
   }
 
+  /// 凡例（たね・め・つぼみ・はな。D151）。形の絵も付けて、色だけで区別しない（D36）。
   private var legend: some View {
     HStack(spacing: 20) {
-      ForEach([MapState.notYet, .practicing, .traced, .wroteAlone], id: \.self) { state in
+      ForEach(GrowthStage.allCases, id: \.self) { stage in
         HStack(spacing: 8) {
-          RoundedRectangle(cornerRadius: 6).fill(state.fill).frame(width: 28, height: 28)
-          Text(state.label).font(.system(size: 20, weight: .bold)).foregroundStyle(.secondary)
+          RoundedRectangle(cornerRadius: 8).fill(stage.fill).frame(width: 36, height: 36)
+            .overlay { GrowthIcon(stage: stage, size: 22) }
+          Text(stage.name).font(.ui(22, bold: true)).foregroundStyle(Theme.inkSoft)
         }
       }
-    }
-  }
-}
-
-extension MapState {
-  var fill: Color {
-    switch self {
-    case .notYet: Color.gray.opacity(0.18)
-    case .practicing: Color.orange.opacity(0.35)
-    case .traced: Color.green.opacity(0.4)
-    case .wroteAlone: Color.yellow.opacity(0.75)
-    }
-  }
-
-  var label: String {
-    switch self {
-    case .notYet: "まだ"
-    case .practicing: "れんしゅうちゅう"
-    case .traced: "なぞって かけた"
-    case .wroteAlone: "ひとりで かけた"
+      HStack(spacing: 6) {
+        GardenMarker(size: 28)
+        Text("はなばたけ").font(.ui(22, bold: true)).foregroundStyle(Theme.inkSoft)
+      }
     }
   }
 }
@@ -202,21 +207,22 @@ private struct MapCell: View {
     Button(action: action) {
       // 小さい字（ゃ・っ など）は、字を小さくして左下に寄せ、ふつうの字と見分けられるようにする。
       Text(String(char))
-        .font(.system(size: size * (isSmallKana ? 0.36 : 0.5), weight: .bold))
-        .foregroundStyle(locked ? Color.secondary : Color.primary)
+        .font(.learning(size * (isSmallKana ? 0.36 : 0.5)))
+        .foregroundStyle(locked ? Theme.inkSoft : Theme.ink)
         .frame(
           width: size - 8, height: size - 8, alignment: isSmallKana ? .bottomLeading : .center
         )
         .padding(
           isSmallKana ? EdgeInsets(top: 0, leading: 10, bottom: 8, trailing: 0) : EdgeInsets()
         )
-        .background(state.fill, in: .rect(cornerRadius: 14))
+        .background(state.fill, in: .rect(cornerRadius: Theme.Radius.cell))
         .overlay(alignment: .topTrailing) { badge }
         .frame(width: size, height: size)
         .contentShape(.rect)
     }
     .buttonStyle(.plain)
     .accessibilityLabel(String(char))
+    .accessibilityValue(locked ? "" : state.label)
   }
 
   @ViewBuilder
@@ -224,14 +230,11 @@ private struct MapCell: View {
     if locked {
       Image(systemName: "lock.fill")
         .font(.system(size: size * 0.22))
-        .foregroundStyle(.secondary)
+        .foregroundStyle(Theme.inkSoft)
         .padding(6)
-    } else if state == .wroteAlone {
-      // スタンプ（何も見ないで書けた字。§3.8）。
-      Image(systemName: "star.circle.fill")
-        .font(.system(size: size * 0.3))
-        .foregroundStyle(.orange, .white)
-        .offset(x: 4, y: -4)
+    } else {
+      // 育ちの小さな絵（たね・め・つぼみ・はな。D151）。
+      GrowthIcon(stage: state.growth, size: size * 0.26).padding(6)
     }
   }
 }
@@ -246,12 +249,14 @@ private struct MapSwitchButton: View {
   var body: some View {
     Button(action: action) {
       Text(title)
-        .font(.system(size: small ? 28 : 36, weight: .bold))
-        .foregroundStyle(selected ? Color.white : Color.primary)
+        .font(.ui(small ? 28 : 36, bold: true))
+        .foregroundStyle(selected ? Color.white : Theme.ink)
         .padding(.horizontal, 28)
         .frame(minWidth: 104, minHeight: 104)
         .background(
-          selected ? Color.orange : Color.gray.opacity(0.15), in: .rect(cornerRadius: 28))
+          selected ? Theme.accent : Color.white.opacity(0.8), in: .rect(cornerRadius: 28)
+        )
+        .softShadow()
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(selected ? .isSelected : [])

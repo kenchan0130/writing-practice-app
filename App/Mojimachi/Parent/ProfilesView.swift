@@ -156,14 +156,14 @@ struct ProfileFace: View {
   }
 }
 
-/// 子どもの画面の、使う子を選ぶシート（顔の大きなボタン。2cm 角以上。D101）。
+/// 子どもの画面の、使う子を選ぶダイアログ（D155。顔の大きなボタン。2cm 角以上。D101）。
 struct ProfilePicker: View {
   var onPick: (UUID) -> Void
   private let store = ProgressStore.shared
 
   var body: some View {
     VStack(spacing: 24) {
-      Text("だれが かく？").font(.system(size: 36, weight: .bold))
+      Text("だれが かく？").font(.ui(36, bold: true)).foregroundStyle(Theme.ink)
       LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 24)], spacing: 24) {
         ForEach(store.profiles.profiles) { profile in
           Button {
@@ -171,7 +171,7 @@ struct ProfilePicker: View {
           } label: {
             VStack(spacing: 8) {
               ProfileFace(face: profile.face, size: 120)
-              Text(profile.displayName).font(.title3.bold())
+              Text(profile.displayName).font(.ui(22, bold: true)).foregroundStyle(Theme.ink)
             }
             .frame(minWidth: 140, minHeight: 160)
           }
@@ -180,6 +180,5 @@ struct ProfilePicker: View {
         }
       }
     }
-    .padding(40)
   }
 }

@@ -56,6 +56,12 @@ struct AboutView: View {
       Section("ライセンス（strokesvg・Klee One）") {
         notice("Packs/hira/LICENSE")
       }
+      // 子どもの画面の書体（D153）。ライセンス文と著作権表示。
+      Section("書体（Klee One・Zen Maru Gothic）") {
+        notice("FONTS-NOTICE.txt")
+        notice("OFL-KleeOne.txt")
+        notice("OFL-ZenMaruGothic.txt")
+      }
     }
     .navigationTitle("このアプリについて")
   }

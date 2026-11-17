@@ -14,11 +14,72 @@ struct WritingCanvasView: View {
   }
 
   var body: some View {
-    VStack(spacing: 24) {
-      header
+    GeometryReader { outer in
+      let landscape = outer.size.width > outer.size.height
+      Group {
+        if landscape {
+          // 横向き: 書く手と反対の側にパネル（右利きなら左）。D154。
+          HStack(alignment: .top, spacing: 24) {
+            if panelOnLeft { sidePanel(vertical: true) }
+            mainColumn(landscape: true)
+            // 横向きは、ボタンを書く場所の横に縦に並べて、書く場所を広く残す。
+            toolBar(vertical: true)
+            if !panelOnLeft { sidePanel(vertical: true) }
+          }
+        } else {
+          // 縦向き: 横に置くと書く場所が狭くなるので、上に置く。
+          VStack(spacing: 12) {
+            sidePanel(vertical: false)
+            mainColumn(landscape: false)
+          }
+        }
+      }
+      .padding(.horizontal, 32)
+      .padding(.bottom, 24)
+      .padding(.top, 8)
+    }
+    .defersSystemGestures(on: .all)
+    .overlay(alignment: penStandAlignment()) { PenStandButton().padding(24) }
+    .overlay(alignment: .top) { CaptionBubble().padding(.top, 12) }
+    .overlay {
+      if model.showsCelebration, let rating = model.finishedRating, let char = model.currentChar {
+        CelebrationView(
+          rating: rating, char: char, onTap: { model.dismissCelebration() },
+          frozenAt: Self.frozenCelebration
+        )
+        .accessibilityIdentifier("celebration")
+      }
+    }
+    .animation(.easeOut(duration: 0.25), value: model.showsCelebration)
+  }
+
+  /// 確かめ用: ごほうびを止めて見せる秒数。
+  private static var frozenCelebration: Double? {
+    #if DEBUG
+      UserDefaults.standard.bool(forKey: "freezeCelebration") ? 0.9 : nil
+    #else
+      nil
+    #endif
+  }
+
+  /// パネルは書く手と反対の側に置く（D154）。右利きなら左。
+  private var panelOnLeft: Bool {
+    ProgressStore.shared.currentProfile?.handedness != .left
+  }
+
+  private func sidePanel(vertical: Bool) -> some View {
+    WritingPanel(model: model, vertical: vertical) {
+      PopPresenter.shared.notice("おとなのひとに おねがいしてね")
+    }
+  }
+
+  /// 状態の一言・書く場所・画の点・ボタン。
+  private func mainColumn(landscape: Bool) -> some View {
+    VStack(spacing: 12) {
+      statusLine(landscape: landscape)
       GeometryReader { proxy in
         let side =
-          min(proxy.size.width, proxy.size.height) * (ProgressStore.shared.largeGrid ? 1 : 0.85)
+          min(proxy.size.width, proxy.size.height) * (ProgressStore.shared.largeGrid ? 1 : 0.92)
         canvas
           .frame(width: side, height: side)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -34,67 +95,90 @@ struct WritingCanvasView: View {
           }
           .onChange(of: side) { _, newValue in model.side = newValue }
       }
-      HStack(spacing: 32) {
-        if model.finishedRating != nil {
-          ToolButton(title: "もういちど", systemImage: "arrow.counterclockwise") {
-            model.restartCharacter()
-          }
-          ToolButton(title: "つぎの もじ", systemImage: "arrow.right.circle.fill") {
-            model.nextCharacter()
-          }
-        } else if model.step == .jibunde {
+      StrokeDots(total: model.strokeTotal, done: model.strokesDone)
+        .frame(height: 48)
+      if !landscape { toolBar(vertical: false) }
+      #if DEBUG
+        if UserDefaults.standard.bool(forKey: "debugControls") { debugControls }
+      #endif
+    }
+  }
+
+  /// ボタン（どの段階でも「やりなおす」。D154）。
+  private func toolBar(vertical: Bool) -> some View {
+    let layout =
+      vertical ? AnyLayout(VStackLayout(spacing: 16)) : AnyLayout(HStackLayout(spacing: 20))
+    return layout {
+      if model.finishedRating != nil {
+        ChildToolButton(
+          title: "もういっこ", systemImage: "arrow.counterclockwise", color: Theme.accent
+        ) {
+          model.restartCharacter()
+        }
+        ChildToolButton(
+          title: "つぎの もじ", systemImage: "arrow.right.circle.fill", color: Theme.green
+        ) {
+          model.nextCharacter()
+        }
+      } else {
+        ChildToolButton(title: "やりなおす", systemImage: "arrow.counterclockwise") {
+          model.retryStep()
+        }
+        if model.step == .jibunde {
           // ④ だけに置く（②③は違う画が消えるので置かない。D56）。
-          ToolButton(title: "ひとつ もどす", systemImage: "arrow.uturn.backward") { model.undo() }
-          ToolButton(title: "ぜんぶ けす", systemImage: "trash") { model.clear() }
-          ToolButton(
-            title: "できた！", systemImage: "checkmark.circle.fill",
+          ChildToolButton(title: "ひとつ もどす", systemImage: "arrow.uturn.backward") {
+            model.undo()
+          }
+          ChildToolButton(title: "ぜんぶ けす", systemImage: "trash") { model.clear() }
+          ChildToolButton(
+            title: "できた！", systemImage: "checkmark.circle.fill", color: Theme.green,
             highlighted: model.highlightsDone
           ) { model.judgeNow() }
         }
       }
-      .frame(minHeight: 120)
-      #if DEBUG
-        HStack(spacing: 24) {
-          Picker("判定", selection: $model.preset) {
-            Text("はじめて").tag(JudgePreset.hajimete)
-            Text("なれてきた").tag(JudgePreset.naretekita)
-            Text("しっかり").tag(JudgePreset.shikkari)
-            Text("きっちり").tag(JudgePreset.kicchiri)
-          }
-          .pickerStyle(.segmented)
-          .fixedSize()
-          Button("つぎの もじ") { model.nextCharacter() }
-          Text(model.step.map(stepName) ?? "").foregroundStyle(.secondary)
-          Toggle("遅れの目安", isOn: $showsLatency).fixedSize()
-        }
-        // 角のペンたてと重ならないように、両側をあける。
-        .padding(.horizontal, 140)
-      #endif
     }
-    .padding(32)
-    .defersSystemGestures(on: .all)
-    .overlay(alignment: penStandAlignment()) { PenStandButton().padding(24) }
-    .overlay(alignment: .top) { CaptionBubble().padding(.top, 12) }
+    .frame(minHeight: vertical ? nil : 112)
+    .frame(maxHeight: vertical ? .infinity : nil)
+    // 押したら、次の字へ自動で進むのをやめる（D154）。
+    .simultaneousGesture(TapGesture().onEnded { model.cancelAutoAdvance() })
   }
 
-  /// 練習している字と、判定の結果。
-  private var header: some View {
-    HStack(spacing: 24) {
-      Text(model.character?.char ?? "")
-        .font(.system(size: 56, weight: .bold))
+  #if DEBUG
+    private var debugControls: some View {
+      HStack(spacing: 24) {
+        Picker("判定", selection: $model.preset) {
+          Text("はじめて").tag(JudgePreset.hajimete)
+          Text("なれてきた").tag(JudgePreset.naretekita)
+          Text("しっかり").tag(JudgePreset.shikkari)
+          Text("きっちり").tag(JudgePreset.kicchiri)
+        }
+        .pickerStyle(.segmented)
+        .fixedSize()
+        Text(model.step.map(stepName) ?? "").foregroundStyle(.secondary)
+        Toggle("遅れの目安", isOn: $showsLatency).fixedSize()
+      }
+      // 角のペンたてと重ならないように、両側をあける。
+      .padding(.horizontal, 140)
+    }
+  #endif
+
+  /// 判定の結果や、とめ・はね・はらいのヒント。
+  private func statusLine(landscape: Bool) -> some View {
+    HStack(spacing: 16) {
+      // 縦向きは、キャラクターのひとことをここに出す（パネルを1段にするため）。
+      if !landscape { WritingHelper(model: model, vertical: false) }
       Spacer()
       if let hint = model.endingHint {
         Label(hint.message, systemImage: "lightbulb.fill")
-          .font(.title3.bold())
-          .foregroundStyle(.orange)
+          .font(.ui(24, bold: true))
+          .foregroundStyle(Theme.accent)
       }
-      if let rating = model.finishedRating {
-        RatingBadge(rating: rating)
-      } else if let result = model.result {
+      if model.finishedRating == nil, let result = model.result {
         ResultBadge(result: result)
       }
+      Spacer()
     }
-    .frame(height: 80)
+    .frame(height: landscape ? 44 : 64)
   }
 
   private var canvas: some View {
@@ -107,8 +191,13 @@ struct WritingCanvasView: View {
         drawWriting(in: &context, size: size)
       }
     }
-    .background(Color(red: 0.98, green: 0.96, blue: 0.92))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .background(Theme.paper)
+    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.paper))
+    .overlay(
+      RoundedRectangle(cornerRadius: Theme.Radius.paper).stroke(
+        Theme.accent.opacity(0.7), lineWidth: 4)
+    )
+    .softShadow()
     .gesture(StrokeInputGesture { event, convert in model.handle(event, convert: convert) })
     .accessibilityLabel("もじを かく ばしょ")
   }
@@ -194,7 +283,8 @@ struct WritingCanvasView: View {
     guard let flow = model.flow, flow.expectedStroke < character.strokes.count else { return }
     let pulse = model.hintStroke == nil ? 0 : (sin(now.timeIntervalSinceReferenceDate * 6) + 1) * 6
     CanvasDrawing.startMarker(
-      for: character.strokes[flow.expectedStroke], in: &context, scale: scale, pulse: pulse)
+      for: character.strokes[flow.expectedStroke], number: flow.expectedStroke + 1, in: &context,
+      scale: scale, pulse: pulse)
   }
 
   private func stepName(_ step: PracticeStep) -> String {
@@ -208,55 +298,13 @@ struct WritingCanvasView: View {
 
 }
 
-/// 子どもが押すボタン。押せる部分は 2cm 角（約104ポイント）以上（D101）。
-private struct ToolButton: View {
-  var title: String
-  var systemImage: String
-  var highlighted = false
-  var action: () -> Void
-
-  var body: some View {
-    Button(action: action) {
-      VStack(spacing: 8) {
-        Image(systemName: systemImage).font(.system(size: 36, weight: .bold))
-        Text(title).font(.headline)
-      }
-      .frame(minWidth: 120, minHeight: 120)
-    }
-    .buttonStyle(.bordered)
-    .buttonBorderShape(.roundedRectangle(radius: 24))
-    .tint(highlighted ? .orange : .accentColor)
-    .scaleEffect(highlighted ? 1.08 : 1)
-    .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: highlighted)
-  }
-}
-
-/// 練習が終わったときのほめ方（試作。演出は M0 で作り込む。§3.3）。
-private struct RatingBadge: View {
-  var rating: Rating
-
-  var body: some View {
-    Text(title)
-      .font(.system(size: 40, weight: .heavy))
-      .foregroundStyle(rating == .hanamaru ? .pink : rating == .nijumaru ? .orange : .green)
-  }
-
-  private var title: String {
-    switch rating {
-    case .hanamaru: "はなまる！"
-    case .nijumaru: "にじゅうまる！"
-    case .maru: "まる！"
-    }
-  }
-}
-
 /// 判定の結果（試作。ほめる演出は M0 で作り込む）。バツ印は使わない（§3.2）。
 private struct ResultBadge: View {
   var result: JudgeResult
 
   var body: some View {
     VStack(alignment: .trailing, spacing: 4) {
-      Text(title).font(.system(size: 40, weight: .heavy)).foregroundStyle(color)
+      Text(title).font(.ui(32, bold: true)).foregroundStyle(color)
       #if DEBUG
         if !result.issues.isEmpty {
           Text(result.issues.map(describe).joined(separator: " / "))

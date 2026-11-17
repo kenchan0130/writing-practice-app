@@ -118,4 +118,19 @@ struct PracticeFlowTests {
     _ = flow.handle(.clear)
     #expect(flow.strokes.isEmpty)
   }
+
+  @Test("やりなおす: どの段階でも、書いた画を消して同じ段階の最初に戻る（D154）")
+  func restartStep() throws {
+    let data = try Self.character("き")
+    let lines = Self.model(data)
+    var flow = PracticeFlow(character: data, preset: .naretekita)
+    _ = flow.handle(.animationFinished)
+    _ = flow.handle(.strokeEnded(lines[0]))
+    #expect(flow.expectedStroke == 1)
+    #expect(flow.handle(.restartStep) == [.stepChanged(.nazoru)])
+    #expect(flow.step == .nazoru)
+    #expect(flow.expectedStroke == 0)
+    // 最初の画から書き直せる。
+    #expect(flow.handle(.strokeEnded(lines[0])).first == .keepStroke)
+  }
 }

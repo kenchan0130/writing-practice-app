@@ -25,6 +25,8 @@ public enum PracticeEvent: Sendable {
   case undo
   /// 「ぜんぶ けす」（④。D56）。
   case clear
+  /// 「やりなおす」（どの段階でも。D154）。いまの段階を最初から書き直す。
+  case restartStep
 }
 
 /// 練習の指示（画面がすること）。
@@ -79,6 +81,11 @@ public struct PracticeFlow: Sendable {
   public mutating func handle(_ event: PracticeEvent) -> [PracticeEffect] {
     guard !finished else { return [] }
     switch (step, event) {
+    case (_, .restartStep):
+      // 書いた画と数え直しをなくして、同じ段階をやり直す（学習記録には残さない）。
+      strokes = []
+      sameStrokeMisses = 0
+      return [.stepChanged(step)]
     case (.miru, .animationFinished):
       return move(to: .nazoru)
     case (.nazoru, .strokeEnded(let line)), (.usuku, .strokeEnded(let line)):

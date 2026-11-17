@@ -128,7 +128,7 @@ nonisolated struct ParentGateFeature {
       }
       return .send(.passed)
     case .wrong(let remaining):
-      state.message = "ちがいます。あと \(remaining) 回 ためせます"
+      state.message = "もういちど どうぞ。あと \(remaining) 回 ためせます"
     case .locked(let until):
       state.message = "\(Int(until - now) + 1) 秒 まってから ためしてください"
     }

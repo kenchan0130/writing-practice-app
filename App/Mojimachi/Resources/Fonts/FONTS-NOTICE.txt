@@ -1,0 +1,15 @@
+書体（D153）
+
+もじまちの子どもの画面では、次の書体を使っています。どちらも SIL Open Font License 1.1 で配られているものです。ライセンスの全文は、同じ場所の OFL-KleeOne.txt と OFL-ZenMaruGothic.txt にあります。
+
+Klee One（字を学ぶところ。お手本・字のカード・文字の地図・字幕・ことば）
+  Copyright 2020 The Klee Project Authors (https://github.com/fontworks-fonts/Klee)
+  Klee One Regular / SemiBold
+
+Zen Maru Gothic（ボタン・ラベルなどの小さな画面の文字）
+  Copyright 2021 The Zen Maru Gothic Project Authors (https://github.com/googlefonts/zen-marugothic)
+  Zen Maru Gothic Medium / Bold
+
+入手元: https://github.com/google/fonts （ofl/kleeone、ofl/zenmarugothic）
+
+アプリに入れるときに、使う字だけに減らしました（Scripts/subset_fonts.py。fonttools を使用）。字の形は変えていません。書体の名前も変えていません（どちらの書体にも「予約された書体名」の指定はありません）。

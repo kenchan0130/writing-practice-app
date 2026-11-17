@@ -55,7 +55,7 @@ struct ParentGateFeatureTests {
       await store.send(.keyPressed("OK")) {
         $0.input = ""
         _ = $0.gate.answer(1, at: 1000)
-        $0.message = "ちがいます。あと \(remaining) 回 ためせます"
+        $0.message = "もういちど どうぞ。あと \(remaining) 回 ためせます"
       }
     }
     await Self.type(store, "1")

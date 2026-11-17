@@ -134,10 +134,10 @@ private struct MapLegend: View {
 
   static func name(_ state: MapState) -> String {
     switch state {
-    case .notYet: "まだ"
-    case .practicing: "れんしゅうちゅう"
-    case .traced: "なぞって かけた"
-    case .wroteAlone: "何も見ないで かけた"
+    case .notYet: "まだ（たね）"
+    case .practicing: "れんしゅうちゅう（め）"
+    case .traced: "なぞって かけた（つぼみ）"
+    case .wroteAlone: "何も見ないで かけた（はな）"
     }
   }
 

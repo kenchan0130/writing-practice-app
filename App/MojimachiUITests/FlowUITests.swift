@@ -48,6 +48,37 @@ final class FlowUITests: XCTestCase {
     XCTAssertTrue(button("ことば").exists)
   }
 
+  // MARK: - 1b. 書く画面のパネル（D154）
+
+  @MainActor private func openWriting(_ char: String) {
+    openMap()
+    tap(button(char), "地図の \(char)")
+    tap(button("かく"), "カードの かく")
+    XCTAssertTrue(
+      app.otherElements["もじを かく ばしょ"].firstMatch.waitForExistence(timeout: 10), "書く画面が出ない")
+  }
+
+  @MainActor func testWritingPanelRowCellAndArrows() {
+    openWriting("そ")
+    let current = app.staticTexts["panelChar"].firstMatch
+    XCTAssertTrue(current.waitForExistence(timeout: 10), "パネルの字が出ない")
+    XCTAssertEqual(current.label, "そ")
+    XCTAssertTrue(button("やりなおす").exists, "やりなおす が出ない")
+    // 行の表の字を押すと、その字へ移る。
+    tap(button("し"), "行の表の し")
+    let shi = NSPredicate(format: "label == %@", "し")
+    expectation(for: shi, evaluatedWith: current)
+    waitForExpectations(timeout: 10)
+    // 矢印で次の字へ。
+    tap(button("つぎの もじ"), "つぎへの矢印")
+    let moved = NSPredicate(format: "label != %@", "し")
+    expectation(for: moved, evaluatedWith: current)
+    waitForExpectations(timeout: 10)
+    tap(button("まえの もじ"), "まえへの矢印")
+    expectation(for: shi, evaluatedWith: current)
+    waitForExpectations(timeout: 10)
+  }
+
   // MARK: - 2. ことば
 
   @MainActor func testWordPicker() {
@@ -76,11 +107,14 @@ final class FlowUITests: XCTestCase {
     openMap()
     tap(button("カタカナ"), "カタカナの つまみ")
     tap(button("カ"), "鍵つきの カ")
-    let alert = app.alerts["おとなのひとに おねがいしてね"]
-    XCTAssertTrue(alert.waitForExistence(timeout: 10), "鍵の案内が出ない")
-    alert.buttons["わかった"].tap()
+    // 標準のアラートではなく、独自のポップなダイアログ（D155）。ボタンは識別子で探す。
+    let message = app.staticTexts["おとなのひとに おねがいしてね"]
+    XCTAssertTrue(message.waitForExistence(timeout: 10), "鍵の案内が出ない")
+    let ok = app.buttons["popDialogButton"]
+    XCTAssertTrue(ok.exists, "ダイアログのボタンが出ない")
+    ok.tap()
     let gone = NSPredicate(format: "exists == false")
-    expectation(for: gone, evaluatedWith: alert)
+    expectation(for: gone, evaluatedWith: message)
     waitForExpectations(timeout: 10)
     tap(button("ニ"), "おためしの ニ")
     XCTAssertTrue(button("かく").waitForExistence(timeout: 10), "ニのカードが出ない")

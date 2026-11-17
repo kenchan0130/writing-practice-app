@@ -24,6 +24,9 @@ final class WordModel {
   /// ことばが書けた（変身を見せる）。
   private(set) var wordDone = false
   private(set) var highlightsDone = false
+  /// 1字書けたときの小さなごほうびのほめ方（D152）。少しのあいだだけ出す。
+  private(set) var charPraise: Rating?
+  private var praiseTask: Task<Void, Never>?
 
   private let store = ProgressStore.shared
   /// いまの字の書いた線（マス 0〜1000。学習記録に残す）。
@@ -90,6 +93,8 @@ final class WordModel {
 
   private func loadWord() {
     judgeTask?.cancel()
+    praiseTask?.cancel()
+    charPraise = nil
     let characters = word.compactMap { PackLibrary.hiragana($0) }
     flow = WordFlow(characters: characters, mastered: store.mastered, preset: store.preset)
     strokes = []
@@ -135,7 +140,8 @@ final class WordModel {
         record(character, stage: .jibunde, passed: false, rescued: false, issues: result.issues)
         strokes = []
         lines = []
-      case .characterDone(_, _, _, let rescued):
+      case .characterDone(_, _, let rating, let rescued):
+        showPraise(rating)
         if let stage {
           record(character, stage: stage, passed: !rescued, rescued: rescued, issues: [])
         }
@@ -147,10 +153,26 @@ final class WordModel {
         missResult = nil
       case .wordDone:
         wordDone = true
+        praiseTask?.cancel()
+        charPraise = nil
         SoundPlayer.shared.play(.praise)
         VoicePlayer.shared.speak(word)
         store.record(WordRecord(date: Date(), word: word))
       }
+    }
+  }
+
+  /// 字ごとの小さなごほうびを、1秒弱だけ出す（ことばが書けたときは変身に任せる。D43・D152）。
+  private func showPraise(_ rating: Rating) {
+    charPraise = rating
+    praiseTask?.cancel()
+    #if DEBUG
+      if UserDefaults.standard.bool(forKey: "freezeCelebration") { return }
+    #endif
+    praiseTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(0.9))
+      guard !Task.isCancelled else { return }
+      self?.charPraise = nil
     }
   }
 
