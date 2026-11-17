@@ -62,6 +62,10 @@ struct AboutView: View {
         notice("OFL-KleeOne.txt")
         notice("OFL-ZenMaruGothic.txt")
       }
+      // 効果音の出どころ（D149）。小森平さん・Freesound（CC0）。
+      Section("効果音（小森平・Freesound）") {
+        notice("SOUNDS-NOTICE.txt")
+      }
     }
     .navigationTitle("このアプリについて")
   }

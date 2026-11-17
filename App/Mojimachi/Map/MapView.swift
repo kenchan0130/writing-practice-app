@@ -168,7 +168,7 @@ struct MapView: View {
 
   private func tapped(_ char: Character) {
     if isLocked(char) {
-      PopPresenter.shared.notice("おとなのひとに おねがいしてね")
+      PopPresenter.shared.notice("おとなのひとに おねがいしてね", sound: .locked)
     } else {
       onSelect(char)
     }

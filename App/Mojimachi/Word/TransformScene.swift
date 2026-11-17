@@ -9,11 +9,16 @@ final class TransformScene: SKScene {
   private let objectImage: UIImage
   private let colors: [UIColor]
   private let kind: WordKind
+  private let word: String
   var onFinished: (() -> Void)?
 
   /// - Parameter lines: 子どもが書いた線（このシーンの座標。左上が原点）。`colors` は線ごとの書いたときの色（D88）。
-  init(size: CGSize, lines: [[CGPoint]], colors: [UIColor], objectImage: UIImage, kind: WordKind) {
+  init(
+    size: CGSize, lines: [[CGPoint]], colors: [UIColor], objectImage: UIImage, kind: WordKind,
+    word: String
+  ) {
     self.kind = kind
+    self.word = word
     self.lines = lines
     self.objectImage = objectImage
     self.colors = colors
@@ -38,6 +43,7 @@ final class TransformScene: SKScene {
           x: objectOrigin.x + $0.x * objectSide / objectImage.size.width,
           y: objectOrigin.y + $0.y * objectSide / objectImage.size.height))
     }
+    SoundPlayer.shared.play(.gather)
     let sources = sampledInk(count: max(targets.count, 1))
     let texture = dotTexture()
     for (i, source) in sources.enumerated() {
@@ -72,9 +78,15 @@ final class TransformScene: SKScene {
             node.run(.fadeOut(withDuration: 0.25))
           }
           object.run(.fadeIn(withDuration: 0.25))
+          // 物ができたら「ぽよっ」。そのあと、ことばの音（鳴き声・乗り物・服）。
+          SoundPlayer.shared.play(.appear)
         },
         .wait(forDuration: 0.4),
-        .run { [weak self] in self?.move(object) },
+        .run { [weak self] in
+          guard let self else { return }
+          SoundPlayer.shared.play(.word(self.word))
+          self.move(object)
+        },
       ]))
   }
 

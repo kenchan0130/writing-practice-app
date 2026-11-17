@@ -19,7 +19,6 @@ struct PenStandButton: View {
   var body: some View {
     let store = ProgressStore.shared
     Button {
-      SoundPlayer.shared.play(.tap)
       PopPresenter.shared.show(id: "penPicker", dismissesOnBackdrop: true) {
         PenColorPicker(
           title: "ペンの いろを えらぼう",

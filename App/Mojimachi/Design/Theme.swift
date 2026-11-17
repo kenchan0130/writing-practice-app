@@ -83,6 +83,9 @@ struct PillButtonStyle: ButtonStyle {
       .softShadow()
       .scaleEffect(configuration.isPressed ? 0.96 : highlighted ? 1.06 : 1)
       .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+      .onChange(of: configuration.isPressed) { _, pressed in
+        if pressed { SoundPlayer.shared.play(.tap) }
+      }
   }
 }
 
@@ -95,7 +98,10 @@ struct ChildToolButton: View {
   var action: () -> Void
 
   var body: some View {
-    Button(action: action) {
+    Button {
+      SoundPlayer.shared.play(.tap)
+      action()
+    } label: {
       VStack(spacing: 6) {
         Image(systemName: systemImage).font(.system(size: 34, weight: .bold))
         Text(title).font(.ui(22, bold: true))
