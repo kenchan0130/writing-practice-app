@@ -7,33 +7,27 @@
   商用利用・加工・アプリへの組み込みが許されています（利用規約: https://taira-komori.net/welcome.html、2026-11-17 確認）。
   効果音: 小森平「無料効果音で遊ぼう!」
     - word_jitensha.caf: 自転車チリン１ (bicycle_bell1)
-    - word_ushi.caf: 牛舎の牛のモー (cow1)
     - word_inu.caf: ワンワン！a (dog1a)
     - word_neko.caf: 猫がニャーン１a (cat1a)
     - word_kuma.caf: パンダ（リーリー） (panda)
-    - word_fuku.caf: 衣ずれ (rustle_of_clothes)
-    - word_kutsu.caf: 靴を置く (put_shoes)
-    - appear.caf: ポヨッ (poyo)
-    - confetti.caf: クラッカー１ (party_popper1)
 
 ■ Freesound（CC0 1.0 の音だけ）  https://freesound.org/
   作者が権利を放棄した音です。表示は必要ありませんが、お礼として作者名を載せます。
   ライセンス: https://creativecommons.org/publicdomain/zero/1.0/
     - word_sori.caf: Sleigh bells hit (#369506) / Selector  https://freesound.org/people/Selector/sounds/369506/
     - word_kuruma.caf: Honk Honk High Pitched Car Horn (#721413) / FartMuffin  https://freesound.org/people/FartMuffin/sounds/721413/
-    - word_fune.caf: 35_Bocina_barco.wav (#468846) / ChristianAnd  https://freesound.org/people/ChristianAnd/sounds/468846/
+    - word_fune.caf: Horn Toy (Claun like sound) 3 (#564697) / Matislav  https://freesound.org/people/Matislav/sounds/564697/
+    - word_ushi.caf: Myles Moss' Cartoon Cow Moo SFX.mp3 (#667470) / MylieJoeMoss1996  https://freesound.org/people/MylieJoeMoss1996/sounds/667470/
     - word_densha.caf: Train Horn 48 (Short).mp3 (#591842) / FunWithSound  https://freesound.org/people/FunWithSound/sounds/591842/
     - word_shinkansen.caf: quick woosh (#683101) / florianreichelt  https://freesound.org/people/florianreichelt/sounds/683101/
     - word_uma.caf: horse neigh shortened.wav (#269571) / shadoWisp  https://freesound.org/people/shadoWisp/sounds/269571/
-    - word_shika.caf: Deer_chucker_call_s (#696777) / ferventtorpor  https://freesound.org/people/ferventtorpor/sounds/696777/
+    - word_shika.caf: Deer Meewing 01.wav (#351113) / msantoro11  https://freesound.org/people/msantoro11/sounds/351113/
     - word_risu.caf: 44 Chillido Ardilla.wav (#443826) / checholio  https://freesound.org/people/checholio/sounds/443826/
-    - word_boushi.caf: Headband tighten (#516830) / CressieCres  https://freesound.org/people/CressieCres/sounds/516830/
-    - word_yukata.caf: Blanket Movement 6 (#320144) / OwlStorm  https://freesound.org/people/OwlStorm/sounds/320144/
-    - word_kutsushita.caf: Jacket/Cloth Rustle 9 (#494797) / brandondelehoy  https://freesound.org/people/brandondelehoy/sounds/494797/
-    - gather.caf: cartoon_wink_magic_sparkle.wav (#511485) / MLaudio  https://freesound.org/people/MLaudio/sounds/511485/
-    - sparkle.caf: Sparkling Star 01.wav (#462095) / LilMati  https://freesound.org/people/LilMati/sounds/462095/
-    - tap.caf: UI Toggle Switch On (#878244) / Qvantor  https://freesound.org/people/Qvantor/sounds/878244/
-    - dialog.caf: UI Pop-up Open (#878253) / Qvantor  https://freesound.org/people/Qvantor/sounds/878253/
-    - locked.caf: boing2.wav (#277290) / TinTinOko  https://freesound.org/people/TinTinOko/sounds/277290/
+
+■ こんとどぅふぇ（Conte de Fées）  https://conte-de-fees.com/
+  商用利用・アプリへの組み込みができ、クレジットは不要です（利用条件: https://conte-de-fees.com/how-to-use、2026-11-17 確認）。お礼として載せます。
+    - word_fuku.caf: ふわり / word_yukata.caf: 羽が舞い落ちる / word_kutsu.caf: 磁石でぴたっ / word_boushi.caf: 光が弾けるぱちっ
+    - word_kutsushita.caf: ファスナー / gather.caf: 風鈴 / appear.caf: ぽぽん / sparkle.caf: 星の粒
+    - confetti.caf: 大成功のごほうび / tap.caf: こつん / dialog.caf: ぷくぷく / locked.caf: ぴょん
 
 出どころの詳しい記録は、開発用の Content/Sounds/provenance.csv にあります。
