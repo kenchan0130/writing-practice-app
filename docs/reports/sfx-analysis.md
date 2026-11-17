@@ -160,3 +160,45 @@
 図（作業用。コミットしていない）: `.../scratchpad/sfx/analysis2/contact_sheet.png`。波形・スペクトログラムを見て、印の数値と食い違いはなかった。word_ushi は 8kHz までの倍音の壁（上の「人が聞くこと」）、word_fune は声の倍音が 4 本並ぶ、word_kutsushita はノイズの広がりで、数値どおり。
 
 素材を取り直す方法: `Scripts/process_sfx.py` の冒頭に書いてある（小森平は curl、Freesound は各ページの高音質プレビュー、こんとどぅふぇは配布された集まりから使う 12 個だけ）。
+
+## OtoLogic の音への入れ替え（2026-11-18。D158）
+
+「OtoLogic のほうがかわいい」との声を受け、人が落とした OtoLogic（CC BY 4.0）の mp3 16 個を、今の音と同じ道具・同じ音量そろえ（`Scripts/process_sfx.py` と同じ処理）で調べた。長さは役目に合わせて切った。
+
+**候補のスコア**（同じ一覧に混ぜて調べた。印はどれも付かなかった）
+
+| 候補（元のファイル） | 切った長さ s | 立ち上がり ms | 重心 Hz | スコア | 役目の候補と今の音のスコア |
+|---|---|---|---|---|---|
+| Onoma-Pop04-1(High-Dry) | 0.25 / 0.5 | 2 | 1072 | 72 | tap 84・appear 81 より低い |
+| Water_Drop03-4(High-Dry) | 0.25 / 0.5 | 98 | 1570 | 85 | tap 84（立ち上がりが遅く役目に合わない）・appear 81 → 採用 |
+| Onoma-Sparkle11-3(Short) | 1.0 | 160 | 8619 | 84 | sparkle 94 より低い |
+| Onoma-Sparkle09-2(Short) | 1.0 | 30 | 5850 | 86 | sparkle 94 より低い |
+| Onoma-Sparkle13-5(Fast) | 1.0 | 46 | 5289 | 86 | sparkle 94 より低い |
+| Angel08-6(High-Short) | 1.0 | 594 | 1122 | 69 | sparkle 94 より低い |
+| Onoma-Sparkle10-2(Mid) | 1.3 | 53 | 4858 | 87 | gather 93 より低い |
+| Onoma-Sparkle12-3(Chime_Only) | 1.3 | 569 | 7408 | 79 | gather 93 より低い |
+| Bell_Accent16-1(High) | 1.2 | 87 | 3961 | 90 | confetti 83 → 採用 |
+| Inspiration10-1(High) | 1.2 | 5 | 1888 | 73 | confetti 83 より低い |
+| Angel04-1(Short) | 1.2 | 529 | 921 | 66 | confetti 83 より低い |
+| Onoma-Flash17-2(High) | 0.8 | 95 | 4977 | 96 | sparkle 94 → 採用（0.7 秒に切ると 97） |
+| Motion-Swish09-03 / 04 / 06 / 07 | 1.0 | 243 / 87 / 193 / 73 | 2384〜2527 | 68 / 73 / 73 / 75 | word_shinkansen 66 → 07 を採用（1.4 秒に切ると 72） |
+
+取れなかった 5 個（HTML だった）: Onoma-Button-Click03-1・Onoma-Button-Click02-1・Onoma-Pop03-1・Onoma-Pop02-3・Onoma-Pop02-1。
+
+**入れ替えた 4 個**（全部、25 個の一覧を調べ直した値）
+
+| ファイル | 入れ替え | 長さ s（前→後） | アクティブ dB（前→後） | ピーク dB（後） | スコア（前→後） | 印 |
+|---|---|---|---|---|---|---|
+| appear | OtoLogic Water_Drop03-4（水滴） | 0.28→0.50 | -18.3→-18.4 | -3.0 | 81→85 | -→- |
+| sparkle | OtoLogic Onoma-Flash17-2（きらっ） | 0.64→0.70 | -18.3→-18.6 | -2.0 | 94→97 | -→- |
+| confetti | OtoLogic Bell_Accent16-1（ベル） | 1.16→1.20 | -18.5→-18.4 | -1.3 | 83→90 | -→- |
+| word_shinkansen | OtoLogic Motion-Swish09-07（スウィッシュ） | 1.40→1.40 | -18.9→-19.2 | -4.3 | 66→72 | -→- |
+
+そのままにした音と理由: tap（今の 84 に対し水滴は 85 だが、立ち上がり 98ms は「押した手応え」に遅い）、gather（今の 93 が候補の最高 87 より高い）、dialog・locked・word_* の鳴き声や服の音（候補に同じ役目のものがない）。
+
+注意:
+- 25 個の音量の中央値は -18.4dB（前は -18.5dB）。アクティブ音量はどれも -19.6〜-17.8dB に収まっている。
+- appear の水滴は立ち上がりが遅い（98ms）。「ぽん」ではなく「ぽちゃん」に近い。人が聞いて、現れる音として合うか確かめる。
+- sparkle の Flash17 はピークが -2.0dBFS、confetti の Bell16 は -1.3dBFS（-1dBFS 以下）。
+- スコアは耳の代わりにならない。最後は人が聞いて決める。
+- クレジット「OtoLogic」 https://otologic.jp を「このアプリについて」に載せた（CC BY 4.0）。
