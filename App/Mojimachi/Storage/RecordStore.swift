@@ -16,7 +16,7 @@ final class RecordStore {
   let container: NSPersistentContainer
   private var context: NSManagedObjectContext { container.viewContext }
 
-  /// iCloud のコンテナ（D44）。家族の共有（共有データベース）は次の段階で足す。いまは自分の非公開データベース。
+  /// iCloud のコンテナ（D44）。自分の非公開データベースだけ使う（家族の共有は作らない。D148）。
   nonisolated static let cloudContainerID = "iCloud.io.github.kenchan0130.mojimachi"
 
   /// 同期の出来事を知らせる（保護者用の画面に出す。D63）。
@@ -26,6 +26,8 @@ final class RecordStore {
     case failed(SyncProblem)
     /// 別の iPad の変更が入った。画面の読み直しが要る。
     case remoteChange
+    /// iCloud のデータの置き場所が消えていた（ほかの iPad が「iCloud のデータを消す」を使った。D85）。
+    case zoneDeleted
   }
 
   /// 同期の問題の種類（保護者用の画面の文言を決める）。
@@ -55,7 +57,7 @@ final class RecordStore {
   /// 同期の出来事を受け取る。
   var onSyncEvent: ((SyncEvent) -> Void)?
   /// iCloud の同期が実際に動いているか。
-  let syncing: Bool
+  private(set) var syncing: Bool
   private var observers: [any NSObjectProtocol] = []
 
   /// - Parameters:
@@ -104,6 +106,46 @@ final class RecordStore {
       })
   }
 
+  /// この起動の同期を止める。保存先は開き直し、iCloud とのつながりだけ外す（行は消さない。D85）。
+  /// 「iCloud のデータを消す」のあと、動いている同期が置き場所を作り直して上げ直さないようにする。
+  func stopSync() {
+    guard syncing else { return }
+    syncing = false
+    for observer in observers { NotificationCenter.default.removeObserver(observer) }
+    observers = []
+    save()
+    let coordinator = container.persistentStoreCoordinator
+    for store in coordinator.persistentStores { try? coordinator.remove(store) }
+    for description in container.persistentStoreDescriptions {
+      description.cloudKitContainerOptions = nil
+    }
+    container.loadPersistentStores { _, error in
+      if let error { Self.lastError = error }
+    }
+  }
+
+  /// NSPersistentCloudKitContainer が使う、非公開データベースの置き場所の名前。
+  nonisolated static let cloudZoneName = "com.apple.coredata.cloudkit.zone"
+
+  /// iCloud の置き場所（ゾーン）をまるごと消す（D85）。端末の中のデータは消さない。
+  /// 署名なしのビルドや確かめ用の起動では、CloudKit に触れず何もしない（false を返す）。
+  /// 同じ Apple アカウントのどの iPad からでも消せる（共有は作らない。D148）。
+  nonisolated static func deleteCloudZone() async throws -> Bool {
+    guard hasCloudEntitlement, !isLocalOnlyRun else { return false }
+    let database = CKContainer(identifier: cloudContainerID).privateCloudDatabase
+    let zoneID = CKRecordZone.ID(
+      zoneName: cloudZoneName, ownerName: CKCurrentUserDefaultName)
+    let result = try await database.modifyRecordZones(saving: [], deleting: [zoneID])
+    for deletion in result.deleteResults.values {
+      if case .failure(let error) = deletion {
+        // もともと無ければ、消えたのと同じ。
+        if (error as? CKError)?.code == .zoneNotFound { continue }
+        throw error
+      }
+    }
+    return true
+  }
+
   /// 終わった出来事だけを、保護者用の画面向けの形にする。
   private nonisolated static func syncResult(_ event: NSPersistentCloudKitContainer.Event)
     -> SyncEvent?
@@ -112,6 +154,7 @@ final class RecordStore {
     if let error = event.error {
       let code = (error as? CKError)?.code
       switch code {
+      case .zoneNotFound?, .userDeletedZone?: return .zoneDeleted
       case .notAuthenticated?, .accountTemporarilyUnavailable?: return .failed(.notSignedIn)
       case .quotaExceeded?: return .failed(.quotaExceeded)
       default: return .failed(.other)

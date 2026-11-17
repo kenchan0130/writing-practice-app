@@ -5,6 +5,13 @@ struct DataSettingsView: View {
   @Bindable private var store = ProgressStore.shared
   @State private var resetDone = false
 
+  /// 「iCloud のデータを消す」を出す条件（署名ありのビルドで、iCloud が使えるとき。D85）。
+  /// 同じ Apple アカウントのどの iPad からでも消せる（家族の共有は作らない。D148）。
+  private var canDeleteICloudData: Bool {
+    RecordStore.hasCloudEntitlement && !RecordStore.isLocalOnlyRun
+      && store.accountState == .available
+  }
+
   private static func format(_ date: Date?) -> String? {
     date?.formatted(date: .abbreviated, time: .shortened)
   }
@@ -75,6 +82,37 @@ struct DataSettingsView: View {
         }
       } footer: {
         Text(syncFooter)
+      }
+      if let notice = store.cloudDeletedNotice {
+        Section {
+          Text("ほかの iPad が iCloud のデータを消したため、この iPad の同期をオフにしました。この iPad の記録は残っています。")
+          Text(Self.format(notice) ?? "").foregroundStyle(.secondary)
+          Button("わかった") { store.dismissCloudDeletedNotice() }
+        }
+      }
+      if canDeleteICloudData {
+        Section {
+          HoldToConfirmButton(title: "iCloud のデータを 消す") {
+            Task { await store.deleteICloudData() }
+          }
+          switch store.cloudDeleteState {
+          case .idle: EmptyView()
+          case .deleting: Text("消しています…").foregroundStyle(.secondary)
+          case .done:
+            Text("iCloud のデータを消しました。この iPad の同期はオフです。この iPad の記録は残っています。")
+              .foregroundStyle(.secondary)
+          case .failed:
+            Text("iCloud のデータを消せませんでした。しばらくしてからもう一度ためしてください。この iPad の同期はオフです。")
+              .foregroundStyle(.red)
+          }
+        } header: {
+          Text("ほかの iPad の記録も消えることがあります")
+            .foregroundStyle(.red)
+        } footer: {
+          Text(
+            "先に この iPad の同期をオフにして、iCloud にあるもじまちのデータを消します。この iPad の中の記録は残ります。ほかの iPad は、つぎに ひらいたときに保護者用の画面で知らせて、同期をオフにします。3秒長押しで実行します。"
+          )
+        }
       }
       Section {
         HoldToConfirmButton(title: "全員の記録を リセット") {

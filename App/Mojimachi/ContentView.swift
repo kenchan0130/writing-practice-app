@@ -75,7 +75,9 @@ struct ContentView: View {
 
   var body: some View {
     Group {
-      if let screen {
+      if store.isWaitingForFirstImport {
+        PreparingView()
+      } else if let screen {
         VStack(spacing: 0) {
           HStack {
             BackButton(activity: activity) { goBack() }
@@ -87,6 +89,13 @@ struct ContentView: View {
         }
       } else {
         home
+      }
+    }
+    .task {
+      // 2台目の最初の起動では、iCloud からの取り込みを最大10秒待つ（D63）。
+      while store.isWaitingForFirstImport {
+        try? await Task.sleep(for: .milliseconds(250))
+        store.tickFirstImportWait()
       }
     }
     .sheet(isPresented: $showsGate) {
@@ -254,6 +263,24 @@ struct ContentView: View {
     } else {
       showsGate = true
     }
+  }
+}
+
+/// 最初の取り込みを待つあいだの画面（D63）。エラーや数字は出さず、やさしく待つ。
+private struct PreparingView: View {
+  var body: some View {
+    VStack(spacing: 32) {
+      Image(systemName: "pawprint.fill")
+        .font(.system(size: 96))
+        .foregroundStyle(.white)
+        .frame(width: 180, height: 180)
+        .background(Color.pink.gradient, in: .circle)
+        .symbolEffect(.pulse)
+      Text("じゅんびちゅう…")
+        .font(.system(size: 36, weight: .bold))
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .accessibilityElement(children: .combine)
   }
 }
 

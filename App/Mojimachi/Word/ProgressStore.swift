@@ -167,9 +167,94 @@ final class ProgressStore {
     case .imported(let date):
       lastImported = date
       syncProblem = nil
-    case .failed(let problem): syncProblem = problem
+      firstImportWait.importFinished()
+      finishFirstImportWaitIfNeeded()
+    case .failed(let problem):
+      syncProblem = problem
+      firstImportWait.importFailed()
+      finishFirstImportWaitIfNeeded()
     case .remoteChange: reloadFromStore()
+    case .zoneDeleted: handleRemoteZoneDeleted()
     }
+  }
+
+  // MARK: - 最初の取り込み待ち（D63）
+
+  /// 2台目の最初の起動で、iCloud からの最初の取り込みを待っている（最大10秒）。
+  /// 待っているあいだは、ホームではなく「じゅんびちゅう」の画面を出す。
+  private(set) var firstImportWait: FirstImportWait
+  /// 待っているあいだ、保存せずに持っておく最初の子。取り込みで子が届かなければ保存する。
+  private var pendingFirstProfile: Profile?
+  var isWaitingForFirstImport: Bool { firstImportWait.isWaiting }
+
+  /// 待ちが終わっていたら、画面の中身を決める。取り込みで届いた子がいれば、その子を使う。
+  private func finishFirstImportWaitIfNeeded() {
+    guard !firstImportWait.isWaiting, let pending = pendingFirstProfile else { return }
+    pendingFirstProfile = nil
+    defaults.set(true, forKey: Self.firstLaunchDoneKey)
+    if records.loadProfiles().isEmpty {
+      records.save(pending)
+      lastSaved = records.lastSaved
+    } else {
+      reloadFromStore()
+    }
+  }
+
+  /// 待ちの時間を進める。期限になったら待つのをやめる。
+  func tickFirstImportWait(now: Date = Date()) {
+    firstImportWait.tick(now: now)
+    finishFirstImportWaitIfNeeded()
+  }
+
+  /// 待つ残りの時間（画面の待ち時間の計算に使う）。
+  func firstImportWaitRemaining(now: Date = Date()) -> TimeInterval {
+    firstImportWait.remaining(now: now)
+  }
+
+  nonisolated static let firstLaunchDoneKey = "firstLaunchDone"
+
+  // MARK: - iCloud のデータを消す（D85）
+
+  enum CloudDeleteState: Equatable {
+    case idle
+    case deleting
+    case done
+    case failed
+  }
+  private(set) var cloudDeleteState: CloudDeleteState = .idle
+  /// ほかの iPad が iCloud のデータを消したと知った日時（保護者用の画面にだけ知らせる）。
+  private(set) var cloudDeletedNotice: Date?
+  nonisolated static let cloudDeletedNoticeKey = "cloudDeletedNotice"
+
+  /// 「iCloud のデータを消す」。先にこの iPad の同期をオフにし、iCloud の置き場所を消す。
+  /// この iPad の中のデータは残す。署名なしのビルドなどでは何もしない。
+  func deleteICloudData() async {
+    guard RecordStore.hasCloudEntitlement, !RecordStore.isLocalOnlyRun,
+      accountState == .available, cloudDeleteState != .deleting
+    else { return }
+    cloudDeleteState = .deleting
+    // 先にオフ（次の起動でも上げ直さないよう、保存する）。動いている同期も止める。
+    syncsWithICloud = false
+    records.stopSync()
+    do {
+      cloudDeleteState = try await RecordStore.deleteCloudZone() ? .done : .idle
+    } catch {
+      cloudDeleteState = .failed
+    }
+  }
+
+  /// ほかの iPad が iCloud のデータを消していた。同期をオフにし、上げ直さず、保護者に知らせる。
+  private func handleRemoteZoneDeleted() {
+    syncsWithICloud = false
+    records.stopSync()
+    let now = Date()
+    cloudDeletedNotice = now
+    defaults.set(now, forKey: Self.cloudDeletedNoticeKey)
+  }
+
+  func dismissCloudDeletedNotice() {
+    cloudDeletedNotice = nil
+    defaults.removeObject(forKey: Self.cloudDeletedNoticeKey)
   }
 
   /// ほかの iPad の変更を画面に反映する。
@@ -192,12 +277,28 @@ final class ProgressStore {
     self.defaults = defaults
     syncsWithICloud = defaults.object(forKey: Self.syncKey) as? Bool ?? true
     var list = ProfileList(profiles: records.loadProfiles())
+    // 同期が動いていて、最初の起動で、端末に子がいなければ、最初の取り込みを待つ（D63）。
+    var needsWait =
+      records.syncing && list.profiles.isEmpty
+      && !defaults.bool(forKey: Self.firstLaunchDoneKey)
+    #if DEBUG
+      // 確かめ用: `-forceFirstImportWait YES` で、同期なしでも待ちの画面を10秒出す。
+      if defaults.bool(forKey: "forceFirstImportWait") { needsWait = true }
+    #endif
+    firstImportWait = FirstImportWait(needed: needsWait, now: Date())
     if list.profiles.isEmpty {
       // はじめての起動では、名前のない子を1人作っておく（呼び名はあとで保護者が決める）。
+      // 待っているあいだは保存しない（2台目で、1台目の子と二重にならないように）。
       let first = Profile(name: "", face: Self.faces[0])
-      records.save(first)
+      if needsWait {
+        pendingFirstProfile = first
+      } else {
+        records.save(first)
+      }
       list.add(first)
     }
+    if !needsWait { defaults.set(true, forKey: Self.firstLaunchDoneKey) }
+    cloudDeletedNotice = defaults.object(forKey: Self.cloudDeletedNoticeKey) as? Date
     #if DEBUG
       // 確かめ用の起動の引数 `-penColor red` で、色を決めておく。
       if let key = defaults.string(forKey: "penColor"), let color = PenColor(rawValue: key),
