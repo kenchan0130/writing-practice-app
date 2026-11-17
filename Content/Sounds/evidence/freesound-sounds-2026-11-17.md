@@ -23,3 +23,15 @@
 | 77637 | Freesound - growl6.wav by lendrick | あった | https://freesound.org/s/77637/ |
 | 878244 | Freesound - UI Toggle Switch On by Qvantor | あった | https://freesound.org/s/878244/ |
 | 878253 | Freesound - UI Pop-up Open by Qvantor | あった | https://freesound.org/s/878253/ |
+| 564697 | Freesound - Horn Toy (Claun like sound) 3 by Matislav | あった | https://freesound.org/s/564697/ |
+| 667470 | Freesound - Myles Moss' Cartoon Cow Moo SFX.mp3 by MylieJoeMoss1996 | あった | https://freesound.org/s/667470/ |
+| 351113 | Freesound - Deer Meewing 01.wav by msantoro11 | あった | https://freesound.org/s/351113/ |
+| 564694 | Freesound - Horn Toy (Claun like sound) 4 by Matislav（試しただけ。使っていない） | あった | https://freesound.org/s/564694/ |
+| 840326 | Freesound - Steamboat whistle short bursts by Robo9418（試しただけ。使っていない） | あった | https://freesound.org/s/840326/ |
+| 840325 | Freesound - Long Steamboat Whistle by Robo9418（試しただけ。使っていない） | あった | https://freesound.org/s/840325/ |
+| 441223 | Freesound - Boat Horn.aif by devy32（試しただけ。使っていない） | あった | https://freesound.org/s/441223/ |
+| 546481 | Freesound - Cow Moo by invertedturtle（試しただけ。使っていない） | あった | https://freesound.org/s/546481/ |
+| 513565 | Freesound - Cow moo #8 by spurioustransients（試しただけ。使っていない） | あった | https://freesound.org/s/513565/ |
+| 860984 | Freesound - Bovines - Cattle; Calf Bawling, Single by TheKingOfGeeks360（試しただけ。使っていない） | あった | https://freesound.org/s/860984/ |
+| 391026 | Freesound - Cow and calf by felix.blume（試しただけ。使っていない） | あった | https://freesound.org/s/391026/ |
+| 660694 | Freesound - calves in the barn.wav by bruno.auzet（取り寄せただけ。使っていない） | あった | https://freesound.org/s/660694/ |
