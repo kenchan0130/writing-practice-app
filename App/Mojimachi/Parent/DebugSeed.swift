@@ -2,7 +2,7 @@
   import Foundation
   import RecordKit
 
-  /// 確かめ用の学習記録（`-openRecords YES`）。お手本の線を少しずらして、書いた線の代わりにする。
+  /// 確かめ用の学習記録（`-seedSamples YES`）。お手本の線を少しずらして、書いた線の代わりにする。
   enum DebugSeed {
     /// きょうの字を `count` 字と、きのうの1字を足す（ホームの確かめ用。`-seedRecords N`）。
     static func today(count: Int) {

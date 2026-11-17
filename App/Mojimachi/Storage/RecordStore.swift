@@ -20,7 +20,7 @@ final class RecordStore {
   nonisolated static let cloudContainerID = "iCloud.io.github.kenchan0130.mojimachi"
 
   /// 同期の出来事を知らせる（保護者用の画面に出す。D63）。
-  enum SyncEvent {
+  enum SyncEvent: Equatable {
     case exported(Date)
     case imported(Date)
     case failed(SyncProblem)
@@ -60,14 +60,54 @@ final class RecordStore {
   private(set) var syncing: Bool
   private var observers: [any NSObjectProtocol] = []
 
+  /// この iPad が、これまでに iCloud と同期できたことがあるか（D159）。
+  /// 同期をオフにしたとき、「iCloud のデータを消す」のとき、置き場所が消えていたときに消す。
+  nonisolated static let syncedBeforeKey = "hasSyncedWithICloud"
+  private let defaults: UserDefaults
+  /// 起動のとき、iCloud の置き場所があるかの確認を待っている（D159）。
+  private var pendingZoneCheck = false
+
+  /// 起動のときに、iCloud の置き場所の確認が要るか（D159）。
+  /// 同期がオンで、前に同期できたことがあるときだけ要る。はじめての起動は、確認せずに同期する
+  /// （置き場所がまだ無いのが普通なので）。
+  nonisolated static func needsZoneCheckAtLaunch(syncOn: Bool, syncedBefore: Bool) -> Bool {
+    syncOn && syncedBefore
+  }
+
+  nonisolated static func hasSyncedBefore(_ defaults: UserDefaults = .standard) -> Bool {
+    defaults.bool(forKey: syncedBeforeKey)
+  }
+
+  nonisolated static func setSyncedBefore(_ value: Bool, _ defaults: UserDefaults = .standard) {
+    if value {
+      defaults.set(true, forKey: syncedBeforeKey)
+    } else {
+      defaults.removeObject(forKey: syncedBeforeKey)
+    }
+  }
+
   /// - Parameters:
   ///   - url: 保存するファイル。nil ならメモリの中だけ（確かめ用。iCloud は使わない）。
   ///   - cloudSync: iCloud と同期するか。サインインしていないときは、標準のしくみが
   ///     同期せずに待つ（保存先は開く）。確かめ用の起動（`isLocalOnlyRun`）では同期しない。
-  init(url: URL? = RecordStore.defaultURL, cloudSync: Bool = false) {
+  ///
+  /// 前に同期できたことがある iPad は、iCloud の置き場所が消されていないかを CloudKit で
+  /// 確かめてから同期を始める（D159）。標準のしくみは、置き場所が消えていても作り直して
+  /// 上げ直してしまうため、保存先を開く時点では iCloud につなげない。確認の間は端末の中だけで
+  /// 開く（起動を止めない）。置き場所があった、または確かめられなかったときは、同期を始める
+  /// （いまの動きのまま）。消えていたときは、同期をオフにして保護者に知らせる。
+  init(
+    url: URL? = RecordStore.defaultURL, cloudSync: Bool = false,
+    defaults: UserDefaults = .standard
+  ) {
+    self.defaults = defaults
     container = NSPersistentCloudKitContainer(name: "Mojimachi", managedObjectModel: Self.model)
     let description = NSPersistentStoreDescription(url: url ?? URL(fileURLWithPath: "/dev/null"))
-    syncing = cloudSync && url != nil && !Self.isLocalOnlyRun && Self.hasCloudEntitlement
+    let wantsSync = cloudSync && url != nil && !Self.isLocalOnlyRun && Self.hasCloudEntitlement
+    if !cloudSync { Self.setSyncedBefore(false, defaults) }
+    let needsCheck = Self.needsZoneCheckAtLaunch(
+      syncOn: wantsSync, syncedBefore: Self.hasSyncedBefore(defaults))
+    syncing = wantsSync && !needsCheck
     description.cloudKitContainerOptions =
       syncing
       ? NSPersistentCloudKitContainerOptions(containerIdentifier: Self.cloudContainerID) : nil
@@ -80,7 +120,41 @@ final class RecordStore {
     }
     context.automaticallyMergesChangesFromParent = true
     context.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
-    if syncing { observeSync() }
+    if syncing {
+      observeSync()
+    } else if needsCheck {
+      pendingZoneCheck = true
+      Task { await verifyZoneThenStartSync() }
+    }
+  }
+
+  /// 置き場所があるか確かめてから、同期を始める（D159）。
+  private func verifyZoneThenStartSync() async {
+    let check = await Self.checkZone()
+    // 確認の間に、同期をオフにされていたら始めない。
+    guard pendingZoneCheck else { return }
+    pendingZoneCheck = false
+    switch check {
+    case .deleted: onSyncEvent?(.zoneDeleted)
+    case .exists, .unknown: startSync()
+    }
+  }
+
+  /// 端末の中だけで開いている保存先を、iCloud につなげて開き直す。`stopSync` の逆。
+  private func startSync() {
+    guard !syncing else { return }
+    syncing = true
+    save()
+    let coordinator = container.persistentStoreCoordinator
+    for store in coordinator.persistentStores { try? coordinator.remove(store) }
+    for description in container.persistentStoreDescriptions {
+      description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+        containerIdentifier: Self.cloudContainerID)
+    }
+    container.loadPersistentStores { _, error in
+      if let error { Self.lastError = error }
+    }
+    observeSync()
   }
 
   /// 同期の出来事を見張る（D63）。
@@ -95,7 +169,14 @@ final class RecordStore {
           note.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
           as? NSPersistentCloudKitContainer.Event
         let result = event.flatMap(Self.syncResult)
-        MainActor.assumeIsolated { if let result { self?.onSyncEvent?(result) } }
+        MainActor.assumeIsolated {
+          guard let result else { return }
+          switch result {
+          case .exported, .imported: self?.markSynced()
+          default: break
+          }
+          self?.onSyncEvent?(result)
+        }
       })
     observers.append(
       center.addObserver(
@@ -109,6 +190,8 @@ final class RecordStore {
   /// この起動の同期を止める。保存先は開き直し、iCloud とのつながりだけ外す（行は消さない。D85）。
   /// 「iCloud のデータを消す」のあと、動いている同期が置き場所を作り直して上げ直さないようにする。
   func stopSync() {
+    pendingZoneCheck = false
+    Self.setSyncedBefore(false, defaults)
     guard syncing else { return }
     syncing = false
     for observer in observers { NotificationCenter.default.removeObserver(observer) }
@@ -122,6 +205,10 @@ final class RecordStore {
     container.loadPersistentStores { _, error in
       if let error { Self.lastError = error }
     }
+  }
+
+  private func markSynced() {
+    Self.setSyncedBefore(true, defaults)
   }
 
   /// NSPersistentCloudKitContainer が使う、非公開データベースの置き場所の名前。
@@ -146,20 +233,72 @@ final class RecordStore {
     return true
   }
 
+  /// 置き場所の確認の結果（D159）。
+  enum ZoneCheck: Equatable {
+    case exists
+    case deleted
+    /// 確かめられなかった（オフラインなど）。いまの動きのまま同期を始める。
+    case unknown
+  }
+
+  /// iCloud の置き場所があるか、CloudKit で確かめる。署名なしのビルドや確かめ用の起動では、
+  /// CloudKit に触れず `.unknown` を返す。
+  nonisolated static func checkZone() async -> ZoneCheck {
+    guard hasCloudEntitlement, !isLocalOnlyRun else { return .unknown }
+    let database = CKContainer(identifier: cloudContainerID).privateCloudDatabase
+    let zoneID = CKRecordZone.ID(zoneName: cloudZoneName, ownerName: CKCurrentUserDefaultName)
+    do {
+      _ = try await database.recordZone(for: zoneID)
+      return .exists
+    } catch {
+      return isZoneDeletedError(error) ? .deleted : .unknown
+    }
+  }
+
+  /// 置き場所が無い（消された）ことを表すエラーか。一番上のエラーだけでなく、
+  /// 部分的な失敗（`partialErrorsByItemID`）の中や、元のエラー（underlying）の中も見る。
+  /// 取り込みは `partialFailure` に包まれて「Zone Not Found」が入って届くため（D159）。
+  nonisolated static func isZoneDeletedError(_ error: Error, depth: Int = 0) -> Bool {
+    guard depth < 5 else { return false }
+    let nsError = error as NSError
+    if nsError.domain == CKErrorDomain {
+      let code = CKError.Code(rawValue: nsError.code)
+      if code == .zoneNotFound || code == .userDeletedZone { return true }
+      if let partial = nsError.userInfo[CKPartialErrorsByItemIDKey] as? [AnyHashable: Error],
+        partial.values.contains(where: { isZoneDeletedError($0, depth: depth + 1) })
+      {
+        return true
+      }
+    }
+    if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? Error,
+      isZoneDeletedError(underlying, depth: depth + 1)
+    {
+      return true
+    }
+    if let list = nsError.userInfo["NSUnderlyingErrors"] as? [Error],
+      list.contains(where: { isZoneDeletedError($0, depth: depth + 1) })
+    {
+      return true
+    }
+    return false
+  }
+
+  /// 同期のエラーを、保護者用の画面向けの出来事にする。
+  nonisolated static func syncEvent(forError error: Error) -> SyncEvent {
+    if isZoneDeletedError(error) { return .zoneDeleted }
+    switch (error as? CKError)?.code {
+    case .notAuthenticated?, .accountTemporarilyUnavailable?: return .failed(.notSignedIn)
+    case .quotaExceeded?: return .failed(.quotaExceeded)
+    default: return .failed(.other)
+    }
+  }
+
   /// 終わった出来事だけを、保護者用の画面向けの形にする。
   private nonisolated static func syncResult(_ event: NSPersistentCloudKitContainer.Event)
     -> SyncEvent?
   {
     guard let end = event.endDate else { return nil }
-    if let error = event.error {
-      let code = (error as? CKError)?.code
-      switch code {
-      case .zoneNotFound?, .userDeletedZone?: return .zoneDeleted
-      case .notAuthenticated?, .accountTemporarilyUnavailable?: return .failed(.notSignedIn)
-      case .quotaExceeded?: return .failed(.quotaExceeded)
-      default: return .failed(.other)
-      }
-    }
+    if let error = event.error { return syncEvent(forError: error) }
     switch event.type {
     case .export: return .exported(end)
     case .import: return .imported(end)

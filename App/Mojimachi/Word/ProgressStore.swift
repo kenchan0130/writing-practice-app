@@ -107,7 +107,11 @@ final class ProgressStore {
   /// （保存先を開き直す必要があるため。安全で単純な方を選んだ）。
   /// オフでも端末と iCloud のデータは残り、オンに戻すと端末の行がそのまま上がる（行の ID で二重にしない）。
   var syncsWithICloud: Bool {
-    didSet { defaults.set(syncsWithICloud, forKey: Self.syncKey) }
+    didSet {
+      defaults.set(syncsWithICloud, forKey: Self.syncKey)
+      // オフにしたら「前に同期できた」の印も消す（D159）。
+      if !syncsWithICloud { RecordStore.setSyncedBefore(false, defaults) }
+    }
   }
   nonisolated static let syncKey = "syncsWithICloud"
   /// この起動で同期が動いている。
@@ -243,10 +247,16 @@ final class ProgressStore {
     }
   }
 
-  /// ほかの iPad が iCloud のデータを消していた。同期をオフにし、上げ直さず、保護者に知らせる。
+  /// ほかの iPad が iCloud のデータを消していた。同期をオフにし、上げ直さず、保護者に知らせる（D159）。
+  /// 標準のしくみは、置き場所が消えているのに気づくと作り直して上げ直すことがある。
+  /// そのため同期を止めたあと、もう一度置き場所を消して、ほかの iPad の「消す」を勝たせる。
+  /// 同期をオフにした保存先は端末の中だけなので、これ以上この出来事は来ず、くり返さない。
   private func handleRemoteZoneDeleted() {
+    // 自分で消した直後に届いた出来事や、2度目の出来事は無視する。
+    guard syncsWithICloud else { return }
     syncsWithICloud = false
     records.stopSync()
+    Task { _ = try? await RecordStore.deleteCloudZone() }
     let now = Date()
     cloudDeletedNotice = now
     defaults.set(now, forKey: Self.cloudDeletedNoticeKey)
@@ -337,7 +347,7 @@ final class ProgressStore {
       if UserDefaults.standard.bool(forKey: "inMemoryStore") { return RecordStore(url: nil) }
     #endif
     let sync = UserDefaults.standard.object(forKey: syncKey) as? Bool ?? true
-    return RecordStore(cloudSync: sync)
+    return RecordStore(cloudSync: sync, defaults: .standard)
   }
 
   func record(_ record: CharacterRecord) {
