@@ -15,6 +15,7 @@ struct PurchaseFlowTests {
     .deletingLastPathComponent()  // App
     .appendingPathComponent("Mojimachi.storekit")
 
+  /// 戻り値を持ち続けること。手放すと試験用の接続が切れ、本物の App Store に繋がってしまう。
   static func session() throws -> SKTestSession {
     let session = try SKTestSession(contentsOf: configuration)
     session.resetToDefaultState()
@@ -25,7 +26,8 @@ struct PurchaseFlowTests {
 
   @Test("何も持っていなければ、4つの商品が読めて「ぜんぶ」とパック2つを出す")
   func products() async throws {
-    _ = try Self.session()
+    let session = try Self.session()
+    defer { withExtendedLifetime(session) {} }
     let store = PurchaseStore(observesStore: false)
     await store.refresh()
     #expect(store.products.count == ProductID.allCases.count)
@@ -36,6 +38,7 @@ struct PurchaseFlowTests {
   @Test("カタカナを買うとカタカナが開き、持っている人向けの「ぜんぶ」だけ出す。返金すると戻る")
   func buyAndRefund() async throws {
     let session = try Self.session()
+    defer { withExtendedLifetime(session) {} }
     let store = PurchaseStore(observesStore: false)
     let transaction = try await session.buyProduct(identifier: ProductID.katakanaPack.rawValue)
     await store.refresh()
@@ -53,9 +56,12 @@ struct PurchaseFlowTests {
 
   @Test("アプリの購入の処理で「ぜんぶ」を買うと、全部開いて商品が出なくなる")
   func buyAllInApp() async throws {
-    _ = try Self.session()
+    let session = try Self.session()
+    defer { withExtendedLifetime(session) {} }
     let store = PurchaseStore(observesStore: false)
     await store.refresh()
+    // 商品が読めていなければ、買う前に分かるようにする（買うのが黙って何もしないのを防ぐ）。
+    #expect(store.products[.allOpen] != nil)
     await store.buy(.allOpen)
     #expect(store.entitlements.allOpen)
     #expect(store.entitlements.offers.isEmpty)
