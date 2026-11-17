@@ -1,3 +1,4 @@
+import CloudKit
 import ContentModel
 import Foundation
 import JudgeKit
@@ -100,11 +101,96 @@ final class ProgressStore {
   /// 筆圧を使う（D66。最初はオン）。
   var usesPressure: Bool { didSet { defaults.set(usesPressure, forKey: "usesPressure") } }
 
+  // MARK: - iCloud の同期（D63）
+
+  /// iCloud で同期する（最初はオン）。切り替えは、つぎに アプリを ひらいたときから効く
+  /// （保存先を開き直す必要があるため。安全で単純な方を選んだ）。
+  /// オフでも端末と iCloud のデータは残り、オンに戻すと端末の行がそのまま上がる（行の ID で二重にしない）。
+  var syncsWithICloud: Bool {
+    didSet { defaults.set(syncsWithICloud, forKey: Self.syncKey) }
+  }
+  nonisolated static let syncKey = "syncsWithICloud"
+  /// この起動で同期が動いている。
+  var isSyncRunning: Bool { records.syncing }
+  /// さいごに iCloud に ほぞんした じかん（D63）。
+  private(set) var lastExported: Date?
+  /// さいごに iCloud から とりこんだ じかん。
+  private(set) var lastImported: Date?
+  /// 同期の問題（保護者用の画面にだけ出す。D117）。
+  private(set) var syncProblem: RecordStore.SyncProblem?
+
+  /// iCloud のアカウントの状態（保護者用の画面だけに出す）。
+  enum AccountState: Equatable {
+    case checking
+    case available
+    case noAccount
+    case restricted
+    case temporarilyUnavailable
+    /// 確かめられない（署名なしのビルドなど）。
+    case unknown
+  }
+  private(set) var accountState: AccountState = .checking
+  private var accountObserver: (any NSObjectProtocol)?
+
+  /// アカウントの状態を確かめる。サインインや切り替えのたびにもう一度確かめる。
+  func refreshAccountState() async {
+    guard !RecordStore.isLocalOnlyRun, RecordStore.hasCloudEntitlement else {
+      accountState = .unknown
+      return
+    }
+    if accountObserver == nil {
+      accountObserver = NotificationCenter.default.addObserver(
+        forName: .CKAccountChanged, object: nil, queue: .main
+      ) { [weak self] _ in
+        MainActor.assumeIsolated { Task { await self?.refreshAccountState() } }
+      }
+    }
+    do {
+      let status = try await CKContainer(identifier: RecordStore.cloudContainerID).accountStatus()
+      switch status {
+      case .available: accountState = .available
+      case .noAccount: accountState = .noAccount
+      case .restricted: accountState = .restricted
+      case .temporarilyUnavailable: accountState = .temporarilyUnavailable
+      default: accountState = .unknown
+      }
+    } catch {
+      accountState = .unknown
+    }
+  }
+
+  private func handle(_ event: RecordStore.SyncEvent) {
+    switch event {
+    case .exported(let date):
+      lastExported = date
+      syncProblem = nil
+    case .imported(let date):
+      lastImported = date
+      syncProblem = nil
+    case .failed(let problem): syncProblem = problem
+    case .remoteChange: reloadFromStore()
+    }
+  }
+
+  /// ほかの iPad の変更を画面に反映する。
+  private func reloadFromStore() {
+    let loaded = records.loadProfiles()
+    guard !loaded.isEmpty else { return }
+    let list = ProfileList(profiles: loaded)
+    profiles = list
+    if list.profile(currentProfileID) == nil, let first = list.profiles.first {
+      currentProfileID = first.id
+    }
+    log = records.loadLog(profile: currentProfileID)
+    placed = records.loadPlaced(profile: currentProfileID)
+  }
+
   private let defaults: UserDefaults
 
   init(records: RecordStore = ProgressStore.makeRecordStore(), defaults: UserDefaults = .standard) {
     self.records = records
     self.defaults = defaults
+    syncsWithICloud = defaults.object(forKey: Self.syncKey) as? Bool ?? true
     var list = ProfileList(profiles: records.loadProfiles())
     if list.profiles.isEmpty {
       // はじめての起動では、名前のない子を1人作っておく（呼び名はあとで保護者が決める）。
@@ -141,6 +227,7 @@ final class ProgressStore {
     showsEndingHints = defaults.object(forKey: "showsEndingHints") as? Bool ?? true
     requiresDeviceAuth = defaults.bool(forKey: "requiresDeviceAuth")
     sendsCrashReports = defaults.object(forKey: "sendsCrashReports") as? Bool ?? true
+    records.onSyncEvent = { [weak self] in self?.handle($0) }
   }
 
   /// 確かめ用の起動の引数 `-inMemoryStore YES` で、保存しないで動かす。
@@ -148,7 +235,8 @@ final class ProgressStore {
     #if DEBUG
       if UserDefaults.standard.bool(forKey: "inMemoryStore") { return RecordStore(url: nil) }
     #endif
-    return RecordStore()
+    let sync = UserDefaults.standard.object(forKey: syncKey) as? Bool ?? true
+    return RecordStore(cloudSync: sync)
   }
 
   func record(_ record: CharacterRecord) {
