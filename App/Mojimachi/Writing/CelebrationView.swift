@@ -68,6 +68,15 @@ struct CelebrationView: View {
       }
     }
     .contentShape(.rect)
+    .onAppear {
+      SoundPlayer.shared.play(.sparkle)
+      if !reduceMotion {
+        Task {
+          try? await Task.sleep(for: .seconds(0.45))
+          SoundPlayer.shared.play(.confetti)
+        }
+      }
+    }
     .onTapGesture(perform: onTap)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Self.praise(rating))

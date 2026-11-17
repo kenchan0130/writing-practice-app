@@ -182,7 +182,8 @@ struct WordWritingView: View {
     let image = PlaceholderArt.image(
       symbol: model.symbol, size: 600, color: model.artColor)
     let scene = TransformScene(
-      size: size, lines: lines, colors: colors, objectImage: image, kind: model.kind)
+      size: size, lines: lines, colors: colors, objectImage: image, kind: model.kind,
+      word: model.word)
     scene.onFinished = { transformFinished = true }
     DispatchQueue.main.async { transform = scene }
     return scene

@@ -17,9 +17,11 @@ final class PopPresenter {
 
   /// ダイアログを出す。`id` が同じものを出し直すと置きかえる。
   func show<Content: View>(
-    id: String, dismissesOnBackdrop: Bool = false, onDismiss: (() -> Void)? = nil,
+    id: String, dismissesOnBackdrop: Bool = false, sound: SoundPlayer.Effect? = .dialog,
+    onDismiss: (() -> Void)? = nil,
     @ViewBuilder content: () -> Content
   ) {
+    if self.id != id, let sound { SoundPlayer.shared.play(sound) }
     self.id = id
     self.content = AnyView(content())
     self.dismissesOnBackdrop = dismissesOnBackdrop
@@ -47,8 +49,10 @@ final class PopPresenter {
   }
 
   /// 短い言葉と、ボタン1つの案内（鍵の字など。D150）。
-  func notice(_ message: String, button: String = "わかった") {
-    show(id: "notice") {
+  func notice(
+    _ message: String, button: String = "わかった", sound: SoundPlayer.Effect? = .dialog
+  ) {
+    show(id: "notice", sound: sound) {
       PopMessage(message: message, buttonTitle: button) { [weak self] in
         self?.dismiss(id: "notice")
       }
