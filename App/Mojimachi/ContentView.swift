@@ -91,6 +91,7 @@ struct ContentView: View {
         home
       }
     }
+    .childBackground()
     .task {
       // 2台目の最初の起動では、iCloud からの取り込みを最大10秒待つ（D63）。
       while store.isWaitingForFirstImport {
@@ -98,29 +99,45 @@ struct ContentView: View {
         store.tickFirstImportWait()
       }
     }
-    .sheet(isPresented: $showsGate) {
-      ParentGateSheet(
-        store: gateStore,
-        onPassed: {
-          showsGate = false
-          if gateForSwitch {
-            gateForSwitch = false
-            showsProfilePicker = true
-          } else {
-            showsParentArea = true
-          }
-        },
-        onCancel: {
-          showsGate = false
-          gateForSwitch = false
-        })
-    }
-    .sheet(isPresented: $showsProfilePicker) {
-      ProfilePicker { id in
-        store.switchProfile(to: id)
-        showsProfilePicker = false
+    // 子どもの画面のダイアログは、標準のシートではなく独自のポップな見た目で出す（D155）。
+    .onChange(of: showsGate) { _, shows in
+      if shows {
+        PopPresenter.shared.show(id: "gate") {
+          ParentGateSheet(
+            store: gateStore,
+            onPassed: {
+              showsGate = false
+              if gateForSwitch {
+                gateForSwitch = false
+                showsProfilePicker = true
+              } else {
+                showsParentArea = true
+              }
+            },
+            onCancel: {
+              showsGate = false
+              gateForSwitch = false
+            })
+        }
+      } else {
+        PopPresenter.shared.dismiss(id: "gate")
       }
     }
+    .onChange(of: showsProfilePicker) { _, shows in
+      if shows {
+        PopPresenter.shared.show(
+          id: "profile", dismissesOnBackdrop: true, onDismiss: { showsProfilePicker = false }
+        ) {
+          ProfilePicker { id in
+            store.switchProfile(to: id)
+            showsProfilePicker = false
+          }
+        }
+      } else {
+        PopPresenter.shared.dismiss(id: "profile")
+      }
+    }
+    .overlay { PopHost() }
     .fullScreenCover(isPresented: $showsParentArea) {
       ParentAreaView {
         gateStore.send(.close)
@@ -133,6 +150,8 @@ struct ContentView: View {
         // 確かめ用: `-seedRecords 3` できょうの字を3つ入れる。
         let seeded = UserDefaults.standard.integer(forKey: "seedRecords")
         if seeded > 0 { DebugSeed.today(count: seeded) }
+        // 確かめ用: `-seedGrowth YES` で、あ行・か行を「はな」、さ行を「つぼみ」、た行を「め」にする。
+        if UserDefaults.standard.bool(forKey: "seedGrowth") { DebugSeed.growth() }
         if UserDefaults.standard.string(forKey: "openParent") != nil {
           DebugSeed.records()
           showsParentArea = true
@@ -226,21 +245,27 @@ struct ContentView: View {
         HomeCharacter(reachedGoal: goalReached)
         VStack(spacing: 20) {
           TodayGoalCard(goal: goal, done: todayCount)
+          // 文字の種類ごとの育ちの名前（D151）。
+          VStack(spacing: 8) {
+            ForEach(KanaScript.allCases, id: \.self) { script in
+              GrowthBadge(summary: ScriptGrowthSummary(script: script, log: store.log), size: 22)
+            }
+          }
           StampCard(days: store.log.stampWeek(now: Date(), calendar: .current))
         }
       }
       .padding(.horizontal, 32)
       Spacer()
       HStack(spacing: 40) {
-        HomeButton(title: "もじ", systemImage: "character.book.closed.fill", color: .orange) {
+        HomeButton(title: "もじ", systemImage: "character.book.closed.fill", color: Theme.accent) {
           screen = .map
         }
-        HomeButton(title: "ことば", systemImage: "text.bubble.fill", color: .blue) {
+        HomeButton(title: "ことば", systemImage: "text.bubble.fill", color: Theme.blue) {
           wordStart = nil
           wordFromCard = false
           screen = .word
         }
-        HomeButton(title: "まち", systemImage: "house.fill", color: .green) {
+        HomeButton(title: "まち", systemImage: "house.fill", color: Theme.green) {
           screen = .town
         }
       }
@@ -274,17 +299,18 @@ private struct PreparingView: View {
         .font(.system(size: 96))
         .foregroundStyle(.white)
         .frame(width: 180, height: 180)
-        .background(Color.pink.gradient, in: .circle)
+        .background(Theme.pink.gradient, in: .circle)
         .symbolEffect(.pulse)
-      Text("じゅんびちゅう…")
-        .font(.system(size: 36, weight: .bold))
+      Text("もうすぐ あそべるよ")
+        .font(.ui(36, bold: true))
+        .foregroundStyle(Theme.ink)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .accessibilityElement(children: .combine)
   }
 }
 
-/// ホームの大きなボタン（約104pt 以上。D101）。
+/// ホームの大きなボタン（約104pt 以上。D101）。丸い大きな形とやわらかい影（D152）。
 private struct HomeButton: View {
   var title: String
   var systemImage: String
@@ -295,12 +321,13 @@ private struct HomeButton: View {
     Button(action: action) {
       VStack(spacing: 16) {
         Image(systemName: systemImage).font(.system(size: 72, weight: .bold))
-        Text(title).font(.system(size: 36, weight: .bold))
+        Text(title).font(.ui(40, bold: true))
       }
       .foregroundStyle(.white)
       .frame(maxWidth: 280, minHeight: 200)
       .frame(maxWidth: .infinity)
-      .background(color.gradient, in: .rect(cornerRadius: 36))
+      .background(color.gradient, in: .rect(cornerRadius: Theme.Radius.button))
+      .softShadow()
     }
     .buttonStyle(.plain)
   }
@@ -312,22 +339,24 @@ private struct HomeCharacter: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      Text(reachedGoal ? "すごい！\nできたね！" : "こんにちは！\nいっしょに かこう")
-        .font(.system(size: 28, weight: .bold))
+      Text(reachedGoal ? "すごい！\nできたね！" : "たのしく\nかこうね！")
+        .font(.ui(30, bold: true))
+        .foregroundStyle(Theme.ink)
         .multilineTextAlignment(.center)
         .padding(20)
-        .background(.white, in: .rect(cornerRadius: 28))
+        .background(.white, in: .rect(cornerRadius: Theme.Radius.card))
         .overlay(alignment: .bottom) {
           Image(systemName: "arrowtriangle.down.fill")
             .foregroundStyle(.white)
             .offset(y: 14)
         }
-        .shadow(color: .black.opacity(0.1), radius: 6, y: 3)
+        .softShadow()
       Image(systemName: reachedGoal ? "party.popper.fill" : "pawprint.fill")
         .font(.system(size: 96))
         .foregroundStyle(.white)
         .frame(width: 180, height: 180)
-        .background(Color.pink.gradient, in: .circle)
+        .background(Theme.pink.gradient, in: .circle)
+        .softShadow()
         .padding(.top, 12)
     }
     .frame(width: 300)
@@ -342,18 +371,19 @@ private struct TodayGoalCard: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      Text("きょうの もくひょう").font(.system(size: 28, weight: .bold))
+      Text("きょうの もくひょう").font(.ui(28, bold: true)).foregroundStyle(Theme.ink)
       HStack(spacing: 8) {
         ForEach(0..<goal, id: \.self) { index in
           Image(systemName: index < done ? "star.fill" : "star")
             .font(.system(size: goal > 5 ? 36 : 48))
-            .foregroundStyle(index < done ? Color.yellow : Color.gray.opacity(0.5))
+            .foregroundStyle(index < done ? Theme.yellow : Color.gray.opacity(0.5))
         }
       }
     }
     .frame(maxWidth: .infinity)
     .padding(20)
-    .background(Color.yellow.opacity(0.15), in: .rect(cornerRadius: 28))
+    .background(.white.opacity(0.85), in: .rect(cornerRadius: Theme.Radius.card))
+    .softShadow()
     .accessibilityElement(children: .combine)
   }
 }
@@ -366,19 +396,19 @@ private struct StampCard: View {
 
   var body: some View {
     VStack(spacing: 12) {
-      Text("スタンプカード").font(.system(size: 28, weight: .bold))
+      Text("スタンプカード").font(.ui(28, bold: true)).foregroundStyle(Theme.ink)
       HStack(spacing: 6) {
         ForEach(days, id: \.date) { day in
           VStack(spacing: 6) {
             Text(Self.names[Calendar.current.component(.weekday, from: day.date) - 1])
-              .font(.system(size: 18, weight: .bold))
-              .foregroundStyle(.secondary)
+              .font(.ui(18, bold: true))
+              .foregroundStyle(Theme.inkSoft)
             Image(systemName: day.stamped ? "heart.circle.fill" : "circle.dashed")
               .font(.system(size: 40))
-              .foregroundStyle(day.stamped ? Color.pink : Color.gray.opacity(0.4))
+              .foregroundStyle(day.stamped ? Theme.pink : Color.gray.opacity(0.4))
               .padding(3)
               .background {
-                if day.isToday { Circle().stroke(Color.orange, lineWidth: 4) }
+                if day.isToday { Circle().stroke(Theme.accent, lineWidth: 4) }
               }
           }
         }
@@ -386,7 +416,8 @@ private struct StampCard: View {
     }
     .frame(maxWidth: .infinity)
     .padding(20)
-    .background(Color.pink.opacity(0.1), in: .rect(cornerRadius: 28))
+    .background(.white.opacity(0.85), in: .rect(cornerRadius: Theme.Radius.card))
+    .softShadow()
     .accessibilityElement(children: .combine)
   }
 }

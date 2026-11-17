@@ -125,6 +125,36 @@ public enum KanaTable {
   }
 }
 
+/// 地図の「行」（あ行・か行 …）。字の育ちの「はなばたけ」の単位（D151）。
+public struct KanaRow: Sendable, Hashable {
+  /// 行の先頭の字（あ行なら「あ」）。小さい字の行は先頭の小さい字。
+  public let head: Character
+  /// 行の字（空きを除く。あ行は あいうえお、や行は やゆよ）。
+  public let characters: [Character]
+}
+
+extension KanaTable {
+  /// 行ごとの字。50音（あ行 → わ行）→ 濁音・半濁音（が行 → ぱ行）→ 小さい字（1つの行）の順。
+  public static func rows(_ script: KanaScript) -> [KanaRow] {
+    // 表は列が行（あ行が右端）。右から左へ読んで あ行 → わ行 の順にする。
+    func columnRows(_ grid: KanaGrid) -> [KanaRow] {
+      (0..<grid.columnCount).reversed().compactMap { column in
+        let chars = grid.cells.compactMap { $0[column] }
+        return chars.first.map { KanaRow(head: $0, characters: chars) }
+      }
+    }
+    let small = small(script).characters
+    // 小さい字の表は右から左に並べてあるので、ぁ から順に直す。
+    let smallRow = KanaRow(head: small.last ?? "ぁ", characters: small.reversed())
+    return columnRows(main(script)) + columnRows(dakuon(script)) + [smallRow]
+  }
+
+  /// その字がある行。
+  public static func row(of char: Character, script: KanaScript) -> KanaRow? {
+    rows(script).first { $0.characters.contains(char) }
+  }
+}
+
 /// 文字の地図の大きさの決め方（D125）。
 public enum MapLayout {
   /// 字1つの押せる幅の最小。1.5cm はおよそ 78pt（iPad は 1pt が 1/132 インチ）。

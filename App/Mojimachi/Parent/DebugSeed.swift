@@ -22,6 +22,28 @@
           passed: true))
     }
 
+    /// 育ちの確かめ用（`-seedGrowth YES`）。あ行・か行は「はな」、さ行は「つぼみ」、た行は「め」。
+    static func growth() {
+      let store = ProgressStore.shared
+      guard store.log.characters.isEmpty else { return }
+      let now = Date()
+      func id(_ char: Character) -> String {
+        "hira.\(String(char.unicodeScalars.first!.value, radix: 16))"
+      }
+      for char in "あいうえおかきくけこ" {
+        store.record(
+          CharacterRecord(date: now, characterID: id(char), stage: .jibunde, passed: true))
+      }
+      for char in "さしすせそ" {
+        store.record(
+          CharacterRecord(date: now, characterID: id(char), stage: .nazoru, passed: true))
+      }
+      for char in "たちつてと" {
+        store.record(
+          CharacterRecord(date: now, characterID: id(char), stage: .nazoru, passed: false))
+      }
+    }
+
     static func records() {
       let store = ProgressStore.shared
       guard store.log.characters.isEmpty else { return }

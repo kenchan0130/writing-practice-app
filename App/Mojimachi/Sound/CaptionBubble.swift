@@ -7,12 +7,12 @@ struct CaptionBubble: View {
     ZStack {
       if let text = voice.caption {
         Text(text)
-          .font(.system(size: 40, weight: .heavy))
+          .font(.learning(40))
           .padding(.horizontal, 28)
           .padding(.vertical, 14)
           .background(.white, in: .rect(cornerRadius: 32))
-          .overlay(RoundedRectangle(cornerRadius: 32).stroke(.orange, lineWidth: 4))
-          .shadow(radius: 4)
+          .overlay(RoundedRectangle(cornerRadius: 32).stroke(Theme.accent, lineWidth: 4))
+          .softShadow()
           .transition(.scale.combined(with: .opacity))
       }
     }

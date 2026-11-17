@@ -138,3 +138,33 @@ struct KanaTableTests {
     #expect(WordCatalog.words(containing: "あ").isEmpty)
   }
 }
+
+@Suite("地図の行（D151）")
+struct KanaRowTests {
+  @Test("ひらがなの行は、あ行からわ行・濁音・小さい字の順に16行")
+  func hiraganaRows() {
+    let rows = KanaTable.rows(.hiragana)
+    #expect(rows.count == 16)
+    #expect(rows[0].characters == Array("あいうえお"))
+    #expect(rows[7].characters == Array("やゆよ"))
+    #expect(rows[9].characters == Array("わんを"))  // 表の段の順（ん は う の段）
+    #expect(rows[10].characters == Array("がぎぐげご"))
+    #expect(rows[14].characters == Array("ぱぴぷぺぽ"))
+    #expect(rows[15].characters == Array("ぁぃぅぇぉっゃゅょ"))
+  }
+
+  @Test("行をすべて集めると、地図の字ぜんぶと同じになる（どちらの文字でも）")
+  func coversAll() {
+    for script in KanaScript.allCases {
+      let fromRows = KanaTable.rows(script).flatMap(\.characters)
+      #expect(Set(fromRows) == Set(KanaTable.all(script)))
+      #expect(fromRows.count == KanaTable.all(script).count)
+    }
+  }
+
+  @Test("字からその行が引ける")
+  func lookup() {
+    #expect(KanaTable.row(of: "そ", script: .hiragana)?.head == "さ")
+    #expect(KanaTable.row(of: "ョ", script: .katakana)?.characters.contains("ー") == true)
+  }
+}

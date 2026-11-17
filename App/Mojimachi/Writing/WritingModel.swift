@@ -36,7 +36,7 @@ final class WritingModel {
   private var characterIndex = 0
   /// 順に練習する字（試作では M0 の字。文字の地図から入ったときは、その文字の表の順）。
   private var sequence = PackLibrary.m0Characters
-  private var script = KanaScript.hiragana
+  private(set) var script = KanaScript.hiragana
   /// 1文字の練習の流れ（§3.2）。
   private(set) var flow: PracticeFlow?
   /// ④ の判定の結果（D107）。
@@ -57,6 +57,11 @@ final class WritingModel {
   private(set) var endingHint: EndingHint?
   /// ① の書き順のアニメーションを始めた時刻。
   private(set) var animationStart: Date?
+  /// 1字書けたあとのごほうびの演出を出しているか（D152）。
+  private(set) var showsCelebration = false
+  /// 次の字へ自動で進むまでの秒数（D154）。
+  static let autoAdvanceSeconds = 1.5
+  private var advanceTask: Task<Void, Never>?
   /// 判定のおまかせ設定（保護者用の画面と共通。D22）。
   var preset: JudgePreset {
     get { store.preset }
@@ -93,10 +98,103 @@ final class WritingModel {
 
   var step: PracticeStep? { flow?.step }
 
-  /// 「つぎの もじ」（試作だけのボタン）。
+  /// 次の字（鍵のかかった字は飛ばす。D154）。
   func nextCharacter() {
     characterIndex = (characterIndex + 1) % sequence.count
     loadCharacter()
+  }
+
+  /// 前の字。
+  func previousCharacter() {
+    characterIndex = (characterIndex - 1 + sequence.count) % sequence.count
+    loadCharacter()
+  }
+
+  /// その字へ移る（パネルの行の表から。D154）。鍵のかかった字は移らない。
+  func jump(to char: Character) {
+    guard let index = sequence.firstIndex(of: char) else { return }
+    characterIndex = index
+    loadCharacter()
+  }
+
+  /// その字に鍵がかかっているか（おためしの字は開いている。D90・D94）。
+  func isLocked(_ char: Character) -> Bool {
+    !PurchaseStore.shared.entitlements.canWrite(char, in: script.entitlementScript)
+  }
+
+  /// いまの字がある行（パネルの小さな表に出す）。
+  var currentRow: KanaRow? {
+    currentChar.flatMap { KanaTable.row(of: $0, script: script) }
+  }
+
+  var currentChar: Character? { character?.char.first }
+
+  /// 前後の字（パネルの矢印に使う。1つしかなければ nil）。
+  var hasNeighbors: Bool { sequence.count > 1 }
+
+  /// 画の数と、書けた画の数（画の点に使う。D152）。
+  var strokeTotal: Int { character?.strokes.count ?? 0 }
+  var strokesDone: Int {
+    if finishedRating != nil { return strokeTotal }
+    return min(strokes.count, strokeTotal)
+  }
+
+  /// パネルのキャラクターが言う短いひとこと（D150）。
+  var guidance: String {
+    if finishedRating != nil { return "じょうずに かけたね！" }
+    if hintStroke != nil { return "ここから かいてみよう" }
+    switch step {
+    case .miru: return "よく みてね"
+    case .nazoru: return "ここから かいてみよう"
+    case .usuku: return "おもいだして かいてみよう"
+    case .jibunde: return "じぶんで かいてみよう"
+    case nil: return "たのしく かこうね！"
+    }
+  }
+
+  /// 「やりなおす」（どの段階でも。D154）。いまの段階を最初から書き直す。
+  /// ④ では「ぜんぶ けす」と同じに、書き終わりの合図の待ちもやり直す。
+  func retryStep() {
+    guard finishedRating == nil else {
+      restartCharacter()
+      return
+    }
+    judgeTask?.cancel()
+    animationTask?.cancel()
+    animationStart = nil
+    highlightsDone = false
+    result = nil
+    endingHint = nil
+    strokes = []
+    writtenEndings = []
+    writtenLines = []
+    hintStroke = nil
+    apply(flow?.handle(.restartStep) ?? [])
+  }
+
+  /// 自動で次の字へ進むのをやめる（子どもがボタンやごほうびに触ったとき。D154）。
+  func cancelAutoAdvance() {
+    advanceTask?.cancel()
+    advanceTask = nil
+  }
+
+  /// ごほうびの演出を閉じる（自動の移動もやめる）。
+  func dismissCelebration() {
+    cancelAutoAdvance()
+    showsCelebration = false
+  }
+
+  private func scheduleAutoAdvance() {
+    cancelAutoAdvance()
+    #if DEBUG
+      // 確かめ用: `-freezeCelebration YES` で、ごほうびの画面を止めたままにする。
+      if UserDefaults.standard.bool(forKey: "freezeCelebration") { return }
+    #endif
+    advanceTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(Self.autoAdvanceSeconds))
+      guard !Task.isCancelled, let self else { return }
+      self.nextCharacter()
+    }
   }
 
   /// 同じ字を最初からやり直す。
@@ -132,6 +230,8 @@ final class WritingModel {
   private func loadCharacter() {
     judgeTask?.cancel()
     animationTask?.cancel()
+    cancelAutoAdvance()
+    showsCelebration = false
     character = PackLibrary.character(sequence[characterIndex], script: script)
     strokes = []
     writtenEndings = []
@@ -192,6 +292,7 @@ final class WritingModel {
         if !result.passed { record(stage: .jibunde, passed: false, issues: result.issues) }
       case .finished(let rating, let rescued):
         finishedRating = rating
+        showsCelebration = true
         SoundPlayer.shared.play(.praise)
         if let stage = step.flatMap(Self.recordStage) {
           record(stage: stage, passed: !rescued, rescued: rescued, issues: result?.issues ?? [])
@@ -201,6 +302,8 @@ final class WritingModel {
           if rating == .hanamaru { finishedRating = .nijumaru }
           if store.showsEndingHints { endingHint = mismatch }
         }
+        // 終わり方のヒントを出すときは、読めるように自動では進まない（D154）。
+        if endingHint == nil { scheduleAutoAdvance() }
       }
     }
   }
@@ -220,6 +323,9 @@ final class WritingModel {
           continue
         }
         for stroke in character.strokes {
+          // `-simulateStrokes 2` で、2画まで書いたところで止める（確かめ用）。
+          let limit = UserDefaults.standard.integer(forKey: "simulateStrokes")
+          if limit > 0, strokes.count >= limit { return }
           let line = stroke.centerlinePoints()
           strokes.append(recorder.drawn(line))
           writtenLines.append(line)

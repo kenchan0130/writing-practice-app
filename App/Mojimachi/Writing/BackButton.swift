@@ -47,7 +47,9 @@ struct BackButton: View {
         Image(systemName: "arrow.left")
           .font(.system(size: 40, weight: .bold))
           .frame(width: 104, height: 104)
-          .background(Color.gray.opacity(0.15), in: .rect(cornerRadius: 24))
+          .foregroundStyle(Theme.ink)
+          .background(Color.white.opacity(0.85), in: .rect(cornerRadius: 24))
+          .softShadow()
       }
       .buttonStyle(.plain)
       .opacity(locked ? 0.35 : 1)

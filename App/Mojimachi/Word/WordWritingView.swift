@@ -1,4 +1,5 @@
 import ContentModel
+import JudgeKit
 import PracticeKit
 import SpriteKit
 import SwiftUI
@@ -8,7 +9,6 @@ struct WordWritingView: View {
   @State private var model: WordModel
   @State private var transform: TransformScene?
   @State private var transformFinished = false
-  @State private var showsFirstPenPicker = ProgressStore.shared.needsPenColorChoice
   /// 置いたあとに見せる画面へ行く（服はクローゼット、ほかはまち。D101）。
   var onShowPlaced: (WordKind) -> Void = { _ in }
 
@@ -42,22 +42,33 @@ struct WordWritingView: View {
         if model.wordDone {
           transformView
         }
+        if let rating = model.charPraise, !model.wordDone {
+          SmallPraise(rating: rating)
+        }
       }
+      StrokeDots(
+        total: model.currentCharacter?.strokes.count ?? 0, done: model.strokes.count
+      )
+      .frame(height: 48)
+      .opacity(model.wordDone ? 0 : 1)
       wordPicker
       buttons
     }
-    .padding(32)
+    .padding(.horizontal, 32)
+    .padding(.bottom, 24)
     .defersSystemGestures(on: .all)
     .overlay(alignment: penStandAlignment()) { PenStandButton().padding(24) }
     .overlay(alignment: .top) { CaptionBubble().padding(.top, 12) }
-    .sheet(isPresented: $showsFirstPenPicker) {
-      // はじめての起動の最初のことばの前に、1回だけ選ぶ（D88）。
-      PenColorPicker(title: "ペンの いろを えらぼう") { color in
-        ProgressStore.shared.setPenColor(color)
-        showsFirstPenPicker = false
+    .onAppear {
+      // はじめての起動の最初のことばの前に、1回だけ選ぶ（D88）。選ぶまで閉じない（D155）。
+      if ProgressStore.shared.needsPenColorChoice {
+        PopPresenter.shared.show(id: "firstPen") {
+          PenColorPicker(title: "ペンの いろを えらぼう") { color in
+            ProgressStore.shared.setPenColor(color)
+            PopPresenter.shared.dismiss(id: "firstPen")
+          }
+        }
       }
-      .presentationDetents([.medium])
-      .interactiveDismissDisabled()
     }
     .onChange(of: model.wordDone) { _, done in
       if !done {
@@ -75,10 +86,11 @@ struct WordWritingView: View {
           let done = index < (model.flow?.index ?? 0)
           let current = index == (model.flow?.index ?? -1) && !model.wordDone
           Text(String(char))
-            .font(.system(size: 44, weight: .bold))
-            .foregroundStyle(done ? Color.accentColor : current ? .primary : .secondary)
+            .font(.learning(52))
+            .foregroundStyle(done ? Theme.pink : current ? Theme.ink : Theme.inkSoft)
             .padding(6)
-            .background(current ? Color.yellow.opacity(0.3) : .clear, in: .rect(cornerRadius: 10))
+            .background(
+              current ? Theme.yellow.opacity(0.4) : .clear, in: .rect(cornerRadius: 14))
         }
       }
       .accessibilityElement(children: .ignore)
@@ -117,16 +129,21 @@ struct WordWritingView: View {
               model.hintStroke == nil
               ? 0 : (sin(timeline.date.timeIntervalSinceReferenceDate * 6) + 1) * 6
             CanvasDrawing.startMarker(
-              for: character.strokes[flow.expectedStroke], in: &context, scale: scale,
-              pulse: pulse)
+              for: character.strokes[flow.expectedStroke], number: flow.expectedStroke + 1,
+              in: &context, scale: scale, pulse: pulse)
           }
         }
         for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context) }
         CanvasDrawing.ink(model.recorder.current, in: &context)
       }
     }
-    .background(Color(red: 0.98, green: 0.96, blue: 0.92))
-    .clipShape(RoundedRectangle(cornerRadius: 12))
+    .background(Theme.paper)
+    .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.paper))
+    .overlay(
+      RoundedRectangle(cornerRadius: Theme.Radius.paper).stroke(
+        Theme.accent.opacity(0.7), lineWidth: 4)
+    )
+    .softShadow()
     .gesture(StrokeInputGesture { event, convert in model.handle(event, convert: convert) })
     .accessibilityLabel("もじを かく ばしょ")
   }
@@ -198,20 +215,31 @@ struct WordWritingView: View {
     HStack(spacing: 32) {
       if model.wordDone {
         if transformFinished {
-          WordButton(
+          ChildToolButton(
             title: model.kind == .clothes ? "クローゼットを みる" : "まちを みる",
-            systemImage: model.kind == .clothes ? "hanger" : "house.fill"
+            systemImage: model.kind == .clothes ? "hanger" : "house.fill", color: Theme.green
           ) {
             let kind = model.kind
             model.placeInTown()
             onShowPlaced(kind)
           }
         }
-        WordButton(title: "もういっこ", systemImage: "arrow.right.circle.fill") {
+        ChildToolButton(
+          title: "もういっこ", systemImage: "arrow.right.circle.fill", color: Theme.accent
+        ) {
           model.nextWord()
         }
-      } else if model.mode == .jibunde {
-        WordButton(title: "できた！", systemImage: "checkmark.circle.fill") { model.judgeNow() }
+      } else {
+        // どの段階でも、ことばを最初から書き直せる（D154 と同じ考え方）。
+        ChildToolButton(title: "やりなおす", systemImage: "arrow.counterclockwise") {
+          model.restartWord()
+        }
+        if model.mode == .jibunde {
+          ChildToolButton(
+            title: "できた！", systemImage: "checkmark.circle.fill", color: Theme.green,
+            highlighted: model.highlightsDone
+          ) { model.judgeNow() }
+        }
       }
     }
     .frame(minHeight: 120)
@@ -241,25 +269,6 @@ private struct ColoringSilhouette: View {
   }
 }
 
-/// 子どもが押すボタン（2cm 角以上。D101）。
-private struct WordButton: View {
-  var title: String
-  var systemImage: String
-  var action: () -> Void
-
-  var body: some View {
-    Button(action: action) {
-      VStack(spacing: 8) {
-        Image(systemName: systemImage).font(.system(size: 36, weight: .bold))
-        Text(title).font(.headline)
-      }
-      .frame(minWidth: 120, minHeight: 120)
-    }
-    .buttonStyle(.bordered)
-    .buttonBorderShape(.roundedRectangle(radius: 24))
-  }
-}
-
 /// ことばを選ぶ絵のボタン（約104pt 以上。D101）。
 private struct WordPickButton: View {
   var item: PlaceholderArt.Item
@@ -273,17 +282,46 @@ private struct WordPickButton: View {
           .font(.system(size: 40))
           .foregroundStyle(Color(uiColor: item.color))
           .frame(height: 48)
-        Text(item.entry.text).font(.subheadline.bold()).foregroundStyle(.primary)
+        Text(item.entry.text).font(.learning(22)).foregroundStyle(Theme.ink)
+          .lineLimit(1).minimumScaleFactor(0.6)
       }
       .frame(width: 108, height: 108)
       .background(
-        selected ? Color.yellow.opacity(0.35) : Color.gray.opacity(0.1),
+        selected ? Theme.yellow.opacity(0.5) : Color.white.opacity(0.7),
         in: .rect(cornerRadius: 20)
       )
       .overlay {
-        if selected { RoundedRectangle(cornerRadius: 20).stroke(Color.accentColor, lineWidth: 3) }
+        if selected { RoundedRectangle(cornerRadius: 20).stroke(Theme.accent, lineWidth: 4) }
       }
     }
     .buttonStyle(.plain)
+  }
+}
+
+/// 字が1つ書けたときの小さなごほうび（D152）。ことば全部が書けたときは、変身（D43）に任せる。
+private struct SmallPraise: View {
+  var rating: Rating
+  @State private var appeared = false
+
+  var body: some View {
+    VStack(spacing: 8) {
+      Circle()
+        .stroke(Theme.red, lineWidth: 14)
+        .frame(width: 120, height: 120)
+      HStack(spacing: 6) {
+        ForEach(0..<CelebrationView.stars(rating), id: \.self) { _ in
+          Image(systemName: "star.fill").font(.system(size: 30)).foregroundStyle(Theme.yellow)
+        }
+      }
+      Text(CelebrationView.praise(rating)).font(.ui(30, bold: true)).foregroundStyle(Theme.ink)
+    }
+    .padding(24)
+    .background(.white.opacity(0.9), in: .rect(cornerRadius: Theme.Radius.card))
+    .softShadow()
+    .scaleEffect(appeared ? 1 : 0.5)
+    .opacity(appeared ? 1 : 0)
+    .onAppear { withAnimation(.spring(duration: 0.35, bounce: 0.4)) { appeared = true } }
+    .allowsHitTesting(false)
+    .accessibilityHidden(true)
   }
 }

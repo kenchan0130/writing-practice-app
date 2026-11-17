@@ -66,6 +66,17 @@
 |---|---|---|---|---|
 | strokesvg | `e4c2c91` | かなは OFL 1.1（Klee One から作られたもの）、それ以外は MIT | ひらがなの書き順と字の形（D128） | `Content/Packs/hira`（`LICENSE`・`NOTICE.md`） |
 
+| Klee One（Regular・SemiBold。使う字だけに減らしたもの） | google/fonts の `ofl/kleeone`（2026-11-17 に取得。もとの TTF の SHA-1 は `02b7663f…`・`6a12ad3c…`） | SIL OFL 1.1（Copyright 2020 The Klee Project Authors） | 字を学ぶところの書体（D153） | `App/Mojimachi/Resources/Fonts`（`OFL-KleeOne.txt`・`FONTS-NOTICE.txt`） |
+| Zen Maru Gothic（Medium・Bold。使う字だけに減らしたもの） | google/fonts の `ofl/zenmarugothic`（2026-11-17 に取得。もとの TTF の SHA-1 は `116bfabf…`・`9471824b…`） | SIL OFL 1.1（Copyright 2021 The Zen Maru Gothic Project Authors） | ボタン・ラベルの書体（D153） | 同上（`OFL-ZenMaruGothic.txt`） |
+
+字を減らすのは `Scripts/subset_fonts.py`（画面の文字列と文字のデータから、使う字を集める）。書体を作り直すときは、画面の言葉を変えたあとに動かす。
+
+## ビルドの道具（C。アプリには入らない）
+
+| 名前 | 版 | ライセンス | 用途 |
+|---|---|---|---|
+| fonttools（`pyftsubset` の元になる Python のライブラリ） | 4.68.0（2026-11-17 に使用。一時的な venv に入れた。PyPI の `fonttools`） | MIT | 書体を使う字だけに減らす（`Scripts/subset_fonts.py`） |
+
 ## 使わないもの
 
 - Firebase、RevenueCat など、通信やデータ送信をするもの（Sentry はクラッシュの情報だけ）。
