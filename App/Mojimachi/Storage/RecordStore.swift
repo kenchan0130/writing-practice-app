@@ -352,7 +352,7 @@ final class RecordStore {
       }
   }
 
-  /// 保存している行の数（保護者用の画面の「iCloud とデータ」に出す）。
+  /// 保存している行の数（保護者用の画面の「学習記録の管理」に出す）。
   func rowCount() -> Int {
     ["CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "ProfileRow"].reduce(
       0

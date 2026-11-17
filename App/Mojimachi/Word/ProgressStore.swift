@@ -45,7 +45,7 @@ final class ProgressStore {
   private(set) var log: LearningLog
   /// まちに置いた物（D43・D53）。
   private(set) var placed: [PlacedObject]
-  /// 最後に保存した時刻（保護者用の画面の「iCloud とデータ」に出す。D63）。
+  /// 最後に保存した時刻（保護者用の画面の「学習記録の管理」に出す。D63）。
   private(set) var lastSaved: Date?
 
   /// ④ に合格した「慣れた字」（D56）。記録から計算する。

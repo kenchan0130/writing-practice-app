@@ -22,7 +22,7 @@ struct ParentAreaView: View {
           NavigationLink("判定") { judgeSettings }
           NavigationLink("購入") { PurchaseView() }
           NavigationLink("音と表示") { SoundDisplayView() }
-          NavigationLink("iCloud とデータ") { DataSettingsView() }
+          NavigationLink("学習記録の管理") { DataSettingsView() }
           NavigationLink("安心のための設定") { safetySettings }
           NavigationLink("サポート") { SupportView() }
         }
@@ -39,7 +39,7 @@ struct ParentAreaView: View {
         }
       }
       .toolbar {
-        ToolbarItem(placement: .confirmationAction) { Button("とじる", action: onClose) }
+        ToolbarItem(placement: .confirmationAction) { Button("閉じる", action: onClose) }
       }
     }
   }
@@ -47,15 +47,19 @@ struct ParentAreaView: View {
   private var judgeSettings: some View {
     Form {
       Section {
-        Picker("おまかせ設定", selection: $store.preset) {
-          Text("はじめて").tag(JudgePreset.hajimete)
-          Text("なれてきた").tag(JudgePreset.naretekita)
-          Text("しっかり").tag(JudgePreset.shikkari)
-          Text("きっちり").tag(JudgePreset.kicchiri)
+        Picker("判定の厳しさ", selection: $store.preset) {
+          presetRow("はじめて", "いちばんやさしい判定です。線を分けて書いても、つなげて書いても、形が合えば合格にします。")
+            .tag(JudgePreset.hajimete)
+          presetRow("なれてきた", "少し形をよく見ます。線を分けたり、つなげたりしても合格にします。")
+            .tag(JudgePreset.naretekita)
+          presetRow("しっかり", "形をしっかり見ます。線を分けたり、つなげたりすると、画数の違いにします。")
+            .tag(JudgePreset.shikkari)
+          presetRow("きっちり", "いちばん厳しい判定です。形を細かく見て、画数の違いも合格にしません。")
+            .tag(JudgePreset.kicchiri)
         }
         .pickerStyle(.inline)
       } footer: {
-        Text("迷ったときは「はじめて」から。上手になったら、この画面でお知らせします。")
+        Text("迷ったときは「はじめて」から始めてください。上達したら、この画面でお知らせします。")
       }
       Section {
         Toggle("とめ・はね・はらいのヒントを出す", isOn: $store.showsEndingHints)
@@ -64,6 +68,14 @@ struct ParentAreaView: View {
       }
     }
     .navigationTitle("判定")
+  }
+
+  /// 判定の段階の名前と、その説明（D22・D84）。
+  private func presetRow(_ name: String, _ detail: String) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(name)
+      Text(detail).font(.footnote).foregroundStyle(.secondary)
+    }
   }
 
   private var safetySettings: some View {

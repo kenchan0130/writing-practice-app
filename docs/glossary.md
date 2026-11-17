@@ -9,7 +9,7 @@
 | えほんの こえ | storyteller voice | 案内役の声（D57） |
 | わたしのまち | My Town | |
 | ずかん | picture book | |
-| せいちょう アルバム | growth album | |
+| 成長アルバム | growth album | 保護者用の画面の言い方（D157） |
 | きょうの ことば | word of the day | |
 | おためし | Try | 有料の文字のおためし（D90） |
 | すべての文字 | All Letters | 課金アイテム（D98） |

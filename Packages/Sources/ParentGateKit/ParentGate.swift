@@ -16,9 +16,9 @@ public struct GateQuestion: Sendable, Hashable {
 
   public var answer: Int { left * right }
 
-  /// 日本語の問題文（例:「十四 かける 六 の こたえを いれてください」）。
+  /// 日本語の問題文（例:「十四かける六の答えを入力してください」）。
   public var japanese: String {
-    "\(KanjiNumeral.string(left)) かける \(KanjiNumeral.string(right)) の こたえを いれてください"
+    "\(KanjiNumeral.string(left))かける\(KanjiNumeral.string(right))の答えを入力してください"
   }
 
   /// 英語の問題文（例: "Enter fourteen times six"）。

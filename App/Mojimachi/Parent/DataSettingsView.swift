@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 保護者用の画面の「iCloud とデータ」（D63・D116・§6.3）。同期の状態は保護者用の画面にだけ出す。
+/// 保護者用の画面の「学習記録の管理」（D63・D116・§6.3）。同期の状態は保護者用の画面にだけ出す。
 struct DataSettingsView: View {
   @Bindable private var store = ProgressStore.shared
   @State private var resetDone = false
@@ -17,13 +17,13 @@ struct DataSettingsView: View {
   }
 
   private var accountText: String {
-    if !RecordStore.hasCloudEntitlement { return "この ビルドでは iCloud を 使いません" }
+    if !RecordStore.hasCloudEntitlement { return "このビルドでは iCloud を使いません" }
     switch store.accountState {
     case .checking: return "確かめています"
     case .available: return "サインイン済み"
     case .noAccount: return "サインインしていません"
     case .restricted: return "使えません（制限されています）"
-    case .temporarilyUnavailable: return "いまは使えません"
+    case .temporarilyUnavailable: return "今は使えません"
     case .unknown: return "確かめられません"
     }
   }
@@ -39,7 +39,7 @@ struct DataSettingsView: View {
     switch store.syncProblem {
     case .notSignedIn?: return "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。"
     case .quotaExceeded?: return "iCloud の空き容量が足りないため、同期できません。記録はこの iPad に保存しています。"
-    case .other?: return "iCloud との同期がうまくいっていません。しばらくしてからもう一度ためします。"
+    case .other?: return "iCloud との同期がうまくいっていません。しばらくしてからもう一度試します。"
     case nil: return nil
     }
   }
@@ -49,7 +49,7 @@ struct DataSettingsView: View {
       return "記録はこの iPad の中に保存しています。iCloud にサインインすると、同期できるようになります。"
     }
     if store.syncsWithICloud != store.isSyncRunning {
-      return "同期の切り替えは、つぎに アプリを ひらいたときから 効きます。オフにしても、この iPad と iCloud の記録は残ります。"
+      return "同期の切り替えは、次にアプリを開いたときから効きます。オフにしても、この iPad と iCloud の記録は残ります。"
     }
     return store.isSyncRunning
       ? "記録は iCloud で同期しています。オフにしても、この iPad と iCloud の記録は残ります。"
@@ -59,20 +59,20 @@ struct DataSettingsView: View {
   var body: some View {
     Form {
       Section {
-        Toggle("iCloud で 同期", isOn: $store.syncsWithICloud)
+        Toggle("iCloud で同期", isOn: $store.syncsWithICloud)
         LabeledContent("iCloud") {
           Text(accountText)
         }
-        LabeledContent("さいごに iCloud に ほぞんした じかん") {
+        LabeledContent("最後に iCloud に保存した時間") {
           Text(Self.format(store.lastExported) ?? "まだ")
         }
         if let imported = Self.format(store.lastImported) {
-          LabeledContent("さいごに iCloud から とりこんだ じかん") { Text(imported) }
+          LabeledContent("最後に iCloud から取り込んだ時間") { Text(imported) }
         }
-        LabeledContent("さいごに この iPad に ほぞんした じかん") {
-          Text(Self.format(store.lastSaved) ?? "この起動では まだ")
+        LabeledContent("最後にこの iPad に保存した時間") {
+          Text(Self.format(store.lastSaved) ?? "この起動ではまだ")
         }
-        LabeledContent("ほぞんしている記録") { Text("\(store.savedRowCount) 件") }
+        LabeledContent("保存している記録") { Text("\(store.savedRowCount) 件") }
         if let message = problemMessage {
           Text(message).foregroundStyle(.red)
         }
@@ -87,12 +87,12 @@ struct DataSettingsView: View {
         Section {
           Text("ほかの iPad が iCloud のデータを消したため、この iPad の同期をオフにしました。この iPad の記録は残っています。")
           Text(Self.format(notice) ?? "").foregroundStyle(.secondary)
-          Button("わかった") { store.dismissCloudDeletedNotice() }
+          Button("OK") { store.dismissCloudDeletedNotice() }
         }
       }
       if canDeleteICloudData {
         Section {
-          HoldToConfirmButton(title: "iCloud のデータを 消す") {
+          HoldToConfirmButton(title: "iCloud のデータを消す") {
             Task { await store.deleteICloudData() }
           }
           switch store.cloudDeleteState {
@@ -102,7 +102,7 @@ struct DataSettingsView: View {
             Text("iCloud のデータを消しました。この iPad の同期はオフです。この iPad の記録は残っています。")
               .foregroundStyle(.secondary)
           case .failed:
-            Text("iCloud のデータを消せませんでした。しばらくしてからもう一度ためしてください。この iPad の同期はオフです。")
+            Text("iCloud のデータを消せませんでした。しばらくしてからもう一度試してください。この iPad の同期はオフです。")
               .foregroundStyle(.red)
           }
         } header: {
@@ -110,12 +110,12 @@ struct DataSettingsView: View {
             .foregroundStyle(.red)
         } footer: {
           Text(
-            "先に この iPad の同期をオフにして、iCloud にあるもじまちのデータを消します。この iPad の中の記録は残ります。ほかの iPad は、つぎに ひらいたときに保護者用の画面で知らせて、同期をオフにします。3秒長押しで実行します。"
+            "先にこの iPad の同期をオフにして、iCloud にあるもじまちのデータを消します。この iPad の中の記録は残ります。ほかの iPad は、次に開いたときに保護者用の画面で知らせて、同期をオフにします。3秒長押しで実行します。"
           )
         }
       }
       Section {
-        HoldToConfirmButton(title: "全員の記録を リセット") {
+        HoldToConfirmButton(title: "全員の記録をリセット") {
           store.resetAllRecords()
           resetDone = true
         }
@@ -123,10 +123,10 @@ struct DataSettingsView: View {
           Text("全員の記録をリセットしました。設定とまちは残っています。").foregroundStyle(.secondary)
         }
       } footer: {
-        Text("子ども全員の学習記録・もじの地図・アルバムを最初からにします。設定とまちは残ります。1人だけリセットするときは「子どもたち」から。3秒長押しで実行します。")
+        Text("子ども全員の学習記録・文字の地図・アルバムを最初からにします。設定とまちは残ります。1人だけリセットするときは「子どもたち」から。3秒長押しで実行します。")
       }
     }
-    .navigationTitle("iCloud とデータ")
+    .navigationTitle("学習記録の管理")
     .task { await store.refreshAccountState() }
   }
 }

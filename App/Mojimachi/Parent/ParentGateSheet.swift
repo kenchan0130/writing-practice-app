@@ -11,7 +11,7 @@ struct ParentGateSheet: View {
 
   var body: some View {
     VStack(spacing: 20) {
-      Text("おとなのひとへ").font(.ui(30, bold: true)).foregroundStyle(Theme.ink)
+      Text("保護者の方へ").font(.ui(30, bold: true)).foregroundStyle(Theme.ink)
       Text(store.gate.question.japanese)
         .font(.ui(28, bold: true))
         .foregroundStyle(Theme.ink)
@@ -48,7 +48,7 @@ struct ParentGateSheet: View {
   }
 
   private var keypad: some View {
-    let rows = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"], ["けす", "0", "OK"]]
+    let rows = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"], ["消す", "0", "OK"]]
     return VStack(spacing: 12) {
       ForEach(rows, id: \.self) { row in
         HStack(spacing: 12) {
