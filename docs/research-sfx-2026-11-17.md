@@ -212,3 +212,216 @@
 - Kenney: https://kenney.nl/support ／ https://kenney.nl/assets/category:Audio
 - OpenGameArt: https://opengameart.org/
 - OtoLogic: https://otologic.jp/free/license.html
+
+---
+
+# 追加調べ: YouTuber がよく使う効果音の出どころ（2026-11-17）
+
+きっかけ: 持ち主が「YouTube でよく使われる素材は使いやすいはず。もっとあるはず」と言った。上の章に無かったサイトを調べた。
+
+**読み方の注意**
+- 「YouTuber がよく使う」ことと「有料アプリに入れてよい」ことは別。YouTube 向けの許諾は、アプリの同梱を含まないことが多い。
+- 規約本文を自分で読めたものは URL と短い引用を付けた。読めなかったものは**未確認**と書いた。検索結果や第三者の記事だけで知ったことは「第三者情報」と書いた。
+- 規約は変わる。ダウンロードの日に、人が本文を読み直して日付を残す（上の「大事な注意」と同じ）。
+
+## A. 結論の先出し
+
+| 場所 | 有料アプリ | アプリに同梱 | 表記 | 加工 | 一言 |
+|---|---|---|---|---|---|
+| Springin' Sound Stock | OK（商用可） | ゲームは可。**自作の商用ソフトへの同梱は問い合わせが要る**と読める | 必須ではない | OK | 日本の YouTuber・ゲーム作者に人気。要問い合わせ |
+| YouTube オーディオライブラリ | 未確認（YouTube 向け） | 未確認 | 音源ごと | 未確認 | **使わない**。YouTube の外は保証がない |
+| OtoLogic | 未確認（公式 403） | 未確認 | **必要と見られる**（第三者情報） | 未確認 | 公式を人が読むまで保留 |
+| 効果音工房・音人・くらげ工匠 | 未確認 | 未確認 | 未確認 | 未確認 | 公式ページが開けず、検索でも規約が出なかった |
+| ニコニ・コモンズ | 素材ごと | 素材ごと | 素材ごと | 素材ごと | On-Jin の章のとおり、営利不可の素材がある。使わない |
+| Epidemic Sound | 契約しだい | 未確認 | 不要（契約中） | 可 | YouTube 向け。アプリは別契約と見られる。避ける |
+| Artlist | 契約しだい | 作品に組み込めば可（第三者情報） | 不要 | 可 | 年契約のみ。アプリの明記は未確認 |
+| Envato Elements | 契約しだい | **未確認** | 不要 | 可 | 音が主体だと対象外。完成前に解約すると権利が消える |
+| Storyblocks | 個人は解約後 NG | 未確認 | 不要 | 可 | 解約で権利が切れる契約がある。避ける |
+| Motion Array | 契約しだい | 未確認（403） | 不要 | 可 | 未確認 |
+| Uppbeat | 未確認 | 未確認 | 不要（有料時） | 可 | 音楽が中心。SE とアプリは未確認 |
+| BBC Sound Effects | **不可** | 不可 | 必要 | — | 個人・教育・研究だけ（RemArc） |
+| Soundsnap | OK（Pro は予算 50万ドルまで） | 「ゲームとアプリ」が明記 | 不要 | OK | 有料。解約後の扱いは本文に書かれていない |
+| Pro Sound Effects | 買い切りは OK | アプリの扱いは未確認 | 不要 | OK | 買い切り（1人用）。瞑想アプリ等は禁止 |
+| Boom Library | 買い切りは OK | **未確認** | 不要 | OK | 高品質。ゲーム・アプリの明記は読めなかった |
+| 99Sounds | OK | 作品に組み込めば可 | 不要 | OK | 無料。ただし数は少なく、動物・乗り物は弱い |
+| Soundly | OK（Free/Pro はゲームも可） | ゲームは明記。アプリは明記なし | 不要 | 未確認 | 音の検索ソフト。音は中の各ライブラリが元 |
+| Pond5 | 買い切りは OK | **未確認** | 不要 | OK | 「デジタル専用ライセンス」の例外を読む必要がある |
+| Videvo | 未確認 | 未確認 | 未確認 | 未確認 | Freepik に統合済み（301）。規約は未確認 |
+| freesfx | 未確認 | 未確認 | 未確認 | 未確認 | 規約ページが 404。未確認 |
+
+## B. くわしい確認
+
+### B.1 日本の YouTuber 向けサイト
+
+**Springin' Sound Stock（SHIKUMI DESIGN）** — https://www.springin.org/sound-stock/ ／ 規約と FAQ https://www.springin.org/sound-stock/guideline/ （2026-11-17 に確認。改定日の記載なし、フッターは ©2026）
+- 約1,000点以上の BGM・効果音。カテゴリに「ボタン・システム」「自然・動物」「機械・乗り物」「生活」「演出」「声」がある（カテゴリ一覧はトップページのリンク）。もじまちに向く種類がそろう。
+- 商用: 第4条は「商用か否かに関わらず」使えると読める。収益化した動画、有料ゲームが例に挙がる。
+- 同梱: ゲームは可。FAQ は「素材ファイルを目立ちにくい配置に」と求める。**自分の商用ソフトに音を組み込むときは問い合わせフォームから連絡が要り、料金がかかる場合がある**と読める。もじまちは「ゲーム」ではなく「ソフト」に当たる可能性があるので、**使う前に必ずメールで問い合わせる**。
+- 禁止（再配布にあたる）: 「ユーザーが自由に効果音を鳴らせるアプリ、再生が主な機能のアプリ」。もじまちは当たらない。
+- 表記: 「クレジットは必須ではありません」。ただし第4条は、会社が指定したら従うと定める。報告は不要。
+- 加工: 「問題ありません」。加工した素材を配る・売るのは禁止。
+- AI 条項: 規約に書かれていない。未成年: 保護者の同意の条項があるだけ。子ども向けアプリの禁止は無い。
+- 費用: 無料（上の問い合わせで有料になる可能性）。
+- 判定: **人気・音の種類・無料の3点で有力**。ただし「アプリ同梱は問い合わせ」が条件。返事を保存できれば第2候補に上がる。
+
+**YouTube オーディオライブラリ** — https://support.google.com/youtube/answer/3376882 （2026-11-17 に確認）
+- 「The Audio Library is found exclusively in YouTube Studio.」YouTube の外の使い方は書かれていない。
+- 「YouTube can't give legal guidance, including guidance on issues with music that can occur off the platform.」
+- 第三者情報: 標準ライセンスの音は YouTube 向け。CC BY の音は他の場所でも使えるが、表記が要り、ゲーム・アプリは音ごとに確かめる必要がある。
+- 判定: **アプリには使わない**。実質 YouTube 専用と見る。
+
+**OtoLogic** — https://otologic.jp/free/license.html ／ https://otologic.jp/ （どちらも 403。再試行したが読めず）
+- 第三者情報: あるアプリの説明に「OtoLogic の素材はクレジット表記が必須」とある。検索結果の別の作者の規約も、OtoLogic の名前を書くよう求めている。公式の条件ではない。
+- 判定: **未確認**。有名で音がきれいなので、人が公式ページを読み、「アプリ同梱・表記の形・加工」を確かめる価値が高い。表記が前提なら「このアプリについて」に載せられる。
+
+**効果音工房・音人（otojin）・くらげ工匠（フリー効果音素材）** — 公式 URL が開けなかった（名前解決失敗、証明書エラー）。検索でも規約は出なかった。
+- すべて**未確認**。実在と現在の規約は、人がブラウザで開いて確かめる。確かめる点は、商用・アプリ同梱・表記・再配布の4つ。
+- 「SoundEffect-Lab」は効果音ラボの英語名で、上の章と同じサイト。別の名前の兄弟サイトは見つからなかった。
+
+**ニコニ・コモンズ**
+- 素材ごとに使える範囲を作者が決める仕組み。On-Jin の規約にも「ニコニ・コモンズ経由の素材は営利利用不可」とある（上の On-Jin の章）。
+- 2026年のサービス終了や規約変更の公式発表は、検索では見つからなかった。
+- 判定: 素材ごとの条件がばらばらで、有料アプリには向かない。**使わない**。
+
+### B.2 有料サブスク（YouTuber に人気）
+
+共通の問題: 契約が切れた後の権利、アプリ（配る製品）に入れてよいか、子ども向けか。多くは「動画」前提の規約。以下は主に第三者情報と検索結果。
+
+**Epidemic Sound** — https://www.epidemicsound.com/ （規約本文は未確認。search で第三者の転載のみ）
+- 第三者情報: 契約中に公開した動画は、解約後もずっと使える。契約の後に公開した動画は対象外。体験期間にダウンロードした音は、体験期間のみ。
+- ゲーム・アプリは、企業向けの別プランの扱いと見られる。もじまちのアプリ同梱は未確認。
+- 判定: 動画向け。**避ける**。使うなら、アプリ同梱と解約後の扱いを、メールで書面にしてもらう。
+
+**Artlist** — https://artlist.io/ ／ 規約 PDF https://artlist.io/media/w5mglb2w/pro-license-current-02092024.pdf （本文は読めず）
+- 第三者情報: 「効果音は、ゲームやアプリなど作品に組み込む場合だけ配布できる。単品の配布は禁止」。解約後も、契約中に使い終えた作品は使える。
+- Artlist 自身の Pro ライセンスは「契約が切れた後も、ずっと収益化できる」と書く（PDF の文言。第三者の引用）。
+- 費用: Creator Pro は年契約のみ（約 199 ドル / 年。第三者情報）。
+- 判定: アプリ同梱の明記が確認できていない。**未確認のため第2候補にも入れない**。
+
+**Envato Elements** — https://help.elements.envato.com/hc/en-us/articles/360000621483 （403。検索結果の要約のみ）
+- 第三者情報: 「契約中に完成した作品（End Product）に入れた音は、ずっと使える。完成前に解約すると権利が終わる」。
+- 音は「大きな音声映像の作品の一部」として使う前提。**音そのものが主な価値の製品は対象外**。
+- アプリの扱いは、論点が複数あり**未確認**。
+- 判定: 避ける。
+
+**Storyblocks** — https://www.storyblocks.com/license （2026-11-17 に確認）
+- 個人・小規模事業のライセンスは、解約後に使い続けることが「No」。「You cannot stockpile assets for use after your Storyblocks subscription ends.」
+- 「games」は用途に挙がるが、アプリの明記はない。
+- 判定: **避ける**（解約で権利が切れる契約がある）。
+
+**Motion Array** — https://motionarray.com/license/ （403）
+- 第三者情報: 解約後は、完成した作品は使える。アプリ・ゲームの扱いは**未確認**。
+
+**Uppbeat** — https://uppbeat.io/uppbeat-basic-license （429 で読めず）
+- 第三者情報: 解約前に公開した作品は引き続き使える。解約前にダウンロードして使っていない音は、新しい作品に使えない。ゲームの扱いは書かれていない。主な素材は音楽。
+- 判定: **未確認**。
+
+### B.3 効果音ライブラリ（欧米のプロ向け）
+
+**Soundsnap** — https://www.soundsnap.com/licence （2026-11-17 に確認）
+- 「Pro covers video games and apps with budgets up to $500,000」（Pro は予算 50万ドルまでのゲームとアプリ）。
+- 商用・収益化は可。
+- 禁止: 音をそのまま再配布・転売。「mobile applications, plugins, or similar products」の拡張パックを作ること。**AI・機械学習の学習は特別な許諾が要る**。
+- 解約後: 「perpetual (for the duration of the applicable copyright)」だが「revocable」とも書かれる。解約で切れるとは書かれていない。ただし明記もない。**メールで確認する**。
+- 表記: 不要（読み取った範囲）。子ども向けの条項は見つからなかった。
+- 費用: 有料の月額（金額は未確認）。
+- 音: 動物・乗り物・生活音が大量にあり、実録音が中心。
+- 判定: **有料の予備として最有力**。1か月だけ契約して必要な音をまとめ、解約後の権利をメールで保存する運用が考えられる。
+
+**Pro Sound Effects** — https://www.prosoundeffects.com/ （ライセンスのページは 404。別の部分のページを読んだ）
+- 「1-user royalty-free unlimited commercial usage, forever」（買い切り）。
+- 契約型は「while you are subscribed」だけ有効。「Any project created while subscribed will stay covered」。
+- 禁止: 「Re-sell sound effects files in any way」、AI・機械学習の学習、「relaxation or meditation apps」と「soundboard」への組み込み。
+- もじまちは禁止の用途に当たらないが、**ゲーム・アプリの明記は読めなかった**。
+- BBC の音を商用で使いたい人は、ここ（有料）に誘導される（第三者情報）。
+- 判定: 買い切りなら解約の問題がない。個別の音を買う予備。
+
+**Boom Library** — https://www.boomlibrary.com/?p=269603 （一部のみ）
+- 「Yes, our sounds come with a royalty-free perpetual license.」解約後は、完成した作品はそのまま使える。
+- 「The products are only available for commercial customers」。ゲーム・アプリ・AI の条項は**未確認**。EULA を人が読む。
+- 判定: 高品質。個別に買うなら予備。
+
+**Soundly** — https://getsoundly.com/faq/can-i-use-the-sounds-in-a-video-game （2026-11-17 に確認）
+- 「cleared for commercial use, including video games」（Free と Pro の音）。Pro 契約中に作ったゲームは、解約後も使える。
+- アプリ（ゲーム以外）は明記なし。Freesound を足した場合は CC0 だけに絞る。
+- 判定: 音の探しやすいソフト（Mac・Windows）。音の権利は、中の各ライブラリの条件による。「ゲームは可」は、有料アプリの根拠として近いが、確定ではない。**未確認が残る**。
+
+**Pond5** — https://www.pond5.com/legal/license/20170301 ／ https://www.pond5.com/help/en/articles/10086102-all-about-our-licenses （検索結果の要約のみ）
+- 標準ライセンスは「永遠・全メディア・世界」。サブスクで取った音にも個別ライセンスが付く。
+- 「Digital Only Licenses」に例外がある。ゲーム・アプリは**未確認**。
+- 判定: 個別に買えば解約の問題はない。ただし値段と条件を読んでから。
+
+**99Sounds** — https://www.99sounds.org/license/ （2026-11-17 に確認）
+- 「royalty-free for personal and commercial projects」。表記は「not obligatory」。加工可。
+- 禁止: 音ファイルを売る・配る（無料でも）。**「noise apps, white noise apps, sleep sound apps」への利用は不可**。
+- もじまちは当たらない。ただし数が少なく、動物・乗り物は弱い（ライブラリの内容は個別に見る）。
+- 判定: 補助。
+
+**BBC Sound Effects**（RemArc） — https://sound-effects.bbcrewind.co.uk/licensing （ツールが取得を拒否）
+- 第三者情報: 個人・教育・研究だけ。商用は不可。研究に AI の学習は含まれない。商用は有料の Pro Sound Effects へ誘導。
+- 判定: **有料アプリには使えない**。
+
+**Videvo** — https://www.videvo.net/royalty-free-sound-effects/ は https://www.freepik.com/audio/sound-effects に転送された（301）。Freepik の規約は未読。**未確認**。
+
+**freesfx**（https://freesfx.co.uk/info/eula/）— 404。**未確認**。
+
+### B.4 すでに調べた Mixkit と、再試行の結果
+
+- Mixkit: ページに「Sound Effects Free License」と「View License」があるだけで、本文は読めなかった（https://mixkit.co/license/）。前の章のとおり**未確認**。
+
+## C. 読めなかったもの（人が見る）
+
+OtoLogic、効果音工房・音人・くらげ工匠、Artlist の PDF、Envato の各ヘルプ、Motion Array、Uppbeat、BBC、Pro Sound Effects、Boom Library の EULA、Pond5 の Digital Only、Videvo・Freepik、freesfx、Mixkit、Springin' の問い合わせフォーム。
+
+## D. 見直したおすすめ（上の「おすすめ」を更新）
+
+条件: よく使われている、使いやすい、有料アプリに入れても安全。
+
+### 順位
+
+| 順位 | 場所 | 役目 | 安全の根拠 | 残る不安 |
+|---|---|---|---|---|
+| 1（主） | **効果音ラボ** | ボタン・ほめる音・日常の音 | 「音源ファイルむき出しでも可」と明記。表記不要。YouTuber が一番よく使う | AI 学習の禁止は問題なし |
+| 2（主） | **Springin' Sound Stock** | 動物・乗り物・生活・かわいい音 | 商用可、表記は必須でない。日本でよく使われる | **アプリ同梱は問い合わせが要る**。返事を保存する |
+| 3（主） | **Kenney（CC0）** | UI の音 | パブリックドメイン | 動物・乗り物は無い |
+| 4（主） | **小森平** | 動物・乗り物・日常 | アプリの使用を明記 | 表記の要不要を原文で確認 |
+| 5（予備・無料） | **Sonniss GDC** | 実録音の物の音 | 表記不要、アプリ可 | 容量が大きい。AI 学習禁止 |
+| 6（予備・無料） | **Freesound（CC0 のみ）／Pixabay** | 足りない音 | 上の章のとおり | 1ファイルずつ確認 |
+| 7（予備・有料） | **Soundsnap Pro（1か月）** | 動物・乗り物の足りない分 | 「games and apps」が明記 | 解約後の権利をメールで確認。値段未確認 |
+| 8（予備・有料） | **Pro Sound Effects の買い切り**、**Boom Library** | 高品質の個別の音 | 買い切りで永続 | ゲーム・アプリの明記が未確認 |
+| 保留 | **OtoLogic** | 人が公式を読めたら第2群に入れる | — | 未確認。表記が前提なら使える可能性 |
+| 使わない | YouTube オーディオライブラリ、Epidemic、Storyblocks、Envato、Artlist、Motion Array、Uppbeat、BBC、ニコニ・コモンズ | — | YouTube・動画向け。アプリ同梱が未確認または不可 | — |
+
+**理由**: 有料サブスク（Epidemic など）は、解約後の権利と「アプリに同梱できるか」が読み取れない。無料の日本サイトは、アプリでの使用が明記されているものが多く、約100〜200個の需要にも足りる。まず無料で足りるか確かめ、足りない動物・乗り物だけ有料で補う。
+
+### 持ち主がやること
+
+1. **Springin' Sound Stock に問い合わせる**（日本語のフォーム https://www.springin.org/contact/ ）。「有料の子ども向け iPad アプリの中に、効果音を約N個、Opus に変換して入れたい。再生は書く練習の中だけで、ユーザーが自由に鳴らす機能はない。許可と費用を教えてほしい」。返事（メールの全文）を保存する。**Claude は送信しない**（メッセージ送信は持ち主の許可が要るため）。
+2. **OtoLogic の公式ページ**を自分のブラウザで読み、表記の形を確かめる（Claude の取得は 403）。
+3. **小森平** welcome.html を原文で読み、クレジットの要不要を確かめる。必要ならメールで聞く（komoritaira@gmail.com）。
+4. 有料の予備を使うなら、**アカウント作成・支払い・規約への同意**（Soundsnap または Pro Sound Effects）。持ち主が行う。サブスクの場合は、解約後の権利について、メールで書面をもらう。
+5. ダウンロード日に、規約ページの保存（スクリーンショットか PDF）を残す。
+
+### Claude ができること
+
+- 無料サイトの音の候補探し（音名・URL・長さの一覧にする）。ダウンロードは、持ち主の許可を得てから。
+- 音量をそろえ、前後を切り、Opus に変換する作業。
+- 出どころの記録（`sfx-provenance.csv`）の作成と、「このアプリについて」の文面。
+- 問い合わせメールの下書き（送るのは持ち主）。
+- 規約の再確認の一覧作り。
+
+### 新しい出典
+
+- YouTube オーディオライブラリ: https://support.google.com/youtube/answer/3376882
+- Springin' Sound Stock: https://www.springin.org/sound-stock/ ／ https://www.springin.org/sound-stock/guideline/
+- Storyblocks: https://www.storyblocks.com/license
+- Soundsnap: https://www.soundsnap.com/licence
+- Soundly: https://getsoundly.com/faq/can-i-use-the-sounds-in-a-video-game
+- 99Sounds: https://www.99sounds.org/license/
+- Pro Sound Effects: https://www.prosoundeffects.com/
+- Boom Library: https://www.boomlibrary.com/?p=269603
+- Artlist（第三者情報）: https://artlist.io/media/w5mglb2w/pro-license-current-02092024.pdf
+- Envato（第三者情報）: https://help.elements.envato.com/hc/en-us/articles/360000621483
+- Epidemic Sound: https://www.epidemicsound.com/
+- Pond5: https://www.pond5.com/legal/license/20170301
+- BBC（第三者情報）: https://sound-effects.bbcrewind.co.uk/licensing
