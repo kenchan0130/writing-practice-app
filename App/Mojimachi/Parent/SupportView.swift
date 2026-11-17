@@ -62,8 +62,8 @@ struct AboutView: View {
         notice("OFL-KleeOne.txt")
         notice("OFL-ZenMaruGothic.txt")
       }
-      // 効果音の出どころ（D149）。小森平さん・Freesound（CC0）。
-      Section("効果音（小森平・Freesound）") {
+      // 効果音の出どころ（D149）。小森平さん・Freesound（CC0）・OtoLogic（CC BY 4.0。D158）・こんとどぅふぇ。
+      Section("効果音（小森平・Freesound・OtoLogic・こんとどぅふぇ）") {
         notice("SOUNDS-NOTICE.txt")
       }
     }

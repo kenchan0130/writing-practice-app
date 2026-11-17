@@ -1,5 +1,5 @@
 #!/usr/bin/env python3 -I
-"""効果音の素材を、アプリに入れる形（Opus in CAF・モノラル・48kHz）に整える（D111・D149・D156）。
+"""効果音の素材を、アプリに入れる形（Opus in CAF・モノラル・48kHz）に整える（D111・D149・D156・D158）。
 
 使い方:
   python3 -I Scripts/process_sfx.py <素材の raw フォルダ> App/Mojimachi/Resources/Sounds
@@ -7,6 +7,7 @@
 raw フォルダは `<源>/<元のファイル>` の形。源ごとの置き場:
   komori/mp3/<名前>.mp3     https://taira-komori.net/sound/<フォルダ>/<名前>.mp3 （curl でそのまま取れる）
   freesound/mp3/<番号>.mp3  https://freesound.org/s/<番号>/ のページにある高音質プレビュー（cdn.freesound.org/previews/…-hq.mp3）
+  otologic/<名前>.mp3       https://otologic.jp/sounds/se/pre2/<名前>.mp3 （OtoLogic。CC BY 4.0。「OtoLogic」https://otologic.jp のクレジットが要る）
   conte/<cute/…/xxx.mp3>    こんとどぅふぇ（https://conte-de-fees.com/）の音の集まりから使う分だけ。
                             再配布が禁止なので、素材そのものはリポジトリに入れない。
   Freesound のページの HTML はリポジトリに入れない（サイトの鍵が入っていて GitHub に止められる）。
@@ -46,7 +47,7 @@ ITEMS = [
   ("word_fune", "freesound", "564697.mp3", None, 1.0),  # おもちゃのクラクション（高めのぷー）。低い汽笛 468846 から入れ替え（D156）
   ("word_densha", "freesound", "591842.mp3", None, 0.7),
   ("word_jitensha", "komori", "bicycle_bell1.mp3", None, 1.0),
-  ("word_shinkansen", "freesound", "683101.mp3", None, 1.4),
+  ("word_shinkansen", "otologic", "Motion-Swish09-07(High-Short).mp3", None, 1.4),  # OtoLogic の高めのスウィッシュ。Freesound #683101 から入れ替え（D158）
   ("word_ushi", "freesound", "667470.mp3", 2.6, 1.0, 1.7),  # アニメ調の牛を 1.7 倍の速さ（高く短く）。小森平 cow1（低い）から入れ替え
   ("word_inu", "komori", "dog1a.mp3", None, 1.0),
   ("word_neko", "komori", "cat1a.mp3", None, 1.4),
@@ -62,10 +63,10 @@ ITEMS = [
   ("word_kutsushita", "conte", "cute/zip/zip_06.mp3", None, 1.2),
   # ことばの変身・共通
   ("gather", "conte", "cute/windchime/windchime_11.mp3", None, 1.3),
-  ("appear", "conte", "cute/pop/pop_08.mp3", None, 1.2),
+  ("appear", "otologic", "Water_Drop03-4(High-Dry).mp3", None, 0.5),  # OtoLogic の水滴。こんとどぅふぇ pop_08 から入れ替え（D158）
   # ほめる（D152）
-  ("sparkle", "conte", "cute/sparkle/sparkle_06.mp3", None, 1.2),
-  ("confetti", "conte", "cute/success/success_15.mp3", None, 1.2),
+  ("sparkle", "otologic", "Onoma-Flash17-2(High).mp3", None, 0.7),  # OtoLogic のきらっ。こんとどぅふぇ sparkle_06 から入れ替え（D158）
+  ("confetti", "otologic", "Bell_Accent16-1(High).mp3", None, 1.2),  # OtoLogic のベル。こんとどぅふぇ success_15 から入れ替え（D158）
   # 画面
   ("tap", "conte", "cute/tap/tap_01.mp3", None, 0.25),
   ("dialog", "conte", "cute/bubble/bubble_11.mp3", None, 0.5),
