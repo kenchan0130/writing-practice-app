@@ -62,10 +62,13 @@ final class PurchaseStore {
     guard let product = products[id] else { return }
     isWorking = true
     defer { isWorking = false }
+    var bought: Purchase?
     do {
       switch try await product.purchase() {
       case .success(.verified(let transaction)):
         await transaction.finish()
+        bought = Purchase(
+          product: id, originalPurchaseDate: transaction.originalPurchaseDate, revoked: false)
         message = "購入しました"
       case .success(.unverified):
         message = "購入を確かめられませんでした"
@@ -80,6 +83,12 @@ final class PurchaseStore {
       message = "購入できませんでした。時間をおいて試してください。"
     }
     await refresh()
+    // 買った直後は、購入の一覧（`Transaction.all`）にまだ入っていないことがある。
+    // 確かめられた購入は、一覧を待たずにすぐ開く（買ったのに開かないように見せない）。
+    if let bought, !entitlements.purchases.contains(where: { $0.product == bought.product }) {
+      entitlements = Entitlements(
+        purchases: entitlements.purchases + [bought], priceRiseDate: entitlements.priceRiseDate)
+    }
   }
 
   /// 購入を復元（D95）。
