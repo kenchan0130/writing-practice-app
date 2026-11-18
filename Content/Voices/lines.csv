@@ -1,0 +1,108 @@
+id,text,style,reading,aliases
+line_onboarding_who,だれと いっしょに かく？,normal,,
+line_onboarding_like,なにが すき？,normal,,
+line_onboarding_done,できたね！ まちに きたよ,normal,,
+line_onboarding_hello,こんにちは！ いっしょに かこうね,normal,,
+line_locked,この もじで あそびたいときは、おとなのひとに おねがいしてね,ochitsuki,,
+line_lock_thanks,おねがい できたよ,normal,,
+word_sori,そり,ochitsuki,,
+word_kuruma,くるま,ochitsuki,,
+word_fune,ふね,ochitsuki,,
+word_densha,でんしゃ,ochitsuki,,
+word_jitensha,じてんしゃ,ochitsuki,,
+word_shinkansen,しんかんせん,ochitsuki,,
+word_ushi,うし,ochitsuki,,
+word_inu,いぬ,ochitsuki,,
+word_neko,ねこ,ochitsuki,,
+word_uma,うま,ochitsuki,,
+word_kuma,くま,ochitsuki,,
+word_shika,しか,ochitsuki,,
+word_risu,りす,ochitsuki,,
+word_fuku,ふく,ochitsuki,,
+word_kutsu,くつ,ochitsuki,,
+word_boushi,ぼうし,ochitsuki,,
+word_yukata,ゆかた,ochitsuki,,
+word_kutsushita,くつした,ochitsuki,,
+word_kimono,きもの,ochitsuki,,
+kana_3041,ぁ,ochitsuki,ちいさい あ,ァ
+kana_3042,あ,ochitsuki,,ア
+kana_3043,ぃ,ochitsuki,ちいさい い,ィ
+kana_3044,い,ochitsuki,,イ
+kana_3045,ぅ,ochitsuki,ちいさい う,ゥ
+kana_3046,う,ochitsuki,,ウ
+kana_3047,ぇ,ochitsuki,ちいさい え,ェ
+kana_3048,え,ochitsuki,,エ
+kana_3049,ぉ,ochitsuki,ちいさい お,ォ
+kana_304a,お,ochitsuki,,オ
+kana_304b,か,ochitsuki,,カ
+kana_304c,が,ochitsuki,,ガ
+kana_304d,き,ochitsuki,,キ
+kana_304e,ぎ,ochitsuki,,ギ
+kana_304f,く,ochitsuki,,ク
+kana_3050,ぐ,ochitsuki,,グ
+kana_3051,け,ochitsuki,,ケ
+kana_3052,げ,ochitsuki,,ゲ
+kana_3053,こ,ochitsuki,,コ
+kana_3054,ご,ochitsuki,,ゴ
+kana_3055,さ,ochitsuki,,サ
+kana_3056,ざ,ochitsuki,,ザ
+kana_3057,し,ochitsuki,,シ
+kana_3058,じ,ochitsuki,,ジ
+kana_3059,す,ochitsuki,,ス
+kana_305a,ず,ochitsuki,,ズ
+kana_305b,せ,ochitsuki,,セ
+kana_305c,ぜ,ochitsuki,,ゼ
+kana_305d,そ,ochitsuki,,ソ
+kana_305e,ぞ,ochitsuki,,ゾ
+kana_305f,た,ochitsuki,,タ
+kana_3060,だ,ochitsuki,,ダ
+kana_3061,ち,ochitsuki,,チ
+kana_3062,ぢ,ochitsuki,,ヂ
+kana_3063,っ,ochitsuki,ちいさい つ,ッ
+kana_3064,つ,ochitsuki,,ツ
+kana_3065,づ,ochitsuki,,ヅ
+kana_3066,て,ochitsuki,,テ
+kana_3067,で,ochitsuki,,デ
+kana_3068,と,ochitsuki,,ト
+kana_3069,ど,ochitsuki,,ド
+kana_306a,な,ochitsuki,,ナ
+kana_306b,に,ochitsuki,,ニ
+kana_306c,ぬ,ochitsuki,,ヌ
+kana_306d,ね,ochitsuki,,ネ
+kana_306e,の,ochitsuki,,ノ
+kana_306f,は,ochitsuki,ハ,ハ
+kana_3070,ば,ochitsuki,,バ
+kana_3071,ぱ,ochitsuki,,パ
+kana_3072,ひ,ochitsuki,,ヒ
+kana_3073,び,ochitsuki,,ビ
+kana_3074,ぴ,ochitsuki,,ピ
+kana_3075,ふ,ochitsuki,,フ
+kana_3076,ぶ,ochitsuki,,ブ
+kana_3077,ぷ,ochitsuki,,プ
+kana_3078,へ,ochitsuki,ヘ,ヘ
+kana_3079,べ,ochitsuki,,ベ
+kana_307a,ぺ,ochitsuki,,ペ
+kana_307b,ほ,ochitsuki,,ホ
+kana_307c,ぼ,ochitsuki,,ボ
+kana_307d,ぽ,ochitsuki,,ポ
+kana_307e,ま,ochitsuki,,マ
+kana_307f,み,ochitsuki,,ミ
+kana_3080,む,ochitsuki,,ム
+kana_3081,め,ochitsuki,,メ
+kana_3082,も,ochitsuki,,モ
+kana_3083,ゃ,ochitsuki,ちいさい や,ャ
+kana_3084,や,ochitsuki,,ヤ
+kana_3085,ゅ,ochitsuki,ちいさい ゆ,ュ
+kana_3086,ゆ,ochitsuki,,ユ
+kana_3087,ょ,ochitsuki,ちいさい よ,ョ
+kana_3088,よ,ochitsuki,,ヨ
+kana_3089,ら,ochitsuki,,ラ
+kana_308a,り,ochitsuki,,リ
+kana_308b,る,ochitsuki,,ル
+kana_308c,れ,ochitsuki,,レ
+kana_308d,ろ,ochitsuki,,ロ
+kana_308f,わ,ochitsuki,,ワ
+kana_3092,を,ochitsuki,,ヲ
+kana_3093,ん,ochitsuki,,ン
+kana_30f4,ヴ,ochitsuki,,
+kana_30fc,ー,ochitsuki,のばす ぼう,

@@ -47,7 +47,7 @@ let package = Package(
     .testTarget(name: "EntitlementKitTests", dependencies: ["EntitlementKit"]),
     // プログラムで作る効果音（§3.9）。
     .target(name: "SoundKit"),
-    .testTarget(name: "SoundKitTests", dependencies: ["SoundKit"]),
+    .testTarget(name: "SoundKitTests", dependencies: ["SoundKit", "ContentModel"]),
     // 判定の効き方の表を出す（`make judge-report`）。
     .executableTarget(name: "JudgeReport", dependencies: ["JudgeKit", "ContentModel"]),
   ],

@@ -1,5 +1,6 @@
 import ContentModel
 import PracticeKit
+import SoundKit
 import SwiftUI
 
 /// はじめての流れの後半: 子どもの体験（D23。約3分）。
@@ -101,7 +102,7 @@ struct OnboardingChildView: View {
       Spacer()
     }
     .padding(.horizontal, 32)
-    .task { VoicePlayer.shared.speak("だれと いっしょに かく？") }
+    .task { VoicePlayer.shared.speak(.onboardingWho) }
   }
 
   // MARK: - 2 あいさつ
@@ -153,7 +154,7 @@ struct OnboardingChildView: View {
       Spacer()
     }
     .padding(.horizontal, 32)
-    .task { VoicePlayer.shared.speak("なにが すき？") }
+    .task { VoicePlayer.shared.speak(.onboardingLike) }
   }
 
   private static func title(_ kind: WordKind) -> String {
@@ -199,7 +200,7 @@ struct OnboardingChildView: View {
       .padding(.horizontal, 48)
       .padding(.bottom, 48)
     }
-    .task { VoicePlayer.shared.speak("できたね！ まちに きたよ") }
+    .task { VoicePlayer.shared.speak(.onboardingDone) }
   }
 }
 
@@ -246,7 +247,7 @@ private struct GreetingStep: View {
     }
     .padding(.horizontal, 32)
     .task {
-      VoicePlayer.shared.speak("こんにちは！ いっしょに かこうね")
+      VoicePlayer.shared.speak(.onboardingHello)
       guard !reduceMotion else { return }
       withAnimation(.easeInOut(duration: 0.45).repeatForever(autoreverses: true)) {
         waving = true

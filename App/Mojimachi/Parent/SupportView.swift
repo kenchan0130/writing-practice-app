@@ -66,6 +66,10 @@ struct AboutView: View {
       Section("効果音（小森平・Freesound・OtoLogic・こんとどぅふぇ）") {
         notice("SOUNDS-NOTICE.txt")
       }
+      // 声のクレジット（D162）。VOICEVOX:猫使ビィ。
+      Section("声（VOICEVOX:猫使ビィ）") {
+        notice("VOICES-NOTICE.txt")
+      }
     }
     .navigationTitle("このアプリについて")
   }

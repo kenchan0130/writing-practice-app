@@ -1,8 +1,9 @@
 import AVFoundation
 import Observation
+import SoundKit
 
-/// 声を読み上げる（§3.9・D27・D57）。
-/// 仮の実装: AI で作った声のファイル（D115）ができるまで、端末の読み上げ（ja-JP）で代わりにする。
+/// 声を鳴らす（§3.9・D27・D57・D162）。
+/// 声は VOICEVOX（猫使ビィ）で前もって作ってアプリに入れたファイル。文字から、表（voices.json）で探す。
 /// ほかのアプリの音を止めない `.ambient`。おとなしモードでは鳴らさない。
 /// 字幕（吹き出し）は、設定がオンなら 約2秒 出す。声が出なくても、子どもの画面にはエラーを出さない（D117）。
 @Observable
@@ -11,38 +12,72 @@ final class VoicePlayer {
 
   /// 画面に出す字幕。nil なら出さない。
   private(set) var caption: String?
-  /// 字幕を出す時間（秒）。
+  /// 字幕を出す最も短い時間（秒）。
   static let captionSeconds = 2.0
 
-  @ObservationIgnored private let synthesizer = AVSpeechSynthesizer()
+  /// 声の表。読めなければ空（声は出ないが、画面は止めない。D117）。
+  let manifest: VoiceManifest
+  @ObservationIgnored private var player: AVAudioPlayer?
   @ObservationIgnored private var captionTask: Task<Void, Never>?
 
-  private init() {}
+  private init() {
+    manifest = Self.loadManifest()
+  }
 
+  private static func loadManifest() -> VoiceManifest {
+    if let url = Bundle.main.url(forResource: "voices", withExtension: "json"),
+      let data = try? Data(contentsOf: url),
+      let manifest = try? VoiceManifest(json: data)
+    {
+      return manifest
+    }
+    #if DEBUG
+      NSLog("[voice] voices.json が読めません")
+    #endif
+    return VoiceManifest(engine: "", files: [:])
+  }
+
+  /// 声のファイルの場所。なければ nil。
+  func url(for text: String) -> URL? {
+    guard let name = manifest.fileName(for: text) else { return nil }
+    return Bundle.main.url(forResource: name, withExtension: "caf")
+  }
+
+  /// 決まった文を言う。
+  func speak(_ line: VoiceLine) {
+    speak(line.text)
+  }
+
+  /// 字・ことばを言う。
   func speak(_ text: String) {
     let store = ProgressStore.shared
     guard !text.isEmpty else { return }
-    if store.showsSubtitles { showCaption(text) }
+    // 字幕は、声が終わるまで出す（短い声でも 約2秒）。
+    let duration = url(for: text).flatMap { try? AVAudioPlayer(contentsOf: $0) }?.duration ?? 0
+    if store.showsSubtitles { showCaption(text, seconds: max(Self.captionSeconds, duration + 0.5)) }
     guard !store.quietMode, store.voiceVolume > 0 else { return }
+    guard let url = url(for: text) else {
+      #if DEBUG
+        NSLog("[voice] ⚠️⚠️⚠️ 声のファイルがありません: %@", text)
+      #endif
+      return
+    }
     try? AVAudioSession.sharedInstance().setCategory(.ambient)
     try? AVAudioSession.sharedInstance().setActive(true)
-    let utterance = AVSpeechUtterance(string: text)
-    utterance.voice = AVSpeechSynthesisVoice(language: "ja-JP")
-    utterance.volume = Float(store.voiceVolume)
-    utterance.rate = AVSpeechUtteranceDefaultSpeechRate * 0.85
-    utterance.pitchMultiplier = 1.15
-    if synthesizer.isSpeaking { synthesizer.stopSpeaking(at: .immediate) }
-    synthesizer.speak(utterance)
+    player?.stop()
+    player = try? AVAudioPlayer(contentsOf: url)
+    player?.volume = Float(store.voiceVolume)
+    player?.play()
     #if DEBUG
       NSLog("[voice] %@", text)
     #endif
   }
 
-  private func showCaption(_ text: String) {
+  private func showCaption(_ text: String, seconds: Double) {
     caption = text
     captionTask?.cancel()
     captionTask = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(Self.captionSeconds))
+      try? await Task.sleep(for: .seconds(seconds))
       guard !Task.isCancelled else { return }
       self?.caption = nil
     }

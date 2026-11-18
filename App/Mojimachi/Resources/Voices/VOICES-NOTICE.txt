@@ -1,0 +1,9 @@
+もじまちの声の出どころ（D162）
+
+アプリの中の声（字・ことばの読み、キャラクターのせりふ）は、音声合成ソフト VOICEVOX で作った声のファイルです。
+
+■ VOICEVOX:猫使ビィ
+  声の提供: 猫使ビィ（ノーマル・おちつき）
+  利用規約: https://nekotukarb.wixsite.com/nekonohako/利用規約 （2026-11-19 確認）
+  VOICEVOX: https://voicevox.hiroshiba.jp/ （利用規約: https://voicevox.hiroshiba.jp/term/ ）
+  声は、前もって作ったファイルをそのまま入れています。アプリの中で声を作ってはいません。
