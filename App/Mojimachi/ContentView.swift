@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import ContentModel
+import EntitlementKit
 import ParentGateKit
 import PracticeKit
 import RecordKit
@@ -66,6 +67,8 @@ struct ContentView: View {
   @State private var gateStore = Store(initialState: ParentGateFeature.State()) {
     ParentGateFeature()
   }
+  /// 鍵の画面に出しているもの（nil なら出さない。D160）。元の画面の上に重ねる。
+  @State private var lockedScript: Script?
   @State private var showsGate = false
   @State private var showsParentArea = false
   /// はじめての流れ（D23）。出していないときは nil。
@@ -105,6 +108,8 @@ struct ContentView: View {
     // iCloud の取り込みを待ち終わってから決める（D63）。選んだ子が変わったときも決め直す（D23）。
     .onChange(of: store.isWaitingForFirstImport, initial: true) { evaluateOnboarding() }
     .onChange(of: store.currentProfileID) { evaluateOnboarding() }
+    // 鍵の画面を重ねているあいだは、後ろの画面を VoiceOver などから隠す（D160）。
+    .accessibilityHidden(lockedScript != nil)
     .task {
       // 2台目の最初の起動では、iCloud からの取り込みを最大10秒待つ（D63）。
       while store.isWaitingForFirstImport {
@@ -150,6 +155,13 @@ struct ContentView: View {
         PopPresenter.shared.dismiss(id: "profile")
       }
     }
+    .overlay {
+      if let lockedScript {
+        LockScreenView(script: lockedScript) { self.lockedScript = nil }
+          .transition(.opacity)
+      }
+    }
+    .animation(.easeOut(duration: 0.2), value: lockedScript)
     .overlay { PopHost() }
     .fullScreenCover(isPresented: $showsParentArea) {
       ParentAreaView {
@@ -179,10 +191,14 @@ struct ContentView: View {
   private func content(_ screen: Screen) -> some View {
     switch screen {
     case .map:
-      MapView(selection: $mapSelection) { char in
-        cardChar = char
-        self.screen = .card
-      }
+      MapView(
+        selection: $mapSelection,
+        onSelect: { char in
+          cardChar = char
+          self.screen = .card
+        },
+        onLocked: { lockedScript = $0 }
+      )
       #if DEBUG
         .frame(
           maxWidth: UserDefaults.standard.double(forKey: "mapMaxWidth") > 0
@@ -199,7 +215,8 @@ struct ContentView: View {
             self.screen = .word
           })
       }
-    case .letter: WritingCanvasView(activity: activity, start: cardChar)
+    case .letter:
+      WritingCanvasView(activity: activity, start: cardChar, onLocked: { lockedScript = $0 })
     case .word:
       WordWritingView(activity: activity, start: wordStart) { kind in
         wordFromCard = false

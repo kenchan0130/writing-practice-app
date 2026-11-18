@@ -46,6 +46,8 @@ final class ProgressStore {
   private(set) var log: LearningLog
   /// まちに置いた物（D43・D53）。
   private(set) var placed: [PlacedObject]
+  /// 子どもたちの「おねがい」（D160）。まとめて見せるのは `wishNotices`。
+  private(set) var wishes: [Wish] = []
   /// 最後に保存した時刻（保護者用の画面の「学習記録の管理」に出す。D63）。
   private(set) var lastSaved: Date?
 
@@ -321,6 +323,7 @@ final class ProgressStore {
 
   /// ほかの iPad の変更を画面に反映する。
   private func reloadFromStore() {
+    wishes = records.loadWishes()
     let loaded = records.loadProfiles()
     guard !loaded.isEmpty else { return }
     let list = ProfileList(profiles: loaded)
@@ -385,6 +388,7 @@ final class ProgressStore {
     currentProfileID = current
     log = records.loadLog(profile: current)
     placed = records.loadPlaced(profile: current)
+    wishes = records.loadWishes()
     confirmsProfileSwitch = defaults.bool(forKey: "confirmsProfileSwitch")
     voiceVolume = defaults.object(forKey: "voiceVolume") as? Double ?? 0.8
     bgmVolume = defaults.object(forKey: "bgmVolume") as? Double ?? 0.5
@@ -409,6 +413,27 @@ final class ProgressStore {
     #endif
     let sync = UserDefaults.standard.object(forKey: syncKey) as? Bool ?? true
     return RecordStore(cloudSync: sync, defaults: .standard)
+  }
+
+  /// 鍵のかかったもので「おねがい」を押した（D160）。記録するだけで、購入は開かない。
+  func makeWish(item: String, date: Date = Date()) {
+    let wish = Wish(profileID: currentProfileID, item: item, date: date)
+    wishes.append(wish)
+    records.append(wish)
+    lastSaved = records.lastSaved
+  }
+
+  /// 保護者用の画面に出す おねがい（買ったものは除く。最新の日だけ。D54・D160）。
+  func wishNotices(isOwned: (String) -> Bool) -> [WishNotice] {
+    WishNotice.notices(
+      from: wishes.filter { wish in profiles.profile(wish.profileID) != nil }, isOwned: isOwned)
+  }
+
+  /// 保護者が「確認した」を押した。そのお知らせを消す（D160）。
+  func dismissWishes(profile: UUID, item: String) {
+    wishes.removeAll { $0.profileID == profile && $0.item == item }
+    records.deleteWishes(profile: profile, item: item)
+    lastSaved = records.lastSaved
   }
 
   func record(_ record: CharacterRecord) {
@@ -471,6 +496,7 @@ final class ProgressStore {
   func deleteProfile(_ id: UUID) {
     guard profiles.remove(id) else { return }
     records.deleteProfile(id)
+    wishes.removeAll { $0.profileID == id }
     if id == currentProfileID, let first = profiles.profiles.first { switchProfile(to: first.id) }
     lastSaved = records.lastSaved
   }

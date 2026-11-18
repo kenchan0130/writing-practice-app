@@ -107,17 +107,44 @@ final class FlowUITests: XCTestCase {
     openMap()
     tap(button("カタカナ"), "カタカナの つまみ")
     tap(button("カ"), "鍵つきの カ")
-    // 標準のアラートではなく、独自のポップなダイアログ（D155）。ボタンは識別子で探す。
-    let message = app.staticTexts["おとなのひとに おねがいしてね"]
-    XCTAssertTrue(message.waitForExistence(timeout: 10), "鍵の案内が出ない")
-    let ok = app.buttons["popDialogButton"]
-    XCTAssertTrue(ok.exists, "ダイアログのボタンが出ない")
-    ok.tap()
-    let gone = NSPredicate(format: "exists == false")
-    expectation(for: gone, evaluatedWith: message)
-    waitForExpectations(timeout: 10)
+    // 鍵の画面（D160）。ダイアログではなく、画面いっぱいに出る。価格や「かう」は出ない。
+    let title = app.staticTexts["lockTitle"]
+    XCTAssertTrue(title.waitForExistence(timeout: 10), "鍵の画面が出ない")
+    XCTAssertEqual(title.label, "この もじは まだ ねむっているよ")
+    XCTAssertTrue(button("おとなのひとに おねがいする").exists, "おねがいのボタンが出ない")
+    XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '¥'")).firstMatch.exists)
+    // 「←」で、何も記録せずに地図へ戻る。
+    tap(button("もどる"), "鍵の画面の ←")
+    XCTAssertTrue(button("ニ").waitForExistence(timeout: 10), "地図へ戻らない")
+    XCTAssertFalse(title.exists)
     tap(button("ニ"), "おためしの ニ")
     XCTAssertTrue(button("かく").waitForExistence(timeout: 10), "ニのカードが出ない")
+  }
+
+  // MARK: - 4b. おねがいを押す → 保護者用の画面のお知らせ（D54・D160）
+
+  @MainActor func testWishShowsInParentArea() {
+    openMap()
+    tap(button("カタカナ"), "カタカナの つまみ")
+    tap(button("カ"), "鍵つきの カ")
+    tap(button("おとなのひとに おねがいする"), "おねがいのボタン")
+    XCTAssertEqual(app.staticTexts["lockTitle"].label, "おねがい できたよ")
+    // しばらくすると、地図へ戻る。
+    let gone = NSPredicate(format: "exists == false")
+    expectation(for: gone, evaluatedWith: app.staticTexts["lockTitle"])
+    waitForExpectations(timeout: 10)
+    XCTAssertTrue(button("ニ").exists, "おねがいのあと地図へ戻らない")
+    tap(button("もどる"), "地図の ←")
+    openGate()
+    let question = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'かける'")).firstMatch
+    XCTAssertTrue(question.waitForExistence(timeout: 10))
+    let answer = try! XCTUnwrap(Self.product(of: question.label), question.label)
+    for digit in String(answer) { app.buttons[String(digit)].tap() }
+    app.buttons["OK"].tap()
+    let notice = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'カタカナをやりたがっています'"))
+      .firstMatch
+    XCTAssertTrue(notice.waitForExistence(timeout: 10), "おねがいのお知らせが出ない")
+    XCTAssertFalse(notice.label.contains("回"), "回数を出してはいけない")
   }
 
   // MARK: - 5. 保護者用の確認

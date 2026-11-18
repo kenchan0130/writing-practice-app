@@ -1,4 +1,5 @@
 import ContentModel
+import EntitlementKit
 import JudgeKit
 import PracticeKit
 import QuartzCore
@@ -8,12 +9,16 @@ import SwiftUI
 struct WritingCanvasView: View {
   @State private var model: WritingModel
   @State private var showsLatency = false
+  /// 鍵のかかった字を押した（鍵の画面へ。D160）。
+  private var onLocked: (Script) -> Void
 
   /// `onboardingFinish` を渡すと、はじめての流れの最初の1字になる（パネルなし。みる → なぞる だけ。D23・D46）。
   init(
     activity: WritingActivity = WritingActivity(), start: Character? = nil,
-    onboardingFinish: (@MainActor () -> Void)? = nil
+    onboardingFinish: (@MainActor () -> Void)? = nil,
+    onLocked: @escaping (Script) -> Void = { _ in }
   ) {
+    self.onLocked = onLocked
     _model = State(
       initialValue: WritingModel(
         activity: activity, start: start, onboardingFinish: onboardingFinish))
@@ -75,7 +80,7 @@ struct WritingCanvasView: View {
 
   private func sidePanel(vertical: Bool) -> some View {
     WritingPanel(model: model, vertical: vertical) {
-      PopPresenter.shared.notice("おとなのひとに おねがいしてね")
+      onLocked(model.script.entitlementScript)
     }
   }
 

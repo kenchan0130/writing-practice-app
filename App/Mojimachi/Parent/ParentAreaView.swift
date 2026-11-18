@@ -1,4 +1,6 @@
+import EntitlementKit
 import JudgeKit
+import RecordKit
 import SwiftUI
 
 /// 保護者用の画面（D116 の8つの項目の枠。試作）。iPad の設定アプリと同じ一覧の作り。
@@ -16,6 +18,7 @@ struct ParentAreaView: View {
   var body: some View {
     NavigationStack(path: $path) {
       List {
+        wishSection
         Section {
           NavigationLink("学習記録") { LearningRecordView() }
           NavigationLink("子どもたち") { ProfilesView() }
@@ -40,6 +43,38 @@ struct ParentAreaView: View {
       }
       .toolbar {
         ToolbarItem(placement: .confirmationAction) { Button("閉じる", action: onClose) }
+      }
+    }
+  }
+
+  /// 子どもの「おねがい」のお知らせ（D54・D116・D160）。いつ押したか（最新の日）だけ出し、回数は出さない。
+  /// 買ったら自動で消える。「確認した」でも消せる。通知は使わない。
+  @ViewBuilder
+  private var wishSection: some View {
+    let notices = store.wishNotices(isOwned: { item in
+      Script(rawValue: item).map(PurchaseStore.shared.entitlements.isUnlocked) ?? false
+    })
+    if !notices.isEmpty {
+      Section {
+        ForEach(notices) { notice in
+          HStack {
+            Label(
+              notice.text(
+                name: store.profiles.profile(notice.profileID)?.displayName ?? "",
+                itemTitle: Script(rawValue: notice.item)?.wishTitle ?? notice.item),
+              systemImage: "heart.fill"
+            )
+            .accessibilityIdentifier("wishNotice")
+            Spacer()
+            Button("確認した") { store.dismissWishes(profile: notice.profileID, item: notice.item) }
+              .buttonStyle(.borderless)
+          }
+        }
+        NavigationLink("購入を見る") { PurchaseView() }
+      } header: {
+        Text("お子さまからのおねがい")
+      } footer: {
+        Text("お子さまが鍵のかかった文字を見て、おとなにおねがいしました。購入するかどうかは、保護者の方が決めてください。")
       }
     }
   }
