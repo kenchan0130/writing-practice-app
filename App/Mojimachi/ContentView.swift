@@ -13,6 +13,9 @@ struct ContentView: View {
     case card = "字のカード"
     case letter = "かく"
     case word = "ことば"
+    case places = "まちの地図"
+    case themes = "テーマ"
+    case wordCards = "ことばのカード"
     case town = "まち"
     case closet = "クローゼット"
   }
@@ -20,8 +23,8 @@ struct ContentView: View {
   /// nil はホーム。
   @State private var screen: Screen? = {
     #if DEBUG
-      // 確かめ用: `-screen word|town|letter|closet|map` でその画面を直接開く。
-      // `-mapChar そ` でその字のカードを開く。
+      // 確かめ用: `-screen word|town|letter|closet|map|places|themes|wordCards` でその画面を直接開く。
+      // `-mapChar そ` でその字のカードを開く。`-place ie`・`-theme fuku` でまちの地図の場所・テーマを選ぶ。
       if let name = UserDefaults.standard.string(forKey: "screen"),
         let screen = Screen.allCases.first(where: { "\($0)" == name })
       {
@@ -62,6 +65,23 @@ struct ContentView: View {
   }()
   /// ことば画面を字のカードから開いたか（「←」の戻り先）。
   @State private var wordFromCard = false
+  /// ことばの入口（まちの地図 → テーマ → ことばのカード）で選んだ場所とテーマ（D166）。
+  @State private var selectedPlace: Place? = {
+    #if DEBUG
+      return UserDefaults.standard.string(forKey: "place").flatMap { WordMap.place(id: $0) }
+    #else
+      return nil
+    #endif
+  }()
+  @State private var selectedTheme: WordTheme? = {
+    #if DEBUG
+      return UserDefaults.standard.string(forKey: "theme").flatMap { WordMap.theme(id: $0) }
+    #else
+      return nil
+    #endif
+  }()
+  /// ことば画面をテーマのことばのカードから開いたか（「←」の戻り先）。
+  @State private var wordFromCards = false
   @State private var wordStart: String?
   @State private var activity = WritingActivity()
   @State private var gateStore = Store(initialState: ParentGateFeature.State()) {
@@ -218,15 +238,49 @@ struct ContentView: View {
           onWord: { text in
             wordStart = text
             wordFromCard = true
+            wordFromCards = false
             self.screen = .word
           })
       }
     case .letter:
       WritingCanvasView(activity: activity, start: cardChar, onLocked: { lockedScript = $0 })
     case .word:
-      WordWritingView(activity: activity, start: wordStart) { kind in
+      WordWritingView(
+        activity: activity, start: wordStart,
+        choices: wordFromCards ? selectedTheme.map { WordArt.index.words(in: $0) } : nil
+      ) { kind in
         wordFromCard = false
+        wordFromCards = false
         self.screen = kind == .clothes ? .closet : .town
+      }
+    case .places:
+      PlacesView { place in
+        selectedPlace = place
+        switch WordArt.index.entrance(of: place) {
+        case .words(let theme):
+          selectedTheme = theme
+          self.screen = .wordCards
+        case .themes:
+          self.screen = .themes
+        case nil:
+          break
+        }
+      }
+    case .themes:
+      if let selectedPlace {
+        ThemesView(place: selectedPlace) { theme in
+          selectedTheme = theme
+          self.screen = .wordCards
+        }
+      }
+    case .wordCards:
+      if let selectedTheme {
+        WordCardsView(theme: selectedTheme) { text in
+          wordStart = text
+          wordFromCard = false
+          wordFromCards = true
+          self.screen = .word
+        }
       }
     case .town: TownView()
     case .closet: TownView(layer: .closet)
@@ -234,6 +288,7 @@ struct ContentView: View {
   }
 
   /// 「←」で一つ前へ（D101）。書く画面は字のカード、字のカードは文字の地図、地図はホーム。
+  /// ことばは、書く画面 → ことばのカード → テーマ（場所に2つ以上あるとき）→ まちの地図 → ホーム（D166）。
   private func goBack() {
     switch screen {
     case .letter: screen = cardChar == nil ? nil : .card
@@ -242,9 +297,24 @@ struct ContentView: View {
       wordFromCard = false
       wordStart = nil
       screen = .card
+    case .word where wordFromCards:
+      wordFromCards = false
+      wordStart = nil
+      screen = .wordCards
+    case .wordCards:
+      if let selectedPlace, case .themes = WordArt.index.entrance(of: selectedPlace) {
+        screen = .themes
+      } else {
+        screen = .places
+      }
+    case .themes: screen = .places
     default: screen = nil
     }
-    if screen == nil { cardChar = nil }
+    if screen == nil {
+      cardChar = nil
+      selectedPlace = nil
+      selectedTheme = nil
+    }
   }
 
   /// ホーム: 大きなボタン3つ。顔と歯車は上に置く。
@@ -301,7 +371,10 @@ struct ContentView: View {
         HomeButton(title: "ことば", systemImage: "text.bubble.fill", color: Theme.blue) {
           wordStart = nil
           wordFromCard = false
-          screen = .word
+          wordFromCards = false
+          selectedPlace = nil
+          selectedTheme = nil
+          screen = .places
         }
         HomeButton(title: "まち", systemImage: "house.fill", color: Theme.green) {
           screen = .town

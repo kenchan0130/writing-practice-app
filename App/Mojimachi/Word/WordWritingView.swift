@@ -18,9 +18,10 @@ struct WordWritingView: View {
     activity: WritingActivity = WritingActivity(),
     start: String? = nil,
     locksWord: Bool = false,
+    choices: [String]? = nil,
     onShowPlaced: @escaping (WordKind) -> Void = { _ in }
   ) {
-    _model = State(initialValue: WordModel(activity: activity, start: start))
+    _model = State(initialValue: WordModel(activity: activity, start: start, choices: choices))
     self.locksWord = locksWord
     self.onShowPlaced = onShowPlaced
   }
@@ -193,12 +194,12 @@ struct WordWritingView: View {
     return scene
   }
 
-  /// ことばを選ぶ（乗り物・四つ足・服をまたぐ。大きい絵のボタンを横に並べる）。
+  /// ことばを選ぶ（テーマから入ったら、そのテーマのことば。大きい絵のボタンを横に並べる）。
   private var wordPicker: some View {
     ScrollViewReader { proxy in
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
-          ForEach(WordArt.words, id: \.entry.text) { item in
+          ForEach(model.items, id: \.entry.text) { item in
             WordPickButton(item: item, selected: item.entry.text == model.word) {
               model.select(item.entry.text)
             }
