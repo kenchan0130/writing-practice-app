@@ -162,12 +162,9 @@ struct WritingHelper: View {
   }
 
   private var mascot: some View {
-    Image(systemName: model.finishedRating != nil ? "party.popper.fill" : "pawprint.fill")
-      .font(.system(size: vertical ? 44 : 30))
-      .foregroundStyle(.white)
-      .frame(width: vertical ? 84 : 56, height: vertical ? 84 : 56)
-      .background(Theme.pink.gradient, in: .circle)
-      .softShadow()
+    MainCharacterArt(
+      character: ProgressStore.shared.mainCharacter, size: vertical ? 96 : 68,
+      pose: model.finishedRating != nil ? .happy : .normal)
   }
 
   private var bubble: some View {

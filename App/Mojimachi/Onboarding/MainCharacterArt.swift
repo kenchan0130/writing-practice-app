@@ -1,36 +1,39 @@
 import PracticeKit
 import SwiftUI
 
-/// 主人公3人の仮の絵（SF Symbol）。本物は D134 の Rive で作る。
+/// 主人公3人の絵（描いたイラスト。D164）。もとの SVG は `Content/Art/characters/`。
+/// いまは動かない1枚の絵。動かす絵は D134 の Rive で、同じ SVG から作る。
+enum CharacterPose: String, CaseIterable, Sendable {
+  case normal, wave, happy, sleep
+}
+
 extension MainCharacter {
-  var symbol: String {
-    switch self {
-    case .ton: "pawprint.fill"
-    case .run: "hare.fill"
-    case .hira: "cloud.fill"
-    }
+  /// アセットの名前（`Assets.xcassets` の `char-<キャラクター>-<ポーズ>`）。
+  func assetName(_ pose: CharacterPose = .normal) -> String {
+    "char-\(rawValue)-\(pose.rawValue)"
   }
 
+  /// キャラクターの色（飾りや背景に使う）。
   var color: Color {
     switch self {
-    case .ton: Theme.pink
-    case .run: Theme.blue
-    case .hira: Theme.accent
+    case .ton: Color(red: 0.94, green: 0.48, blue: 0.29)  // #f07a4a
+    case .run: Color(red: 0.35, green: 0.70, blue: 0.92)  // #58b2ea
+    case .hira: Color(red: 0.49, green: 0.76, blue: 0.42)  // #7cc36a
     }
   }
 }
 
-/// 丸い顔の中にキャラクターの絵を入れた形。
+/// キャラクターの絵。`size` 四方に、縦横の比を保って入れる。ベクターのままなので、どの大きさでもくっきり出る。
 struct MainCharacterArt: View {
   var character: MainCharacter
   var size: CGFloat
+  var pose: CharacterPose = .normal
 
   var body: some View {
-    Image(systemName: character.symbol)
-      .font(.system(size: size * 0.5))
-      .foregroundStyle(.white)
+    Image(character.assetName(pose))
+      .resizable()
+      .scaledToFit()
       .frame(width: size, height: size)
-      .background(character.color.gradient, in: .circle)
       .softShadow()
       .accessibilityHidden(true)
   }

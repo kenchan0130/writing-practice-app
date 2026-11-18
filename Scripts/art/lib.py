@@ -79,11 +79,14 @@ class Art:
                 xs += [g["x1"], g["x2"]]; ys += [g["y1"], g["y2"]]
         return min(xs), min(ys), max(xs), max(ys)
 
-    def svg(self, target=TARGET):
-        x0, y0, x1, y1 = self._bbox()
-        s = target / max(x1 - x0, y1 - y0)
-        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-        tx, ty = 256 - s * cx, 256 - s * cy
+    def svg(self, target=TARGET, params=None):
+        if params:
+            s, tx, ty = params
+        else:
+            x0, y0, x1, y1 = self._bbox()
+            s = target / max(x1 - x0, y1 - y0)
+            cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+            tx, ty = 256 - s * cx, 256 - s * cy
         f = lambda v: f"{v:.1f}".rstrip("0").rstrip(".")
         out = ['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">']
         for tag, g, a in self.els:
@@ -205,3 +208,12 @@ def place(dst, src, dx=0, dy=0):
         elif tag == "line":
             g["x1"] += dx; g["x2"] += dx; g["y1"] += dy; g["y2"] += dy
         dst.els.append((tag, g, dict(a)))
+
+
+def fit_params(arts, target=TARGET):
+    """One scale/offset for several Arts (union bbox), so poses line up."""
+    bs = [a._bbox() for a in arts]
+    x0 = min(b[0] for b in bs); y0 = min(b[1] for b in bs)
+    x1 = max(b[2] for b in bs); y1 = max(b[3] for b in bs)
+    s = target / max(x1 - x0, y1 - y0)
+    return s, 256 - s * (x0 + x1) / 2, 256 - s * (y0 + y1) / 2

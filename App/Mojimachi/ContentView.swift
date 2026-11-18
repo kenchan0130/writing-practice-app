@@ -342,12 +342,7 @@ struct ContentView: View {
 private struct PreparingView: View {
   var body: some View {
     VStack(spacing: 32) {
-      Image(systemName: "pawprint.fill")
-        .font(.system(size: 96))
-        .foregroundStyle(.white)
-        .frame(width: 180, height: 180)
-        .background(Theme.pink.gradient, in: .circle)
-        .symbolEffect(.pulse)
+      MainCharacterArt(character: ProgressStore.shared.mainCharacter, size: 220)
       Text("もうすぐ あそべるよ")
         .font(.ui(36, bold: true))
         .foregroundStyle(Theme.ink)
@@ -380,7 +375,7 @@ private struct HomeButton: View {
   }
 }
 
-/// ホームのキャラクター。絵はまだ仮（SF Symbol）。キャラクター3人は D134 の Rive で作る。
+/// ホームのキャラクター。目標に届いたら よろこぶ絵にする（D164）。
 private struct HomeCharacter: View {
   var reachedGoal: Bool
   /// はじめての流れで選んだキャラクター（D39）。
@@ -400,12 +395,7 @@ private struct HomeCharacter: View {
             .offset(y: 14)
         }
         .softShadow()
-      Image(systemName: reachedGoal ? "party.popper.fill" : character.symbol)
-        .font(.system(size: 96))
-        .foregroundStyle(.white)
-        .frame(width: 180, height: 180)
-        .background(character.color.gradient, in: .circle)
-        .softShadow()
+      MainCharacterArt(character: character, size: 220, pose: reachedGoal ? .happy : .normal)
         .padding(.top, 12)
     }
     .frame(width: 300)
