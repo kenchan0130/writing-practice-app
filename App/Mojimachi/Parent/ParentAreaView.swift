@@ -48,14 +48,9 @@ struct ParentAreaView: View {
     Form {
       Section {
         Picker("判定の厳しさ", selection: $store.preset) {
-          presetRow("はじめて", "いちばんやさしい判定です。線を分けて書いても、つなげて書いても、形が合えば合格にします。")
-            .tag(JudgePreset.hajimete)
-          presetRow("なれてきた", "少し形をよく見ます。線を分けたり、つなげたりしても合格にします。")
-            .tag(JudgePreset.naretekita)
-          presetRow("しっかり", "形をしっかり見ます。線を分けたり、つなげたりすると、画数の違いにします。")
-            .tag(JudgePreset.shikkari)
-          presetRow("きっちり", "いちばん厳しい判定です。形を細かく見て、画数の違いも合格にしません。")
-            .tag(JudgePreset.kicchiri)
+          ForEach(JudgePreset.allCases, id: \.self) { preset in
+            presetRow(preset.title, preset.detail).tag(preset)
+          }
         }
         .pickerStyle(.inline)
       } footer: {

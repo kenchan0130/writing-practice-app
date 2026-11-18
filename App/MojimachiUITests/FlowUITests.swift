@@ -9,7 +9,7 @@ final class FlowUITests: XCTestCase {
     app = XCUIApplication()
     app.launchArguments = [
       "-inMemoryStore", "YES", "-localOnlyStore", "YES", "-penColor", "blue", "-fakePurchases",
-      "none",
+      "none", "-skipOnboarding", "YES",
     ]
     app.launch()
   }

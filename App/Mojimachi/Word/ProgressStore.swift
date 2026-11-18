@@ -3,6 +3,7 @@ import ContentModel
 import Foundation
 import JudgeKit
 import Observation
+import PracticeKit
 import RecordKit
 
 /// 練習の進み具合（D44）。学習記録とまちの物は端末に保存する（RecordStore）。
@@ -217,6 +218,57 @@ final class ProgressStore {
 
   nonisolated static let firstLaunchDoneKey = "firstLaunchDone"
 
+  // MARK: - はじめての流れ（D23）
+
+  nonisolated static let adultOnboardingDoneKey = "onboardingAdultDone"
+  nonisolated static let mainCharacterKey = "mainCharacter"
+
+  /// 前半（おとなの設定）を終えた、または飛ばした。
+  private(set) var adultOnboardingDone = false
+  /// 後半を「←」で抜けた子（この起動のあいだだけ。次の起動ではまた出る）。
+  private var childOnboardingLeft: Set<UUID> = []
+  /// 子が選んだ主人公（D8・D39。あとで変えられる）。
+  var mainCharacter: MainCharacter {
+    didSet { defaults.set(mainCharacter.rawValue, forKey: Self.mainCharacterKey) }
+  }
+
+  /// いまの子が1字でも1語でも練習したことがある（「記録だけリセット」のあとは、まだ）。
+  var currentHasPractice: Bool {
+    !log.currentCharacters.isEmpty || !log.currentWords.isEmpty
+  }
+
+  /// はじめての流れのどこから始めるか。出さないときは nil（D23・D63）。
+  /// 後半を終えたかどうかは、練習の記録があるかで決まる（最初の1字を書けば記録が残る）。
+  var onboardingStage: OnboardingStage? {
+    guard let profile = currentProfile else { return nil }
+    #if DEBUG
+      // 確かめ用: `-skipOnboarding YES` で出さない（`-screen`・`-openParent`・`-mapChar` のときも出さない）。
+      if defaults.bool(forKey: "skipOnboarding")
+        || ["screen", "openParent", "mapChar"].contains(where: { defaults.string(forKey: $0) != nil })
+      {
+        return nil
+      }
+    #endif
+    return Onboarding.stage(
+      for: Onboarding.Situation(
+        adultDone: adultOnboardingDone,
+        waitingForFirstImport: isWaitingForFirstImport,
+        profileCount: profiles.profiles.count,
+        currentHasName: !profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+        currentHasPractice: currentHasPractice,
+        currentChildDone: childOnboardingLeft.contains(profile.id)))
+  }
+
+  func finishAdultOnboarding() {
+    adultOnboardingDone = true
+    defaults.set(true, forKey: Self.adultOnboardingDoneKey)
+  }
+
+  /// 後半を「←」で抜ける。この起動のあいだは、この子には出さない。
+  func leaveChildOnboarding() {
+    childOnboardingLeft.insert(currentProfileID)
+  }
+
   // MARK: - iCloud のデータを消す（D85）
 
   enum CloudDeleteState: Equatable {
@@ -309,6 +361,15 @@ final class ProgressStore {
     }
     if !needsWait { defaults.set(true, forKey: Self.firstLaunchDoneKey) }
     cloudDeletedNotice = defaults.object(forKey: Self.cloudDeletedNoticeKey) as? Date
+    #if DEBUG
+      // 確かめ用: `-resetOnboarding YES` で、はじめての流れをもう一度出す。
+      if defaults.bool(forKey: "resetOnboarding") {
+        defaults.removeObject(forKey: Self.adultOnboardingDoneKey)
+      }
+    #endif
+    adultOnboardingDone = defaults.bool(forKey: Self.adultOnboardingDoneKey)
+    mainCharacter =
+      defaults.string(forKey: Self.mainCharacterKey).flatMap(MainCharacter.init(rawValue:)) ?? .ton
     #if DEBUG
       // 確かめ用の起動の引数 `-penColor red` で、色を決めておく。
       if let key = defaults.string(forKey: "penColor"), let color = PenColor(rawValue: key),

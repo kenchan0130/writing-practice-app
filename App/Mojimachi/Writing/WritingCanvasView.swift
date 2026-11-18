@@ -9,8 +9,14 @@ struct WritingCanvasView: View {
   @State private var model: WritingModel
   @State private var showsLatency = false
 
-  init(activity: WritingActivity = WritingActivity(), start: Character? = nil) {
-    _model = State(initialValue: WritingModel(activity: activity, start: start))
+  /// `onboardingFinish` を渡すと、はじめての流れの最初の1字になる（パネルなし。みる → なぞる だけ。D23・D46）。
+  init(
+    activity: WritingActivity = WritingActivity(), start: Character? = nil,
+    onboardingFinish: (@MainActor () -> Void)? = nil
+  ) {
+    _model = State(
+      initialValue: WritingModel(
+        activity: activity, start: start, onboardingFinish: onboardingFinish))
   }
 
   var body: some View {
@@ -20,16 +26,16 @@ struct WritingCanvasView: View {
         if landscape {
           // 横向き: 書く手と反対の側にパネル（右利きなら左）。D154。
           HStack(alignment: .top, spacing: 24) {
-            if panelOnLeft { sidePanel(vertical: true) }
+            if panelOnLeft, !model.isOnboarding { sidePanel(vertical: true) }
             mainColumn(landscape: true)
             // 横向きは、ボタンを書く場所の横に縦に並べて、書く場所を広く残す。
             toolBar(vertical: true)
-            if !panelOnLeft { sidePanel(vertical: true) }
+            if !panelOnLeft, !model.isOnboarding { sidePanel(vertical: true) }
           }
         } else {
           // 縦向き: 横に置くと書く場所が狭くなるので、上に置く。
           VStack(spacing: 12) {
-            sidePanel(vertical: false)
+            if !model.isOnboarding { sidePanel(vertical: false) }
             mainColumn(landscape: false)
           }
         }
@@ -109,7 +115,14 @@ struct WritingCanvasView: View {
     let layout =
       vertical ? AnyLayout(VStackLayout(spacing: 16)) : AnyLayout(HStackLayout(spacing: 20))
     return layout {
-      if model.finishedRating != nil {
+      if model.isOnboarding {
+        // はじめての流れは「やりなおす」だけ（終わったらごほうびのあと自動で次へ）。
+        if model.finishedRating == nil {
+          ChildToolButton(title: "やりなおす", systemImage: "arrow.counterclockwise") {
+            model.retryStep()
+          }
+        }
+      } else if model.finishedRating != nil {
         ChildToolButton(
           title: "もういっこ", systemImage: "arrow.counterclockwise", color: Theme.accent
         ) {
@@ -166,7 +179,14 @@ struct WritingCanvasView: View {
   private func statusLine(landscape: Bool) -> some View {
     HStack(spacing: 16) {
       // 縦向きは、キャラクターのひとことをここに出す（パネルを1段にするため）。
-      if !landscape { WritingHelper(model: model, vertical: false) }
+      if !landscape, !model.isOnboarding { WritingHelper(model: model, vertical: false) }
+      if model.isOnboarding {
+        // 案内役のひとこと（はじめての流れ。パネルを出さないかわり）。
+        Text(model.guidance)
+          .font(.ui(32, bold: true))
+          .foregroundStyle(Theme.ink)
+          .accessibilityIdentifier("onboardingGuidance")
+      }
       Spacer()
       if let hint = model.endingHint {
         Label(hint.message, systemImage: "lightbulb.fill")
@@ -178,7 +198,7 @@ struct WritingCanvasView: View {
       }
       Spacer()
     }
-    .frame(height: landscape ? 44 : 64)
+    .frame(height: model.isOnboarding ? 64 : landscape ? 44 : 64)
   }
 
   private var canvas: some View {
