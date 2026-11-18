@@ -62,8 +62,7 @@ private struct WordCard: View {
   var body: some View {
     Button(action: action) {
       VStack(spacing: 8) {
-        Image(systemName: item.symbol)
-          .font(.system(size: 64))
+        PlaceholderArt.swiftUIImage(symbol: item.symbol, pointSize: 64)
           .foregroundStyle(Color(item.color))
           .frame(height: 80)
         Text(item.entry.text).font(.learning(30)).foregroundStyle(Theme.ink)

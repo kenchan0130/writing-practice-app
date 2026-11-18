@@ -262,7 +262,7 @@ private struct ColoringSilhouette: View {
   var color: Color = .red
 
   var body: some View {
-    let image = Image(systemName: symbol).resizable().scaledToFit()
+    let image = PlaceholderArt.resizableImage(symbol: symbol).scaledToFit()
     image.foregroundStyle(.gray.opacity(0.3))
       .overlay {
         GeometryReader { proxy in
@@ -287,8 +287,7 @@ private struct WordPickButton: View {
   var body: some View {
     Button(action: action) {
       VStack(spacing: 4) {
-        Image(systemName: item.symbol)
-          .font(.system(size: 40))
+        PlaceholderArt.swiftUIImage(symbol: item.symbol, pointSize: 40)
           .foregroundStyle(Color(uiColor: item.color))
           .frame(height: 48)
         Text(item.entry.text).font(.learning(22)).foregroundStyle(Theme.ink)

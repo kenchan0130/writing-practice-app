@@ -100,7 +100,7 @@ final class TownScene: SKScene {
       shown.insert(object.id)
       let color = PlaceholderArt.words.first { $0.entry.text == object.word }?.color
       let image = PlaceholderArt.image(
-        symbol: object.symbol, size: 240,
+        symbol: PlaceholderArt.symbol(for: object.word), size: 240,
         color: color ?? UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1))
       let node = SKSpriteNode(texture: SKTexture(image: image))
       node.name = object.id.uuidString
