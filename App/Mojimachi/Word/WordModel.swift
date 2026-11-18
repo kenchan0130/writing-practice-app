@@ -44,33 +44,32 @@ final class WordModel {
     #if DEBUG
       // 確かめ用: `-word いぬ` でそのことばから始める。
       if let text = UserDefaults.standard.string(forKey: "word"),
-        let index = PlaceholderArt.words.firstIndex(where: { $0.entry.text == text })
+        let index = WordArt.words.firstIndex(where: { $0.entry.text == text })
       {
         wordIndex = index
       }
     #endif
-    if let start, let index = PlaceholderArt.words.firstIndex(where: { $0.entry.text == start }) {
+    if let start, let index = WordArt.words.firstIndex(where: { $0.entry.text == start }) {
       wordIndex = index
     }
     loadWord()
   }
 
-  var word: String { PlaceholderArt.words[wordIndex].entry.text }
-  var symbol: String { PlaceholderArt.words[wordIndex].symbol }
-  var kind: WordKind { PlaceholderArt.words[wordIndex].entry.kind }
-  var artColor: UIColor { PlaceholderArt.words[wordIndex].color }
+  var word: String { WordArt.words[wordIndex].entry.text }
+  var asset: String { WordArt.words[wordIndex].asset }
+  var kind: WordKind { WordArt.words[wordIndex].entry.kind }
   var currentCharacter: CharacterData? { flow?.current }
   var mode: PracticeStep? { flow?.mode }
   var progress: Double { flow?.progress ?? 0 }
 
   func nextWord() {
-    wordIndex = (wordIndex + 1) % PlaceholderArt.words.count
+    wordIndex = (wordIndex + 1) % WordArt.words.count
     loadWord()
   }
 
   /// ことばを選ぶ（3つの型をまたいで選べる）。
   func select(_ text: String) {
-    guard let index = PlaceholderArt.words.firstIndex(where: { $0.entry.text == text }) else {
+    guard let index = WordArt.words.firstIndex(where: { $0.entry.text == text }) else {
       return
     }
     wordIndex = index
@@ -81,7 +80,7 @@ final class WordModel {
 
   /// まちに置く（D53 の「動きまわる」型の試作）。
   func placeInTown() {
-    store.place(PlacedObject(word: word, symbol: symbol, kind: kind))
+    store.place(PlacedObject(word: word, symbol: asset, kind: kind))
   }
 
   /// 「できた！」（じぶんで の字。D56）。

@@ -37,7 +37,7 @@ final class TransformScene: SKScene {
   private func play() {
     let objectSide = min(size.width, size.height) * 0.6
     let objectOrigin = CGPoint(x: (size.width - objectSide) / 2, y: (size.height - objectSide) / 2)
-    let targets = PlaceholderArt.targetPoints(in: objectImage, count: 300).map {
+    let targets = WordArt.targetPoints(in: objectImage, count: 300).map {
       sceneTop(
         CGPoint(
           x: objectOrigin.x + $0.x * objectSide / objectImage.size.width,

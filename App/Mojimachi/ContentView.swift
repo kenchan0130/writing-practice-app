@@ -182,6 +182,12 @@ struct ContentView: View {
         if UserDefaults.standard.bool(forKey: "seedSamples"), !store.isSyncRunning {
           DebugSeed.records()
         }
+        // 確かめ用: `-seedTown YES` で、ことばの絵をすべて まち・クローゼットに置く。
+        if UserDefaults.standard.bool(forKey: "seedTown"), !store.isSyncRunning {
+          for item in WordArt.words {
+            store.place(PlacedObject(word: item.entry.text, symbol: item.asset, kind: item.entry.kind))
+          }
+        }
         if UserDefaults.standard.string(forKey: "openParent") != nil { showsParentArea = true }
       }
     #endif

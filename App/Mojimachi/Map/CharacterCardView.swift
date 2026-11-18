@@ -7,9 +7,9 @@ struct CharacterCardView: View {
   var onWrite: () -> Void
   var onWord: (String) -> Void
 
-  private var words: [PlaceholderArt.Item] {
+  private var words: [WordArt.Item] {
     WordCatalog.words(containing: char).compactMap { entry in
-      PlaceholderArt.words.first { $0.entry.text == entry.text }
+      WordArt.words.first { $0.entry.text == entry.text }
     }
   }
 
@@ -56,16 +56,14 @@ struct CharacterCardView: View {
 }
 
 private struct WordCard: View {
-  var item: PlaceholderArt.Item
+  var item: WordArt.Item
   var action: () -> Void
 
   var body: some View {
     Button(action: action) {
       VStack(spacing: 8) {
-        Image(systemName: item.symbol)
-          .font(.system(size: 64))
-          .foregroundStyle(Color(item.color))
-          .frame(height: 80)
+        Image(WordArt.assetName(item)).resizable().scaledToFit()
+          .frame(height: 96)
         Text(item.entry.text).font(.learning(30)).foregroundStyle(Theme.ink)
       }
       .frame(minWidth: 160, minHeight: 180)

@@ -102,8 +102,7 @@ struct WordWritingView: View {
       .accessibilityIdentifier("wordHeader")
       Spacer()
       ColoringSilhouette(
-        symbol: model.symbol, progress: model.progress, color: Color(uiColor: model.artColor)
-      )
+        word: model.word, progress: model.progress)
       .frame(width: 140, height: 100)
     }
   }
@@ -185,8 +184,7 @@ struct WordWritingView: View {
         colors.append((stroke.first?.color ?? .default).uiColor)
       }
     }
-    let image = PlaceholderArt.image(
-      symbol: model.symbol, size: 600, color: model.artColor)
+    let image = WordArt.image(word: model.word, size: 600)
     let scene = TransformScene(
       size: size, lines: lines, colors: colors, objectImage: image, kind: model.kind,
       word: model.word)
@@ -200,7 +198,7 @@ struct WordWritingView: View {
     ScrollViewReader { proxy in
       ScrollView(.horizontal, showsIndicators: false) {
         HStack(spacing: 12) {
-          ForEach(PlaceholderArt.words, id: \.entry.text) { item in
+          ForEach(WordArt.words, id: \.entry.text) { item in
             WordPickButton(item: item, selected: item.entry.text == model.word) {
               model.select(item.entry.text)
             }
@@ -255,18 +253,18 @@ struct WordWritingView: View {
   }
 }
 
-/// 物の影絵が、下から少しずつ色づく（D55）。
+/// 物の影絵が、下から少しずつ色づく（D55）。影絵は絵の透明でない部分から作り、色は絵のもとの色。
 private struct ColoringSilhouette: View {
-  var symbol: String
+  var word: String
   var progress: Double
-  var color: Color = .red
 
   var body: some View {
-    let image = Image(systemName: symbol).resizable().scaledToFit()
-    image.foregroundStyle(.gray.opacity(0.3))
+    let name = WordArt.assetName(for: word)
+    Image(name).renderingMode(.template).resizable().scaledToFit()
+      .foregroundStyle(.gray.opacity(0.3))
       .overlay {
         GeometryReader { proxy in
-          image.foregroundStyle(color)
+          Image(name).renderingMode(.original).resizable().scaledToFit()
             .mask(alignment: .bottom) {
               Rectangle().frame(height: proxy.size.height * progress)
                 .frame(maxHeight: .infinity, alignment: .bottom)
@@ -280,17 +278,15 @@ private struct ColoringSilhouette: View {
 
 /// ことばを選ぶ絵のボタン（約104pt 以上。D101）。
 private struct WordPickButton: View {
-  var item: PlaceholderArt.Item
+  var item: WordArt.Item
   var selected: Bool
   var action: () -> Void
 
   var body: some View {
     Button(action: action) {
       VStack(spacing: 4) {
-        Image(systemName: item.symbol)
-          .font(.system(size: 40))
-          .foregroundStyle(Color(uiColor: item.color))
-          .frame(height: 48)
+        Image(WordArt.assetName(item)).resizable().scaledToFit()
+          .frame(height: 56)
         Text(item.entry.text).font(.learning(22)).foregroundStyle(Theme.ink)
           .lineLimit(1).minimumScaleFactor(0.6)
       }
