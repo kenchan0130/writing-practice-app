@@ -33,6 +33,8 @@ struct MapSelection: Equatable {
 struct MapView: View {
   @Binding var selection: MapSelection
   var onSelect: (Character) -> Void
+  /// 鍵のかかった字を押した（鍵の画面へ。D160）。
+  var onLocked: (Script) -> Void = { _ in }
   private let store = ProgressStore.shared
   private let purchases = PurchaseStore.shared
 
@@ -168,7 +170,7 @@ struct MapView: View {
 
   private func tapped(_ char: Character) {
     if isLocked(char) {
-      PopPresenter.shared.notice("おとなのひとに おねがいしてね", sound: .locked)
+      onLocked(selection.script.entitlementScript)
     } else {
       onSelect(char)
     }

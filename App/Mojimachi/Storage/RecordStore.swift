@@ -352,9 +352,24 @@ final class RecordStore {
       }
   }
 
+  /// 全員のおねがい（D160）。まとめるのは `WishNotice.notices`。
+  func loadWishes() -> [Wish] {
+    fetch("WishRow").compactMap { row in
+      guard let id = row.value(forKey: "id") as? UUID,
+        let profile = row.value(forKey: "profileID") as? UUID,
+        let date = row.value(forKey: "date") as? Date,
+        let item = row.value(forKey: "item") as? String, !item.isEmpty
+      else { return nil }
+      return Wish(id: id, profileID: profile, item: item, date: date)
+    }
+  }
+
   /// 保存している行の数（保護者用の画面の「学習記録の管理」に出す）。
   func rowCount() -> Int {
-    ["CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "ProfileRow"].reduce(
+    [
+      "CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "ProfileRow",
+      "WishRow",
+    ].reduce(
       0
     ) {
       $0 + ((try? context.count(for: NSFetchRequest<NSManagedObject>(entityName: $1))) ?? 0)
@@ -402,6 +417,26 @@ final class RecordStore {
     row.setValue(object.symbol, forKey: "symbol")
     row.setValue(object.kind.rawValue, forKey: "kind")
     row.setValue(Self.dataVersion, forKey: "dataVersion")
+    save()
+  }
+
+  /// 子どもの「おねがい」を1行足す（D160）。押すたびに足し、まとめるのは読むときに行う。
+  func append(_ wish: Wish) {
+    let row = NSEntityDescription.insertNewObject(forEntityName: "WishRow", into: context)
+    row.setValue(wish.profileID, forKey: "profileID")
+    row.setValue(wish.id, forKey: "id")
+    row.setValue(wish.date, forKey: "date")
+    row.setValue(wish.item, forKey: "item")
+    row.setValue(Self.dataVersion, forKey: "dataVersion")
+    save()
+  }
+
+  /// 保護者が「確認した」を押したとき、その子のそのものの おねがいを消す（D160）。
+  func deleteWishes(profile: UUID, item: String) {
+    for row in fetch("WishRow", profile: profile) where row.value(forKey: "item") as? String == item
+    {
+      context.delete(row)
+    }
     save()
   }
 
@@ -461,7 +496,9 @@ final class RecordStore {
 
   /// プロフィールと、その子の記録・まちの物をすべて消す（取り返しのつかない操作。§5.3）。
   func deleteProfile(_ id: UUID) {
-    for entity in ["CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker"] {
+    for entity in [
+      "CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "WishRow",
+    ] {
       for row in fetch(entity, profile: id) { context.delete(row) }
     }
     for row in fetch("ProfileRow") where row.value(forKey: "id") as? UUID == id {
@@ -566,6 +603,8 @@ final class RecordStore {
           attribute("word", .string), attribute("symbol", .string), attribute("kind", .string),
         ]),
       entity("ResetMarker", []),
+      // 子どもの「おねがい」（D160）。何をやりたがったか（`item`）と、押した日（`date`）。
+      entity("WishRow", [attribute("item", .string)]),
       entity(
         "ProfileRow",
         [
