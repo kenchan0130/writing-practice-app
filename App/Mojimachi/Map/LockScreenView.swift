@@ -1,4 +1,5 @@
 import EntitlementKit
+import SoundKit
 import SwiftUI
 
 extension Script {
@@ -27,8 +28,8 @@ struct LockScreenView: View {
   static let thanksSeconds = 1.8
 
   static let title = "この もじは まだ ねむっているよ"
-  static let voiceLine = "この もじで あそびたいときは、おとなのひとに おねがいしてね"
-  static let thanks = "おねがい できたよ"
+  static let voiceLine = VoiceLine.locked.text
+  static let thanks = VoiceLine.lockThanks.text
 
   @State private var activity = WritingActivity()
   @State private var asked = false
@@ -71,7 +72,7 @@ struct LockScreenView: View {
     .accessibilityElement(children: .contain)
     .onAppear {
       SoundPlayer.shared.play(.locked)
-      VoicePlayer.shared.speak(Self.voiceLine)
+      VoicePlayer.shared.speak(.locked)
     }
     .onDisappear { closeTask?.cancel() }
   }
@@ -112,7 +113,7 @@ struct LockScreenView: View {
     guard !asked else { return }
     asked = true
     onWish(script)
-    VoicePlayer.shared.speak(Self.thanks)
+    VoicePlayer.shared.speak(.lockThanks)
     SoundPlayer.shared.play(.sparkle)
     closeTask = Task {
       try? await Task.sleep(for: .seconds(Self.thanksSeconds))
