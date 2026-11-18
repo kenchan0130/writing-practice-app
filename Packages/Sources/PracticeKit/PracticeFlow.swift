@@ -54,6 +54,8 @@ public struct PracticeFlow: Sendable {
   public private(set) var markedDifficult = false
 
   public let preset: JudgePreset
+  /// 「みる → なぞる」だけで終える（はじめての流れの最初の1字。D23・D46）。
+  public let nazoruOnly: Bool
   /// ④ で続けてうまくいかなかったら ③ に戻る回数（D76。1〜5回）。
   public let jibundeRetryLimit: Int
   private let judge: Judge
@@ -63,10 +65,11 @@ public struct PracticeFlow: Sendable {
   /// - Parameter mastered: ④ に合格したことのある「慣れた字」なら、①② を省く（§3.2・D56）。
   public init(
     character: CharacterData, preset: JudgePreset, mastered: Bool = false,
-    jibundeRetryLimit: Int? = nil
+    jibundeRetryLimit: Int? = nil, nazoruOnly: Bool = false
   ) {
     self.judge = Judge(character: character)
     self.preset = preset
+    self.nazoruOnly = nazoruOnly
     self.jibundeRetryLimit =
       jibundeRetryLimit ?? (preset == .hajimete || preset == .naretekita ? 2 : 3)
     self.step = mastered ? .usuku : .miru
@@ -126,6 +129,10 @@ public struct PracticeFlow: Sendable {
     sameStrokeMisses = 0
     strokes.append(line)
     guard strokes.count == strokeCount else { return [.keepStroke] }
+    if nazoruOnly, step == .nazoru {
+      finished = true
+      return [.keepStroke, .finished(rating: .maru, rescued: false)]
+    }
     let next: PracticeStep = step == .nazoru ? .usuku : .jibunde
     return [.keepStroke] + move(to: next)
   }

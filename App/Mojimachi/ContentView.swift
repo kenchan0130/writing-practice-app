@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import ContentModel
 import ParentGateKit
+import PracticeKit
 import RecordKit
 import SwiftUI
 
@@ -67,6 +68,8 @@ struct ContentView: View {
   }
   @State private var showsGate = false
   @State private var showsParentArea = false
+  /// はじめての流れ（D23）。出していないときは nil。
+  @State private var onboarding: OnboardingStage?
   @State private var showsProfilePicker = false
   /// 子どもの切り替えのために保護者用の確認を出しているか。
   @State private var gateForSwitch = false
@@ -77,6 +80,13 @@ struct ContentView: View {
     Group {
       if store.isWaitingForFirstImport {
         PreparingView()
+      } else if let onboarding {
+        switch onboarding {
+        case .adult:
+          OnboardingAdultView { evaluateOnboarding(after: .adult) }
+        case .child:
+          OnboardingChildView { evaluateOnboarding(after: .child) }
+        }
       } else if let screen {
         VStack(spacing: 0) {
           HStack {
@@ -92,6 +102,9 @@ struct ContentView: View {
       }
     }
     .childBackground()
+    // iCloud の取り込みを待ち終わってから決める（D63）。選んだ子が変わったときも決め直す（D23）。
+    .onChange(of: store.isWaitingForFirstImport, initial: true) { evaluateOnboarding() }
+    .onChange(of: store.currentProfileID) { evaluateOnboarding() }
     .task {
       // 2台目の最初の起動では、iCloud からの取り込みを最大10秒待つ（D63）。
       while store.isWaitingForFirstImport {
@@ -284,6 +297,15 @@ struct ContentView: View {
   }
   private var goalReached: Bool { todayCount >= goal }
 
+  /// はじめての流れを出すか決める。流れの途中では決め直さず、終わったときだけ次を決める。
+  private func evaluateOnboarding(after finished: OnboardingStage? = nil) {
+    guard finished != nil || onboarding == nil else { return }
+    let next = store.onboardingStage
+    // 前半を終えたら、すぐ後半へ。後半を終えたら（または「←」で抜けたら）ホームへ。
+    onboarding = finished == .child ? nil : next
+    if finished == .child { screen = nil }
+  }
+
   private func openParentArea() {
     if gate.isOpen(at: Date().timeIntervalSince1970) {
       showsParentArea = true
@@ -338,6 +360,8 @@ private struct HomeButton: View {
 /// ホームのキャラクター。絵はまだ仮（SF Symbol）。キャラクター3人は D134 の Rive で作る。
 private struct HomeCharacter: View {
   var reachedGoal: Bool
+  /// はじめての流れで選んだキャラクター（D39）。
+  private var character: MainCharacter { ProgressStore.shared.mainCharacter }
 
   var body: some View {
     VStack(spacing: 12) {
@@ -353,11 +377,11 @@ private struct HomeCharacter: View {
             .offset(y: 14)
         }
         .softShadow()
-      Image(systemName: reachedGoal ? "party.popper.fill" : "pawprint.fill")
+      Image(systemName: reachedGoal ? "party.popper.fill" : character.symbol)
         .font(.system(size: 96))
         .foregroundStyle(.white)
         .frame(width: 180, height: 180)
-        .background(Theme.pink.gradient, in: .circle)
+        .background(character.color.gradient, in: .circle)
         .softShadow()
         .padding(.top, 12)
     }

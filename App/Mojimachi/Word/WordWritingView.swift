@@ -11,13 +11,17 @@ struct WordWritingView: View {
   @State private var transformFinished = false
   /// 置いたあとに見せる画面へ行く（服はクローゼット、ほかはまち。D101）。
   var onShowPlaced: (WordKind) -> Void = { _ in }
+  /// ことばを選ばせず、決めたことばだけを書く（はじめての流れ。D23）。
+  private let locksWord: Bool
 
   init(
     activity: WritingActivity = WritingActivity(),
     start: String? = nil,
+    locksWord: Bool = false,
     onShowPlaced: @escaping (WordKind) -> Void = { _ in }
   ) {
     _model = State(initialValue: WordModel(activity: activity, start: start))
+    self.locksWord = locksWord
     self.onShowPlaced = onShowPlaced
   }
 
@@ -51,7 +55,7 @@ struct WordWritingView: View {
       )
       .frame(height: 48)
       .opacity(model.wordDone ? 0 : 1)
-      wordPicker
+      if !locksWord { wordPicker }
       buttons
     }
     .padding(.horizontal, 32)
@@ -225,10 +229,12 @@ struct WordWritingView: View {
             onShowPlaced(kind)
           }
         }
-        ChildToolButton(
-          title: "もういっこ", systemImage: "arrow.right.circle.fill", color: Theme.accent
-        ) {
-          model.nextWord()
+        if !locksWord {
+          ChildToolButton(
+            title: "もういっこ", systemImage: "arrow.right.circle.fill", color: Theme.accent
+          ) {
+            model.nextWord()
+          }
         }
       } else {
         // どの段階でも、ことばを最初から書き直せる（D154 と同じ考え方）。

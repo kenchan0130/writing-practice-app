@@ -62,6 +62,7 @@ final class WritingModel {
   /// 次の字へ自動で進むまでの秒数（D154）。
   static let autoAdvanceSeconds = 1.5
   private var advanceTask: Task<Void, Never>?
+  private var onboardingFinishTask: Task<Void, Never>?
   /// 判定のおまかせ設定（保護者用の画面と共通。D22）。
   var preset: JudgePreset {
     get { store.preset }
@@ -82,10 +83,23 @@ final class WritingModel {
   static var strokeAnimationDuration: Double { 0.9 * ProgressStore.shared.modelSpeed.factor }
   static let strokeAnimationGap = 0.3
 
+  /// はじめての流れの最初の1字（D23・D46）。「みる → なぞる」だけで終え、ごほうびのあとに呼ぶ。
+  private let onboardingFinish: (@MainActor () -> Void)?
+  var isOnboarding: Bool { onboardingFinish != nil }
+  /// はじめての流れで、ごほうびのあと次へ進むまでの秒数。
+  static let onboardingAdvanceSeconds = 2.5
+
   /// `start` を渡すと、その字から始める（文字の地図から。D101）。
-  init(activity: WritingActivity, start: Character? = nil) {
+  /// `onboardingFinish` を渡すと、その字だけを「みる → なぞる」で練習し、終わったら呼ぶ（D23）。
+  init(
+    activity: WritingActivity, start: Character? = nil,
+    onboardingFinish: (@MainActor () -> Void)? = nil
+  ) {
     self.activity = activity
-    if let start, let startScript = KanaTable.script(of: start) {
+    self.onboardingFinish = onboardingFinish
+    if onboardingFinish != nil, let start {
+      sequence = [start]
+    } else if let start, let startScript = KanaTable.script(of: start) {
       let entitlements = PurchaseStore.shared.entitlements
       script = startScript
       sequence = KanaTable.all(startScript).filter {
@@ -176,12 +190,23 @@ final class WritingModel {
   func cancelAutoAdvance() {
     advanceTask?.cancel()
     advanceTask = nil
+    onboardingFinishTask?.cancel()
+    onboardingFinishTask = nil
   }
 
   /// ごほうびの演出を閉じる（自動の移動もやめる）。
   func dismissCelebration() {
     cancelAutoAdvance()
     showsCelebration = false
+    finishOnboardingLetter()
+  }
+
+  /// はじめての流れ: 最初の1字が終わった。次の画面へ（1回だけ）。
+  private func finishOnboardingLetter() {
+    guard let finish = onboardingFinish, finishedRating != nil else { return }
+    onboardingFinishTask?.cancel()
+    onboardingFinishTask = nil
+    finish()
   }
 
   private func scheduleAutoAdvance() {
@@ -190,6 +215,15 @@ final class WritingModel {
       // 確かめ用: `-freezeCelebration YES` で、ごほうびの画面を止めたままにする。
       if UserDefaults.standard.bool(forKey: "freezeCelebration") { return }
     #endif
+    if isOnboarding {
+      // 最初の1字は、ごほうびを見せたあと次の画面へ（くり返さない）。
+      onboardingFinishTask = Task { [weak self] in
+        try? await Task.sleep(for: .seconds(Self.onboardingAdvanceSeconds))
+        guard !Task.isCancelled else { return }
+        self?.finishOnboardingLetter()
+      }
+      return
+    }
     advanceTask = Task { [weak self] in
       try? await Task.sleep(for: .seconds(Self.autoAdvanceSeconds))
       guard !Task.isCancelled, let self else { return }
@@ -246,7 +280,9 @@ final class WritingModel {
       return
     }
     flow = PracticeFlow(
-      character: character, preset: preset, mastered: store.mastered.contains(character.id))
+      character: character, preset: preset,
+      mastered: !isOnboarding && store.mastered.contains(character.id),
+      nazoruOnly: isOnboarding)
     lastStep = flow?.step
     if flow?.step == .miru { startAnimation() }
   }
