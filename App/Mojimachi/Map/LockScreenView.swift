@@ -34,7 +34,6 @@ struct LockScreenView: View {
   @State private var activity = WritingActivity()
   @State private var asked = false
   @State private var closeTask: Task<Void, Never>?
-  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     VStack(spacing: 0) {
@@ -77,21 +76,10 @@ struct LockScreenView: View {
     .onDisappear { closeTask?.cancel() }
   }
 
-  /// ねむっているキャラクター（絵ができるまでの仮。D134）。ホームのキャラクターと同じ丸に、zzz を添える。
+  /// ねむっているキャラクター（選んだキャラクターの ねている絵。zzz も絵に入っている。D164）。
   private var sleepingCharacter: some View {
-    Image(systemName: "pawprint.fill")
-      .font(.system(size: 120))
-      .foregroundStyle(.white.opacity(0.9))
-      .frame(width: 240, height: 240)
-      .background(Theme.pink.opacity(0.55).gradient, in: .circle)
-      .overlay(alignment: .topTrailing) {
-        Image(systemName: "zzz")
-          .font(.system(size: 64, weight: .bold))
-          .foregroundStyle(Theme.blue)
-          .offset(x: 36, y: -12)
-          .symbolEffect(.pulse, isActive: !reduceMotion)
-      }
-      .softShadow()
+    MainCharacterArt(character: ProgressStore.shared.mainCharacter, size: 300, pose: .sleep)
+      .accessibilityElement(children: .ignore)
       .accessibilityLabel("ねむっている キャラクター")
   }
 

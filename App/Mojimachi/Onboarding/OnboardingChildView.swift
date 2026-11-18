@@ -231,7 +231,7 @@ private struct GreetingStep: View {
         .softShadow()
         .accessibilityIdentifier("onboardingGreeting")
       HStack(spacing: 8) {
-        MainCharacterArt(character: character, size: 260)
+        MainCharacterArt(character: character, size: 280, pose: .wave)
         Image(systemName: "hand.wave.fill")
           .font(.system(size: 88))
           .foregroundStyle(Theme.yellow)

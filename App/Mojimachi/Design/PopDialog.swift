@@ -105,13 +105,7 @@ struct PopMessage: View {
 
   var body: some View {
     VStack(spacing: 24) {
-      Image(systemName: "pawprint.fill")
-        .font(.system(size: 52))
-        .foregroundStyle(.white)
-        .frame(width: 104, height: 104)
-        .background(Theme.pink.gradient, in: .circle)
-        .softShadow()
-        .accessibilityHidden(true)
+      MainCharacterArt(character: ProgressStore.shared.mainCharacter, size: 120)
       Text(message)
         .font(.ui(34, bold: true))
         .foregroundStyle(Theme.ink)
