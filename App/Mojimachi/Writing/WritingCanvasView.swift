@@ -209,6 +209,10 @@ struct WritingCanvasView: View {
           drawStep(character, in: &context, size: size, now: timeline.date)
         }
         drawWriting(in: &context, size: size)
+        // 書き始めの印（番号）は、書いた線より上に描く。前の画の線で番号が隠れないように。
+        if let character = model.character {
+          drawMarker(character, in: &context, size: size, now: timeline.date)
+        }
       }
     }
     .background(Theme.paper)
@@ -268,15 +272,11 @@ struct WritingCanvasView: View {
       // ② なぞる: 太いお手本と、書き始めの印（●）。
       context.fill(
         CanvasDrawing.outline(character.strokes, scale: scale), with: .color(.gray.opacity(0.4)))
-      drawStartMarker(character, in: &context, scale: scale, now: now)
     case .usuku:
       // ③ うすく: お手本を点線だけで。
       context.stroke(
         CanvasDrawing.outline(character.strokes, scale: scale), with: .color(.gray.opacity(0.5)),
         style: StrokeStyle(lineWidth: 2, dash: [6, 6]))
-      if model.hintStroke != nil {
-        drawStartMarker(character, in: &context, scale: scale, now: now)
-      }
     case .jibunde:
       // ④ じぶんで: 何も出さない。判定のあとはお手本を重ねる（§3.2）。
       if model.result != nil {
@@ -292,6 +292,21 @@ struct WritingCanvasView: View {
           style: StrokeStyle(lineWidth: 5, dash: [6, 5]))
       }
     case nil:
+      break
+    }
+  }
+
+  /// 書き始めの印を出すステップだけ描く（② なぞる はいつも、③ うすく はヒントのときだけ）。
+  private func drawMarker(
+    _ character: CharacterData, in context: inout GraphicsContext, size: CGSize, now: Date
+  ) {
+    let scale = size.width / 1000
+    switch model.step {
+    case .nazoru:
+      drawStartMarker(character, in: &context, scale: scale, now: now)
+    case .usuku where model.hintStroke != nil:
+      drawStartMarker(character, in: &context, scale: scale, now: now)
+    default:
       break
     }
   }

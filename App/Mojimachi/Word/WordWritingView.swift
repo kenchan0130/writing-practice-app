@@ -126,19 +126,21 @@ struct WordWritingView: View {
           default:
             break
           }
-          if model.mode != .jibunde, let flow = model.flow,
-            flow.expectedStroke < character.strokes.count
-          {
-            let pulse =
-              model.hintStroke == nil
-              ? 0 : (sin(timeline.date.timeIntervalSinceReferenceDate * 6) + 1) * 6
-            CanvasDrawing.startMarker(
-              for: character.strokes[flow.expectedStroke], number: flow.expectedStroke + 1,
-              in: &context, scale: scale, pulse: pulse)
-          }
         }
         for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context) }
         CanvasDrawing.ink(model.recorder.current, in: &context)
+        // 書き始めの印（番号）は、書いた線より上に描く。前の画の線で番号が隠れないように。
+        if let character = model.currentCharacter, !model.wordDone, model.mode != .jibunde,
+          let flow = model.flow,
+          flow.expectedStroke < character.strokes.count
+        {
+          let pulse =
+            model.hintStroke == nil
+            ? 0 : (sin(timeline.date.timeIntervalSinceReferenceDate * 6) + 1) * 6
+          CanvasDrawing.startMarker(
+            for: character.strokes[flow.expectedStroke], number: flow.expectedStroke + 1,
+            in: &context, scale: size.width / 1000, pulse: pulse)
+        }
       }
     }
     .background(Theme.paper)
