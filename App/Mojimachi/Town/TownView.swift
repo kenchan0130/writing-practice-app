@@ -44,10 +44,10 @@ struct TownView: View {
     guard UserDefaults.standard.bool(forKey: "seedTown"), store.placed.isEmpty else { return }
     let seeds = ["くるま", "いぬ", "でんしゃ", "ねこ", "ふく", "うま", "ぼうし", "ふね", "ゆかた"]
     for text in seeds {
-      guard let item = PlaceholderArt.words.first(where: { $0.entry.text == text }) else {
+      guard let item = WordArt.words.first(where: { $0.entry.text == text }) else {
         continue
       }
-      store.place(PlacedObject(word: text, symbol: item.symbol, kind: item.entry.kind))
+      store.place(PlacedObject(word: text, symbol: item.asset, kind: item.entry.kind))
     }
   }
 #else
@@ -98,10 +98,8 @@ final class TownScene: SKScene {
     var clothesCount = 0
     for (index, object) in placed.enumerated() where !shown.contains(object.id) {
       shown.insert(object.id)
-      let color = PlaceholderArt.words.first { $0.entry.text == object.word }?.color
-      let image = PlaceholderArt.image(
-        symbol: object.symbol, size: 240,
-        color: color ?? UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1))
+      // 絵は、保存した名前ではなく、ことばから決める（前に置いた物も新しい絵になる）。
+      let image = WordArt.image(word: object.word, size: 240)
       let node = SKSpriteNode(texture: SKTexture(image: image))
       node.name = object.id.uuidString
       node.size = CGSize(width: 160, height: 160)

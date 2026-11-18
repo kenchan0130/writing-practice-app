@@ -1,11 +1,14 @@
 import ContentModel
 import UIKit
 
-/// 絵ができるまでの仮の絵（SF Symbols）。M0 の3つの型のことば（D78）。ことばの一覧は WordCatalog。
-enum PlaceholderArt {
+/// ことばの絵（原作の SVG。D163）。ことばの一覧は WordCatalog。
+/// 絵は `Assets.xcassets` の `word-<ローマ字>`。もとの SVG は `Content/Art/words/`。
+enum WordArt {
   struct Item {
     let entry: WordEntry
-    let symbol: String
+    /// アセットの名前（`word-` を除いたローマ字）。
+    let asset: String
+    /// 種類の色（背景や、影絵が色づくときの色の候補）。
     let color: UIColor
   }
 
@@ -13,14 +16,12 @@ enum PlaceholderArt {
   private static let animalColor = UIColor(red: 0.62, green: 0.4, blue: 0.2, alpha: 1)
   private static let clothesColor = UIColor(red: 0.25, green: 0.45, blue: 0.85, alpha: 1)
 
-  /// SF Symbols に無い物（うし・うま・しか・くま・そり・ゆかた）は、近い物で代わりにする。
-  private static let symbols: [String: String] = [
-    "そり": "figure.skiing.downhill", "くるま": "car.side.fill", "ふね": "ferry.fill",
-    "でんしゃ": "tram.fill", "じてんしゃ": "bicycle", "しんかんせん": "train.side.front.car",
-    "うし": "pawprint.fill", "いぬ": "dog.fill", "ねこ": "cat.fill", "うま": "pawprint.fill",
-    "くま": "pawprint.fill", "しか": "pawprint.fill", "りす": "hare.fill",
-    "ふく": "tshirt.fill", "くつ": "shoe.fill", "ぼうし": "hat.widebrim.fill",
-    "ゆかた": "figure.stand.dress", "くつした": "shoe.2.fill", "きもの": "jacket.fill",
+  private static let assets: [String: String] = [
+    "そり": "sori", "くるま": "kuruma", "ふね": "fune", "でんしゃ": "densha",
+    "じてんしゃ": "jitensha", "しんかんせん": "shinkansen", "うし": "ushi", "いぬ": "inu",
+    "ねこ": "neko", "うま": "uma", "くま": "kuma", "しか": "shika", "りす": "risu",
+    "ふく": "fuku", "くつ": "kutsu", "ぼうし": "boushi", "ゆかた": "yukata",
+    "くつした": "kutsushita", "きもの": "kimono",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
@@ -30,27 +31,32 @@ enum PlaceholderArt {
       case .animal: animalColor
       case .clothes: clothesColor
       }
-    return Item(
-      entry: entry, symbol: symbols[entry.text] ?? "questionmark.square.dashed", color: color)
+    return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }
 
-  static func symbol(for word: String) -> String {
-    words.first { $0.entry.text == word }?.symbol ?? "questionmark.square.dashed"
+  /// ことばの絵のアセットの名前（SwiftUI の `Image(...)` に渡す）。
+  static func assetName(for word: String) -> String {
+    "word-" + (assets[word] ?? "")
   }
 
-  /// 仮の絵を、`size` 四方の画像にする。
-  static func image(symbol: String, size: CGFloat, color: UIColor = .black) -> UIImage {
-    let config = UIImage.SymbolConfiguration(pointSize: size * 0.7, weight: .regular)
-    let symbolImage =
-      UIImage(systemName: symbol, withConfiguration: config)?
-      .withTintColor(color, renderingMode: .alwaysOriginal) ?? UIImage()
+  static func assetName(_ item: Item) -> String { "word-" + item.asset }
+
+  /// ことばの絵（もとの色のまま）。無ければ nil。
+  static func uiImage(for word: String) -> UIImage? {
+    UIImage(named: assetName(for: word))
+  }
+
+  /// ことばの絵を、`size` 四方の透明な画像にする（縦横の比を保ち、真ん中に置く）。
+  /// ベクターのまま描くので、大きさに合わせてくっきり出る。
+  static func image(word: String, size: CGFloat) -> UIImage {
     let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
     return renderer.image { _ in
-      let s = symbolImage.size
-      let scale = min(size / max(s.width, 1), size / max(s.height, 1)) * 0.9
+      guard let art = uiImage(for: word) else { return }
+      let s = art.size
+      let scale = min(size / max(s.width, 1), size / max(s.height, 1))
       let w = s.width * scale
       let h = s.height * scale
-      symbolImage.draw(in: CGRect(x: (size - w) / 2, y: (size - h) / 2, width: w, height: h))
+      art.draw(in: CGRect(x: (size - w) / 2, y: (size - h) / 2, width: w, height: h))
     }
   }
 
