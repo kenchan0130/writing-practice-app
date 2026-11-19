@@ -1,0 +1,51 @@
+# Changelog
+
+## [v0.0.1](https://github.com/kenchan0130/writing-practice-app/commits/v0.0.1) - 2026-11-19
+
+- Add the design document for Mojimachi by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/1
+- Set up the repository skeleton for M0 by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/2
+- Add the thin Xcode project for the iPad app by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/3
+- Add the first writing canvas prototype by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/4
+- Derive the app version from the release tag by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/6
+- Document when to bump the patch version by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/7
+- Import hiragana stroke data from strokesvg by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/8
+- Cross-check hiragana stroke order against KanjiVG by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/9
+- Stop failing children on stroke endings by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/10
+- Add the first version of the judging engine by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/11
+- Show the model glyph and judge on the writing screen by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/12
+- 練習の流れ・ことばと変身・保護者用の画面・購入・音を足す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/13
+- ペンの色を、線ごとに書いたときの色のまま残す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/14
+- 3つの型の19語と動き、画面の表を足す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/15
+- 画面を D101 に合わせる（ホーム・「←」・書いたあとのボタン） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/16
+- ホームに、きょうの もくひょう・スタンプカード・キャラクターを出す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/17
+- 文字の地図と字のカードを足す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/18
+- 主な流れを押して確かめる UI テストを足す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/19
+- 文字の地図を、壁の50音表と同じく右から並べる by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/20
+- ライブラリの更新を Dependabot にし、ワークフローを jactionlint で調べる by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/21
+- TCA を入れ、保護者用の確認を移し、ビルド時間を測る by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/22
+- Xcode Cloud で TCA のマクロを信頼させ、URL の確認を記録する by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/23
+- 声・BGM・効果音のサービスの調査を足す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/24
+- iCloud のコンテナで記録を同期する by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/25
+- 家族のデータの共有はやめ、iCloud はバックアップに使う（D148） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/26
+- iCloud の最初の取り込みを待ち、保護者が iCloud のデータを消せるようにする by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/27
+- BGM をやめ、効果音は配布素材を使う（D149） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/28
+- 言葉づかい・育ちの名前・書く画面のほめ方・書体を決める（D150〜D153） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/29
+- 子どもの画面を作り込む: 書体・育ちの名前・ほめる演出・ポップなダイアログ（D150〜D155） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/30
+- 購入のテストで StoreKit の試し用の環境を持ち続ける by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/31
+- 効果音の調べを足し、アルファベットの書体の参考をメモする by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/32
+- 効果音を入れる（変身・ほめる演出・ボタンとダイアログ） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/33
+- 効果音を波形から調べる by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/34
+- 効果音を入れ替え、音の大きさをそろえる（D156） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/35
+- OtoLogic の効果音に一部入れ替える（D158） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/36
+- ほかの iPad で消した iCloud のデータを戻さない（D159） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/37
+- 保護者の画面を普通の日本語にする（D157） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/38
+- 確かめられた購入はすぐ開く by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/39
+- はじめての流れを作る（D161） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/40
+- 書き順の番号を、書いた線より上に出す by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/41
+- 鍵の画面と「おねがい」の記録（D160） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/43
+- 画面の表の「学習記録の管理」を D159 に合わせる by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/44
+- 声を VOICEVOX（猫使ビィ）にする（D162） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/45
+- ことばの絵を、描いたイラストにする（D163） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/46
+- 主人公3人の絵を描いたイラストにする（D164） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/47
+- まちを横長にして、物を散らばらせる（D165） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/48
+- ことばの入口: まちの地図・テーマ・ことばのカード（D166） by @kenchan0130 in https://github.com/kenchan0130/writing-practice-app/pull/49
