@@ -9,6 +9,8 @@ import UIKit
 /// ことばを書く画面のモデル（試作。D46・D55・D56）。流れは PracticeKit の WordFlow に任せる。
 @Observable
 final class WordModel {
+  /// 選べることば（テーマから入ったらそのテーマのことば。D166）。
+  let items: [WordArt.Item]
   private(set) var wordIndex = 0
   private(set) var flow: WordFlow?
   /// いまの字の書いた線（表示用）。
@@ -39,37 +41,39 @@ final class WordModel {
   }
 
   /// `start` を渡すと、そのことばから始める（字のカードから。D101）。
-  init(activity: WritingActivity, start: String? = nil) {
+  init(activity: WritingActivity, start: String? = nil, choices: [String]? = nil) {
     self.activity = activity
+    let chosen = choices?.compactMap { text in WordArt.words.first { $0.entry.text == text } }
+    items = (chosen?.isEmpty == false ? chosen : nil) ?? WordArt.words
     #if DEBUG
       // 確かめ用: `-word いぬ` でそのことばから始める。
       if let text = UserDefaults.standard.string(forKey: "word"),
-        let index = WordArt.words.firstIndex(where: { $0.entry.text == text })
+        let index = items.firstIndex(where: { $0.entry.text == text })
       {
         wordIndex = index
       }
     #endif
-    if let start, let index = WordArt.words.firstIndex(where: { $0.entry.text == start }) {
+    if let start, let index = items.firstIndex(where: { $0.entry.text == start }) {
       wordIndex = index
     }
     loadWord()
   }
 
-  var word: String { WordArt.words[wordIndex].entry.text }
-  var asset: String { WordArt.words[wordIndex].asset }
-  var kind: WordKind { WordArt.words[wordIndex].entry.kind }
+  var word: String { items[wordIndex].entry.text }
+  var asset: String { items[wordIndex].asset }
+  var kind: WordKind { items[wordIndex].entry.kind }
   var currentCharacter: CharacterData? { flow?.current }
   var mode: PracticeStep? { flow?.mode }
   var progress: Double { flow?.progress ?? 0 }
 
   func nextWord() {
-    wordIndex = (wordIndex + 1) % WordArt.words.count
+    wordIndex = (wordIndex + 1) % items.count
     loadWord()
   }
 
   /// ことばを選ぶ（3つの型をまたいで選べる）。
   func select(_ text: String) {
-    guard let index = WordArt.words.firstIndex(where: { $0.entry.text == text }) else {
+    guard let index = items.firstIndex(where: { $0.entry.text == text }) else {
       return
     }
     wordIndex = index

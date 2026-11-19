@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <ellipse cx="256" cy="376.8" rx="212.7" ry="48.3" fill="#7cc36a" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="124.5" y="204.8" width="263" height="164.3" rx="11.6" fill="#e5534b" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M101.3 218.3 L134.2 125.5 L256 86.8 L377.8 125.5 L410.7 218.3 Z" fill="#c9403a" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M101.3 218.3 L410.7 218.3" fill="none" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="256" cy="162.2" r="25.1" fill="#fff4e2" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="192.2" y="257" width="127.6" height="112.1" rx="7.7" fill="#ffffff" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M192.2 257 L319.8 369.1 M319.8 257 L192.2 369.1" fill="none" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M192.2 257 L319.8 257 L319.8 369.1 L192.2 369.1 Z" fill="none" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="53" y="330.4" width="27.1" height="65.7" rx="9.7" fill="#f2b56b" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="99.4" y="330.4" width="27.1" height="65.7" rx="9.7" fill="#f2b56b" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="385.5" y="330.4" width="27.1" height="65.7" rx="9.7" fill="#f2b56b" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="431.9" y="330.4" width="27.1" height="65.7" rx="9.7" fill="#f2b56b" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M141.9 241.5 C143.9 228 149.7 218.3 159.3 210.6" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>

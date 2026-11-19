@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect x="120.9" y="66.5" width="22.8" height="372.8" rx="8.3" fill="#c97f3e" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="132.2" cy="62.3" r="18.6" fill="#f7c948" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <ellipse cx="132.2" cy="445.5" rx="72.5" ry="22.8" fill="#7cc36a" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M143.6 97.5 L452.3 97.5 L419.1 149.3 L452.3 201.1 L143.6 201.1 Z" fill="#f7b3bd" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="288.6" cy="120.3" r="20.7" fill="#ffffff" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="316.2" cy="140.4" r="20.7" fill="#ffffff" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="305.7" cy="172.8" r="20.7" fill="#ffffff" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="271.6" cy="172.8" r="20.7" fill="#ffffff" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="261" cy="140.4" r="20.7" fill="#ffffff" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="288.6" cy="149.3" r="11.4" fill="#f7c948" stroke="#4a3428" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M143.6 232.2 L452.3 232.2 L419.1 284 L452.3 335.7 L143.6 335.7 Z" fill="#f59a4a" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M296.9 255 L309.3 279.8 L334.2 269.5 L323.8 294.3 L346.6 304.7 L319.7 308.8 L323.8 321.2 L296.9 310.9 L270 321.2 L274.1 308.8 L247.2 304.7 L270 294.3 L259.6 269.5 L284.5 279.8 Z" fill="#e5534b" stroke="#4a3428" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M162.3 116.2 L162.3 184.5" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>

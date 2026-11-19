@@ -34,6 +34,16 @@ enum WordArt {
     return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }
 
+  /// 絵のあることば。地図に出すものは、ここから決める（D166）。
+  private static let wordsWithArt: Set<String> = Set(
+    assets.filter { UIImage(named: "word-" + $0.value) != nil }.keys)
+
+  /// まちの地図・テーマ・ことばの出し分け（D166）。絵のあることばだけが出る。
+  static let index: WordMapIndex = {
+    let known = wordsWithArt
+    return WordMapIndex { known.contains($0) }
+  }()
+
   /// ことばの絵のアセットの名前（SwiftUI の `Image(...)` に渡す）。
   static func assetName(for word: String) -> String {
     "word-" + (assets[word] ?? "")
