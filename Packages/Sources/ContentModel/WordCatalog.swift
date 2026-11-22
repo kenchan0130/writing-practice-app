@@ -19,11 +19,16 @@ public struct WordEntry: Sendable, Hashable {
   }
 }
 
-/// M0 後半の約20語（D78）。
+/// M0 後半の約20語（D78）に、D167 で14語を足した。
 public enum WordCatalog {
   public static let all: [WordEntry] =
-    ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん"].map { WordEntry($0, .vehicle) }
-    + ["うし", "いぬ", "ねこ", "うま", "くま", "しか", "りす"].map { WordEntry($0, .animal) }
+    ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ", "しょうぼうしゃ", "きゅうきゅうしゃ"].map {
+      WordEntry($0, .vehicle)
+    }
+    + [
+      "うし", "いぬ", "ねこ", "うま", "くま", "しか", "りす", "さる", "ぞう", "とら", "かば", "きりん", "らくだ", "ぶた", "ひつじ",
+      "たぬき", "きつね", "うさぎ",
+    ].map { WordEntry($0, .animal) }
     + ["ふく", "くつ", "ぼうし", "ゆかた", "くつした", "きもの"].map { WordEntry($0, .clothes) }
 
   public static func entry(for text: String) -> WordEntry? {
