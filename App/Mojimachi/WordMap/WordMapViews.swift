@@ -8,7 +8,7 @@ import SwiftUI
 // MARK: - 見た目
 
 /// 場所のカードの色。
-private enum PlaceStyle {
+enum PlaceStyle {
   static func color(_ id: String) -> Color {
     switch id {
     case "eki": Color(red: 0.80, green: 0.91, blue: 0.99)
@@ -29,7 +29,7 @@ private enum PlaceStyle {
 }
 
 /// 押すと少しへこむ、大きなカードのボタン。
-private struct CardButtonStyle: ButtonStyle {
+struct CardButtonStyle: ButtonStyle {
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .scaleEffect(configuration.isPressed ? 0.96 : 1)
@@ -41,7 +41,7 @@ private struct CardButtonStyle: ButtonStyle {
 }
 
 /// 絵と短い名前の大きなカード。
-private struct PictureCard: View {
+struct PictureCard: View {
   var asset: String
   var title: String
   var color: Color
@@ -84,7 +84,7 @@ private struct PictureCard: View {
 }
 
 /// 列の数と1枚の大きさを、画面の幅と枚数から決める。
-private func cardLayout(count: Int, width: CGFloat, maxSize: CGFloat) -> (columns: Int, size: CGFloat) {
+func cardLayout(count: Int, width: CGFloat, maxSize: CGFloat) -> (columns: Int, size: CGFloat) {
   let spacing: CGFloat = 28
   let usable = width - 64
   let wide = width > 1000
@@ -100,7 +100,7 @@ private func cardLayout(count: Int, width: CGFloat, maxSize: CGFloat) -> (column
   return (columns, max(size, 170))
 }
 
-private struct CardGrid<Item: Identifiable, Content: View>: View {
+struct CardGrid<Item: Identifiable, Content: View>: View {
   var items: [Item]
   var columns: Int
   var size: CGFloat
@@ -116,7 +116,7 @@ private struct CardGrid<Item: Identifiable, Content: View>: View {
   }
 }
 
-private struct Heading: View {
+struct Heading: View {
   var text: String
   var body: some View {
     Text(text)
@@ -135,6 +135,8 @@ struct PlacesView: View {
   var onSelect: (Place) -> Void
   /// 下の帯の「しりとり」（D35・D166）。
   var onShiritori: () -> Void = {}
+  /// 下の帯の「ずかん」（D181）。
+  var onZukan: () -> Void = {}
 
   var body: some View {
     let places = WordArt.index.places
@@ -155,19 +157,21 @@ struct PlacesView: View {
         .padding(.bottom, 24)
       }
     }
-    .safeAreaInset(edge: .bottom) { WordMapBand(onShiritori: onShiritori) }
+    .safeAreaInset(edge: .bottom) { WordMapBand(onShiritori: onShiritori, onZukan: onZukan) }
   }
 }
 
-/// まちの地図の下の固定の帯（D35・D166）。ことばに出会う遊びの入口を並べる。
+/// まちの地図の下の固定の帯（D35・D166・D181）。ことばに出会う遊びの入口（しりとり・ずかん）を並べる。
 private struct WordMapBand: View {
   var onShiritori: () -> Void
+  var onZukan: () -> Void
 
   var body: some View {
     HStack(spacing: 24) {
       BandButton(
         title: "しりとり", character: ProgressStore.shared.mainCharacter, color: Theme.pink,
         action: onShiritori)
+      BandButton(title: "ずかん", systemImage: "book.fill", color: Theme.green, action: onZukan)
     }
     .padding(.horizontal, 32)
     .padding(.vertical, 12)
@@ -179,9 +183,21 @@ private struct WordMapBand: View {
 /// 帯の大きなボタン（高さ 104pt をこえる。D101）。
 private struct BandButton: View {
   var title: String
-  var character: MainCharacter
+  var character: MainCharacter?
+  var systemImage: String?
   var color: Color
   var action: () -> Void
+
+  init(
+    title: String, character: MainCharacter? = nil, systemImage: String? = nil, color: Color,
+    action: @escaping () -> Void
+  ) {
+    self.title = title
+    self.character = character
+    self.systemImage = systemImage
+    self.color = color
+    self.action = action
+  }
 
   var body: some View {
     Button {
@@ -189,7 +205,11 @@ private struct BandButton: View {
       action()
     } label: {
       HStack(spacing: 16) {
-        MainCharacterArt(character: character, size: 80, pose: .wave)
+        if let character {
+          MainCharacterArt(character: character, size: 80, pose: .wave)
+        } else if let systemImage {
+          Image(systemName: systemImage).font(.system(size: 56, weight: .bold))
+        }
         Text(title).font(.ui(38, bold: true))
       }
       .foregroundStyle(.white)
@@ -222,7 +242,8 @@ struct ThemesView: View {
             // 広い画面では、2列を横に並べて、スクロールしなくても見えるようにする。
             let wide = proxy.size.width > 1000
             let rows = HouseRow.allCases.filter { row in themes.contains { $0.row == row } }
-            let groupWidth = wide ? proxy.size.width / CGFloat(max(rows.count, 1)) : proxy.size.width
+            let groupWidth =
+              wide ? proxy.size.width / CGFloat(max(rows.count, 1)) : proxy.size.width
             let group = ForEach(rows, id: \.self) { row in
               let inRow = themes.filter { $0.row == row }
               VStack(spacing: 16) {

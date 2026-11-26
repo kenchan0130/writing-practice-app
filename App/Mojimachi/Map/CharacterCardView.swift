@@ -6,6 +6,16 @@ struct CharacterCardView: View {
   var char: Character
   var onWrite: () -> Void
   var onWord: (String) -> Void
+  /// 「ことばを さがす」（もじから さがす。D181）。
+  var onSearch: () -> Void = {}
+
+  /// その字を「書けた」か（なぞって かけた以上）。書けた字だけ、ことばを さがせる。
+  private var canSearch: Bool {
+    guard let script = KanaTable.script(of: char),
+      let id = KanaTable.characterID(char, script: script)
+    else { return false }
+    return ProgressStore.shared.log.canWrite(characterID: id)
+  }
 
   private var words: [WordArt.Item] {
     WordCatalog.words(containing: char).compactMap { entry in
@@ -27,15 +37,31 @@ struct CharacterCardView: View {
         )
         .softShadow()
         .padding(.horizontal, 48)
-      Button(action: onWrite) {
-        Label("かく", systemImage: "pencil.line")
-          .font(.ui(56, bold: true))
-          .foregroundStyle(.white)
-          .frame(maxWidth: 480, minHeight: 140)
-          .background(Theme.accent.gradient, in: .rect(cornerRadius: 70))
-          .softShadow()
+      HStack(spacing: 24) {
+        Button(action: onWrite) {
+          Label("かく", systemImage: "pencil.line")
+            .font(.ui(56, bold: true))
+            .foregroundStyle(.white)
+            .frame(maxWidth: 480, minHeight: 140)
+            .background(Theme.accent.gradient, in: .rect(cornerRadius: 70))
+            .softShadow()
+        }
+        .buttonStyle(.plain)
+        if canSearch {
+          Button(action: onSearch) {
+            Label("ことばを さがす", systemImage: "magnifyingglass")
+              .font(.ui(34, bold: true))
+              .foregroundStyle(.white)
+              .padding(.horizontal, 28)
+              .frame(minHeight: 140)
+              .background(Theme.blue.gradient, in: .rect(cornerRadius: 70))
+              .softShadow()
+          }
+          .buttonStyle(.plain)
+          .accessibilityIdentifier("searchWords")
+        }
       }
-      .buttonStyle(.plain)
+      .padding(.horizontal, 48)
       if !words.isEmpty {
         Text("この もじの ことば").font(.ui(28, bold: true)).foregroundStyle(Theme.inkSoft)
         ScrollView(.horizontal, showsIndicators: false) {

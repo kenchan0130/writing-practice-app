@@ -19,6 +19,8 @@ struct ContentView: View {
     case places = "まちの地図"
     case themes = "テーマ"
     case wordCards = "ことばのカード"
+    case zukan = "ずかん"
+    case letterWords = "もじから さがす"
     case town = "まち"
     case closet = "クローゼット"
   }
@@ -88,6 +90,10 @@ struct ContentView: View {
   }()
   /// ことば画面をテーマのことばのカードから開いたか（「←」の戻り先）。
   @State private var wordFromCards = false
+  /// ことば画面をずかんから開いたか（「←」の戻り先。D181）。
+  @State private var wordFromZukan = false
+  /// ことば画面を「もじから さがす」から開いたか（「←」の戻り先。D181）。
+  @State private var wordFromLetterWords = false
   @State private var wordStart: String? = {
     #if DEBUG
       // 確かめ用: `-screen word -startWord やま` でそのことばの書く画面を開く（`-simulateWord YES` と一緒に）。
@@ -225,6 +231,10 @@ struct ContentView: View {
         if UserDefaults.standard.bool(forKey: "seedTown"), !store.isSyncRunning {
           debugSeedTown(store)
         }
+        // 確かめ用: `-seedZukan YES` で、ずかんの★と書けた字を入れる（`-inMemoryStore YES` などと一緒に）。
+        if UserDefaults.standard.bool(forKey: "seedZukan"), !store.isSyncRunning {
+          DebugSeed.zukan()
+        }
         if UserDefaults.standard.string(forKey: "openParent") != nil { showsParentArea = true }
       }
     #endif
@@ -257,8 +267,11 @@ struct ContentView: View {
             wordFromCard = true
             wordFromCards = false
             wordFromToday = false
+            wordFromZukan = false
+            wordFromLetterWords = false
             self.screen = .word
-          })
+          },
+          onSearch: { self.screen = .letterWords })
       }
     case .letter:
       WritingCanvasView(activity: activity, start: cardChar, onLocked: { lockedScript = $0 })
@@ -270,6 +283,8 @@ struct ContentView: View {
         wordFromCard = false
         wordFromCards = false
         wordFromToday = false
+        wordFromZukan = false
+        wordFromLetterWords = false
         self.screen = kind == .clothes ? .closet : .town
       }
     case .shiritori:
@@ -291,6 +306,28 @@ struct ContentView: View {
         shiritoriStore.send(.wordWritten)
         self.screen = .shiritori
       }
+    case .zukan:
+      ZukanView(
+        onWrite: { text in
+          wordStart = text
+          wordFromCard = false
+          wordFromCards = false
+          wordFromLetterWords = false
+          wordFromZukan = true
+          self.screen = .word
+        },
+        onLocked: { lockedScript = $0 })
+    case .letterWords:
+      if let cardChar {
+        LetterWordsView(char: cardChar) { text in
+          wordStart = text
+          wordFromCard = false
+          wordFromCards = false
+          wordFromZukan = false
+          wordFromLetterWords = true
+          self.screen = .word
+        }
+      }
     case .places:
       PlacesView(
         onSelect: { place in
@@ -305,7 +342,8 @@ struct ContentView: View {
             break
           }
         },
-        onShiritori: { self.screen = .shiritori })
+        onShiritori: { self.screen = .shiritori },
+        onZukan: { self.screen = .zukan })
     case .themes:
       if let selectedPlace {
         ThemesView(place: selectedPlace) { theme in
@@ -320,6 +358,8 @@ struct ContentView: View {
           wordFromCard = false
           wordFromCards = true
           wordFromToday = false
+          wordFromZukan = false
+          wordFromLetterWords = false
           self.screen = .word
         }
       }
@@ -339,6 +379,16 @@ struct ContentView: View {
       wordFromCard = false
       wordStart = nil
       screen = .card
+    case .word where wordFromZukan:
+      wordFromZukan = false
+      wordStart = nil
+      screen = .zukan
+    case .word where wordFromLetterWords:
+      wordFromLetterWords = false
+      wordStart = nil
+      screen = .letterWords
+    case .letterWords: screen = .card
+    case .zukan: screen = .places
     case .word where wordFromCards:
       wordFromCards = false
       wordStart = nil
@@ -435,6 +485,8 @@ struct ContentView: View {
           wordStart = nil
           wordFromCard = false
           wordFromCards = false
+          wordFromZukan = false
+          wordFromLetterWords = false
           selectedPlace = nil
           selectedTheme = nil
           screen = .places

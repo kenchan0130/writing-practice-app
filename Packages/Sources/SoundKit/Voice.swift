@@ -25,6 +25,11 @@ public enum VoiceLine: String, CaseIterable, Sendable {
   case shiritoriEnd
   /// ホームで、きょうのことばを見せるとき（D35）。
   case todayWord
+  /// ずかんで、まだ書いていないことば（影絵）を触ったとき（D181）。
+  case zukanHint
+  /// もじから さがすで「ん」「を」を押したとき（D45・D181）。
+  case noWordsN
+  case noWordsWo
 
   public var text: String {
     switch self {
@@ -41,6 +46,9 @@ public enum VoiceLine: String, CaseIterable, Sendable {
     case .shiritoriWin: "すごい！ かったね！"
     case .shiritoriEnd: "きょうは ここまで！ たのしかったね"
     case .todayWord: "きょうの ことばは これ！"
+    case .zukanHint: "かいて みよう"
+    case .noWordsN: "『ん』から はじまる ことばは ないんだ"
+    case .noWordsWo: "『を』は ことばの はじめには つかわないんだ"
     }
   }
 }
