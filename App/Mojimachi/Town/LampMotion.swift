@@ -22,17 +22,17 @@ enum LampMotion {
   private static func lamps(_ word: String) -> (lamps: [Lamp], pattern: Pattern)? {
     switch word {
     case "しんごう":
-      let r: CGFloat = 32.7 / 512
+      let r: CGFloat = 32.2 / 512
       return (
         [
-          Lamp(x: 152 / 512, y: 104.8 / 512, r: r), Lamp(x: 256 / 512, y: 104.8 / 512, r: r),
-          Lamp(x: 360 / 512, y: 104.8 / 512, r: r),
+          Lamp(x: 153.6 / 512, y: 108.6 / 512, r: r), Lamp(x: 256 / 512, y: 108.6 / 512, r: r),
+          Lamp(x: 358.4 / 512, y: 108.6 / 512, r: r),
         ], .signal
       )
     case "ふみきり":
-      let r: CGFloat = 14.9 / 512
+      let r: CGFloat = 14.6 / 512
       return (
-        [Lamp(x: 100.4 / 512, y: 208.1 / 512, r: r), Lamp(x: 151.1 / 512, y: 208.1 / 512, r: r)],
+        [Lamp(x: 103.6 / 512, y: 229.9 / 512, r: r), Lamp(x: 153.2 / 512, y: 229.9 / 512, r: r)],
         .crossing
       )
     default: return nil

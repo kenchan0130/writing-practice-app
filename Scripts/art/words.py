@@ -18,6 +18,7 @@ HUB = "#d8d2cc"
 NAVY = "#34507e"
 
 W = {}
+GROUND = {"inu", "ushi", "zou", "kirin", "neko", "kuma"}  # side-view animals: feet stay on the old ground line
 
 
 def word(f):
@@ -52,198 +53,194 @@ def body(a, col, belly=None, hooves=None, toes=False):
             a.line(x, 438, x, 452, sw=7)
 
 
-@word
-def ushi():
-    a = Art()
-    a.path("M340 400 C385 400 400 370 392 345", sw=10)
-    a.path("M392 345 C378 330 386 312 400 320 C414 312 420 332 404 344 Z", fill=O, sw=6)
-    a.path(BODY, fill=WHITE)
-    a.path("M300 322 C326 314 344 330 344 352 C346 384 320 396 302 386 C284 376 280 336 300 322 Z", fill="#3b2f2a", sw=0, stroke="none")
-    a.ellipse(204, 404, 24, 14, "#3b2f2a", sw=0, stroke="none")
-    a.path(HOOF_L, fill="#6b5446", sw=9)
-    a.path(HOOF_R, fill="#6b5446", sw=9)
-    a.path(BODY)
-    # horns, ears
-    a.path("M178 120 C160 100 160 70 176 64 C190 72 200 96 204 110 Z", fill="#fff1c9")
-    a.path(mirror("M178 120 C160 100 160 70 176 64 C190 72 200 96 204 110 Z"), fill="#fff1c9")
-    ear = "M140 160 C110 150 66 158 60 178 C70 200 112 204 142 192 Z"
-    inner = "M128 168 C110 166 88 170 82 178 C92 188 112 190 130 186 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=WHITE)
-    for d in (inner, mirror(inner)):
-        a.blob(d, PINK_IN)
-    a.path(HEAD, fill=WHITE)
-    # patches stay inside the head
-    a.blob("M146 160 C150 128 182 106 226 104 C236 128 222 156 196 166 C176 174 156 172 146 160 Z", "#3b2f2a")
-    a.ellipse(338, 132, 28, 18, "#3b2f2a", sw=0, stroke="none")
-    a.path(HEAD)
-    a.path("M236 98 C238 82 252 78 256 90 C262 76 278 82 276 98", fill=WHITE, sw=9)
-    # bell
-    a.path("M200 306 C230 322 282 322 312 306", stroke=RED, sw=14)
-    a.path("M240 320 C240 304 272 304 272 320 L278 348 L234 348 Z", fill=YEL2, sw=9)
-    a.dot(256, 352, 6, O)
-    # muzzle and face
-    a.ellipse(256, 258, 104, 56, PINK)
-    a.ellipse(220, 252, 11, 15, O, sw=0, stroke="none")
-    a.ellipse(292, 252, 11, 15, O, sw=0, stroke="none")
-    a.path("M236 284 C248 294 264 294 276 284", sw=8)
-    a.shine("M196 228 C210 220 226 220 236 224")
-    a.face(cy=180, blush_y=222)
-    return a
+# --- batch A helpers begin (saru tora kaba rakuda buta hitsuji tanuki kitsune usagi uma shika risu) ---
+GROUND.update({"saru", "tora", "kaba", "rakuda", "buta", "hitsuji", "tanuki", "kitsune", "usagi", "uma", "shika", "risu"})
 
 
-@word
-def inu():
-    a = Art()
-    TAN, EAR = "#f2c48d", "#b8794a"
-    a.tube("M336 404 C378 398 404 360 396 318 C394 306 400 296 410 292", TAN, 40, 20)
-    body(a, TAN, belly=CREAM, toes=True)
-    a.path(HEAD, fill=TAN)
-    a.ellipse(256, 252, 76, 52, CREAM)
-    ear = "M164 108 C120 104 92 146 96 214 C98 250 130 256 142 232 C152 210 160 168 190 116 Z"
-    a.path(ear, fill=EAR)
-    a.path(mirror(ear), fill=EAR)
-    a.path("M236 226 C236 214 276 214 276 226 C276 240 262 246 256 246 C250 246 236 240 236 226 Z", fill=EYE, sw=0, stroke="none")
-    a.dot(248, 224, 5, WHITE)
-    a.path("M256 246 L256 260 M256 260 C250 274 232 274 230 262 M256 260 C262 274 280 274 282 262", sw=7)
-    a.face(cy=178, gap=56, blush_y=222, blush_dx=100)
-    a.path("M200 310 C230 328 282 328 312 310", stroke=RED, sw=16)
-    a.circle(256, 338, 13, YEL2, sw=8)
-    a.shine("M232 108 C250 102 270 102 284 106")
-    return a
+def a_face(a, cx, y, gap, r=17, cheek=None):
+    """Two eyes of the same size and two cheeks, mirrored around cx. cheek = (dx, y, rx, ry)."""
+    a.eye(cx - gap, y, r)
+    a.eye(cx + gap, y, r)
+    if cheek:
+        dx, cy, rx, ry = cheek
+        a.cheek(cx - dx, cy, rx, ry)
+        a.cheek(cx + dx, cy, rx, ry)
 
 
-@word
-def neko():
-    a = Art()
-    OR, STR = "#f6b26b", "#d9843a"
-    a.tube("M338 420 C392 424 420 386 410 336 C402 300 420 274 446 284", OR, 40, 20)
-    body(a, OR, belly=CREAM, toes=True)
-    ear = "M140 168 L150 72 C152 64 160 62 166 66 L236 104 Z"
-    inner = "M158 140 L164 92 L214 112 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=OR)
-    for d in (inner, mirror(inner)):
-        a.blob(d, PINK_IN)
-    a.path(HEAD, fill=OR)
-    for d in ("M256 98 L256 128", "M230 102 L234 124", "M282 102 L278 124"):
-        a.path(d, stroke=STR, sw=10)
-    a.ellipse(256, 246, 58, 40, CREAM, sw=0, stroke="none")
-    a.path("M244 226 L268 226 L256 240 Z", fill="#f28a9b", sw=6)
-    a.path("M256 240 L256 248 M256 248 C250 260 236 260 234 250 M256 248 C262 260 276 260 278 250", sw=7)
-    for d in ("M180 228 L118 220", "M180 244 L120 252"):
-        a.path(d, sw=6)
-        a.path(mirror(d), sw=6)
-    a.face(cy=182, gap=58, blush_y=222, blush_dx=104)
-    a.shine("M150 170 C152 152 160 138 172 128")
-    return a
+def a_snout(a, cx, y, col=EYE, w=16, m=1.0, line=False):
+    """A rounded-triangle nose (top at y) and a small 'w' mouth under it. m scales the mouth."""
+    d = (f"M{cx - w} {y} C{cx - w} {y - w * 0.62} {cx + w} {y - w * 0.62} {cx + w} {y} "
+         f"C{cx + w} {y + w * 0.7} {cx + w * 0.25} {y + w * 1.06} {cx} {y + w * 1.06} "
+         f"C{cx - w * 0.25} {y + w * 1.06} {cx - w} {y + w * 0.7} {cx - w} {y} Z")
+    if line:
+        a.path(d, fill=col, sw=6)
+    else:
+        a.blob(d, col)
+        a.dot(cx - w * 0.36, y - w * 0.12, w * 0.26, WHITE)
+    y1 = y + w * 1.06
+    y2 = y1 + 9 * m
+    a.path(f"M{cx} {y1} L{cx} {y2} M{cx} {y2} C{cx - 6 * m} {y2 + 12 * m} {cx - 20 * m} {y2 + 12 * m} {cx - 24 * m} {y2 + 2 * m} "
+           f"M{cx} {y2} C{cx + 6 * m} {y2 + 12 * m} {cx + 20 * m} {y2 + 12 * m} {cx + 24 * m} {y2 + 2 * m}", sw=7)
 
 
-@word
-def kuma():
-    a = Art()
-    BR, LT = "#b07a4f", "#f2d2a9"
-    body(a, BR, belly=LT, toes=True)
-    for x in (156, 356):
-        a.circle(x, 116, 42, BR)
-        a.dot(x, 118, 22, LT)
-    a.path(HEAD, fill=BR)
-    a.ellipse(256, 252, 64, 46, LT)
-    a.ellipse(256, 232, 20, 14, EYE, sw=0, stroke="none")
-    a.dot(250, 228, 4.5, WHITE)
-    a.path("M256 246 L256 258 M256 258 C250 270 236 270 234 260 M256 258 C262 270 276 270 278 260", sw=7)
-    a.face(cy=178, gap=58, blush_y=224, blush_dx=102)
-    a.shine("M150 170 C152 152 160 138 172 128")
-    return a
+def a_wool(cx, cy, rx, ry, n, start=0.0, puff=0.62):
+    """One closed fluffy outline: n round bumps along an ellipse (wool, a tail puff). One path, not circles."""
+    import math
+    pts = [(cx + rx * math.cos(start + 2 * math.pi * i / n), cy + ry * math.sin(start + 2 * math.pi * i / n)) for i in range(n)]
+    f = lambda v: f"{v:.1f}"
+    out = [f"M{f(pts[0][0])} {f(pts[0][1])}"]
+    for i in range(n):
+        (px, py), (qx, qy) = pts[i], pts[(i + 1) % n]
+        tx, ty = qx - px, qy - py
+        nx, ny = ty, -tx          # outward for a clockwise (on screen) walk
+        k, e = puff, 0.12
+        out.append(f"C{f(px + nx * k - tx * e)} {f(py + ny * k - ty * e)} {f(qx + nx * k + tx * e)} {f(qy + ny * k + ty * e)} {f(qx)} {f(qy)}")
+    return " ".join(out) + " Z"
+
+
+def a_band(a, cubics, t0, t1, w0, w1, col, k=6):
+    """A stripe across a taper()-shaped tail that follows its curve (band() is straight; fine for thin tails only)."""
+    ts = [t0 + (t1 - t0) * i / k for i in range(k + 1)]
+    pts = [at(cubics, t, (w0 + (w1 - w0) * t) / 2 + 1) for t in ts] + [at(cubics, t, -(w0 + (w1 - w0) * t) / 2 - 1) for t in ts[::-1]]
+    a.blob("M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z", col)
+
+
+def a_ear_round(a, cx, dx, y, r, fill, inner, head, ir=0.5, shift_in=3):
+    """Round ears in the same part as the head; the inner colour is hidden where the head covers it."""
+    for s in (-1, 1):
+        a.sil_ellipse(cx + s * dx, y, r, r - 1, fill)
+    a.sil(head, fill)
+    for s in (-1, 1):
+        a.ellipse(cx + s * (dx - shift_in), y + 2, r * ir, r * ir - 1, inner, sw=0, stroke="none")
+    a.blob(head, fill)
+# --- batch A helpers end ---
 
 
 @word
 def uma():
     a = Art()
-    CH, MANE, MZ = "#d9935a", "#7a4a2b", "#f2c49a"
-    HD = ("M256 72 C332 72 366 118 364 178 C362 220 354 248 352 270 C348 306 312 324 256 324 "
-          "C200 324 164 306 160 270 C158 248 150 220 148 178 C146 118 180 72 256 72 Z")
-    a.path("M338 372 C384 362 408 322 400 286 C432 304 446 356 428 398 C416 424 384 434 350 424 Z", fill=MANE)
-    a.path(BODY, fill=CH)
-    a.path(HOOF_L, fill="#6b5446", sw=9)
-    a.path(HOOF_R, fill="#6b5446", sw=9)
-    a.path(BODY)
-    ear = "M178 116 C166 84 170 52 184 38 C204 52 216 80 216 100 Z"
-    inner = "M184 100 C178 82 180 64 186 56 C196 66 202 82 202 96 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=CH)
-    for d in (inner, mirror(inner)):
-        a.blob(d, PINK_IN)
-    a.path("M214 74 C262 42 336 58 366 112 C394 164 388 236 368 300 L334 300 C344 238 344 168 304 112 Z", fill=MANE)
-    a.path(HD, fill=CH)
-    a.blob("M244 130 C244 166 238 196 234 222 L278 222 C274 196 268 166 268 130 Z", WHITE)
-    a.path("M206 92 C222 66 290 66 306 92 L298 128 L280 110 L266 140 L252 112 L236 136 L226 108 L212 122 Z", fill=MANE)
-    a.ellipse(256, 268, 92, 54, MZ)
-    a.ellipse(222, 264, 9, 13, EYE, sw=0, stroke="none")
-    a.ellipse(290, 264, 9, 13, EYE, sw=0, stroke="none")
-    a.path("M238 292 C250 302 262 302 274 292", sw=8)
-    a.face(cy=178, gap=60, blush_y=216, blush_dx=92)
-    a.shine("M168 200 C166 180 168 160 176 146")
-    return a
+    CH, CH_D, MANE, MZ, HOOF = "#d9935a", "#bd7a45", "#7a4a2b", "#f2c49a", "#5f4a3e"
+    G = 462
+    neck = [(318, 304, 292, 270, 258, 232, 236, 190)]
+    with a.part():
+        hoofed(a, [(336, 320), (342, 380), (340, 412), (342, 444)], [46, 30, 32, 26], G, CH_D, HOOF, hh=20)
+        hoofed(a, [(416, 320), (402, 372), (414, 408), (408, 444)], [46, 32, 30, 26], G, CH_D, HOOF, hh=20)
+    with a.part():
+        a.sil("M462 250 C524 240 560 300 548 372 C542 408 518 420 498 408 C514 372 506 326 456 300 Z", MANE)
+        a.sil("M258 70 C290 80 310 112 312 150 C306 150 300 152 296 156 C318 156 340 176 342 206 "
+              "C336 204 330 206 326 210 C348 210 372 228 374 258 L340 272 L260 200 L240 110 Z", MANE)
+    with a.part():
+        a.sil(taper(neck, 130, 96, cap=False), CH)
+        a.sil("M262 252 C310 228 404 226 450 246 C490 264 494 320 470 346 C446 368 384 362 334 364 "
+              "C296 366 262 366 246 342 C232 316 238 272 262 252 Z", CH)
+        hoofed(a, [(288, 310), (284, 380), (282, 412), (280, 444)], [66, 36, 40, 30], G, CH, HOOF, hh=20)
+        hoofed(a, [(452, 300), (450, 364), (468, 406), (462, 444)], [88, 44, 36, 30], G, CH, HOOF, hh=20)
+        a.blob("M318 364 C350 366 390 364 420 358 C416 350 416 344 418 338 C386 348 350 348 320 344 Z", CH_D)
+        a.ink([(422, 368, 412, 340, 420, 310, 442, 290)], 8, a=1, b=0)
+        a.ink([(314, 368, 320, 348, 318, 330, 310, 314)], 7, a=1, b=0)
+        a.shine("M430 262 C448 264 462 276 466 294", sw=7)
+    cx = 196
+    HEADP = ("M196 40 C252 40 280 80 278 128 C276 168 268 190 260 208 C250 234 228 246 196 246 "
+             "C164 246 142 234 132 208 C124 190 116 168 114 128 C112 80 140 40 196 40 Z")
+    with a.part():
+        sym(a, "M142 86 C128 54 132 22 148 4 C170 20 182 48 182 74 Z", CH, cx)
+        a.sil(HEADP, CH)
+        sym(a, "M150 72 C142 52 144 32 150 22 C162 34 168 52 168 68 Z", PINK_IN, cx, sil=False)
+        a.blob(HEADP, CH)
+        a.blob("M196 62 C210 62 212 84 210 108 C208 134 212 150 216 166 L176 166 C180 150 184 134 182 108 C180 84 182 62 196 62 Z", WHITE)
+    a.ellipse(cx, 204, 58, 36, MZ, sw=0, stroke="none")
+    a.sil("M172 50 C176 28 216 28 220 50 C220 66 214 78 208 86 C208 74 202 70 196 82 "
+          "C192 70 186 72 184 86 C178 78 172 66 172 50 Z", MANE)
+    for s in (-1, 1):
+        a.ellipse(cx + s * 20, 202, 6.5, 9.5, O, sw=0, stroke="none")
+    a.path("M178 224 C189 233 203 233 214 224", sw=7)
+    a_face(a, cx, 136, 42, 17, cheek=(58, 170, 14, 8))
+    return a.flipped()
 
 
 @word
 def shika():
     a = Art()
-    BR, AN = "#c98a52", "#f0d9a8"
-    for d in ("M208 116 C198 84 178 62 150 46", "M188 84 C200 66 204 50 200 34", "M170 66 C150 68 132 62 118 48"):
-        a.tube(d, AN, 32, 12)
-        a.tube(mirror(d), AN, 32, 12)
-    a.path(BODY, fill=BR)
-    a.ellipse(256, 372, 48, 42, CREAM, sw=0, stroke="none")
-    for x, y in ((190, 316), (322, 316), (184, 352), (328, 352), (200, 386), (312, 386)):
-        a.dot(x, y, 8, CREAM)
-    a.path(HOOF_L, fill="#6b5446", sw=9)
-    a.path(HOOF_R, fill="#6b5446", sw=9)
-    a.path(BODY)
-    ear = "M140 162 C110 144 64 146 54 168 C62 196 108 204 142 192 Z"
-    inner = "M128 168 C108 162 84 164 76 172 C86 184 108 188 128 184 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=BR)
-    for d in (inner, mirror(inner)):
-        a.blob(d, PINK_IN)
-    a.path(HEAD, fill=BR)
-    for x, y in ((226, 116), (256, 108), (286, 116)):
-        a.dot(x, y, 7, CREAM)
-    a.ellipse(256, 254, 62, 44, CREAM)
-    a.ellipse(256, 236, 18, 13, EYE, sw=0, stroke="none")
-    a.dot(250, 232, 4, WHITE)
-    a.path("M256 249 L256 260 M256 260 C250 272 236 272 234 262 M256 260 C262 272 276 272 278 262", sw=7)
-    a.face(cy=180, gap=58, blush_y=224, blush_dx=102)
+    BR, BR_D, AN, HOOF = "#c98a52", "#ad7340", "#f0d9a8", "#5f4a3e"
+    G = 470
+    neck = [(318, 310, 292, 276, 258, 236, 232, 190)]
+    with a.part():
+        hoofed(a, [(336, 326), (346, 388), (346, 420), (350, 452)], [38, 24, 26, 20], G, BR_D, HOOF, hh=18)
+        hoofed(a, [(414, 326), (398, 380), (408, 416), (400, 452)], [40, 26, 24, 20], G, BR_D, HOOF, hh=18)
+    with a.part():
+        a.sil("M468 262 C496 252 516 272 510 302 C494 304 474 296 462 284 Z", BR)
+        a.sil(taper(neck, 112, 80, cap=False), BR)
+        a.sil("M268 262 C314 240 404 238 448 256 C486 272 490 322 468 346 C444 366 386 360 338 362 "
+              "C300 364 268 364 252 342 C238 318 244 280 268 262 Z", BR)
+        hoofed(a, [(292, 316), (286, 386), (282, 420), (278, 452)], [54, 26, 30, 22], G, BR, HOOF, hh=18)
+        hoofed(a, [(452, 306), (452, 370), (470, 414), (466, 452)], [74, 34, 28, 22], G, BR, HOOF, hh=18)
+        a.blob("M484 272 C502 270 510 284 508 300 C498 300 488 294 480 286 Z", WHITE)
+        a.blob("M318 362 C350 365 392 362 420 357 C390 344 348 345 318 362 Z", "#e6bd8e")
+        for x, y, r in ((330, 270, 9), (366, 262, 10), (404, 264, 9), (438, 278, 8), (350, 294, 7), (390, 292, 8), (426, 304, 7)):
+            a.ellipse(x, y, r, r - 1, CREAM, sw=0, stroke="none")
+        a.ink([(424, 366, 414, 340, 422, 312, 444, 294)], 8, a=1, b=0)
+        a.ink([(310, 366, 316, 348, 314, 332, 306, 318)], 7, a=1, b=0)
+    cx = 200
+    with a.part():
+        for d in (taper([(172, 96, 160, 64, 142, 36, 118, 16)], 18, 12),
+                  taper([(158, 66, 166, 48, 170, 32, 170, 14)], 13, 10),
+                  taper([(140, 38, 126, 42, 110, 40, 96, 32)], 12, 10)):
+            sym(a, d, AN, cx)
+    HEADP = ("M200 76 C254 76 284 112 284 156 C284 184 274 206 260 222 C244 240 224 248 200 248 "
+             "C176 248 156 240 140 222 C126 206 116 184 116 156 C116 112 146 76 200 76 Z")
+    with a.part():
+        sym(a, "M126 134 C96 108 56 112 44 134 C62 162 100 164 130 156 Z", BR, cx)
+        a.sil(HEADP, BR)
+        sym(a, "M114 138 C96 124 72 126 62 136 C76 150 98 152 118 148 Z", PINK_IN, cx, sil=False)
+        a.blob(HEADP, BR)
+    for x, y in ((182, 102), (200, 96), (218, 102)):
+        a.dot(x, y, 5, CREAM)
+    a.ellipse(cx, 214, 42, 28, CREAM, sw=0, stroke="none")
+    a_snout(a, cx, 200, EYE, 14, m=0.85)
+    a_face(a, cx, 154, 42, 16, cheek=(62, 192, 14, 8))
+    a.shine("M138 132 C146 116 160 104 176 98")
     return a
 
 
 @word
 def risu():
     a = Art()
-    OR, TL, LT = "#d98a47", "#eba460", "#f7dcb4"
-    a.path("M320 440 C410 452 478 404 474 320 C470 262 440 236 452 188 C462 150 494 128 474 90 "
-           "C454 56 398 58 384 96 C418 98 432 128 410 160 C380 204 382 252 372 300 C362 360 342 400 320 440 Z", fill=TL)
-    a.path("M424 116 C446 128 448 160 434 192 C418 232 432 270 440 316", stroke=LT, sw=12)
-    body(a, OR, belly=LT, toes=True)
-    ear = "M168 132 C158 98 168 72 190 58 C206 76 212 100 206 124 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=OR)
-    a.blob("M178 116 C174 96 180 82 190 74 C198 86 200 102 196 116 Z", PINK_IN)
-    a.blob(mirror("M178 116 C174 96 180 82 190 74 C198 86 200 102 196 116 Z"), PINK_IN)
-    a.path(HEAD, fill=OR)
-    a.ellipse(256, 254, 86, 50, LT)
-    a.dot(256, 232, 10, EYE)
-    a.path("M256 242 L256 250 M256 250 C250 262 236 262 234 252 M256 250 C262 262 276 262 278 252", sw=7)
-    a.rect(249, 258, 14, 14, WHITE, rx=3, sw=5)
-    a.face(cy=180, gap=58, blush_y=226, blush_dx=104)
-    # acorn held at the chest
-    a.path("M226 350 C226 330 286 330 286 350 C286 388 270 404 256 404 C242 404 226 388 226 350 Z", fill="#b0682f")
-    a.path("M220 352 C220 324 292 324 292 352 Z", fill="#6b4a2e")
-    a.path("M256 330 L262 316", sw=8)
-    a.ellipse(222, 374, 18, 14, OR, sw=9)
-    a.ellipse(290, 374, 18, 14, OR, sw=9)
-    a.shine("M150 170 C152 152 160 138 172 128")
+    OR, OR_D, TL, LT = "#d98a47", "#bf7436", "#eba460", "#f7dcb4"
+    G = 454
+    with a.part():
+        a.sil("M320 440 C410 452 478 404 474 320 C470 262 440 236 452 188 C462 150 494 128 474 90 "
+              "C454 56 398 58 384 96 C418 98 432 128 410 160 C380 204 382 252 372 300 C362 360 342 400 320 440 Z", TL)
+        a.ink([(436, 104, 458, 128, 446, 166, 434, 196), (434, 196, 420, 236, 434, 272, 438, 318)], 14, a=0, b=0, col=LT)
+    FOOTP = "M176 454 C158 454 158 430 178 426 C214 420 284 422 296 440 C300 448 296 454 288 454 Z"
+    with a.part():
+        a.sil("M236 240 C296 232 352 286 358 366 C362 420 334 454 286 454 L228 454 C198 454 186 424 190 376 "
+              "C194 326 204 262 236 240 Z", OR)
+        a.sil(FOOTP, OR)
+        a.blob("M214 290 C200 330 196 376 202 410 C212 424 236 426 252 420 C260 388 258 330 238 288 Z", LT)
+        a.blob(FOOTP, OR)
+        a.ink([(196, 425, 232, 418, 282, 422, 297, 442)], 9, a=1, b=0.3)
+        a.ink([(296, 336, 344, 336, 370, 388, 340, 438)], 9, a=0, b=0)
+        toes(a, 180, G + 1, d=-1, gap=12, h=10)
+    # acorn held at the chest; far hand behind it, near arm over it
+    a.sil_ellipse(170, 338, 15, 13, OR_D)
+    with a.part():
+        a.sil("M168 334 C168 316 228 316 228 334 C228 368 212 384 198 384 C184 384 168 368 168 334 Z", "#b0682f")
+        a.sil("M162 338 C160 304 236 304 234 338 Z", "#6b4a2e")
+        a.sil(taper([(198, 312, 199, 306, 201, 300, 204, 294)], 8, 7), "#6b4a2e")
+    with a.part():
+        a.sil(taper([(262, 226, 284, 288, 262, 334, 224, 346)], 40, 30), OR)
+    cx = 226
+    HEADP = "M226 70 C290 70 328 110 328 160 C328 214 286 246 226 246 C166 246 124 214 124 160 C124 110 162 70 226 70 Z"
+    with a.part():
+        sym(a, "M150 120 C138 88 148 58 170 42 C190 62 198 88 192 112 Z", OR, cx)
+        a.sil(HEADP, OR)
+        sym(a, "M160 108 C154 88 160 70 170 60 C180 72 184 90 180 106 Z", PINK_IN, cx, sil=False)
+        a.blob(HEADP, OR)
+    a.ellipse(cx, 208, 62, 31, LT, sw=0, stroke="none")
+    a_snout(a, cx, 194, EYE, 11, m=0.8)
+    a.rect(cx - 6, 214, 12, 11, WHITE, rx=3, sw=5)
+    a_face(a, cx, 158, 46, 17, cheek=(78, 200, 15, 9))
+    a.shine("M150 136 C158 116 174 102 194 96")
     return a
 
 
@@ -251,189 +248,466 @@ def risu():
 RUN = "M60 395 L360 395 C425 395 452 352 440 318 C430 290 394 292 392 318 C391 336 410 342 421 333"
 
 
+# --- batch C helpers begin ---
+# のりもの・たてもの・こうえんの物（顔なし）。塗りだけを描いて、線は part() が付ける。
+C_K = 0.5523
+
+
+def c_rpoly(pts, r):
+    """A polygon with rounded corners (one radius, or one per corner; 0 = sharp)."""
+    n = len(pts)
+    rs = list(r) if isinstance(r, (list, tuple)) else [r] * n
+    out = []
+    for i in range(n):
+        p0, p1, p2 = pts[i - 1], pts[i], pts[(i + 1) % n]
+
+        def toward(q, dist):
+            dx, dy = q[0] - p1[0], q[1] - p1[1]
+            L = (dx * dx + dy * dy) ** 0.5 or 1
+            k = min(dist, L / 2) / L
+            return p1[0] + dx * k, p1[1] + dy * k
+        u, v = toward(p0, rs[i]), toward(p2, rs[i])
+        out.append(("M" if i == 0 else "L") + f"{u[0]:.1f} {u[1]:.1f}")
+        if rs[i] > 0:
+            out.append(f"Q{p1[0]:g} {p1[1]:g} {v[0]:.1f} {v[1]:.1f}")
+    return " ".join(out) + " Z"
+
+
+def c_rect(x, y, w, h, r):
+    return c_rpoly([(x, y), (x + w, y), (x + w, y + h), (x, y + h)], r)
+
+
+def c_circ(cx, cy, r, ry=None, ccw=False):
+    """A circle / ellipse as a path (ccw=True: a hole inside another shape)."""
+    ry = ry or r
+    k, j = r * C_K, ry * C_K
+    if ccw:
+        return (f"M{cx + r:g} {cy:g} C{cx + r:g} {cy - j:g} {cx + k:g} {cy - ry:g} {cx:g} {cy - ry:g} "
+                f"C{cx - k:g} {cy - ry:g} {cx - r:g} {cy - j:g} {cx - r:g} {cy:g} "
+                f"C{cx - r:g} {cy + j:g} {cx - k:g} {cy + ry:g} {cx:g} {cy + ry:g} "
+                f"C{cx + k:g} {cy + ry:g} {cx + r:g} {cy + j:g} {cx + r:g} {cy:g} Z")
+    return (f"M{cx + r:g} {cy:g} C{cx + r:g} {cy + j:g} {cx + k:g} {cy + ry:g} {cx:g} {cy + ry:g} "
+            f"C{cx - k:g} {cy + ry:g} {cx - r:g} {cy + j:g} {cx - r:g} {cy:g} "
+            f"C{cx - r:g} {cy - j:g} {cx - k:g} {cy - ry:g} {cx:g} {cy - ry:g} "
+            f"C{cx + k:g} {cy - ry:g} {cx + r:g} {cy - j:g} {cx + r:g} {cy:g} Z")
+
+
+def c_bar(x0, y0, x1, y1, w):
+    """A straight bar with round ends (pipes, posts, rails)."""
+    dx, dy = x1 - x0, y1 - y0
+    L = (dx * dx + dy * dy) ** 0.5 or 1
+    ux, uy = dx / L, dy / L
+    h = w / 2
+    nx, ny = -uy * h, ux * h
+    k = h * 1.333
+    return (f"M{x0 + nx:.1f} {y0 + ny:.1f} L{x1 + nx:.1f} {y1 + ny:.1f} "
+            f"C{x1 + nx + ux * k:.1f} {y1 + ny + uy * k:.1f} {x1 - nx + ux * k:.1f} {y1 - ny + uy * k:.1f} {x1 - nx:.1f} {y1 - ny:.1f} "
+            f"L{x0 - nx:.1f} {y0 - ny:.1f} "
+            f"C{x0 - nx - ux * k:.1f} {y0 - ny - uy * k:.1f} {x0 + nx - ux * k:.1f} {y0 + ny - uy * k:.1f} {x0 + nx:.1f} {y0 + ny:.1f} Z")
+
+
+def c_line(a, x0, y0, x1, y1, w=7, s=0.0, e=0.0, col=O):
+    """A straight inner line that thins out at its ends (s, e: 0 = point, 1 = full width)."""
+    a.ink([(x0, y0, x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3, x0 + (x1 - x0) * 2 / 3, y0 + (y1 - y0) * 2 / 3, x1, y1)],
+          w, a=s, b=e, col=col)
+
+
+def c_glass(a, d, ow=6, col=SKY, glint=None):
+    """A window: sky colour, a thin outline, and (glint = (x, y, len)) a short white slash."""
+    with a.part(ow):
+        a.sil(d, col)
+    if glint:
+        x, y, n = glint
+        a.path(f"M{x} {y + n} L{x + n * 0.6:g} {y}", stroke=WHITE, sw=6, **{"stroke-opacity": "0.75"})
+
+
+def c_wheel(a, cx, cy, r, hub=HUB):
+    """A tyre with a pale hub. Call it on its own (own outline) or inside a part."""
+    a.sil(c_circ(cx, cy, r), GREY)
+    a.dot(cx, cy, r * 0.47, hub)
+    a.dot(cx, cy, r * 0.17, "#a39a93")
+    q = r * 0.74
+    a.path(f"M{cx - q:g} {cy - q * 0.12:g} C{cx - q * 0.95:g} {cy - q * 0.55:g} {cx - q * 0.6:g} {cy - q * 0.9:g} {cx - q * 0.18:g} {cy - q * 0.98:g}",
+           stroke=WHITE, sw=5, **{"stroke-opacity": "0.35"})
+
+
+def c_lamp(a, cx, cy, rx, ry=None, col=YEL, ow=6):
+    with a.part(ow):
+        a.sil(c_circ(cx, cy, rx, ry), col)
+
+
+def c_waves(a, y=392, x0=30, x1=482, n=5, amp=13, depth=36, col="#9fd3f2"):
+    """A strip of water with round crests, in front of a boat."""
+    w = (x1 - x0) / n
+    top = [f"M{x0:g} {y:g}"]
+    for i in range(n):
+        xa = x0 + i * w
+        top.append(f"C{xa + w * 0.18:g} {y - amp:g} {xa + w * 0.32:g} {y - amp:g} {xa + w * 0.5:g} {y:g} "
+                   f"C{xa + w * 0.68:g} {y + amp:g} {xa + w * 0.82:g} {y + amp:g} {xa + w:g} {y:g}")
+    d = " ".join(top) + (f" L{x1:g} {y + depth - 12:g} Q{x1:g} {y + depth:g} {x1 - 12:g} {y + depth:g} "
+                         f"L{x0 + 12:g} {y + depth:g} Q{x0:g} {y + depth:g} {x0:g} {y + depth - 12:g} Z")
+    with a.part():
+        a.sil(d, col)
+    for i in range(n):
+        xa = x0 + i * w
+        a.path(f"M{xa + w * 0.1:g} {y + 4:g} C{xa + w * 0.2:g} {y - amp * 0.3:g} {xa + w * 0.3:g} {y - amp * 0.3:g} {xa + w * 0.4:g} {y + 4:g}",
+               stroke=WHITE, sw=6, **{"stroke-opacity": "0.85"})
+# --- batch C helpers end ---
+
+
 @word
 def sori():
     a = Art()
-    a.tube(shift(RUN, 48, -52), RED_D, 40, 18)
-    a.rect(160, 270, 28, 80, "#b36d32", rx=8)
-    a.rect(345, 270, 28, 80, "#b36d32", rx=8)
-    a.rect(110, 320, 32, 80, WOOD_D, rx=8)
-    a.rect(295, 320, 32, 80, WOOD_D, rx=8)
-    for dx, dy in ((52, -54), (26, -27), (0, 0)):
-        a.path(shift("M100 324 L350 324 L350 342 L100 342 Z", dx, dy), fill=WOOD_D)
-        a.path(shift("M118 306 L368 306 L350 324 L100 324 Z", dx, dy), fill=WOOD)
-    a.shine("M132 315 L330 315", sw=6)
-    a.tube(RUN, RED, 44, 22)
-    rope = "M424 314 C468 322 494 292 480 256 C468 226 440 214 452 184 C460 166 478 160 492 164"
-    a.tube(rope, YEL, 22, 8)
-    a.circle(424, 314, 11, YEL, sw=9)
+    PLANK = "#f6c98b"
+    DX, DY = 44, -54                                  # how far the far side sits from the near side
+    run_near = [(64, 404, 160, 404, 250, 404, 330, 404), (330, 404, 420, 404, 462, 372, 452, 296)]
+    run_far = [tuple(v + (DX if i % 2 == 0 else DY) for i, v in enumerate(c)) for c in run_near]
+    with a.part():                                    # far runner and its posts
+        a.sil(taper(run_far, 22, 22), RED_D)
+        a.sil(c_circ(64 + DX, 404 + DY, 11), RED_D)
+        for x in (120, 300):
+            a.sil(c_rect(x + DX, 300 + DY, 26, 96, 6), "#b36d32")
+    with a.part(9):                                   # the pull rope hangs between the two curls
+        a.sil(taper([(452, 300, 492, 330, 532, 296, 496, 246)], 10, 10), YEL)
+    with a.part():                                    # near posts
+        for x in (120, 300):
+            a.sil(c_rect(x, 300, 26, 96, 6), WOOD_D)
+    with a.part():                                    # the seat: one slab, planks drawn with thin lines
+        a.sil(c_rpoly([(136, 232), (398, 232), (352, 290), (352, 316), (92, 316), (92, 290)], [14, 16, 10, 10, 10, 10]), PLANK)
+        a.blob(c_rpoly([(94, 292), (350, 292), (350, 314), (94, 314)], [0, 0, 8, 8]), WOOD_D)
+        for k in (1, 2):
+            dx, dy = DX * k / 3, -58 * k / 3
+            c_line(a, 104 + dx, 290 + dy, 346 + dx, 290 + dy, 6, col=WOOD_D)
+    a.shine("M156 246 L300 246", sw=6)
+    with a.part():                                    # near runner with its curl
+        a.sil(taper(run_near, 24, 24), RED)
+        a.sil(c_circ(64, 404, 12), RED)
+    a.shine("M86 399 L290 399", sw=5)
     return a
 
 
 @word
 def kuruma():
     a = Art()
-    a.path("M64 330 C64 302 84 292 114 290 L156 288 C176 240 208 206 262 204 L318 204 C362 204 388 240 404 284 "
-           "L432 290 C454 294 462 312 462 334 L462 352 C462 364 454 370 442 370 L84 370 C72 370 64 362 64 350 Z", fill=RED)
-    a.path("M184 284 C196 254 218 232 252 230 L282 230 L282 284 Z", fill=SKY, sw=9)
-    a.path("M302 230 L318 230 C346 230 364 254 376 284 L302 284 Z", fill=SKY, sw=9)
-    a.path("M292 292 L292 352", sw=8)
-    a.rect(312, 304, 26, 10, WHITE, rx=5, sw=6)
-    a.ellipse(446, 318, 12, 14, YEL)
-    a.rect(58, 312, 16, 26, "#f28a9b", rx=6, sw=8)
-    a.shine("M226 214 C250 210 290 210 316 212")
-    for x in (150, 376):
-        a.circle(x, 372, 48, GREY)
-        a.circle(x, 372, 18, HUB, sw=8)
+    BODY_D = ("M66 322 C66 296 86 286 116 282 L150 278 C166 212 206 166 266 166 L306 166 C362 166 394 212 410 274 "
+              "L438 280 C460 286 470 304 470 328 L470 346 Q470 374 442 374 L94 374 Q66 374 66 346 Z")
+    with a.part():
+        a.sil(BODY_D, RED)
+        a.blob("M67 340 L469 340 L469 346 Q469 373 442 373 L94 373 Q67 373 67 346 Z", RED_D)
+        a.blob(c_rect(66, 300, 12, 30, 5), "#f9b6bf")              # tail lamp
+    c_glass(a, "M182 276 C194 232 222 198 262 196 L276 196 L276 276 Z", glint=(214, 232, 26))
+    c_glass(a, "M300 196 L310 196 C348 198 372 232 382 276 L300 276 Z")
+    c_line(a, 288, 286, 288, 362, 7)
+    a.blob(c_rect(306, 300, 30, 11, 5), WHITE)                     # door handle
+    c_lamp(a, 452, 312, 12, 15)
+    a.shine("M214 180 C240 174 300 172 330 180")
+    for x in (150, 380):
+        c_wheel(a, x, 376, 52)
     return a
 
 
 @word
 def fune():
     a = Art()
-    a.rect(304, 110, 52, 86, RED, rx=10)
-    a.rect(304, 128, 52, 18, WHITE, sw=0, stroke="none")
-    a.rect(304, 110, 52, 86, "none", rx=10)
-    a.path("M226 176 L226 92", sw=10)
-    a.path("M226 94 L276 112 L226 130 Z", fill=YEL2, sw=9)
-    a.rect(190, 170, 154, 64, WHITE, rx=16)
-    a.rect(212, 186, 46, 30, SKY, rx=8, sw=8)
-    a.rect(276, 186, 46, 30, SKY, rx=8, sw=8)
-    a.rect(132, 222, 262, 82, WHITE, rx=18)
-    for x in (178, 240, 302):
-        a.circle(x, 262, 17, SKY, sw=9)
-    a.path("M40 290 L472 290 C462 348 420 382 366 384 L160 384 C104 384 62 348 40 290 Z", fill=BLUE)
-    a.path("M52 316 L462 316", stroke=WHITE, sw=10)
-    a.path("M30 392 C56 370 86 370 112 390 C138 410 168 410 194 390 C220 370 250 370 276 390 "
-           "C302 410 332 410 358 390 C384 370 414 370 440 390 C454 400 470 404 482 400 L482 424 "
-           "C470 432 452 432 440 424 C414 406 384 406 358 424 C332 442 302 442 276 424 C250 406 220 406 194 424 "
-           "C168 442 138 442 112 424 C86 406 56 406 30 424 Z", fill="#9fd3f2")
-    a.shine("M110 302 L250 302")
+    with a.part():                                    # funnel
+        a.sil(c_rect(298, 84, 62, 110, 14), RED)
+        a.blob(c_rect(298, 112, 62, 22, 0), WHITE)
+    a.path("M212 166 L212 76", sw=9)                 # flag pole
+    with a.part(8):
+        a.sil(c_rpoly([(212, 74), (270, 96), (212, 118)], [0, 8, 0]), YEL2)
+    with a.part():                                    # upper cabin
+        a.sil(c_rect(176, 150, 176, 100, 22), WHITE)
+    c_glass(a, c_rect(200, 170, 52, 34, 10), glint=(212, 178, 16))
+    c_glass(a, c_rect(274, 170, 52, 34, 10))
+    with a.part():                                    # lower cabin
+        a.sil(c_rect(112, 222, 300, 96, 24), WHITE)
+        a.blob("M112 284 L412 284 L412 300 L112 300 Z", "#e6edf3")
+    for x in (176, 242, 308):
+        c_glass(a, c_circ(x, 256, 17))
+    with a.part():                                    # hull
+        a.sil("M50 284 L462 284 Q482 284 478 302 C466 356 424 392 366 392 L146 392 C88 392 46 356 34 302 "
+              "Q30 284 50 284 Z", BLUE)
+        a.blob("M39 310 L473 310 C471 316 469 322 467 327 L45 327 C43 322 41 316 39 310 Z", WHITE)
+        a.blob("M60 348 L452 348 C430 376 400 391 366 391 L146 391 C112 391 82 376 60 348 Z", BLUE_D)
+    a.shine("M70 297 L230 297", sw=6)
+    c_waves(a, 398, 28, 484, 5)
     return a
 
 
 @word
 def densha():
     a = Art()
-    for x in (140, 196, 340, 396):
-        a.circle(x, 380, 22, GREY, sw=9)
-    a.path("M262 126 L298 84 L334 126 M276 84 L320 84", sw=9)
-    a.rect(266, 116, 62, 12, GREY, rx=4, sw=7)
-    a.path("M70 176 C70 144 92 126 124 126 L440 126 C456 126 464 136 464 152 L464 356 C464 368 456 376 444 376 "
-           "L96 376 C80 376 70 366 70 350 Z", fill="#f4f1ea")
-    a.rect(76, 286, 382, 30, "#8cc63f", sw=0, stroke="none")
-    a.path("M70 176 C70 144 92 126 124 126 L440 126 C456 126 464 136 464 152 L464 356 C464 368 456 376 444 376 "
-           "L96 376 C80 376 70 366 70 350 Z")
-    a.path("M86 182 C86 162 98 150 116 150 L142 150 L142 252 L86 252 Z", fill=SKY, sw=9)
-    a.rect(162, 150, 54, 206, "#e1ddd3", rx=6, sw=9)
-    a.rect(172, 166, 34, 60, SKY, rx=5, sw=7)
-    a.rect(236, 156, 80, 76, SKY, rx=10, sw=9)
-    a.rect(334, 156, 80, 76, SKY, rx=10, sw=9)
-    a.ellipse(100, 336, 12, 10, YEL)
-    a.shine("M246 168 L276 168")
+    BODY, BODY_D, DOOR = "#fbf7ee", "#e6dfd0", "#ece5d6"
+    with a.part():                                    # wheels (behind the body)
+        for x in (124, 180, 332, 388):
+            a.sil(c_circ(x, 384, 25), GREY)
+    a.path("M262 126 L296 86 L330 126 M270 84 L322 84", sw=9)      # pantograph
+    with a.part(8):
+        a.sil(c_rect(258, 112, 76, 20, 6), "#8a949a")
+    with a.part():
+        a.sil(c_rpoly([(58, 126), (454, 126), (454, 378), (58, 378)], [70, 30, 26, 26]), BODY)
+        a.blob("M59 288 L453 288 L453 318 L59 318 Z", "#8cc63f")
+        a.blob(c_rpoly([(59, 346), (453, 346), (453, 377), (59, 377)], [0, 0, 25, 25]), BODY_D)
+        a.blob(c_rect(160, 150, 62, 210, 8), DOOR)
+        a.blob("M160 288 L222 288 L222 318 L160 318 Z", "#7ab536")
+    c_glass(a, c_rpoly([(82, 158), (140, 158), (140, 258), (82, 258)], [34, 10, 10, 10]), glint=(98, 190, 24))
+    c_glass(a, c_rect(170, 166, 42, 86, 8), ow=5)
+    c_line(a, 191, 262, 191, 358, 6, s=0.6, e=0.6)
+    c_glass(a, c_rect(240, 158, 82, 84, 12), glint=(256, 172, 22))
+    c_glass(a, c_rect(342, 158, 82, 84, 12))
+    c_lamp(a, 92, 346, 12, 11)
+    a.shine("M118 142 L236 142")
     return a
 
 
 @word
 def shinkansen():
     a = Art()
-    for x in (150, 200, 390, 440):
-        a.circle(x, 352, 16, GREY, sw=8)
-    BODYP = ("M36 326 C60 278 124 222 206 206 C246 198 286 196 326 196 L462 196 C474 196 480 204 480 216 "
-             "L480 334 C480 346 472 352 460 352 L62 352 C40 352 28 340 36 326 Z")
-    a.path(BODYP, fill=WHITE)
-    a.blob("M70 300 C130 286 200 278 270 278 L476 278 L476 294 L270 294 C206 294 140 300 64 316 Z", "#2a62b8")
-    a.blob("M60 324 C140 312 200 308 270 308 L476 308 L476 316 L270 316 C200 316 140 320 54 334 Z", "#2a62b8")
-    a.path(BODYP)
-    a.path("M168 230 C200 216 240 210 272 212 L268 242 C232 242 198 248 166 258 Z", fill=NAVY, sw=9)
-    for x in (300, 340, 380, 420):
-        a.rect(x, 222, 26, 28, SKY, rx=8, sw=7)
-    a.ellipse(84, 312, 12, 7, YEL, sw=6)
-    a.shine("M186 236 C206 228 224 224 240 222", sw=6)
-    a.shine("M120 236 C150 220 190 210 230 206")
+    STRIPE = "#2a62b8"
+    with a.part():
+        for x in (150, 202, 376, 428):
+            a.sil(c_circ(x, 364, 17), GREY)
+    with a.part():
+        a.sil("M36 334 C36 306 86 258 150 224 C206 194 262 172 330 172 L450 172 Q478 172 478 200 L478 336 "
+              "Q478 364 450 364 L70 364 C48 364 36 352 36 334 Z", WHITE)
+        a.blob("M39 342 L477 342 Q477 363 450 363 L70 363 C52 363 41 354 39 342 Z", "#dfe6ee")
+        a.blob("M58 332 C130 306 204 294 280 294 L477 294 L477 318 L280 318 C204 318 130 324 58 332 Z", STRIPE)
+    c_glass(a, "M170 240 C204 220 244 206 284 204 Q292 204 291 212 L288 236 Q287 244 278 244 C244 246 212 254 178 266 "
+               "Q164 270 164 256 Q164 246 170 240 Z", col=NAVY)
+    a.path("M190 244 C212 232 238 224 262 220", stroke=WHITE, sw=6, **{"stroke-opacity": "0.55"})
+    for x in (318, 372, 426):
+        c_glass(a, c_rect(x, 212, 36, 36, 10), ow=5)
+    c_lamp(a, 92, 308, 13, 8, ow=5)
+    a.shine("M140 244 C190 212 250 190 320 186")
     return a
 
 
 @word
 def jitensha():
     a = Art()
-    FR = GREEN
-    for cx in (140, 386):
-        a.circle(cx, 340, 82, "none", sw=34)
-        a.circle(cx, 340, 82, "none", stroke=GREY, sw=16)
-        for d in ((0, -1), (1, 0), (0.7, 0.7), (-0.7, 0.7), (-0.7, -0.7), (0.7, -0.7), (-1, 0), (0, 1)):
-            a.line(cx, 340, cx + 66 * d[0], 340 + 66 * d[1], sw=5, stroke="#b8aca4")
-        a.circle(cx, 340, 12, HUB, sw=7)
-    a.tube("M140 340 L250 340 L218 222 L140 340 M218 222 L340 230 L250 340 M340 230 L386 340", FR, 32, 14)
-    a.tube("M218 222 L210 196", GREY, 26, 10)
-    a.path("M176 196 C176 180 236 180 246 192 C246 206 190 210 176 196 Z", fill="#6b4a2e")
-    a.tube("M340 230 L330 178", GREY, 26, 10)
-    a.tube("M302 172 L346 172", GREY, 26, 10)
-    a.rect(350, 168, 96, 62, YEL2, rx=12)
-    a.path("M382 172 L382 226 M414 172 L414 226 M352 198 L444 198", stroke="#d9a62a", sw=6)
-    a.rect(350, 168, 96, 62, "none", rx=12)
-    a.circle(250, 340, 18, HUB, sw=8)
-    a.rect(238, 368, 40, 14, GREY, rx=5, sw=7)
-    a.path("M250 340 L258 372", sw=8)
+    FR, FR_D, STEEL_ = GREEN, "#5fa64f", "#b9c0c6"
+    R, F, BB, S, H1, H2 = (130, 346), (386, 346), (246, 346), (212, 222), (334, 214), (344, 252)
+    for cx, cy in (R, F):
+        for i in range(8):                                         # spokes
+            import math
+            t = math.pi * i / 4 + 0.39
+            a.line(cx, cy, cx + 68 * math.cos(t), cy + 68 * math.sin(t), sw=4, stroke="#c4bab2")
+        with a.part():
+            a.sil(c_circ(cx, cy, 84) + " " + c_circ(cx, cy, 69, ccw=True), GREY)
+    with a.part():                                    # seat post, saddle
+        a.sil(c_bar(S[0], S[1], 206, 196, 10), STEEL_)
+    with a.part():
+        a.sil("M168 188 C168 172 206 172 232 178 C248 182 250 196 238 200 C214 206 180 206 168 196 Z", "#6b4a2e")
+    with a.part():                                    # stem and handlebar
+        a.sil(c_bar(H1[0], H1[1], 326, 174, 10), STEEL_)
+        a.sil(c_bar(300, 168, 340, 172, 10), STEEL_)
+    with a.part():
+        a.sil(c_bar(290, 166, 306, 168, 14), GREY)
+    with a.part():                                    # frame: every tube in one part
+        for p, q in ((R, BB), (R, S), (S, BB), (S, H1), (BB, H2), (H1, H2), (H2, F)):
+            a.sil(c_bar(p[0], p[1], q[0], q[1], 15), FR)
+    with a.part():                                    # basket
+        a.sil(c_rpoly([(350, 158), (450, 158), (440, 232), (360, 232)], [10, 10, 16, 16]), YEL2)
+        a.blob(c_rpoly([(354, 214), (446, 214), (440, 231), (360, 231)], [0, 0, 14, 14]), "#e9b43a")
+    for x in (383, 417):
+        c_line(a, x, 164, x, 226, 5, col="#d9a62a")
+    c_line(a, 356, 188, 444, 188, 5, col="#d9a62a")
+    with a.part(7):                                   # chain wheel, crank, pedal
+        a.sil(c_circ(BB[0], BB[1], 21), HUB)
+    a.dot(BB[0], BB[1], 7, "#a39a93")
+    with a.part(7):
+        a.sil(c_bar(BB[0], BB[1], 262, 384, 7), STEEL_)
+    with a.part(7):
+        a.sil(c_rect(244, 380, 44, 14, 6), GREY)
+    for cx, cy in (R, F):
+        with a.part(6):
+            a.sil(c_circ(cx, cy, 11), HUB)
     return a
 
 
 # --------------------------------------------------------------- clothes ---
+# --- batch E2 helpers begin ---
+# きるもの・あそぶもの・からだ の絵で使う小さな部品（新しい描き方。part()/sil()/ink()）。
+def e2_f(v):
+    return f"{v:.1f}".rstrip("0").rstrip(".")
+
+
+def e2_rr(x, y, w, h, r):
+    """A rounded rectangle as a path (for sil())."""
+    k = r * 0.45
+    p = [("M", x + r, y), ("L", x + w - r, y), ("C", x + w - k, y, x + w, y + k, x + w, y + r),
+         ("L", x + w, y + h - r), ("C", x + w, y + h - k, x + w - k, y + h, x + w - r, y + h),
+         ("L", x + r, y + h), ("C", x + k, y + h, x, y + h - k, x, y + h - r),
+         ("L", x, y + r), ("C", x, y + k, x + k, y, x + r, y)]
+    return " ".join(c[0] + " ".join(e2_f(v) for v in c[1:]) for c in p) + " Z"
+
+
+def e2_poly(pts):
+    return "M" + " L".join(f"{e2_f(x)} {e2_f(y)}" for x, y in pts) + " Z"
+
+
+def e2_seg(x0, y0, x1, y1):
+    """A straight line as a cubic (for ink() and taper())."""
+    return (x0, y0, x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3, x0 + (x1 - x0) * 2 / 3, y0 + (y1 - y0) * 2 / 3, x1, y1)
+
+
+def e2_cap(x0, y0, x1, y1, w0, w1=None):
+    """A bar with a round end at both sides (sticks, fingers, rails). Width w0 at the start, w1 at the end."""
+    import math
+    w1 = w0 if w1 is None else w1
+    ang = math.atan2(y1 - y0, x1 - x0)
+    pts = []
+    for j in range(13):
+        t = ang + math.pi / 2 + math.pi * j / 12
+        pts.append((x0 + w0 / 2 * math.cos(t), y0 + w0 / 2 * math.sin(t)))
+    for j in range(13):
+        t = ang - math.pi / 2 + math.pi * j / 12
+        pts.append((x1 + w1 / 2 * math.cos(t), y1 + w1 / 2 * math.sin(t)))
+    return e2_poly(pts)
+
+
+def e2_line(a, x0, y0, x1, y1, w=8, s=1, e=1, col=O):
+    a.ink([e2_seg(x0, y0, x1, y1)], w, a=s, b=e, col=col)
+
+
+def e2_ink2(a, cubics, w=8, s=0, e=0, cx=256, col=O):
+    """The same inner line on both sides (mirror around x = cx)."""
+    a.ink(cubics, w, a=s, b=e, col=col)
+    a.ink([tuple((2 * cx - v) if i % 2 == 0 else v for i, v in enumerate(c)) for c in cubics], w, a=s, b=e, col=col)
+
+
+def e2_star(cx, cy, ro, ri, rot=-90):
+    import math
+    pts = []
+    for i in range(10):
+        r = ro if i % 2 == 0 else ri
+        t = math.radians(rot) + i * math.pi / 5
+        pts.append((cx + r * math.cos(t), cy + r * math.sin(t)))
+    return e2_poly(pts)
+
+
+def e2_blossom(a, cx, cy, R, col="#ffd1dc", mid=YEL2, rot=-90):
+    """A five-petal flower, fill only (pattern on cloth)."""
+    import math
+    for i in range(5):
+        t = math.radians(rot) + i * 2 * math.pi / 5
+        ux, uy = math.cos(t), math.sin(t)
+        vx, vy = -uy, ux
+        P = lambda u, v: f"{e2_f(cx + R * (u * ux + v * vx))} {e2_f(cy + R * (u * uy + v * vy))}"
+        a.blob(f"M{P(0, 0)} C{P(0.2, 0.62)} {P(1.0, 0.56)} {P(1.0, 0)} C{P(1.0, -0.56)} {P(0.2, -0.62)} {P(0, 0)} Z", col)
+    a.dot(cx, cy, R * 0.26, mid)
+
+
+def e2_note(a, x, y, s=1.0, col="#7a6fe0"):
+    """A music note with its own outline (head centre at x, y)."""
+    with a.part(ow=8 * s):
+        a.sil_ellipse(x, y, 21 * s, 16 * s, col)
+        a.sil(e2_rr(x + 12 * s, y - 78 * s, 9 * s, 78 * s, 3 * s), col)
+        a.sil(f"M{e2_f(x + 14 * s)} {e2_f(y - 78 * s)} C{e2_f(x + 34 * s)} {e2_f(y - 70 * s)} {e2_f(x + 58 * s)} {e2_f(y - 62 * s)} "
+              f"{e2_f(x + 54 * s)} {e2_f(y - 34 * s)} C{e2_f(x + 46 * s)} {e2_f(y - 50 * s)} {e2_f(x + 30 * s)} {e2_f(y - 54 * s)} "
+              f"{e2_f(x + 14 * s)} {e2_f(y - 58 * s)} Z", col)
+
+
+def e2_smile(a, cx, y, w=14, sw=7):
+    a.path(f"M{cx - w} {y} C{cx - w / 2} {y + w * 0.75} {cx + w / 2} {y + w * 0.75} {cx + w} {y}", sw=sw)
+
+
+def e2_face(a, cx, cy, gap, r=15, cheek_dx=None, cheek_dy=None, w=13):
+    """Front face of the body words and the doll: same-size eyes, cheeks, a small smile."""
+    a.eye(cx - gap, cy, r)
+    a.eye(cx + gap, cy, r)
+    dx = cheek_dx or gap + r * 1.7
+    dy = cheek_dy or r * 2.3
+    a.cheek(cx - dx, cy + dy, r * 1.05, r * 0.62)
+    a.cheek(cx + dx, cy + dy, r * 1.05, r * 0.62)
+    e2_smile(a, cx, cy + r * 1.9, w)
+
+
+def e2_collar(a, col, inside, edge=None, x=256, y=90, obi=252):
+    """The crossed collar of a yukata / kimono laid flat (the viewer's right side is on top, like a 'y')."""
+    k = 0.432
+    a.blob(e2_poly([(x - 20, y), (x + 20, y), (x + 1, y + 46)]), inside)          # the inside of the back
+    a.blob(e2_poly([(x - 52, y), (x - 18, y), (x + 12, y + 70), (x - 6, y + 106)]), col)   # under
+    e2_line(a, x - 52, y, x - 16, y + 83, 7)
+    e2_line(a, x - 18, y, x + 1, y + 44, 7)
+    h = obi - y
+    a.blob(e2_poly([(x + 54, y), (x + 20, y), (x + 20 - k * h, obi), (x + 54 - k * h, obi)]), col)  # over
+    if edge:
+        a.blob(e2_poly([(x + 31, y), (x + 20, y), (x + 20 - k * h, obi), (x + 31 - k * h, obi)]), edge)
+    e2_line(a, x + 54, y, x + 54 - k * h, obi, 7)
+    e2_line(a, x + 20, y, x + 20 - k * h, obi, 7)
+# --- batch E2 helpers end ---
+
+
 @word
 def kutsu():
     a = Art()
-    UP = ("M70 404 C48 352 86 314 140 314 C178 314 202 298 216 280 C226 268 232 256 236 246 "
-          "L328 238 C352 236 368 258 368 296 L370 404 Z")
-    LOOP = "M346 252 C350 236 366 234 372 246 C376 256 370 266 362 270"
+    UP = ("M70 404 C50 356 84 316 138 314 C176 312 204 294 222 262 C228 250 240 242 254 240 "
+          "L326 234 C352 232 368 254 368 290 L372 404 Z")
 
-    def shoe(upper):
-        s = Art()
-        s.path("M232 258 C230 236 242 222 258 222 C274 222 282 236 282 252 Z", fill="#9fd3f2")
-        s.tube(LOOP, YEL2, 22, 8)
-        s.path(UP, fill=upper)
-        s.path("M70 404 C48 352 86 314 140 314 C126 346 128 380 144 404 Z", fill=WHITE)
-        s.path(UP)
-        s.path("M154 308 L194 298 L224 384 L188 394 Z", fill=YEL2, sw=9)
-        s.path("M206 290 L234 262 L276 352 L244 372 Z", fill=YEL2, sw=9)
-        s.rect(46, 398, 330, 44, WHITE, rx=22)
-        s.path("M72 420 L350 420", stroke=RED, sw=7)
-        return s
+    def shoe(s, upper, shade, strap):
+        with s.part():                                  # lining and heel loop (behind the upper)
+            s.sil("M238 252 C236 224 262 210 292 210 C322 210 346 222 346 246 Z", "#9fd3f2")
+            s.sil(taper([(336, 252, 336, 206, 380, 206, 380, 256)], 15, 15, cap=False), strap)
+        with s.part():                                  # upper with the white toe cap
+            s.sil(UP, upper)
+            s.blob("M70 404 C50 356 84 316 138 314 C124 346 126 380 142 404 Z", WHITE)
+            s.blob("M142 400 C220 374 300 370 371 378 L372 404 L142 404 Z", shade)
+            s.ink([(138, 314, 124, 346, 126, 380, 142, 404)], 8, a=1, b=1)
+        with s.part(ow=9):                              # two straps
+            s.sil("M152 310 L192 298 L224 384 L188 396 Z", strap)
+            s.sil("M206 288 L238 262 L280 352 L246 372 Z", strap)
+        with s.part():                                  # sole
+            s.sil(e2_rr(46, 398, 332, 46, 22), WHITE)
+            s.blob(e2_rr(70, 417, 284, 9, 4), RED)
 
-    place(a, shoe(BLUE_D), 118, -46)
-    place(a, shoe(BLUE))
-    a.shine("M300 290 C302 280 306 272 314 266")
+    shoe(a, BLUE_D, "#3585bd", "#e9b93a")
+    front = Art()
+    shoe(front, BLUE, BLUE_D, YEL2)
+    place(a, front, -100, 42)
+    a.shine("M202 330 C204 320 208 312 216 306")
     return a
 
 
 @word
 def fuku():
     a = Art()
-    a.path("M182 96 C202 122 310 122 330 96 L420 136 C432 142 436 152 432 164 L410 228 C406 240 394 244 384 238 "
-           "L360 224 L360 420 C360 436 350 444 334 444 L178 444 C162 444 152 436 152 420 L152 224 L128 238 "
-           "C118 244 106 240 102 228 L80 164 C76 152 80 142 92 136 Z", fill="#f39a4a")
-    a.tube("M184 98 C204 136 308 136 328 98", "#fbc98a", 30, 12)
-    a.path("M106 204 L150 186", sw=8)
-    a.path(mirror("M106 204 L150 186"), sw=8)
-    # star
-    import math
-    pts = []
-    for i in range(10):
-        r = 52 if i % 2 == 0 else 24
-        t = -math.pi / 2 + i * math.pi / 5
-        pts.append(f"{256 + r * math.cos(t):.1f} {300 + r * math.sin(t):.1f}")
-    a.path("M" + " L".join(pts) + " Z", fill=YEL, sw=9)
-    a.shine("M176 250 C174 290 174 330 176 360")
+    OR, OR_D, COL = "#f39a4a", "#df8236", "#fbc98a"
+    with a.part():
+        a.sil("M182 96 C202 126 310 126 330 96 L420 136 C434 143 438 154 433 168 L412 228 C407 242 394 246 383 239 "
+              "L360 226 C358 290 360 360 362 420 C362 436 352 446 334 446 C290 450 222 450 178 446 "
+              "C160 446 150 436 150 420 C152 360 154 290 152 226 L129 239 C118 246 105 242 100 228 "
+              "L79 168 C74 154 78 143 92 136 Z", OR)
+        a.blob("M151 396 C200 410 312 410 361 396 L362 420 C362 436 352 446 334 446 C290 450 222 450 178 446 "
+               "C160 446 150 436 150 420 Z", OR_D)
+        for d in ("M100 228 C105 242 118 246 129 239 L152 226 L152 210 L124 222 C114 226 104 222 98 214 Z",):
+            a.blob(d, OR_D)
+            a.blob(mirror(d), OR_D)
+        a.blob("M182 96 C202 126 310 126 330 96 L348 104 C322 152 190 152 164 104 Z", COL)
+        a.ink([(164, 104, 190, 152, 322, 152, 348, 104)], 7, a=1, b=1)
+        e2_ink2(a, [e2_seg(110, 128, 143, 232)], 7, 1, 1)
+        e2_ink2(a, [(152, 228, 154, 210, 160, 196, 172, 184)], 8, 1, 0)
+    st = e2_star(256, 304, 54, 26)
+    a.path(st, fill=YEL, stroke=YEL, sw=12)
+    a.shine("M178 262 C176 296 176 330 178 360")
     return a
 
 
 @word
 def boushi():
     a = Art()
-    a.ellipse(256, 312, 196, 56, "#f9d867")
-    a.path("M138 304 C138 182 188 118 256 118 C324 118 374 182 374 304 C330 324 182 324 138 304 Z", fill=YEL2)
-    a.path("M140 270 C188 290 324 290 372 270 L374 304 C330 324 182 324 138 304 Z", fill=RED)
-    a.circle(256, 120, 13, YEL2, sw=9)
-    a.shine("M178 230 C178 196 192 168 214 150")
+    BRIM, BRIM_D, CROWN_D = "#f9d867", "#e9bd3c", "#e9b62e"
+    with a.part():
+        a.sil_ellipse(256, 316, 200, 58, BRIM)
+        a.blob("M126 318 C170 344 342 344 386 318 C380 350 320 362 256 362 C192 362 132 350 126 318 Z", BRIM_D)
+    a.sil_ellipse(256, 120, 17, 13, RED)
+    with a.part():
+        a.sil("M136 306 C132 186 186 118 256 118 C326 118 380 186 376 306 C332 328 180 328 136 306 Z", YEL2)
+        a.blob("M318 136 C362 170 380 232 376 306 C364 312 350 316 336 319 C344 250 344 186 318 136 Z", CROWN_D)
+        a.blob("M137 266 C186 288 326 288 375 266 L376 306 C332 328 180 328 136 306 Z", RED)
+        a.blob("M338 276 C352 273 364 270 375 266 L376 306 C364 312 350 316 336 319 Z", RED_D)
+        a.ink([(137, 266, 186, 288, 326, 288, 375, 266)], 7, a=1, b=1)
+    a.shine("M176 236 C176 198 192 168 216 150")
     return a
 
 
@@ -453,447 +727,848 @@ GARMENT = ("M196 92 L316 92 L452 122 C462 124 466 132 466 142 L466 250 C466 262 
 @word
 def yukata():
     a = Art()
-    a.path(GARMENT, fill=NAVY)
-    for x, y in ((92, 160), (420, 160), (120, 226), (392, 226), (180, 150), (334, 150), (190, 350), (322, 350),
-                 (256, 400), (190, 440), (322, 440), (300, 200)):
-        a.circle(x, y, 10, "none", stroke=WHITE, sw=6)
-    a.path("M150 268 L150 252 M362 252 L362 268", sw=8)
-    a.tube("M219 104 L268 214", "#9fd3f2", 30, 14)
-    a.tube("M293 104 L226 254", "#9fd3f2", 30, 14)
-    a.path("M226 300 L212 476", sw=8)
-    a.rect(150, 252, 212, 52, "#f7a8b3")
-    for d in ("M300 278 C336 244 384 252 382 280 C380 306 336 310 300 278 Z",
-              "M300 278 C264 244 216 252 218 280 C220 306 264 310 300 278 Z",
-              "M300 278 C318 306 330 344 322 380 C304 366 296 316 300 278 Z",
-              "M300 278 C282 306 266 340 272 372 C292 362 300 316 300 278 Z"):
-        a.path(d, fill="#f7a8b3", sw=9)
-    a.circle(300, 278, 12, "#f28a9b", sw=8)
-    a.path(GARMENT)
-    a.shine("M70 150 L70 230")
+    NAVY_D, OBI, OBI_D = "#293f66", "#f7a8b3", "#ee8a9c"
+    with a.part():
+        a.sil("M200 90 L312 90 L446 120 C460 123 466 132 466 146 L466 238 C466 258 454 270 434 270 L362 270 "
+              "L364 456 C364 470 356 478 342 478 L170 478 C156 478 148 470 148 456 L150 270 L78 270 "
+              "C58 270 46 258 46 238 L46 146 C46 132 52 123 66 120 Z", NAVY)
+        a.blob("M148 440 L364 440 L364 456 C364 470 356 478 342 478 L170 478 C156 478 148 470 148 456 Z", NAVY_D)
+        for d in ("M46 226 L150 250 L150 270 L78 270 C58 270 46 258 46 238 Z",):
+            a.blob(d, NAVY_D)
+            a.blob(mirror(d), NAVY_D)
+        for x, y in ((92, 164), (136, 222), (420, 164), (376, 222), (178, 150), (334, 152), (188, 356), (318, 346),
+                     (262, 410), (322, 436), (192, 432)):
+            a.circle(x, y, 11, "none", stroke=WHITE, sw=6)
+        e2_ink2(a, [e2_seg(150, 270, 150, 214)], 8, 1, 0)
+        e2_line(a, 228, 300, 214, 478, 7)
+        e2_collar(a, "#9fd3f2", NAVY_D)
+    with a.part():                                      # obi
+        a.sil(e2_rr(146, 252, 220, 52, 8), OBI)
+        a.blob("M146 286 L366 286 L366 296 C366 300 362 304 358 304 L154 304 C150 304 146 300 146 296 Z", OBI_D)
+    with a.part(ow=9):                                  # bow
+        for d in ("M300 278 C268 240 212 248 214 280 C216 310 266 312 300 278 Z",
+                  "M300 278 C332 240 388 248 386 280 C384 310 334 312 300 278 Z",
+                  "M300 278 C320 306 334 346 326 386 C306 368 294 318 300 278 Z",
+                  "M300 278 C282 306 264 340 270 376 C292 364 302 316 300 278 Z"):
+            a.sil(d, OBI)
+        a.ink([(286, 278, 268, 270, 250, 270, 236, 276)], 6, a=1, b=0)
+        a.ink([(314, 278, 332, 270, 350, 270, 364, 276)], 6, a=1, b=0)
+    a.sil_ellipse(300, 278, 15, 14, OBI_D)
+    a.shine("M72 152 L72 214")
     return a
 
 
 @word
 def kimono():
     a = Art()
-    K = "#e5534b"
-    sleeve = "M150 122 L60 122 C50 122 46 130 46 140 L46 360 C46 392 70 410 100 410 L150 410 Z"
-    a.path(sleeve, fill=K)
-    a.path(mirror(sleeve), fill=K)
-    a.path("M196 92 L316 92 L362 112 L362 462 C362 472 354 478 344 478 L168 478 C158 478 150 472 150 462 "
-           "L150 112 Z", fill=K)
-    for x, y, r in ((86, 170, 10), (118, 250, 11), (80, 330, 10), (122, 380, 8), (426, 170, 10), (394, 250, 11),
-                    (432, 330, 10), (390, 380, 8), (186, 360, 11), (322, 380, 12), (250, 430, 11), (196, 444, 8),
-                    (322, 446, 9), (184, 150, 8), (330, 150, 8)):
-        sakura_dot(a, x, y, r)
-    for x, y in ((104, 292), (408, 292), (282, 352), (214, 404)):
-        a.circle(x, y, 9, YEL2, sw=0, stroke="none")
-    a.tube("M219 104 L268 214", WHITE, 34, 18)
-    a.tube("M293 104 L226 254", WHITE, 34, 18)
-    a.path("M231 104 L274 196", stroke=K, sw=10)
-    a.path("M281 104 L230 232", stroke=K, sw=10)
-    a.path("M226 300 L212 476", sw=8)
-    a.rect(150, 244, 212, 66, YEL2)
-    a.path("M150 244 L362 244 L362 256 L150 256 Z", fill="#f7a8b3", sw=8)
-    for x in (184, 232, 280, 328):
-        a.path(f"M{x} 266 L{x + 14} 280 L{x} 294 L{x - 14} 280 Z", fill="#f6a04d", sw=0, stroke="none")
-    a.path("M150 282 L362 282", stroke="#6cb6e8", sw=10)
-    a.rect(150, 244, 212, 66, "none")
-    a.path("M196 92 L316 92 L362 112 L362 462 C362 472 354 478 344 478 L168 478 C158 478 150 472 150 462 L150 112 Z")
-    a.shine("M70 150 L70 230")
+    K, K_D = "#e5534b", "#c9403a"
+    SL = "M158 118 L66 118 C52 118 46 128 46 142 L46 356 C46 390 70 410 104 410 L158 410 Z"
+    with a.part():                                      # long sleeves
+        for d in (SL, mirror(SL)):
+            a.sil(d, K)
+        for d in ("M46 340 C60 372 100 384 158 384 L158 410 L104 410 C70 410 46 390 46 356 Z",):
+            a.blob(d, K_D)
+            a.blob(mirror(d), K_D)
+        for x, y, r in ((92, 176, 17), (112, 268, 19), (84, 344, 15), (420, 176, 17), (400, 268, 19), (428, 344, 15)):
+            e2_blossom(a, x, y, r)
+        for x, y in ((74, 250), (122, 330), (438, 250), (390, 330)):
+            a.dot(x, y, 7, YEL2)
+    with a.part():                                      # body
+        a.sil("M200 90 L312 90 L362 112 L364 456 C364 470 356 478 342 478 L170 478 C156 478 148 470 148 456 "
+              "L150 112 Z", K)
+        a.blob("M148 440 L364 440 L364 456 C364 470 356 478 342 478 L170 478 C156 478 148 470 148 456 Z", K_D)
+        for x, y, r in ((188, 364, 17), (316, 384, 19), (262, 432, 15), (180, 180, 14), (334, 180, 14)):
+            e2_blossom(a, x, y, r)
+        for x, y in ((286, 348), (196, 420), (332, 440)):
+            a.dot(x, y, 7, YEL2)
+        e2_line(a, 228, 308, 214, 478, 7)
+        e2_collar(a, WHITE, K_D, edge=K, obi=246)
+    with a.part():                                      # obi
+        a.sil(e2_rr(146, 244, 220, 66, 8), YEL2)
+        a.blob("M146 252 C146 248 150 244 154 244 L358 244 C362 244 366 248 366 252 L366 258 L146 258 Z", "#f7a8b3")
+        for x in (176, 216, 256, 296, 336):
+            a.blob(f"M{x} 266 L{x + 13} 279 L{x} 292 L{x - 13} 279 Z", "#f6a04d")
+        a.blob("M146 275 L366 275 L366 284 L146 284 Z", "#6cb6e8")
+        a.blob("M146 298 L366 298 L366 302 C366 306 362 310 358 310 L154 310 C150 310 146 306 146 302 Z", "#e9b93a")
+    a.sil_ellipse(256, 279, 15, 12, WHITE)
+    a.shine("M70 146 L70 220")
     return a
 
 
 @word
 def kutsushita():
     a = Art()
-    P, ACC = "#f08aa0", YEL2
+    LEG = ("M200 104 L300 104 L300 296 C300 362 262 404 202 404 L120 404 C82 404 58 384 58 354 "
+           "C58 322 82 300 120 300 L186 300 C196 300 200 294 200 284 Z")
 
-    def sock(col):
-        s = Art()
-        LEG = ("M200 104 L300 104 L300 300 C300 362 262 404 202 404 L118 404 C80 404 58 384 58 354 "
-               "C58 322 82 300 118 300 L200 300 Z")
-        s.path(LEG, fill=col)
-        s.blob("M118 300 C82 300 58 322 58 354 C58 384 80 404 118 404 C132 380 132 324 118 300 Z", ACC)
-        s.blob("M300 320 C300 370 266 404 214 404 C222 380 246 364 272 352 C286 344 296 334 300 320 Z", ACC)
-        s.rect(200, 170, 100, 22, WHITE, sw=0, stroke="none")
-        s.rect(200, 222, 100, 22, WHITE, sw=0, stroke="none")
-        s.path(LEG)
-        s.rect(190, 72, 120, 48, WHITE, rx=14)
-        for x in (220, 250, 280):
-            s.path(f"M{x} 84 L{x} 108", stroke="#e1ddd3", sw=6)
-        return s
+    def sock(s, col, acc, cuff):
+        with s.part():
+            s.sil(LEG, col)
+            s.blob("M120 300 C82 300 58 322 58 354 C58 384 82 404 120 404 C134 380 134 324 120 300 Z", acc)
+            s.blob("M300 316 C298 368 264 404 212 404 C222 378 246 362 270 350 C286 342 296 332 300 316 Z", acc)
+            s.blob(e2_poly([(200, 168), (300, 168), (300, 190), (200, 190)]), WHITE)
+            s.blob(e2_poly([(200, 218), (300, 218), (300, 240), (200, 240)]), WHITE)
+        with s.part():
+            s.sil(e2_rr(188, 70, 124, 52, 16), cuff)
+            for x in (220, 250, 280):
+                e2_line(s, x, 84, x, 108, 7, 0.7, 0.7, col="#dcd5c8")
 
-    place(a, sock("#e2738b"), 130, -40)
-    place(a, sock(P))
-    a.shine("M214 260 L214 290")
+    sock(a, "#e2738b", "#e9b93a", "#f1ece2")
+    front = Art()
+    sock(front, "#f08aa0", YEL2, WHITE)
+    place(a, front, -130, 40)
+    a.shine("M86 300 L86 330")
     return a
-
-
 
 
 # ------------------------------------------------------- more animals ------
 @word
 def saru():
     a = Art()
-    BR, LT = "#b9794a", "#f6dcb8"
-    a.tube("M340 410 C398 420 430 380 416 330 C406 296 430 276 452 292", BR, 40, 20)
-    body(a, BR, belly=LT, toes=True)
-    for x in (122, 390):
-        a.circle(x, 214, 38, BR)
-        a.circle(x, 214, 20, LT, sw=0, stroke="none")
-    a.path(HEAD, fill=BR)
-    a.path("M256 150 C292 118 346 150 336 200 C330 240 360 262 336 286 C312 314 200 314 176 286 "
-           "C152 262 182 240 176 200 C166 150 220 118 256 150 Z", fill=LT)
-    a.ellipse(256, 262, 52, 34, "#f0c291", sw=0, stroke="none")
-    a.dot(240, 258, 5, EYE)
-    a.dot(272, 258, 5, EYE)
-    a.path("M232 284 C246 296 266 296 280 284", sw=8)
-    a.face(cy=204, gap=40, blush_y=250, blush_dx=94, r=14)
-    a.shine("M150 150 C152 134 160 122 172 114")
+    BR, BRD, LT, MZ = "#b9794a", "#9c6238", "#f6dcb8", "#f0c291"
+    tail = [(346, 428, 428, 442, 470, 392, 452, 330), (452, 330, 442, 292, 474, 268, 496, 292)]
+    a.sil(taper(tail, 30, 22), BR)
+    FOOT = "M126 376 C156 368 186 390 190 424 C194 456 172 474 140 472 C108 470 88 450 90 420 C92 398 106 382 126 376 Z"
+    with a.part():
+        a.sil("M256 236 C292 236 320 250 336 282 C354 316 368 366 366 402 C362 444 322 460 256 460 "
+              "C190 460 150 444 146 402 C144 366 158 316 176 282 C192 250 220 236 256 236 Z", BR)
+        sym(a, FOOT, BR, 256)
+        a.blob("M256 286 C292 286 310 322 310 362 C310 408 292 436 256 436 C220 436 202 408 202 362 C202 322 220 286 256 286 Z", LT)
+        for s in (-1, 1):
+            a.ellipse(256 + s * 116, 426, 28, 31, LT, sw=0, stroke="none")
+        a.ink([(186, 394, 172, 378, 146, 370, 124, 378)], 9, a=0, b=1)
+        a.ink([(326, 394, 340, 378, 366, 370, 388, 378)], 9, a=0, b=1)
+    with a.part():
+        arm = taper([(200, 232, 162, 280, 150, 336, 158, 388)], 50, 42)
+        sym(a, arm, BR, 256)
+        for s in (-1, 1):
+            a.ellipse(256 - s * 98, 390, 16, 15, LT, sw=0, stroke="none")
+    cx = 256
+    HEADP = "M256 60 C328 60 364 104 364 156 C364 214 318 244 256 244 C194 244 148 214 148 156 C148 104 184 60 256 60 Z"
+    with a.part():
+        a_ear_round(a, cx, 112, 160, 32, BR, LT, HEADP, ir=0.55, shift_in=-4)
+    a.blob("M256 108 C286 84 336 102 336 148 C336 168 330 178 331 194 C332 216 300 232 256 232 "
+           "C212 232 180 216 181 194 C182 178 176 168 176 148 C176 102 226 84 256 108 Z", LT)
+    a.ellipse(cx, 202, 40, 24, MZ, sw=0, stroke="none")
+    a.dot(248, 196, 3.5, O)
+    a.dot(264, 196, 3.5, O)
+    a.path("M236 210 C248 222 264 222 276 210", sw=7)
+    a_face(a, cx, 160, 38, 16, cheek=(64, 196, 15, 9))
+    a.shine("M178 110 C190 92 208 80 228 76")
     return a
+
+
+# ---- the animals below: side / 3-4 view, smooth bezier outlines, real legs (D175) ----
+# ---- pilot animals begin (fills first, outline by part(); see lib.Art.part) ----
+from lib import limb, taper, smooth, at, bez_pts, limb_d
+
+
+def hoofed(a, joints, widths, yg, fill, hoof, d=-1, hh=22):
+    """A leg that ends in a hoof (inside a part): leg in `fill`, the last hh px in the hoof colour."""
+    a.sil(limb_d(joints, widths, yg - 3, d, foot=3, h=hh), fill)
+    x, w = joints[-1][0], widths[-1]
+    l, r = x - w / 2 - 3, x + w / 2 + 3
+    a.sil(f"M{l + 2} {yg - hh} L{r - 2} {yg - hh} C{r + 3} {yg - hh * 0.4} {r + 3} {yg - 4} {r - 3} {yg} "
+          f"L{l + 3} {yg} C{l - 3} {yg - 4} {l - 3} {yg - hh * 0.4} {l + 2} {yg - hh} Z", hoof)
+
+
+def band(a, cubics, t0, t1, w0, w1, col):
+    """A stripe across a taper()-shaped tail or trunk, between fractions t0 and t1 of its length."""
+    pts = []
+    for t, sgn in ((t0, -1), (t0, 1), (t1, 1), (t1, -1)):
+        pts.append(at(cubics, t, sgn * (w0 + (w1 - w0) * t) / 2))
+    m0, m1 = at(cubics, t0, 0), at(cubics, t1, 0)
+    (p0, p1, p2, p3) = pts
+    a.blob(f"M{p0[0]:.1f} {p0[1]:.1f} L{p1[0]:.1f} {p1[1]:.1f} L{p2[0]:.1f} {p2[1]:.1f} L{p3[0]:.1f} {p3[1]:.1f} Z", col)
+
+
+def sym(a, d, fill, cx, sil=True):
+    """The same shape on both sides of the face (mirror around x = cx)."""
+    for q in (d, mirror(d, cx)):
+        (a.sil if sil else a.blob)(q, fill)
+
+
+def toes(a, x, yg, d=-1, gap=11, h=11):
+    """Two short toe notches on a paw (never more)."""
+    for k in (0, 1):
+        xx = x + d * (4 + k * gap)
+        a.ink([(xx, yg + 1, xx, yg - h * 0.4, xx + d * 1, yg - h * 0.8, xx + d * 2, yg - h)], 6, a=1, b=0)
+
+
+@word
+def kuma():
+    a = Art()
+    BR, BRD, LT = "#b07a4f", "#966540", "#f2d2a9"
+    with a.part():
+        # torso with round shoulders; both arms start inside the shoulder mass
+        a.sil("M256 238 C300 238 340 246 362 272 C388 304 392 350 386 396 C380 440 328 460 256 460 "
+              "C184 460 132 440 126 396 C120 350 124 304 150 272 C172 246 212 238 256 238 Z", BR)
+        a.sil(taper([(336, 304, 372, 300, 404, 262, 414, 206)], 76, 54), BR)
+        a.sil(taper([(188, 296, 150, 318, 136, 356, 146, 392)], 70, 52), BR)
+        # feet, soles to the viewer
+        a.sil("M112 372 C142 364 176 386 180 422 C184 456 160 474 128 472 C96 470 74 450 76 418 C78 394 92 378 112 372 Z", BR)
+        a.sil("M400 372 C370 364 336 386 332 422 C328 456 352 474 384 472 C416 470 438 450 436 418 C434 394 420 378 400 372 Z", BR)
+        a.blob("M256 286 C304 286 326 326 326 368 C326 414 300 440 256 440 C212 440 186 414 186 368 C186 326 208 286 256 286 Z", LT)
+        a.blob("M186 404 C200 436 226 448 256 448 C286 448 312 436 326 404 C330 430 322 452 256 456 C190 452 182 430 186 404 Z", BRD)
+        for s_ in (-1, 1):
+            a.ellipse(256 + s_ * 128, 424, 30, 33, LT, sw=0, stroke="none")
+        a.ink([(176, 392, 160, 374, 132, 366, 110, 374)], 9, a=0, b=1)
+        a.ink([(336, 392, 352, 374, 380, 366, 402, 374)], 9, a=0, b=1)
+        a.ink([(166, 404, 182, 378, 184, 344, 174, 316)], 9, a=0.5, b=0)
+        a.ink([(388, 318, 372, 330, 356, 334, 342, 330)], 8, a=1, b=0)
+        a.ellipse(413, 208, 16, 15, LT, sw=0, stroke="none")
+    with a.part():
+        for x in (176, 336):
+            a.sil_ellipse(x, 96, 36, 35, BR)
+        a.sil("M256 62 C330 62 366 106 366 160 C366 218 318 246 256 246 C194 246 146 218 146 160 C146 106 182 62 256 62 Z", BR)
+        for x in (176, 336):
+            a.ellipse(x + (4 if x < 256 else -4), 98, 19, 18, LT, sw=0, stroke="none")
+        a.blob("M256 62 C330 62 366 106 366 160 C366 218 318 246 256 246 C194 246 146 218 146 160 C146 106 182 62 256 62 Z", BR)
+    a.ellipse(256, 204, 50, 37, LT, sw=0, stroke="none")
+    a.path("M240 186 C240 176 272 176 272 186 C272 197 260 203 256 203 C252 203 240 197 240 186 Z", fill=EYE, sw=0, stroke="none")
+    a.dot(250, 182, 4.5, WHITE)
+    a.path("M256 203 L256 214 M256 214 C250 225 238 225 234 216 M256 214 C262 225 274 225 278 216", sw=7)
+    a.eye(208, 150, 17)
+    a.eye(304, 150, 17)
+    a.cheek(182, 196, 17, 10)
+    a.cheek(330, 196, 17, 10)
+    a.shine("M186 118 C196 100 212 90 230 86")
+    return a
+
+
+@word
+def inu():
+    a = Art()
+    TAN, TAN_D, EAR, EAR_D = "#f2c48d", "#d9a56c", "#b8794a", "#9a6238"
+    G = 450
+    with a.part():
+        a.sil(limb_d([(300, 330), (306, 388), (310, 434)], [50, 38, 30], G, foot=10, h=18), TAN_D)
+        a.sil(limb_d([(396, 330), (382, 374), (400, 408), (396, 434)], [48, 38, 28, 27], G, foot=10, h=18), TAN_D)
+    with a.part():
+        a.sil(taper([(452, 290, 500, 292, 522, 262, 524, 220)], 36, 22), TAN)
+        a.sil("M214 262 C260 228 380 224 436 246 C482 264 490 324 462 358 C440 382 380 374 330 378 "
+              "C280 382 236 392 212 356 C196 326 198 284 214 262 Z", TAN)
+        a.sil(limb_d([(246, 300), (246, 384), (244, 432)], [76, 46, 36], G, foot=12, h=20), TAN)
+        a.sil(limb_d([(438, 300), (428, 366), (450, 406), (446, 432)], [96, 58, 34, 32], G, foot=14, h=20), TAN)
+        a.blob("M290 378 C330 380 380 378 404 376 C398 366 396 360 396 352 C360 362 320 362 290 358 Z", TAN_D)
+        a.blob("M318 240 C350 232 384 238 394 256 C378 278 334 272 318 258 Z", EAR)
+        a.ink([(402, 384, 392, 352, 400, 316, 430, 294)], 9, a=1, b=0)
+        a.ink([(274, 386, 282, 362, 280, 340, 270, 320)], 8, a=1, b=0)
+        toes(a, 226, G)
+        toes(a, 428, G)
+        a.shine("M424 280 C440 274 456 282 462 298", sw=7)
+    cx = 190
+    a.tube("M140 276 C160 306 220 306 240 276", RED, 26, 14)
+    a.circle(cx, 306, 12, YEL2, sw=8)
+    a.sil("M190 104 C254 104 286 146 286 196 C286 252 244 286 190 286 C136 286 94 252 94 196 C94 146 126 104 190 104 Z", TAN)
+    a.ellipse(cx, 238, 46, 36, CREAM, sw=0, stroke="none")
+    with a.part():
+        sym(a, "M136 116 C100 100 62 124 62 176 C62 218 86 242 106 228 C122 214 116 168 144 138 Z", EAR, cx)
+    a.path("M174 220 C174 210 206 210 206 220 C206 231 194 237 190 237 C186 237 174 231 174 220 Z", fill=EYE, sw=0, stroke="none")
+    a.dot(184, 216, 4.5, WHITE)
+    a.path("M190 237 L190 246 M190 246 C184 258 170 258 166 248 M190 246 C196 258 210 258 214 248", sw=7)
+    a.path("M181 256 C181 272 199 272 199 256 Z", fill="#f28a9b", sw=6)
+    a.eye(cx - 44, 192, 17)
+    a.eye(cx + 44, 192, 17)
+    a.cheek(cx - 68, 230, 16, 10)
+    a.cheek(cx + 68, 230, 16, 10)
+    a.shine("M130 150 C142 132 160 122 180 118")
+    return a
+
+
+@word
+def ushi():
+    a = Art()
+    BLK, HOOF, LEG, SH = "#3b2f2a", "#7a5c4a", "#e8e0d4", "#ebe3d8"
+    G = 450
+    with a.part():
+        hoofed(a, [(304, 330), (312, 390), (316, 432)], [60, 44, 36], G, LEG, HOOF)
+        hoofed(a, [(404, 330), (388, 376), (406, 404), (400, 432)], [56, 46, 36, 34], G, LEG, HOOF)
+        a.sil("M346 362 C336 400 376 414 392 392 C406 414 432 402 420 362 Z", PINK)
+    with a.part():
+        a.sil(taper([(488, 244, 544, 250, 556, 320, 540, 368)], 20, 12), WHITE)
+        a.sil("M540 358 C520 372 520 404 538 418 C558 404 558 372 540 358 Z", BLK)
+        a.sil("M222 240 C262 212 400 206 454 226 C498 242 508 300 498 346 C492 378 466 386 436 386 "
+              "L262 386 C226 386 202 360 200 322 C198 286 204 256 222 240 Z", WHITE)
+        hoofed(a, [(254, 310), (256, 392), (256, 432)], [84, 52, 42], G, WHITE, HOOF)
+        hoofed(a, [(448, 300), (440, 372), (458, 404), (452, 432)], [104, 62, 42, 38], G, WHITE, HOOF)
+        a.blob("M292 386 L414 386 C408 376 406 368 406 360 C366 370 330 370 296 364 Z", SH)
+        a.blob("M306 222 C346 212 396 216 406 240 C400 276 346 286 322 266 C304 252 298 234 306 222 Z", BLK)
+        a.blob("M444 262 C474 254 496 284 492 320 C484 342 456 338 450 316 C446 298 440 276 444 262 Z", BLK)
+        a.ink([(408, 392, 396, 356, 404, 314, 432, 290)], 9, a=1, b=0)
+        a.ink([(286, 392, 294, 364, 290, 338, 278, 318)], 8, a=1, b=0)
+    cx = 190
+    with a.part():
+        sym(a, "M150 132 C134 116 132 92 142 82 C158 88 170 108 176 126 Z", "#fff1c9", cx)
+    a.tube("M140 288 C160 318 220 318 240 288", RED, 26, 14)
+    a.path("M177 322 C177 310 203 310 203 322 L207 344 L173 344 Z", fill=YEL2, sw=8)
+    a.dot(cx, 348, 5, O)
+    with a.part():
+        sym(a, "M118 150 C86 126 50 134 40 156 C60 182 96 184 122 176 Z", WHITE, cx)
+        a.sil("M190 112 C244 112 272 146 272 194 C272 226 266 250 252 266 L128 266 C114 250 108 226 108 194 "
+              "C108 146 136 112 190 112 Z", WHITE)
+        a.sil("M190 222 C234 222 262 240 262 264 C262 290 232 304 190 304 C148 304 118 290 118 264 C118 240 146 222 190 222 Z", PINK)
+        sym(a, "M104 154 C86 142 66 146 58 156 C72 170 92 172 108 168 Z", PINK_IN, cx, sil=False)
+        a.blob("M214 116 C248 122 268 146 271 180 C248 178 224 156 214 116 Z", BLK)
+    for sgn in (-1, 1):
+        a.ellipse(cx + sgn * 24, 258, 7, 10, O, sw=0, stroke="none")
+    a.path("M170 284 C182 292 198 292 210 284", sw=7)
+    a.eye(cx - 42, 188, 17)
+    a.eye(cx + 42, 188, 17)
+    a.cheek(cx - 62, 222, 15, 9)
+    a.cheek(cx + 62, 222, 15, 9)
+    a.shine("M130 150 C140 136 154 128 170 124")
+    return a.flipped()
 
 
 @word
 def zou():
     a = Art()
-    G, GL = "#a9b7c6", "#d3dde8"
-    a.tube("M340 410 C376 410 392 394 394 372", G, 30, 14)
-    body(a, G, belly=GL, toes=True)
-    for s in (1, -1):
-        d = "M150 130 C70 100 36 150 44 214 C52 270 100 292 150 262 Z"
-        i = "M138 160 C96 146 74 174 80 212 C86 246 114 258 140 242 Z"
-        if s == -1:
-            d, i = mirror(d), mirror(i)
-        a.path(d, fill=G)
-        a.blob(i, PINK_IN)
-    a.path(HEAD, fill=G)
-    a.tube("M256 196 C256 250 254 290 258 322 C262 348 292 352 298 330", G, 64, 42)
-    for y in (252, 280, 308):
-        a.path(f"M242 {y} L270 {y}", stroke=O, sw=6)
-    a.face(cy=170, gap=60, blush_y=226, blush_dx=96)
-    a.shine("M168 130 C184 112 204 104 224 100")
-    return a
-
-
-@word
-def tora():
-    a = Art()
-    OR, ST = "#f4a340", "#4a3428"
-    a.tube("M338 410 C396 420 432 380 420 326 C414 300 428 282 450 288", OR, 40, 20)
-    a.path("M404 372 L424 360 M420 338 L440 330", stroke=ST, sw=9)
-    body(a, OR, belly=CREAM, toes=True)
-    for y in (300, 338, 376):
-        a.path(f"M168 {y} L196 {y + 6}", stroke=ST, sw=10)
-        a.path(mirror(f"M168 {y} L196 {y + 6}"), stroke=ST, sw=10)
-    for x in (146, 366):
-        a.circle(x, 124, 38, OR)
-        a.dot(x, 126, 18, CREAM)
-    a.path(HEAD, fill=OR)
-    # forehead stripes
-    a.path("M256 100 L256 136 M226 106 L232 134 M286 106 L280 134", stroke=ST, sw=10)
-    # cheek stripes
-    for d in ("M126 206 L162 214", "M130 238 L164 238"):
-        a.path(d, stroke=ST, sw=9)
-        a.path(mirror(d), stroke=ST, sw=9)
-    a.ellipse(256, 254, 76, 52, CREAM, sw=0, stroke="none")
-    a.path("M236 226 C236 214 276 214 276 226 C276 240 262 246 256 246 C250 246 236 240 236 226 Z", fill="#f28a9b", sw=6)
-    a.path("M256 246 L256 258 M256 258 C250 272 232 272 230 262 M256 258 C262 272 280 272 282 262", sw=7)
-    a.face(cy=182, gap=56, blush_y=226, blush_dx=106)
-    a.shine("M150 176 C152 158 160 144 172 134")
-    return a
-
-
-@word
-def kaba():
-    a = Art()
-    G, GL = "#a99bc4", "#d9cfe8"
-    a.tube("M340 416 C366 418 380 406 382 390", G, 28, 12)
-    body(a, G, belly=GL, toes=True)
-    for x in (158, 354):
-        a.ellipse(x, 112, 26, 34, G)
-        a.ellipse(x, 116, 11, 18, PINK_IN, sw=0, stroke="none")
-    a.path(HEAD, fill=G)
-    a.ellipse(256, 262, 132, 80, "#c3b6dc")
-    for x in (222, 290):
-        a.ellipse(x, 240, 9, 12, "#6c5a8c", sw=0, stroke="none")
-    a.path("M214 296 C236 316 276 316 298 296", sw=8)
-    a.face(cy=170, gap=62, blush_y=212, blush_dx=112)
-    a.shine("M178 128 C194 112 214 104 234 100")
+    G_, GD, GL = "#a9b7c6", "#8c9db0", "#d3dde8"
+    G = 450
+    with a.part():
+        a.sil(limb_d([(344, 340), (346, 400), (348, 436)], [76, 66, 62], G, foot=6, h=20), GD)
+        a.sil(limb_d([(392, 340), (384, 400), (384, 436)], [76, 66, 62], G, foot=6, h=20), GD)
+    with a.part():
+        a.sil(taper([(492, 258, 528, 290, 534, 340, 526, 384)], 18, 10), G_)
+        a.sil("M526 374 C512 384 512 410 526 420 C540 410 540 384 526 374 Z", "#6f7e90")
+        a.sil("M236 176 C300 160 410 172 462 212 C504 246 508 318 488 360 C478 386 452 394 420 392 "
+              "L270 392 C232 392 208 362 206 320 C204 268 214 204 236 176 Z", G_)
+        a.sil(limb_d([(292, 320), (290, 398), (294, 436)], [96, 76, 70], G, foot=6, h=20), G_)
+        a.sil(limb_d([(432, 310), (426, 392), (430, 436)], [108, 80, 72], G, foot=6, h=20), G_)
+        a.blob("M332 392 L386 392 C382 382 382 372 384 362 C366 368 350 368 334 364 Z", GD)
+        a.ink([(388, 398, 380, 362, 388, 322, 412, 298)], 9, a=1, b=0)
+        a.ink([(330, 398, 338, 366, 336, 340, 326, 318)], 8, a=1, b=0)
+        a.shine("M424 244 C448 248 466 266 470 292", sw=8)
+    cx = 200
+    ear = "M136 118 C92 70 24 100 26 172 C28 238 84 268 132 240 Z"
+    with a.part():
+        sym(a, ear, G_, cx)
+        sym(a, "M118 136 C90 108 50 124 52 174 C54 220 90 240 120 222 Z", "#e8b9c1", cx, sil=False)
+    trunk = [(200, 214, 200, 276, 198, 322, 178, 352), (178, 352, 162, 376, 126, 372, 128, 342)]
+    with a.part():
+        a.sil(taper(trunk, 62, 28), G_)
+        a.sil("M200 88 C262 88 298 134 298 190 C298 246 258 282 200 282 C142 282 102 246 102 190 C102 134 138 88 200 88 Z", G_)
+        for t in (0.34, 0.46, 0.58):
+            h = (62 - 34 * t) / 2
+            (x1, y1), (x2, y2) = at(trunk, t, -h), at(trunk, t, h * 0.2)
+            a.ink([(x1, y1, x1 + (x2 - x1) * 0.3, y1 + (y2 - y1) * 0.3 + 4, x1 + (x2 - x1) * 0.7, y1 + (y2 - y1) * 0.7 + 4, x2, y2)], 7, a=1, b=0, col=GD)
+    a.eye(cx - 52, 190, 17)
+    a.eye(cx + 52, 190, 17)
+    a.cheek(cx - 68, 228, 17, 10)
+    a.cheek(cx + 68, 228, 17, 10)
+    a.shine("M134 150 C146 126 166 110 190 104")
     return a
 
 
 @word
 def kirin():
     a = Art()
-    Y, SP = "#f8cf62", "#c98a3e"
-    a.tube("M340 410 C366 412 378 398 378 382", Y, 28, 12)
-    # neck behind head, then body
-    a.path("M214 190 L298 190 L304 300 L208 300 Z", fill=Y, sw=0, stroke="none")
-    body(a, Y, belly=CREAM, toes=True)
-    for x, y, r in ((190, 320, 14), (320, 340, 16), (214, 392, 12), (306, 410, 12), (256, 300, 12)):
-        a.ellipse(x, y, r, r * 0.85, SP, sw=0, stroke="none")
-    a.path("M214 190 L208 282", sw=11)
-    a.path("M298 190 L304 282", sw=11)
-    for x, y, r in ((236, 226, 11), (272, 252, 12), (240, 278, 10)):
-        a.ellipse(x, y, r, r * 0.85, SP, sw=0, stroke="none")
-    # horns and ears
-    for s in (1, -1):
-        d = "M232 80 L228 40"
-        a.path(d if s == 1 else mirror(d), sw=10)
-        a.circle(228 if s == 1 else 284, 36, 12, SP, sw=8)
-        e = "M184 118 C150 100 126 112 124 134 C140 150 168 148 186 140 Z"
-        a.path(e if s == 1 else mirror(e), fill=Y)
-        a.blob("M174 124 C158 116 144 120 140 130 C150 138 164 138 176 134 Z" if s == 1 else mirror("M174 124 C158 116 144 120 140 130 C150 138 164 138 176 134 Z"), PINK_IN)
-    a.ellipse(256, 130, 80, 70, Y)
-    for x, y, r in ((226, 84, 9), (288, 90, 8)):
-        a.ellipse(x, y, r, r, SP, sw=0, stroke="none")
-    a.ellipse(256, 168, 52, 36, CREAM)
-    a.dot(240, 164, 5, EYE)
-    a.dot(272, 164, 5, EYE)
-    a.path("M240 182 C250 192 262 192 272 182", sw=7)
-    a.face(cy=124, gap=42, blush_y=158, blush_dx=70, r=13)
-    a.shine("M196 96 C206 86 220 80 234 78")
+    Y, YD, SP, MANE = "#f8cf62", "#e3b448", "#c98a3e", "#a8672f"
+    HOOF = "#7a5c4a"
+    G = 490
+    neck = [(380, 300, 330, 262, 270, 190, 240, 130)]
+    with a.part():
+        hoofed(a, [(346, 320), (350, 376), (350, 408), (354, 446), (354, 468)], [40, 24, 30, 20, 22], G, YD, HOOF, hh=18)
+        hoofed(a, [(428, 320), (416, 372), (420, 404), (412, 446), (412, 468)], [42, 26, 30, 20, 22], G, YD, HOOF, hh=18)
+        mane = [at(neck, t, 55 - 33 * t + 9) for t in (0.3, 0.45, 0.6, 0.75, 0.9, 1.0)]
+        a.sil(smooth(mane + [at(neck, t, 0) for t in (1.0, 0.6, 0.3)]), MANE)
+    with a.part():
+        a.sil(taper([(468, 276, 500, 296, 510, 346, 500, 394)], 14, 8), Y)
+        a.sil("M500 384 C484 396 484 424 500 434 C516 424 516 396 500 384 Z", HOOF)
+        a.sil(taper(neck, 110, 44, cap=False), Y)
+        a.sil("M290 262 C326 232 430 236 462 266 C488 292 482 340 452 352 C410 366 330 366 296 350 "
+              "C270 332 268 286 290 262 Z", Y)
+        hoofed(a, [(312, 310), (306, 376), (300, 408), (294, 446), (292, 468)], [56, 28, 34, 22, 24], G, Y, HOOF, hh=18)
+        hoofed(a, [(450, 300), (450, 366), (468, 404), (472, 446), (474, 468)], [70, 34, 34, 22, 24], G, Y, HOOF, hh=18)
+        a.blob("M336 362 C366 366 400 364 424 358 C420 350 420 344 422 338 C390 348 360 348 338 344 Z", YD)
+
+        def spot(cx, cy, r, k=0):
+            import math
+            pts = []
+            for i in range(7):
+                ang = 0.3 + i * 2 * math.pi / 7
+                rr = r * (0.85 + 0.25 * (((i * 7 + k * 3) % 5) / 4))
+                pts.append((cx + rr * math.cos(ang), cy + rr * math.sin(ang)))
+            a.blob(smooth(pts), SP)
+        for cx, cy, r, k in ((340, 290, 19, 1), (400, 292, 21, 2), (368, 332, 13, 3), (440, 326, 14, 4), (306, 318, 11, 5),
+                             (276, 186, 12, 1), (300, 222, 14, 2), (258, 156, 8, 3), (322, 250, 10, 4), (452, 284, 9, 2)):
+            spot(cx, cy, r, k)
+        a.ink([(426, 366, 416, 338, 422, 308, 442, 288)], 8, a=1, b=0)
+        a.ink([(334, 366, 340, 346, 338, 328, 330, 312)], 7, a=1, b=0)
+    cx = 228
+    with a.part():
+        for sgn in (-1, 1):
+            a.sil(taper([(cx + sgn * 18, 40, cx + sgn * 19, 22, cx + sgn * 21, 6, cx + sgn * 23, -8)], 12, 12), Y)
+            a.sil_ellipse(cx + sgn * 23, -12, 10, 9, MANE)
+    with a.part():
+        sym(a, "M180 62 C158 40 130 40 120 54 C132 74 160 80 182 76 Z", Y, cx)
+        a.sil("M228 22 C268 22 288 52 288 86 C288 108 282 124 274 136 C262 154 246 160 228 160 "
+              "C210 160 194 154 182 136 C174 124 168 108 168 86 C168 52 188 22 228 22 Z", Y)
+        sym(a, "M168 60 C154 50 138 50 132 56 C142 66 156 68 170 66 Z", PINK_IN, cx, sil=False)
+        a.blob("M186 122 C200 110 256 110 270 122 C276 132 268 148 256 154 C240 162 216 162 200 154 C188 148 180 132 186 122 Z", CREAM)
+        for x, y in ((212, 40), (246, 44), (228, 56)):
+            a.ellipse(x, y, 7, 6, SP, sw=0, stroke="none")
+    for sgn in (-1, 1):
+        a.ellipse(cx + sgn * 14, 128, 4.5, 6, O, sw=0, stroke="none")
+    a.path("M212 142 C222 150 234 150 244 142", sw=6)
+    a.eye(cx - 34, 88, 15)
+    a.eye(cx + 34, 88, 15)
+    a.cheek(cx - 44, 112, 12, 7)
+    a.cheek(cx + 44, 112, 12, 7)
+    return a.flipped()
+
+
+@word
+def neko():
+    a = Art()
+    OR, OR_D, STR = "#f6b26b", "#e29a50", "#d9843a"
+    G = 454
+    tail = [(414, 388, 478, 392, 488, 442, 444, 440), (444, 440, 424, 439, 410, 434, 402, 422)]
+    with a.part():
+        a.sil("M206 240 C292 220 396 262 424 346 C442 404 424 452 370 454 L190 454 "
+              "C170 454 168 400 176 360 C184 318 184 270 206 240 Z", OR)
+        # two thick front legs side by side, big round paws on the ground (cream socks)
+        for x in (196, 252):
+            a.sil(f"M{x - 8} 290 L{x + 24} 330 L{x + 23} 416 C{x + 35} 424 {x + 35} 454 {x + 16} 454 "
+                  f"L{x - 18} 454 C{x - 37} 454 {x - 37} 424 {x - 23} 416 C{x - 24} 380 {x - 24} 330 {x - 8} 290 Z", OR)
+        a.blob("M380 452 C410 444 424 424 428 394 C418 420 400 432 376 436 Z", OR_D)
+        a.blob("M204 270 C196 306 198 336 208 362 C226 340 240 310 236 270 Z", CREAM)
+        for x in (196, 252):
+            a.blob(f"M{x - 24} 420 C{x - 36} 428 {x - 36} 454 {x - 18} 454 L{x + 16} 454 C{x + 34} 454 {x + 34} 428 {x + 24} 420 Z", CREAM)
+        # haunch: one round mass; a clear hind paw on the ground in front of it
+        a.blob("M302 454 C288 454 286 432 304 424 C326 415 364 419 371 438 C375 448 369 454 359 454 Z", CREAM)
+        a.ink([(326, 300, 392, 290, 436, 352, 412, 404)], 9, a=0, b=0)
+        a.ink([(293, 455, 281, 430, 312, 414, 342, 418), (342, 418, 366, 422, 380, 440, 371, 455)], 10, a=1, b=1)
+        a.ink([(224, 455, 224, 420, 224, 380, 225, 344)], 10, a=1, b=0)
+        a.ink([(281, 440, 280, 410, 278, 380, 272, 350)], 10, a=1, b=0)
+        toes(a, 184, G + 1, d=1, gap=13, h=11)
+        toes(a, 240, G + 1, d=1, gap=13, h=11)
+        a.shine("M352 318 C370 312 388 322 396 340", sw=7)
+    # tail comes round the haunch and lies in front of it; the patch hides the line at its root
+    with a.part():
+        a.sil(taper(tail, 36, 28), OR)
+        for t in (0.42, 0.6, 0.78):
+            band(a, tail, t, t + 0.05, 36, 28, STR)
+    a.blob("M398 374 L450 376 L450 404 L398 402 Z", OR)
+    a.tube("M152 248 C190 272 240 272 274 244", "#4fa8e0", 26, 14)
+    a.circle(212, 276, 11, YEL2, sw=8)
+    ear = "M134 144 L130 76 C130 66 140 62 148 68 L202 100 Z"
+    inner = "M146 130 L144 92 L180 110 Z"
+    HEADP = "M210 92 C266 90 302 126 302 168 C302 218 260 248 210 248 C160 248 118 218 118 168 C118 126 154 94 210 92 Z"
+    with a.part():
+        for d in (ear, mirror(ear, 210)):
+            a.sil(d, OR)
+        a.sil(HEADP, OR)
+        for d in (inner, mirror(inner, 210)):
+            a.blob(d, PINK_IN)
+        a.blob(HEADP, OR)
+    for d in ([(210, 92, 210, 104, 210, 116, 210, 130)], [(184, 96, 186, 106, 187, 114, 188, 124)], [(236, 96, 234, 106, 233, 114, 232, 124)]):
+        a.ink(d, 10, a=1, b=0, col=STR)
+    for d in ([(118, 190, 126, 191, 134, 193, 142, 194)], [(119, 214, 127, 213, 135, 211, 142, 210)],
+              [(302, 190, 294, 191, 286, 193, 278, 194)], [(301, 214, 293, 213, 285, 211, 278, 210)]):
+        a.ink(d, 9, a=1, b=0, col=STR)
+    a.ellipse(210, 214, 44, 30, CREAM, sw=0, stroke="none")
+    a.path("M198 196 L222 196 L210 210 Z", fill="#f28a9b", sw=6)
+    a.path("M210 210 L210 218 M210 218 C204 230 190 230 188 220 M210 218 C216 230 230 230 232 220", sw=7)
+    for d in ("M150 206 L96 196", "M150 218 L98 226"):
+        a.path(d, sw=6)
+        a.path(mirror(d, 210), sw=6)
+    a.eye(162, 170, 19)
+    a.eye(258, 170, 19)
+    a.cheek(146, 214, 15, 9)
+    a.cheek(274, 214, 15, 9)
+    a.shine("M150 140 C158 124 172 112 190 106")
     return a
+
+
+# ---- pilot animals end ----
+
+
+@word
+def tora():
+    a = Art()
+    OR, OR_D, ST = "#f4a340", "#dc8a2e", O
+    G = 450
+    tail = [(456, 296, 512, 300, 540, 262, 528, 214), (528, 214, 520, 186, 492, 190, 494, 214)]
+    with a.part():
+        a.sil(limb_d([(302, 330), (308, 388), (312, 434)], [56, 44, 36], G, foot=10, h=18), OR_D)
+        a.sil(limb_d([(398, 330), (384, 374), (402, 408), (398, 434)], [54, 44, 34, 32], G, foot=10, h=18), OR_D)
+    with a.part():
+        a.sil(taper(tail, 36, 28), OR)
+        a.sil("M214 256 C262 224 384 222 440 244 C486 262 494 326 466 362 C444 384 380 378 330 382 "
+              "C280 386 236 394 212 358 C196 326 198 282 214 256 Z", OR)
+        a.sil(limb_d([(246, 300), (246, 384), (244, 430)], [84, 54, 44], G, foot=14, h=22), OR)
+        a.sil(limb_d([(440, 300), (430, 366), (452, 404), (448, 430)], [104, 64, 42, 40], G, foot=14, h=22), OR)
+        a.blob("M290 383 C330 386 378 383 402 379 C372 364 322 365 290 383 Z", "#fbd49a")
+        for t in (0.3, 0.48, 0.66):
+            a_band(a, tail, t, t + 0.07, 36, 28, ST)
+        for x, y in ((318, 230), (362, 228), (406, 232)):
+            a.ink([(x, y - 4, x + 7, y + 16, x + 5, y + 36, x - 8, y + 56)], 15, a=1, b=0)
+        a.ink([(490, 292, 472, 294, 458, 298, 448, 306)], 13, a=1, b=0)
+        a.ink([(486, 328, 470, 328, 458, 330, 448, 336)], 12, a=1, b=0)
+        a.ink([(402, 388, 392, 354, 400, 318, 430, 296)], 9, a=1, b=0)
+        a.ink([(276, 388, 284, 364, 282, 342, 272, 322)], 8, a=1, b=0)
+        toes(a, 222, G)
+        toes(a, 426, G)
+    cx = 190
+    HEADP = "M190 100 C256 100 292 144 292 196 C292 252 246 284 190 284 C134 284 88 252 88 196 C88 144 124 100 190 100 Z"
+    with a.part():
+        a_ear_round(a, cx, 74, 124, 32, OR, CREAM, HEADP)
+    for d in ([(190, 98, 190, 112, 190, 126, 190, 142)], [(160, 103, 163, 114, 165, 124, 167, 136)], [(220, 103, 217, 114, 215, 124, 213, 136)]):
+        a.ink(d, 13, a=1, b=0)
+    for d in ((89, 208, 98, 208, 106, 209, 114, 211), (96, 232, 104, 230, 111, 229, 118, 228)):
+        a.ink([d], 11, a=1, b=0)
+        a.ink([tuple(2 * cx - v if i % 2 == 0 else v for i, v in enumerate(d))], 11, a=1, b=0)
+    a.ellipse(cx, 240, 52, 36, CREAM, sw=0, stroke="none")
+    a_snout(a, cx, 224, "#f28a9b", 15, line=True)
+    a_face(a, cx, 190, 46, 17, cheek=(66, 250, 14, 8))
+    a.shine("M128 152 C140 134 158 124 178 120")
+    return a
+
+
+@word
+def kaba():
+    a = Art()
+    P, PD, PL, NOS = "#a99bc4", "#8f80ad", "#c9bde0", "#6c5a8c"
+    G = 450
+    with a.part():
+        a.sil(limb_d([(322, 350), (324, 408), (326, 436)], [72, 62, 58], G, foot=6, h=20), PD)
+        a.sil(limb_d([(408, 350), (402, 408), (402, 436)], [72, 62, 58], G, foot=6, h=20), PD)
+    with a.part():
+        a.sil(taper([(496, 246, 522, 246, 540, 264, 540, 292)], 16, 10), P)
+        a.sil("M216 232 C270 194 404 194 460 224 C508 250 514 330 488 372 C472 394 430 392 390 392 "
+              "L270 392 C232 392 206 366 204 322 C202 286 204 254 216 232 Z", P)
+        a.sil(limb_d([(270, 340), (268, 404), (270, 436)], [96, 76, 68], G, foot=6, h=20), P)
+        a.sil(limb_d([(450, 330), (446, 402), (448, 436)], [108, 80, 70], G, foot=6, h=20), P)
+        a.blob("M312 392 L408 392 C404 382 404 372 406 362 C376 370 344 370 314 364 Z", PD)
+        a.ink([(410, 398, 402, 362, 410, 322, 434, 298)], 9, a=1, b=0)
+        a.ink([(312, 398, 320, 366, 318, 340, 308, 318)], 8, a=1, b=0)
+        a.shine("M430 232 C456 238 476 256 482 282", sw=8)
+    cx = 190
+    HEADP = ("M190 96 C236 96 262 124 264 160 C296 172 312 200 312 232 C312 280 262 306 190 306 "
+             "C118 306 68 280 68 232 C68 200 84 172 116 160 C118 124 144 96 190 96 Z")
+    with a.part():
+        for s in (-1, 1):
+            a.sil_ellipse(cx + s * 54, 106, 21, 25, P)
+        a.sil(HEADP, P)
+        for s in (-1, 1):
+            a.ellipse(cx + s * 54, 108, 10, 14, PINK_IN, sw=0, stroke="none")
+        a.blob(HEADP, P)
+    a.ellipse(cx, 240, 108, 58, PL, sw=0, stroke="none")
+    for s in (-1, 1):
+        a.ellipse(cx + s * 34, 212, 9, 12, NOS, sw=0, stroke="none")
+    a.path("M146 262 C168 282 212 282 234 262", sw=8)
+    a_face(a, cx, 150, 40, 16, cheek=(90, 232, 16, 10))
+    a.shine("M92 214 C96 196 108 182 124 176")
+    return a.flipped()
 
 
 @word
 def rakuda():
     a = Art()
-    T, TL = "#e0b070", "#f3d9a8"
-    for x in (176, 232, 340, 396):
-        a.rect(x, 340, 36, 112, T, rx=14)
-    a.tube("M418 330 C440 340 448 366 440 394", T, 26, 10)
-    a.tube("M214 300 C180 270 164 230 164 190", T, 82, 60)
-    a.path("M170 330 C160 296 182 284 200 280 C196 214 252 208 262 274 C276 280 296 280 304 276 "
-           "C306 210 366 208 372 280 C410 286 424 316 420 350 C418 376 396 384 372 384 L190 384 "
-           "C168 384 156 360 170 330 Z", fill=T)
-    a.blob("M176 300 C190 288 228 290 236 312 C226 336 190 344 176 330 Z", T)
-    a.ellipse(260, 350, 54, 24, TL, sw=0, stroke="none")
-    a.circle(168, 108, 16, T)
-    a.ellipse(128, 164, 70, 58, T)
-    a.ellipse(104, 190, 46, 34, TL)
-    a.dot(94, 186, 5, EYE)
-    a.dot(118, 188, 5, EYE)
-    a.path("M86 208 C100 218 120 218 132 208", sw=7)
-    a.ellipse(120, 140, 11, 14, EYE, sw=0, stroke="none")
-    a.dot(124, 134, 4, WHITE)
-    a.ellipse(160, 176, 14, 9, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.7"})
-    a.shine("M84 136 C96 124 112 120 126 122")
+    T, TD, TL, HOOF = "#e0b070", "#c79754", "#f3d9a8", "#a87c48"
+    G = 470
+    neck = [(318, 330, 262, 346, 226, 300, 216, 214)]
+    with a.part():
+        hoofed(a, [(346, 330), (346, 392), (342, 422), (342, 452)], [40, 24, 28, 22], G, TD, HOOF, hh=16)
+        hoofed(a, [(430, 330), (424, 390), (430, 420), (428, 452)], [42, 28, 26, 22], G, TD, HOOF, hh=16)
+    with a.part():
+        a.sil(taper([(480, 282, 514, 286, 530, 326, 524, 364)], 14, 9), T)
+        a.sil("M524 356 C510 366 510 390 524 400 C538 390 538 366 524 356 Z", HOOF)
+        a.sil(taper(neck, 92, 60, cap=False), T)
+        a.sil("M270 300 C268 274 284 262 300 258 C306 210 350 208 358 256 C366 262 378 262 386 256 "
+              "C394 206 442 208 448 260 C480 270 494 302 488 336 C482 362 454 372 422 372 L306 372 "
+              "C280 372 268 340 270 300 Z", T)
+        hoofed(a, [(312, 330), (304, 394), (298, 422), (292, 452)], [56, 28, 34, 24], G, T, HOOF, hh=16)
+        hoofed(a, [(456, 320), (460, 386), (474, 420), (476, 452)], [70, 36, 30, 24], G, T, HOOF, hh=16)
+        a.blob("M334 372 C364 374 400 372 428 368 C424 360 424 354 426 348 C394 358 362 358 336 354 Z", TD)
+        a.ink([(430, 376, 420, 350, 428, 322, 448, 304)], 8, a=1, b=0)
+        a.ink([(330, 376, 336, 358, 334, 342, 326, 328)], 7, a=1, b=0)
+    cx = 206
+    HEADP = ("M206 82 C252 82 274 112 274 150 C274 174 268 192 258 206 C246 224 228 232 206 232 "
+             "C184 232 166 224 154 206 C144 192 138 174 138 150 C138 112 160 82 206 82 Z")
+    with a.part():
+        sym(a, "M150 120 C130 104 110 106 104 120 C116 136 136 138 152 134 Z", T, cx)
+        a.sil("M184 92 C180 72 192 62 200 70 C204 58 220 60 220 74 C230 70 236 82 228 94 Z", TD)
+        a.sil(HEADP, T)
+        a.blob(HEADP, T)
+        a.blob("M186 90 C184 76 192 68 200 74 C204 64 218 66 218 78 C226 76 230 84 226 92 C214 98 198 98 186 90 Z", TD)
+    a.ellipse(cx, 207, 42, 21, TL, sw=0, stroke="none")
+    for s in (-1, 1):
+        a.ellipse(cx + s * 14, 201, 4.5, 6, O, sw=0, stroke="none")
+    a.path("M190 214 C200 222 212 222 222 214", sw=6)
+    a_face(a, cx, 148, 34, 15, cheek=(48, 178, 12, 7))
+    a.shine("M160 128 C166 114 178 104 192 100")
     return a
 
 
 @word
 def buta():
     a = Art()
-    P, PD = "#f9b4be", "#f28a9b"
-    a.path("M340 410 C376 408 386 380 366 370 C348 362 340 382 360 386", sw=10)
-    body(a, P, belly="#fdd3d8", toes=False)
-    for x in (190, 214, 298, 322):
-        a.line(x, 438, x, 452, sw=7)
-    ear = "M148 150 C110 112 92 94 96 80 C128 66 170 92 192 118 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=P)
-    a.path(HEAD, fill=P)
-    a.ellipse(256, 236, 62, 38, PD)
-    a.ellipse(236, 236, 8, 13, "#b9566a", sw=0, stroke="none")
-    a.ellipse(276, 236, 8, 13, "#b9566a", sw=0, stroke="none")
-    a.path("M236 288 C248 298 264 298 276 288", sw=8)
-    a.face(cy=176, gap=62, blush_y=222, blush_dx=106)
-    a.shine("M168 130 C184 114 204 106 224 102")
+    P, PD, SN, HOOF = "#f9b4be", "#ee9aa8", "#f28a9b", "#c9707f"
+    G = 450
+    a.tube("M466 300 C500 306 538 288 534 256 C530 230 494 232 494 258 C494 280 522 284 540 268", P, 26, 10)
+    with a.part():
+        hoofed(a, [(304, 340), (310, 396), (312, 432)], [52, 40, 34], G, PD, HOOF, hh=18)
+        hoofed(a, [(398, 340), (388, 392), (392, 432)], [52, 40, 34], G, PD, HOOF, hh=18)
+    with a.part():
+        a.sil("M214 250 C262 214 392 214 444 240 C490 262 496 330 468 366 C446 388 380 382 330 384 "
+              "C280 386 236 394 212 358 C196 326 198 280 214 250 Z", P)
+        hoofed(a, [(250, 320), (250, 392), (250, 432)], [80, 50, 40], G, P, HOOF, hh=18)
+        hoofed(a, [(444, 320), (440, 390), (444, 432)], [96, 54, 40], G, P, HOOF, hh=18)
+        a.blob("M290 386 C330 388 380 384 406 382 C400 372 398 364 398 356 C362 366 322 366 292 362 Z", PD)
+        a.ink([(404, 390, 394, 358, 402, 322, 430, 300)], 9, a=1, b=0)
+        a.ink([(282, 390, 290, 366, 288, 344, 278, 324)], 8, a=1, b=0)
+        a.shine("M424 244 C446 248 464 264 468 288", sw=7)
+    cx = 190
+    HEADP = "M190 100 C254 100 290 144 290 194 C290 250 246 286 190 286 C134 286 90 250 90 194 C90 144 126 100 190 100 Z"
+    with a.part():
+        sym(a, "M124 152 C98 126 84 92 94 70 C128 68 162 92 178 120 Z", P, cx)
+        a.sil(HEADP, P)
+        sym(a, "M122 132 C106 112 98 94 102 82 C122 84 144 98 156 116 Z", PD, cx, sil=False)
+        a.blob(HEADP, P)
+    with a.part(ow=8):
+        a.sil_ellipse(cx, 228, 44, 31, SN)
+    for s in (-1, 1):
+        a.ellipse(cx + s * 15, 228, 7, 11, "#b9566a", sw=0, stroke="none")
+    a.path("M176 270 C185 277 195 277 204 270", sw=7)
+    a_face(a, cx, 184, 56, 17, cheek=(76, 232, 15, 9))
+    a.shine("M128 152 C140 134 158 124 178 120")
     return a
 
 
 @word
 def hitsuji():
+    import math
     a = Art()
-    FACE, WOOL = "#8a7468", "#fffaf0"
-    for x in (190, 298):
-        a.rect(x - 8, 380, 40, 72, FACE, rx=12)
-    # wool body: overlapping circles, outlined then filled
-    puffs = [(170, 330, 54), (342, 330, 54), (200, 380, 50), (312, 380, 50), (256, 390, 54),
-             (150, 270, 46), (362, 270, 46), (256, 300, 70)]
-    for x, y, r in puffs:
-        a.circle(x, y, r, WOOL)
-    for x, y, r in puffs:
-        a.circle(x, y, r - 5, WOOL, sw=0, stroke="none")
-    # ears
-    for s in (1, -1):
-        e = "M150 190 C108 168 70 188 74 214 C96 232 134 228 154 218 Z"
-        a.path(e if s == 1 else mirror(e), fill=FACE)
-        i = "M138 196 C112 186 94 196 94 208 C108 216 126 214 140 210 Z"
-        a.blob(i if s == 1 else mirror(i), PINK_IN)
-    # head wool top
-    for x, y, r in ((200, 98, 34), (256, 84, 38), (312, 98, 34)):
-        a.circle(x, y, r, WOOL)
-    for x, y, r in ((200, 98, 29), (256, 84, 33), (312, 98, 29)):
-        a.circle(x, y, r, WOOL, sw=0, stroke="none")
-    a.path("M256 120 C320 120 346 160 340 214 C334 268 300 292 256 292 C212 292 178 268 172 214 C166 160 192 120 256 120 Z", fill=FACE)
-    a.ellipse(256, 244, 40, 28, "#b5a296", sw=0, stroke="none")
-    a.path("M246 236 L266 236 L256 246 Z", fill="#f28a9b", sw=5)
-    a.path("M240 264 C250 274 262 274 272 264", sw=7)
-    a.face(cy=196, gap=42, blush_y=238, blush_dx=76, r=13)
-    a.shine("M190 160 C198 148 210 140 224 136")
-    return a
+    FACE, FACE_D, WOOL, WOOL_D, HOOF = "#93796c", "#7b645a", "#fffaf0", "#efe6d6", "#4f3f38"
+    G = 450
+    with a.part():
+        hoofed(a, [(318, 350), (320, 400), (322, 432)], [34, 28, 26], G, FACE_D, HOOF, hh=16)
+        hoofed(a, [(404, 350), (398, 400), (400, 432)], [34, 28, 26], G, FACE_D, HOOF, hh=16)
+    with a.part():
+        hoofed(a, [(272, 350), (270, 400), (270, 432)], [38, 30, 28], G, FACE, HOOF, hh=16)
+        hoofed(a, [(446, 350), (448, 400), (450, 432)], [38, 30, 28], G, FACE, HOOF, hh=16)
+    with a.part():
+        a.sil(a_wool(356, 298, 134, 82, 11, start=0.2), WOOL)
+        a.blob("M252 350 C300 380 420 380 468 346 C450 372 400 384 356 384 C312 384 270 372 252 350 Z", WOOL_D)
+        for x, y in ((316, 268), (398, 256), (430, 312), (350, 322)):
+            a.ink([(x - 22, y + 8, x - 12, y - 8, x + 12, y - 8, x + 22, y + 8)], 7, col="#e2d6c2")
+    cx = 190
+    with a.part():
+        sym(a, "M128 190 C98 170 62 174 52 194 C68 216 102 218 130 208 Z", FACE, cx)
+        a.sil("M190 124 C238 124 264 158 264 200 C264 252 230 284 190 284 C150 284 116 252 116 200 "
+              "C116 158 142 124 190 124 Z", FACE)
+        sym(a, "M116 194 C100 184 80 186 72 196 C84 208 102 208 120 204 Z", PINK_IN, cx, sil=False)
+    with a.part():
+        a.sil(a_wool(190, 126, 62, 26, 7, start=math.pi / 2), WOOL)
+    a.ellipse(cx, 246, 34, 24, "#b09a8e", sw=0, stroke="none")
+    a.path("M180 234 L200 234 L190 245 Z", fill="#f28a9b", sw=5)
+    a.path("M190 245 L190 252 M190 252 C185 262 174 262 172 254 M190 252 C195 262 206 262 208 254", sw=6)
+    a_face(a, cx, 204, 36, 15, cheek=(54, 238, 13, 8))
+    return a.flipped()
 
 
 @word
 def tanuki():
     a = Art()
-    BR, DK, LT = "#b98a5e", "#5a4036", "#f1dcc0"
-    a.path("M330 420 C380 438 440 410 440 350 C440 316 412 304 392 314 C372 324 360 372 338 396 Z", fill=BR)
-    a.path("M404 330 C420 336 424 360 416 384", stroke=DK, sw=14)
-    body(a, BR, belly=LT, toes=False)
-    for x in (190, 214, 298, 322):
-        a.line(x, 438, x, 452, sw=7)
-    for x in (156, 356):
-        a.circle(x, 118, 38, BR)
-        a.dot(x, 120, 18, DK)
-    a.path(HEAD, fill=BR)
-    a.path("M256 150 C300 150 330 174 330 214 C330 258 300 292 256 292 C212 292 182 258 182 214 C182 174 212 150 256 150 Z", fill=LT, sw=0, stroke="none")
-    for s in (1, -1):
-        m = "M214 186 C186 184 150 196 142 226 C140 250 170 258 196 246 C214 236 226 214 214 186 Z"
-        a.blob(m if s == 1 else mirror(m), DK)
-    a.ellipse(256, 262, 40, 28, LT, sw=0, stroke="none")
-    a.ellipse(256, 236, 16, 11, EYE, sw=0, stroke="none")
-    a.dot(251, 233, 3.5, WHITE)
-    a.path("M256 246 L256 256 M256 256 C250 268 238 268 236 260 M256 256 C262 268 274 268 276 260", sw=7)
-    for s in (1, -1):
-        x = 256 + s * 52
-        a.ellipse(x, 220, 14, 17, "#f8f4ee", sw=0, stroke="none")
-        a.ellipse(x, 224, 10, 13, EYE, sw=0, stroke="none")
-        a.dot(x + 3, 218, 3.5, WHITE)
-        a.ellipse(256 + s * 98, 262, 14, 9, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.7"})
-    a.shine("M168 150 C176 134 190 122 206 116")
+    BR, BRD, DK, MASK, LT = "#b98a5e", "#a27548", "#5a4036", "#7d5c49", "#f1dcc0"
+    tail = [(350, 424, 430, 436, 482, 392, 484, 306)]
+    with a.part():
+        a.sil(taper(tail, 80, 62), BR)
+        a_band(a, tail, 0.5, 0.62, 80, 62, DK)
+        a_band(a, tail, 0.76, 0.88, 80, 62, DK)
+    FOOT = "M118 380 C146 372 178 392 182 426 C186 456 162 474 132 472 C102 470 82 452 84 422 C86 400 100 386 118 380 Z"
+    with a.part():
+        a.sil("M256 238 C300 238 340 246 362 272 C388 304 392 350 386 396 C380 440 328 460 256 460 "
+              "C184 460 132 440 126 396 C120 350 124 304 150 272 C172 246 212 238 256 238 Z", BR)
+        sym(a, FOOT, DK, 256)
+        a.blob("M256 282 C306 282 330 324 330 368 C330 416 302 444 256 444 C210 444 182 416 182 368 C182 324 206 282 256 282 Z", LT)
+        sym(a, FOOT, DK, 256, sil=False)
+        a.ink([(176, 396, 162, 380, 138, 374, 118, 380)], 9, a=0, b=1)
+        a.ink([(336, 396, 350, 380, 374, 374, 394, 380)], 9, a=0, b=1)
+    with a.part():
+        arm = [(184, 236, 150, 284, 164, 336, 216, 352)]
+        sym(a, taper(arm, 50, 40), BR, 256)
+        for q in (0,):
+            d = taper([(196, 346, 204, 349, 210, 351, 216, 352)], 40, 40)
+            sym(a, d, DK, 256, sil=False)
+    cx = 256
+    HEADP = "M256 66 C332 66 376 108 376 162 C376 214 324 246 256 246 C188 246 136 214 136 162 C136 108 180 66 256 66 Z"
+    with a.part():
+        a_ear_round(a, cx, 88, 92, 32, BR, DK, HEADP)
+    a.blob("M256 118 C302 118 336 146 336 188 C336 222 302 240 256 240 C210 240 176 222 176 188 C176 146 210 118 256 118 Z", LT)
+    sym(a, "M228 152 C200 140 158 156 148 190 C146 214 178 222 206 210 C226 200 240 178 228 152 Z", MASK, cx, sil=False)
+    a_snout(a, cx, 200, EYE, 14, m=0.85)
+    a_face(a, cx, 182, 54, 16, cheek=(92, 222, 14, 8))
+    with a.part():
+        a.sil("M226 66 C230 38 262 24 294 32 C292 60 262 80 226 66 Z", GREEN)
+        a.ink([(232, 62, 250, 56, 270, 46, 286, 36)], 6, a=0.6, b=0, col="#4f9a45")
+    a.shine("M160 132 C168 116 182 104 198 98")
     return a
 
 
 @word
 def kitsune():
     a = Art()
-    OR, DK = "#f08a3c", "#6b4a3a"
-    tail = ("M330 424 C390 450 462 410 462 340 C462 290 436 262 416 258 C398 284 380 330 356 370 Z")
-    a.path(tail, fill=OR)
-    a.blob("M416 258 C436 262 462 290 462 340 C462 358 458 374 450 388 C446 350 432 316 408 290 C410 278 412 268 416 258 Z", WHITE)
-    a.path(tail)
-    body(a, OR, belly=CREAM, toes=False)
-    for x in (190, 214, 298, 322):
-        a.line(x, 438, x, 452, sw=7)
-    ear = "M136 190 L132 52 C132 44 140 42 146 46 L236 100 Z"
-    inner = "M156 150 L152 84 L204 114 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=OR)
-    for d in (inner, mirror(inner)):
-        a.blob(d, DK)
-    a.path(HEAD, fill=OR)
-    # white cheeks and muzzle
-    a.path("M120 222 C150 214 186 236 226 262 C240 272 246 290 256 308 C214 322 150 296 124 252 Z", fill=WHITE, sw=0, stroke="none")
-    a.path(mirror("M120 222 C150 214 186 236 226 262 C240 272 246 290 256 308 C214 322 150 296 124 252 Z"), fill=WHITE, sw=0, stroke="none")
-    a.ellipse(256, 282, 44, 30, WHITE, sw=0, stroke="none")
-    a.path(HEAD)
-    a.ellipse(256, 262, 34, 22, WHITE, sw=0, stroke="none")
-    a.path("M240 234 C240 224 272 224 272 234 C272 246 262 252 256 252 C250 252 240 246 240 234 Z", fill=EYE, sw=0, stroke="none")
-    a.path("M256 252 L256 264 M256 264 C250 276 236 276 234 266 M256 264 C262 276 276 276 278 266", sw=7)
-    a.face(cy=186, gap=58, blush_y=226, blush_dx=100)
-    a.shine("M170 130 C180 118 194 110 210 106")
-    return a
+    OR, OR_D, DK = "#f08a3c", "#d97428", "#6b4a3a"
+    G = 454
+    with a.part():
+        a.sil("M380 448 C472 454 524 392 514 308 C508 250 478 214 446 204 C428 236 424 290 410 336 "
+              "C398 376 374 410 380 448 Z", OR)
+        a.blob("M446 204 C478 214 508 250 514 308 C498 296 484 300 472 288 C460 296 446 284 430 286 "
+               "C434 256 438 226 446 204 Z", WHITE)
+    with a.part():
+        a.sil("M206 240 C292 220 396 262 424 346 C442 404 424 452 370 454 L190 454 "
+              "C170 454 168 400 176 360 C184 318 184 270 206 240 Z", OR)
+        for x in (196, 252):
+            a.sil(f"M{x - 8} 290 L{x + 24} 330 L{x + 23} 416 C{x + 35} 424 {x + 35} 454 {x + 16} 454 "
+                  f"L{x - 18} 454 C{x - 37} 454 {x - 37} 424 {x - 23} 416 C{x - 24} 380 {x - 24} 330 {x - 8} 290 Z", OR)
+        a.blob("M380 452 C410 444 424 424 428 394 C418 420 400 432 376 436 Z", OR_D)
+        a.blob("M204 270 C196 306 198 336 208 362 C226 340 240 310 236 270 Z", CREAM)
+        for x in (196, 252):
+            a.blob(f"M{x - 24} 422 C{x - 36} 430 {x - 36} 454 {x - 18} 454 L{x + 16} 454 C{x + 34} 454 {x + 34} 430 {x + 24} 422 "
+                   f"C{x + 10} 414 {x - 10} 414 {x - 24} 422 Z", DK)
+        a.blob("M302 454 C288 454 286 432 304 424 C326 415 364 419 371 438 C375 448 369 454 359 454 Z", DK)
+        a.ink([(326, 300, 392, 290, 436, 352, 412, 404)], 9, a=0, b=0)
+        a.ink([(293, 455, 281, 430, 312, 414, 342, 418), (342, 418, 366, 422, 380, 440, 371, 455)], 10, a=1, b=1)
+        a.ink([(224, 455, 224, 420, 224, 380, 225, 344)], 10, a=1, b=0)
+        a.ink([(281, 440, 280, 410, 278, 380, 272, 350)], 10, a=1, b=0)
+    cx = 210
+    ear = "M130 152 L120 48 C119 38 130 34 138 40 L216 98 Z"
+    inner = "M146 132 L139 74 L186 108 Z"
+    HEADP = ("M210 96 C262 96 296 126 304 166 C308 186 324 198 324 208 C304 234 262 252 210 252 "
+             "C158 252 116 234 96 208 C96 198 112 186 116 166 C124 126 158 96 210 96 Z")
+    with a.part():
+        sym(a, ear, OR, cx)
+        a.sil(HEADP, OR)
+        sym(a, inner, DK, cx, sil=False)
+        a.blob(HEADP, OR)
+        a.blob("M98 208 C130 198 160 204 180 214 C190 198 230 198 240 214 C260 204 290 198 322 208 "
+               "C304 234 262 252 210 252 C158 252 116 234 98 208 Z", WHITE)
+    a_snout(a, cx, 208, EYE, 13, m=0.75)
+    a_face(a, cx, 168, 46, 17, cheek=(76, 204, 14, 8))
+    a.shine("M150 140 C158 124 172 112 190 106")
+    return a.flipped()
 
 
 @word
 def usagi():
     a = Art()
-    W, SH = "#fffaf4", "#efe4dc"
-    a.circle(372, 396, 30, W)
-    body(a, W, belly=SH, toes=True)
-    ear = "M196 130 C170 100 160 30 190 6 C226 8 240 70 236 118 Z"
-    inner = "M200 104 C186 80 182 44 194 26 C214 32 222 64 220 100 Z"
-    for d in (ear, mirror(ear)):
-        a.path(d, fill=W)
-    for d in (inner, mirror(inner)):
-        a.blob(d, PINK_IN)
-    a.path(HEAD, fill=W)
-    a.ellipse(256, 262, 44, 30, SH, sw=0, stroke="none")
-    a.path("M244 240 L268 240 L256 252 Z", fill="#f28a9b", sw=6)
-    a.path("M256 252 L256 262 M256 262 C250 274 238 274 236 266 M256 262 C262 274 274 274 276 266", sw=7)
-    a.rect(248, 266, 7, 12, WHITE, rx=2, sw=5)
-    a.rect(257, 266, 7, 12, WHITE, rx=2, sw=5)
-    a.face(cy=190, gap=58, blush_y=232, blush_dx=102)
-    a.shine("M160 150 C164 132 172 118 184 108")
+    W_, SH, SH2 = "#fffaf4", "#efe4dc", "#e6d8ce"
+    G = 454
+    with a.part():
+        a.sil(a_wool(440, 398, 26, 24, 5, start=0.3), W_)
+    with a.part():
+        a.sil("M206 250 C292 244 392 284 420 356 C438 408 424 452 370 454 L190 454 "
+              "C170 454 168 400 176 360 C184 318 184 280 206 250 Z", W_)
+        a.blob("M380 452 C410 444 422 426 424 398 C416 420 400 432 376 436 Z", SH)
+        a.ink([(330, 318, 392, 312, 432, 362, 410, 408)], 9, a=0, b=0)
+        a.ink([(293, 455, 279, 432, 318, 418, 356, 420), (356, 420, 388, 424, 404, 442, 395, 455)], 10, a=1, b=1)
+    for x in (204, 264):            # two short front legs, each its own part: round top, round paw
+        a.sil(f"M{x - 23} 384 C{x - 23} 346 {x + 23} 346 {x + 23} 384 L{x + 23} 420 C{x + 34} 428 {x + 34} 454 {x + 15} 454 "
+              f"L{x - 17} 454 C{x - 36} 454 {x - 36} 428 {x - 23} 420 Z", W_)
+        toes(a, x - 12, G + 1, d=1, gap=13, h=11)
+    cx = 210
+    HEADP = "M210 86 C270 86 316 122 316 172 C316 226 268 258 210 258 C152 258 104 226 104 172 C104 122 150 86 210 86 Z"
+    with a.part():
+        sym(a, "M170 116 C140 82 130 6 160 -24 C200 -20 220 48 214 104 Z", W_, cx)
+        a.sil(HEADP, W_)
+        sym(a, "M176 92 C158 66 152 22 164 -2 C190 6 200 48 196 92 Z", PINK_IN, cx, sil=False)
+        a.blob(HEADP, W_)
+    a.ellipse(cx, 222, 38, 24, SH, sw=0, stroke="none")
+    a.path("M198 206 L222 206 L210 219 Z", fill="#f28a9b", sw=6)
+    a.path("M210 219 L210 226 M210 226 C204 238 190 238 188 228 M210 226 C216 238 230 238 232 228", sw=7)
+    a_face(a, cx, 174, 50, 19, cheek=(76, 216, 16, 10))
+    a.shine("M134 150 C142 130 158 114 178 106")
     return a
 
 
 @word
 def ikada():
     a = Art()
-    LOG, END, RING = "#e4a560", "#f7d9a4", "#c97f3e"
+    LOG, LOG_D, END, RING, ROPE = "#e4a560", "#cf8c47", "#f7d9a4", "#c97f3e", "#fff0c4"
+    DX, DY = 24, -34
+    a.path("M286 196 L286 60", sw=10)                 # a pole with a small flag
+    with a.part(8):
+        a.sil(c_rpoly([(286, 58), (352, 84), (286, 112)], [0, 10, 0]), RED)
     # logs run left-right; back rows are higher and a little to the right
     for i in range(4, -1, -1):
-        dx, dy = i * 30, 50 - i * 40
-        a.rect(60 + dx, 290 + dy, 300, 64, LOG, rx=32)
-        a.ellipse(92 + dx, 322 + dy, 24, 30, END)
-        a.ellipse(92 + dx, 322 + dy, 10, 14, "none", sw=6, stroke=RING)
-        for rx_ in (160, 300):
-            a.rect(rx_ + dx, 284 + dy, 20, 76, YEL, rx=8, sw=8)
-    # ropes across the front log
-    a.path("M30 396 C56 376 86 376 112 396 C138 416 168 416 194 396 C220 376 250 376 276 396 "
-           "C302 416 332 416 358 396 C384 376 414 376 440 396 C454 406 470 410 482 406 L482 428 "
-           "C470 436 452 436 440 428 C414 410 384 410 358 428 C332 446 302 446 276 428 C250 410 220 410 194 428 "
-           "C168 446 138 446 112 428 C86 410 56 410 30 428 Z", fill="#9fd3f2")
+        dx, dy = i * DX, i * DY
+        x, y = 56 + dx, 318 + dy
+        with a.part():
+            a.sil(c_rect(x, y, 320, 62, 31), LOG)
+            a.blob(c_rpoly([(x + 30, y + 44), (x + 296, y + 44), (x + 280, y + 61), (x + 30, y + 61)], [0, 14, 10, 10]), LOG_D)
+            a.sil(c_circ(x + 26, y + 31, 24, 31), END)
+        a.ellipse(x + 26, y + 31, 10, 14, "none", sw=5, stroke=RING)
+        for rx_ in (138, 262):                        # the rope goes round each log
+            a.blob(f"M{x + rx_} {y + 1} C{x + rx_ + 12} {y + 18} {x + rx_ + 12} {y + 44} {x + rx_} {y + 61} "
+                   f"L{x + rx_ + 18} {y + 61} C{x + rx_ + 30} {y + 44} {x + rx_ + 30} {y + 18} {x + rx_ + 18} {y + 1} Z", ROPE)
+        a.shine(f"M{x + 64} {y + 13} L{x + 118} {y + 13}", sw=5)
+    c_waves(a, 392, 28, 484, 5)
     return a
 
 
 @word
 def shoubousha():
     a = Art()
-    # ladder on the roof of the box
-    a.path("M70 214 L360 150", sw=24, stroke=O)
-    a.path("M70 214 L360 150", sw=8, stroke="#d8d2cc")
-    a.path("M70 244 L360 180", sw=24, stroke=O)
-    a.path("M70 244 L360 180", sw=8, stroke="#d8d2cc")
-    for t in (0.12, 0.3, 0.48, 0.66, 0.84):
-        x = 70 + 290 * t
-        a.path(f"M{x:.0f} {214 - 64 * t:.0f} L{x:.0f} {244 - 64 * t:.0f}", sw=8)
-    # box body and cab
-    a.path("M40 270 C40 256 50 250 64 250 L292 250 L292 372 L40 372 Z", fill=RED)
-    a.path("M292 250 L370 250 C392 250 408 262 420 288 L452 300 C462 304 466 314 466 326 L466 358 "
-           "C466 366 460 372 452 372 L292 372 Z", fill=RED)
-    a.path("M312 270 L366 270 C380 270 390 280 398 298 L312 298 Z", fill=SKY, sw=9)
-    a.rect(40, 316, 252, 20, WHITE, sw=0, stroke="none")
-    a.path("M40 316 L292 316 M40 336 L292 336", sw=7)
-    a.rect(330, 316, 26, 10, WHITE, rx=5, sw=6)
-    a.ellipse(458, 328, 10, 14, YEL)
-    a.rect(300, 232, 52, 22, YEL2, rx=8, sw=9)
-    a.rect(318, 216, 16, 18, RED, rx=6, sw=8)
-    a.shine("M62 270 L180 270")
-    for x in (112, 372):
-        a.circle(x, 376, 40, GREY)
-        a.circle(x, 376, 15, HUB, sw=8)
+    STEEL_ = "#e3e7ea"
+    with a.part(7):                                   # ladder on the roof
+        for dy in (0, 36):
+            a.sil(c_bar(66, 196 + dy, 356, 132 + dy, 11), STEEL_)
+        for t in (0.1, 0.3, 0.5, 0.7, 0.9):
+            x, y = 66 + 290 * t, 196 - 64 * t
+            a.sil(c_bar(x, y, x, y + 36, 9), STEEL_)
+    with a.part():                                    # ladder rests
+        for x in (96, 250):
+            a.sil(c_rect(x, 214, 22, 40, 4), "#8a949a")
+    with a.part():                                    # beacon
+        a.sil(c_rpoly([(318, 208), (356, 208), (356, 250), (318, 250)], [16, 16, 0, 0]), "#ffd04a")
+    a.path("M330 222 L330 236", stroke=WHITE, sw=6, **{"stroke-opacity": "0.8"})
+    with a.part():                                    # box and cab: one body
+        a.sil("M44 268 Q44 244 68 244 L370 244 C398 244 412 258 424 286 L446 294 Q468 302 468 324 L468 350 "
+              "Q468 376 442 376 L70 376 Q44 376 44 350 Z", RED)
+        a.blob("M45 314 L467 314 L467 334 L45 334 Z", WHITE)
+        a.blob("M45 352 L467 352 Q466 375 442 375 L70 375 Q46 375 45 352 Z", RED_D)
+        a.blob(c_rect(70, 262, 92, 38, 8), RED_D)                 # lockers on the box
+        a.blob(c_rect(176, 262, 92, 38, 8), RED_D)
+    c_line(a, 296, 250, 296, 370, 7, s=0.6, e=0.3)
+    c_glass(a, "M316 262 L366 262 C382 262 392 272 400 292 Q402 298 394 298 L316 298 Q310 298 310 292 L310 268 Q310 262 316 262 Z",
+            glint=(326, 270, 18))
+    a.blob(c_rect(328, 340, 28, 10, 5), WHITE)
+    c_lamp(a, 456, 320, 10, 13)
+    a.shine("M70 256 L190 256", sw=6)
+    for x in (118, 380):
+        c_wheel(a, x, 378, 44)
     return a
 
 
 @word
 def kyuukyuusha():
     a = Art()
-    W2 = "#f7f4ee"
-    a.path("M50 190 C50 170 62 160 80 160 L318 160 L318 372 L50 372 Z", fill=W2)
-    a.path("M318 160 L378 160 C398 160 412 172 424 200 L450 266 C460 274 466 284 466 298 L466 352 "
-           "C466 364 458 372 446 372 L318 372 Z", fill=W2)
-    a.rect(50, 296, 416, 22, RED, sw=0, stroke="none")
-    a.path("M50 296 L466 296 M50 318 L466 318", sw=7)
-    a.path("M338 180 L378 180 C390 180 398 188 406 208 L424 258 L338 258 Z", fill=SKY, sw=9)
-    # red cross on the box
-    a.rect(156, 190, 28, 84, RED, rx=6, sw=8)
-    a.rect(128, 218, 84, 28, RED, rx=6, sw=8)
-    a.ellipse(454, 300, 10, 14, YEL)
-    a.rect(334, 276, 26, 10, WHITE, rx=5, sw=6)
-    # siren on the roof
-    a.rect(318, 132, 54, 30, RED, rx=10)
-    a.rect(330, 116, 30, 20, "#ff7a72", rx=8, sw=8)
-    a.path("M300 118 L286 108 M390 118 L404 108", sw=8)
-    a.shine("M70 178 L230 178")
-    for x in (126, 380):
-        a.circle(x, 376, 40, GREY)
-        a.circle(x, 376, 15, HUB, sw=8)
+    W2, W2_D = "#fbf8f2", "#e7e1d6"
+    with a.part():                                    # siren
+        a.sil(c_rpoly([(306, 122), (366, 122), (366, 168), (306, 168)], [22, 22, 0, 0]), RED)
+    a.path("M322 138 L322 152", stroke=WHITE, sw=7, **{"stroke-opacity": "0.7"})
+    for x0, y0, x1, y1 in ((290, 118, 274, 104), (382, 118, 398, 104), (336, 104, 336, 86)):
+        c_line(a, x0, y0, x1, y1, 9, s=0.9, e=0.3, col="#f6c548")
+    with a.part():
+        a.sil("M46 188 Q46 160 74 160 L370 160 C398 160 412 174 424 202 L444 258 C460 268 468 282 468 300 "
+              "L468 348 Q468 376 440 376 L74 376 Q46 376 46 348 Z", W2)
+        a.blob("M47 292 L467 292 L467 316 L47 316 Z", RED)
+        a.blob("M47 346 L467 346 Q467 375 440 375 L74 375 Q47 375 47 346 Z", W2_D)
+        a.blob(c_rect(140, 190, 30, 86, 7), RED)                  # red cross
+        a.blob(c_rect(112, 218, 86, 30, 7), RED)
+    c_line(a, 318, 166, 318, 370, 7, s=0.6, e=0.3)
+    c_glass(a, "M344 184 L376 184 C390 184 398 192 404 208 L418 246 Q422 258 410 258 L344 258 Q336 258 336 250 "
+               "L336 192 Q336 184 344 184 Z", glint=(350, 196, 22))
+    c_glass(a, c_rect(228, 190, 66, 56, 10))
+    a.blob(c_rect(338, 272, 28, 10, 5), "#b9c0c6")
+    c_lamp(a, 456, 302, 10, 13)
+    a.shine("M70 174 L210 174", sw=6)
+    for x in (126, 384):
+        c_wheel(a, x, 378, 44)
     return a
 
 
@@ -927,82 +1602,207 @@ def bird_base(a, body, belly, wing, tail):
         a.path(d if s < 0 else mirror(d), fill=wing)
 
 
+# --- batch B helpers begin ---
+def b_face(a, cx, cy, gap, r=16, cheek=None, mouth=None, white=False, mw=12, col=O):
+    """Front face for birds, bugs and water life: two eyes of the same size, cheeks outside and below,
+    a small smile between. white=True puts a white patch behind each eye (for dark bodies)."""
+    for s in (-1, 1):
+        if white:
+            a.ellipse(cx + s * gap, cy, r * 1.42, r * 1.62, WHITE, sw=0, stroke="none")
+        a.eye(cx + s * gap, cy, r)
+    if cheek:
+        for s in (-1, 1):
+            a.cheek(cx + s * cheek[0], cy + cheek[1], r * 0.95, r * 0.58)
+    if mouth is not None:
+        y = cy + mouth
+        a.path(f"M{cx - mw} {y} C{cx - mw * 0.45} {y + mw * 0.8} {cx + mw * 0.45} {y + mw * 0.8} {cx + mw} {y}",
+               sw=7, stroke=col)
+
+
+def b_side_eye(a, x, y, r=16, cheek=None):
+    """One eye for a fish or dolphin drawn in pure profile (same eye as everywhere else)."""
+    a.eye(x, y, r)
+    if cheek:
+        a.cheek(x + cheek[0], y + cheek[1], r * 0.95, r * 0.58)
+
+
+def b_antennae(a, cx, c, r=9, w=8):
+    """Two feelers with a ball at the end: c is the right-hand cubic (8 numbers), mirrored around cx."""
+    for s in (-1, 1):
+        q = tuple((cx + s * (v - cx)) if i % 2 == 0 else v for i, v in enumerate(c))
+        a.ink([q], w, a=1, b=1)
+        a.dot(q[6], q[7], r, O)
+
+
+def b_bird_feet(a, xs, G, col="#f4a37f"):
+    """Two small bird feet on the ground: a low dome with two notches (three toes)."""
+    for x in xs:
+        with a.part():
+            a.sil(f"M{x - 28} {G} C{x - 34} {G - 16} {x - 14} {G - 26} {x} {G - 26} "
+                  f"C{x + 14} {G - 26} {x + 34} {G - 16} {x + 28} {G} C{x + 14} {G + 4} {x - 14} {G + 4} {x - 28} {G} Z", col)
+            for dx in (-10, 10):
+                a.ink([(x + dx, G + 2, x + dx, G - 4, x + dx * 0.9, G - 9, x + dx * 0.8, G - 13)], 6, a=1, b=0)
+
+
+def b_star(cx, cy, R, r, n=5, rot=-90.0, tip=10.0, k=0.84):
+    """A star with soft round arms (for the starfish)."""
+    import math
+    pts = []
+    for i in range(n):
+        t = math.radians(rot + i * 360 / n)
+        v = t - math.pi / n
+        pts.append((cx + r * math.cos(v), cy + r * math.sin(v)))
+        for dt, rr in (((-tip, R * k), (0, R), (tip, R * k)) if tip else ((0, R),)):
+            u = t + math.radians(dt)
+            pts.append((cx + rr * math.cos(u), cy + rr * math.sin(u)))
+    return smooth(pts)
+
+
+def b_claw(cx, cy, s=1, k=1.0):
+    """A pincer for the crab and the crayfish: one round hand with a V notch at the top. (cx, cy) is the
+    wrist at the bottom; s = +1 for the right-hand claw."""
+    p = lambda dx, dy: f"{cx + s * dx * k:.1f} {cy + dy * k:.1f}"
+    return (f"M{p(0, 0)} C{p(-56, 0)} {p(-72, -70)} {p(-36, -108)} C{p(-24, -120)} {p(-6, -112)} {p(-4, -88)} "
+            f"L{p(4, -58)} L{p(16, -92)} C{p(20, -118)} {p(42, -122)} {p(52, -102)} C{p(72, -62)} {p(50, 0)} {p(0, 0)} Z")
+
+
+def b_spiral(cx, cy, r0, r1, turns, start=0.0, n=9):
+    """Cubics of a smooth spiral from radius r0 out to r1 (for the snail's shell)."""
+    import math
+    m = int(turns * n)
+    pts = []
+    for i in range(m + 1):
+        t = i / m
+        ang = math.radians(start) + t * turns * 2 * math.pi
+        r = r0 + (r1 - r0) * t
+        pts.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+    out = []
+    for i in range(m):
+        p0, p1, p2, p3 = pts[max(i - 1, 0)], pts[i], pts[i + 1], pts[min(i + 2, m)]
+        out.append((p1[0], p1[1], p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6,
+                    p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]))
+    return out
+# --- batch B helpers end ---
+
+
 @word
 def hato():
     a = Art()
-    GR, GRD, LG = "#b9c0c9", "#8b95a2", "#dde2e8"
-    bird_base(a, GR, LG, GRD, "#7d8794")
-    # iridescent neck collar (green and purple), under the head
-    a.ellipse(256, 236, 84, 50, "#4fb59b", sw=0, stroke="none")
-    a.ellipse(256, 246, 66, 32, "#a56fc4", sw=0, stroke="none")
-    a.path("M256 82 C310 82 338 120 338 160 C338 204 300 238 256 238 C212 238 174 204 174 160 C174 120 202 82 256 82 Z", fill=GR)
-    bird_face(a, cy=150, gap=44, blush_dx=72)
-    a.path("M234 170 L278 170 C278 188 268 200 256 200 C244 200 234 188 234 170 Z", fill="#f4b086", sw=9)
-    a.ellipse(256, 168, 14, 8, "#f6efe8", sw=0, stroke="none")
-    a.shine("M196 120 C204 104 216 94 232 88")
+    GR, GRD, LG, TL = "#b9c0c9", "#8b95a2", "#e3e7ec", "#7d8794"
+    G = 458
+    a.sil("M296 372 C350 384 402 404 424 446 C378 452 330 440 286 418 Z", TL)
+    b_bird_feet(a, (212, 300), G)
+    with a.part():
+        a.sil("M256 64 C310 64 340 102 340 146 C340 176 334 196 350 220 C378 262 394 300 390 342 "
+              "C384 404 326 436 256 436 C186 436 128 404 122 342 C118 300 134 262 162 220 "
+              "C178 196 172 176 172 146 C172 102 202 64 256 64 Z", GR)
+        a.blob("M174 216 C210 234 302 234 338 216 C356 240 368 256 376 276 C330 302 182 302 136 276 "
+               "C144 256 156 240 174 216 Z", "#4fb59b")
+        a.blob("M168 244 C214 262 298 262 344 244 C356 258 366 268 372 280 C326 300 186 300 140 280 "
+               "C146 268 156 258 168 244 Z", "#a56fc4")
+        a.blob("M256 296 C306 296 330 330 330 366 C330 404 300 426 256 426 C212 426 182 404 182 366 "
+               "C182 330 206 296 256 296 Z", LG)
+    with a.part():
+        w = "M146 262 C112 290 98 340 116 392 C124 408 140 410 152 400 C180 374 192 326 186 290 C182 270 166 258 146 262 Z"
+        sym(a, w, GRD, 256)
+        for s in (-1, 1):
+            for y0 in (0, 30):
+                q = (118, 336 + y0, 136, 344 + y0, 156, 344 + y0, 176, 336 + y0)
+                q = tuple((256 + s * (v - 256)) if i % 2 == 0 else v for i, v in enumerate(q))
+                a.ink([q], 9, a=0.6, b=0.6, col="#5f6875")
+    with a.part():
+        a.sil("M238 166 C238 156 274 156 274 166 C274 184 264 196 256 196 C248 196 238 184 238 166 Z", "#f4b086")
+        a.sil_ellipse(256, 164, 15, 8, "#fbf6f0")
+    b_face(a, 256, 146, 46, 16, cheek=(70, 30))
+    a.shine("M196 116 C204 100 218 88 236 82")
     return a
 
 
 @word
 def suzume():
     a = Art()
-    BR, BRD, CAP = "#c98f55", "#8f5a30", "#b5683a"
-    bird_base(a, BR, "#f6e8d2", BRD, "#8f5a30")
-    a.path("M130 340 L172 330 M126 360 L170 352", stroke="#f6e8d2", sw=7)
-    a.path("M256 82 C310 82 338 120 338 160 C338 204 300 238 256 238 C212 238 174 204 174 160 C174 120 202 82 256 82 Z", fill="#f6e8d2")
-    # chestnut cap and nape
-    a.path("M256 82 C306 82 336 116 338 150 C316 128 290 122 256 122 C222 122 196 128 174 150 C176 116 206 82 256 82 Z", fill=CAP, sw=0, stroke="none")
-    a.path("M256 82 C310 82 338 120 338 160 C338 204 300 238 256 238 C212 238 174 204 174 160 C174 120 202 82 256 82 Z")
-    # black bib and cheek spots
-    a.path("M232 198 C232 222 280 222 280 198 C268 206 244 206 232 198 Z", fill=EYE, sw=0, stroke="none")
-    for s in (-1, 1):
-        a.dot(256 + s * 74, 186, 11)
-    bird_face(a, cy=150, gap=44, blush=False)
-    a.path("M240 168 L272 168 C272 182 266 190 256 190 C246 190 240 182 240 168 Z", fill="#f2b788", sw=8)
-    a.shine("M196 118 C204 102 216 92 232 86")
+    BR, BRD, CAP, CR = "#c98f55", "#8f5a30", "#a85f34", "#f8ecd8"
+    G = 456
+    a.sil("M300 372 C346 384 388 402 404 438 C366 446 326 434 290 414 Z", BRD)
+    b_bird_feet(a, (214, 298), G)
+    with a.part():
+        a.sil("M256 72 C326 72 364 116 364 170 C364 196 358 212 368 232 C388 270 394 304 388 340 "
+              "C380 400 324 432 256 432 C188 432 132 400 124 340 C118 304 124 270 144 232 "
+              "C154 212 148 196 148 170 C148 116 186 72 256 72 Z", CAP)
+        # cream face and belly; the brown cap stays on top
+        a.blob("M156 152 C186 116 326 116 356 152 C362 200 350 232 322 246 C290 258 222 258 190 246 "
+               "C162 232 150 200 156 158 Z", CR)
+        a.blob("M256 250 C330 250 380 290 378 344 C374 396 322 424 256 424 C190 424 138 396 134 344 "
+               "C132 290 182 250 256 250 Z", BR)
+        a.blob("M256 286 C304 286 330 322 330 360 C330 400 300 422 256 422 C212 422 182 400 182 360 "
+               "C182 322 208 286 256 286 Z", CR)
+        a.blob("M242 196 C238 210 244 226 256 226 C268 226 274 210 270 196 Z", EYE)
+        for s in (-1, 1):
+            a.ellipse(256 + s * 74, 196, 15, 13, EYE, sw=0, stroke="none")
+    with a.part():
+        w = "M140 268 C110 294 100 340 118 388 C126 402 140 404 150 394 C176 370 186 328 180 294 C176 276 160 264 140 268 Z"
+        sym(a, w, BRD, 256)
+        for s in (-1, 1):
+            for y0 in (0, 28):
+                q = (118, 332 + y0, 134, 340 + y0, 152, 340 + y0, 170, 332 + y0)
+                q = tuple((256 + s * (v - 256)) if i % 2 == 0 else v for i, v in enumerate(q))
+                a.ink([q], 9, a=0.6, b=0.6, col=CR)
+    a.sil("M242 178 C242 170 270 170 270 178 C270 192 262 200 256 200 C250 200 242 192 242 178 Z", "#eaa86e")
+    b_face(a, 256, 160, 46, 17)
+    a.shine("M194 118 C204 102 218 92 236 86")
     return a
 
 
 @word
 def karasu():
     a = Art()
-    BK, BKD, BKL = "#46424f", "#34303c", "#5d5868"
-    bird_base(a, BK, BKL, BKD, "#34303c")
-    a.path("M256 80 C312 80 344 120 344 164 C344 208 304 240 256 240 C208 240 168 208 168 164 C168 120 200 80 256 80 Z", fill=BK)
-    a.ellipse(206, 126, 8, 5, BKL, sw=0, stroke="none")
-    for s in (-1, 1):
-        x = 256 + s * 46
-        a.ellipse(x, 154, 20, 24, "#ffffff", sw=0, stroke="none")
-        a.ellipse(x + s * 1, 156, 13, 17, EYE, sw=0, stroke="none")
-        a.dot(x + 5, 148, 5.5, "#ffffff")
-        a.ellipse(256 + s * 86, 190, 15, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.8"})
-    a.path("M222 176 C222 164 290 164 290 176 C290 206 270 218 256 218 C242 218 222 206 222 176 Z", fill="#ffb347", sw=9)
-    a.path("M234 190 C246 200 266 200 278 190", sw=7)
-    a.shine("M196 112 C206 98 218 90 234 84")
+    BK, BKD, BKL = "#4a4656", "#37333f", "#625d70"
+    G = 458
+    a.sil("M296 366 C352 380 410 404 436 450 C384 456 330 440 284 414 Z", BKD)
+    b_bird_feet(a, (212, 300), G, col="#8b8496")
+    with a.part():
+        # a small tuft of feathers on the head
+        a.sil("M232 84 C230 60 240 40 256 30 C258 46 262 54 270 60 C278 48 290 42 304 42 C296 58 294 74 298 90 Z", BK)
+        a.sil("M256 70 C318 70 350 112 350 160 C350 190 344 208 356 230 C380 270 392 306 388 344 "
+              "C382 404 326 436 256 436 C186 436 130 404 124 344 C120 306 132 270 156 230 "
+              "C168 208 162 190 162 160 C162 112 194 70 256 70 Z", BK)
+        a.blob("M256 300 C304 300 328 332 328 368 C328 404 300 426 256 426 C212 426 184 404 184 368 "
+               "C184 332 208 300 256 300 Z", BKL)
+    with a.part():
+        w = "M146 264 C112 292 98 344 116 398 C124 414 140 416 152 406 C180 378 192 328 186 292 C182 272 166 260 146 264 Z"
+        sym(a, w, BKD, 256)
+    with a.part():
+        a.sil("M224 178 C224 164 288 164 288 178 C288 208 270 226 256 226 C242 226 224 208 224 178 Z", "#f7b547")
+        a.ink([(228, 190, 244, 200, 268, 200, 284, 190)], 7, a=0.8, b=0.8)
+    b_face(a, 256, 152, 50, 16, cheek=(84, 36), white=True)
+    a.shine("M196 120 C206 104 220 94 238 88")
     return a
 
 
 @word
 def hikouki():
     a = Art()
-    WG, WG2 = "#8fb4dc", "#b3cdea"
-    # far wing and tail plane (behind)
-    a.path("M300 226 L262 150 L312 150 L372 224 Z", fill=WG2)
-    # tail fin
-    a.path("M70 236 L44 124 L102 124 L178 216 Z", fill=BLUE)
-    # body
-    a.path("M64 252 C64 224 88 212 122 212 L396 212 C444 212 478 236 478 260 C478 284 444 300 396 300 L116 300 C84 300 64 282 64 252 Z", fill=WHITE)
-    a.path("M80 280 C90 292 104 294 120 294 L396 294 C426 294 452 284 466 270 L80 270 Z", fill=BLUE, sw=0, stroke="none")
-    a.path("M64 252 C64 224 88 212 122 212 L396 212 C444 212 478 236 478 260 C478 284 444 300 396 300 L116 300 C84 300 64 282 64 252 Z")
-    # cockpit and windows
-    a.path("M404 232 C426 232 442 242 452 256 L404 256 Z", fill=SKY, sw=9)
-    for x in range(140, 360, 44):
-        a.circle(x, 246, 13, SKY, sw=8)
-    # near wing and engine
-    a.path("M286 284 L190 410 L248 410 L372 288 Z", fill=WG)
-    a.rect(232, 338, 64, 42, "#e6e0da", rx=18)
-    a.path("M246 346 L246 372", stroke="#ffffff", sw=6, **{"stroke-opacity": "0.6"})
-    a.shine("M120 226 L300 226")
+    WG, WG_D, WG2 = "#8fb4dc", "#7aa1cc", "#b3cdea"
+    with a.part():                                    # far wing
+        a.sil(c_rpoly([(300, 230), (254, 146), (306, 146), (380, 228)], [0, 12, 12, 0]), WG2)
+    with a.part():                                    # tail fin
+        a.sil(c_rpoly([(72, 240), (40, 112), (104, 112), (196, 222)], [0, 16, 16, 0]), BLUE)
+    with a.part():                                    # body
+        a.sil("M56 258 C56 220 90 200 130 200 L378 200 C440 200 482 230 482 260 C482 290 440 312 378 312 "
+              "L134 312 C92 312 56 294 56 258 Z", WHITE)
+        a.blob("M66 284 L472 284 C456 300 420 311 378 311 L134 311 C102 311 78 302 66 284 Z", BLUE)
+    c_glass(a, "M404 224 C432 226 452 238 462 254 Q464 258 458 258 L404 258 Q398 258 398 252 L398 230 Q398 224 404 224 Z")
+    for x in (150, 204, 258, 312):
+        c_glass(a, c_circ(x, 244, 14), ow=5)
+    with a.part():                                    # tail plane
+        a.sil(c_rpoly([(64, 250), (128, 250), (104, 280), (30, 280)], [0, 0, 10, 10]), WG)
+    with a.part():                                    # near wing
+        a.sil(c_rpoly([(290, 280), (188, 416), (252, 416), (386, 286)], [0, 14, 14, 0]), WG)
+        a.blob(c_rpoly([(222, 372), (190, 415), (252, 415), (296, 372)], [0, 12, 12, 0]), WG_D)
+    with a.part():                                    # engine on the near wing
+        a.sil(c_rect(232, 334, 78, 46, 20), "#e9e4de")
+        a.blob(c_rpoly([(288, 335), (309, 335), (309, 379), (288, 379)], [0, 19, 19, 0]), "#cfc8c0")
+    a.shine("M130 214 L300 214")
     return a
 
 
@@ -1017,18 +1817,24 @@ def kikyuu():
     ENV = ("M256 40 C402 40 444 150 404 232 C382 272 322 300 298 316 L214 316 C190 300 130 272 108 232 "
            "C68 150 110 40 256 40 Z")
     # ropes and basket (behind the envelope)
-    a.path("M222 312 L204 392 M290 312 L308 392 M256 316 L256 392", sw=8)
-    a.path("M184 388 L328 388 L316 462 C314 470 308 474 300 474 L212 474 C204 474 198 470 196 462 Z", fill=WOOD)
-    a.path("M190 416 L322 416 M194 444 L318 444", sw=7)
-    for x in (230, 256, 282):
-        a.path(f"M{x} 388 L{x} 474", sw=6)
-    a.rect(176, 378, 160, 24, WOOD_D, rx=10, sw=9)
-    a.path(ENV, fill=RED)
-    a.path(lens(165), fill=WHITE, sw=0, stroke="none")
-    a.path(lens(112), fill=YEL2, sw=0, stroke="none")
-    a.path(lens(60), fill=BLUE, sw=0, stroke="none")
-    a.path(ENV)
-    a.path("M214 316 L298 316", sw=11)
+    a.path("M222 312 L204 392 M290 312 L308 392", sw=8)
+    with a.part():
+        a.sil(c_rpoly([(190, 392), (322, 392), (310, 474), (202, 474)], [0, 0, 16, 16]), WOOD)
+        a.blob(c_rpoly([(194, 448), (318, 448), (310, 473), (202, 473)], [0, 0, 14, 14]), WOOD_D)
+    for x in (226, 256, 286):
+        c_line(a, x, 406, x + (x - 256) * -0.1, 466, 5, col=WOOD_D)
+    c_line(a, 196, 428, 316, 428, 5, col=WOOD_D)
+    with a.part():
+        a.sil(c_rect(176, 378, 160, 26, 12), WOOD_D)
+    with a.part():
+        a.sil(ENV, RED)
+        a.blob(lens(165), WHITE)
+        a.blob(lens(112), YEL2)
+        a.blob(lens(60), BLUE)
+        a.blob("M108 232 C130 272 190 300 214 316 L298 316 C322 300 382 272 404 232 C380 262 320 286 298 296 "
+               "L214 296 C192 286 132 262 108 232 Z", "#000000", **{"fill-opacity": "0.12"})
+    with a.part(8):
+        a.sil(c_rect(208, 306, 96, 18, 8), "#f7efe0")
     a.shine("M150 150 C152 112 176 82 212 66")
     return a
 
@@ -1061,17 +1867,177 @@ def blossom(a, cx, cy, R, rot=0.0, col="#f9c3d0", vein="#ee8fa8"):
     a.circle(cx, cy, R * 0.2, "#f7d36b", sw=8)
 
 
+# --- batch D helpers begin ---
+# Helpers for the food and plant words (ringo ... kinoko). Paths here use only M / L / C / Z.
+import math as _dm
+from lib import _parse as _d_parse
+
+
+def d_circ(cx, cy, rx, ry=None):
+    """An ellipse as a bezier path (so it can go through d_rim / d_tf)."""
+    ry = rx if ry is None else ry
+    kx, ky = rx * 0.5523, ry * 0.5523
+    return (f"M{cx - rx:.1f} {cy:.1f} C{cx - rx:.1f} {cy - ky:.1f} {cx - kx:.1f} {cy - ry:.1f} {cx:.1f} {cy - ry:.1f} "
+            f"C{cx + kx:.1f} {cy - ry:.1f} {cx + rx:.1f} {cy - ky:.1f} {cx + rx:.1f} {cy:.1f} "
+            f"C{cx + rx:.1f} {cy + ky:.1f} {cx + kx:.1f} {cy + ry:.1f} {cx:.1f} {cy + ry:.1f} "
+            f"C{cx - kx:.1f} {cy + ry:.1f} {cx - rx:.1f} {cy + ky:.1f} {cx - rx:.1f} {cy:.1f} Z")
+
+
+def d_tf(d, s=1.0, dx=0.0, dy=0.0, deg=0.0):
+    """Scale, turn (degrees, clockwise on screen) and move a path."""
+    c, sn = _dm.cos(_dm.radians(deg)), _dm.sin(_dm.radians(deg))
+    out = []
+    for cmd, v in _d_parse(d):
+        q = []
+        for i in range(0, len(v), 2):
+            x, y = v[i], v[i + 1]
+            q.append(f"{s * (x * c - y * sn) + dx:.1f} {s * (x * sn + y * c) + dy:.1f}")
+        out.append(cmd + " ".join(q))
+    return " ".join(out)
+
+
+def d_poly(d, n=14):
+    """Points along a closed path."""
+    pts, cur = [], (0, 0)
+    for cmd, v in _d_parse(d):
+        if cmd in "ML":
+            for i in range(0, len(v), 2):
+                cur = (v[i], v[i + 1]); pts.append(cur)
+        elif cmd == "C":
+            for i in range(0, len(v), 6):
+                x0, y0 = cur
+                x1, y1, x2, y2, x3, y3 = v[i:i + 6]
+                for j in range(1, n + 1):
+                    t = j / n; u = 1 - t
+                    pts.append((u**3 * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t**3 * x3,
+                                u**3 * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t**3 * y3))
+                cur = (x3, y3)
+    if abs(pts[0][0] - pts[-1][0]) + abs(pts[0][1] - pts[-1][1]) < 0.5:
+        pts.pop()
+    return pts
+
+
+def d_rim(d, ang, span, thick, inset=1.0, c=None):
+    """A crescent of shade just inside the edge of shape d. It sits on the side that looks toward `ang`
+    (degrees; 0 = right, 90 = down), reaches `span` degrees to each side, and is `thick` wide in the middle.
+    Always stays inside the shape, so it never covers the outline."""
+    P = d_poly(d)
+    n = len(P)
+    area = sum(P[i][0] * P[(i + 1) % n][1] - P[(i + 1) % n][0] * P[i][1] for i in range(n))
+    sg = 1 if area > 0 else -1
+    if c is None:
+        xs = [p[0] for p in P]; ys = [p[1] for p in P]
+        c = ((min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2)
+    diff = [((_dm.degrees(_dm.atan2(y - c[1], x - c[0])) - ang + 180) % 360) - 180 for x, y in P]
+    ins = [abs(v) <= span for v in diff]
+    i0 = next(i for i in range(n) if ins[i] and not ins[i - 1])
+    outer, inner = [], []
+    i = i0
+    while ins[i % n] and i < i0 + n:
+        k = i % n
+        (xa, ya), (xb, yb) = P[k - 1], P[(k + 1) % n]
+        tx, ty = xb - xa, yb - ya
+        L = (tx * tx + ty * ty) ** 0.5 or 1
+        nx, ny = sg * -ty / L, sg * tx / L
+        u = (diff[k] + span) / (2 * span)
+        w = thick * max(0.0, _dm.sin(_dm.pi * u)) ** 0.7
+        outer.append((P[k][0] + nx * inset, P[k][1] + ny * inset))
+        inner.append((P[k][0] + nx * (inset + w), P[k][1] + ny * (inset + w)))
+        i += 1
+    return "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in outer + inner[::-1]) + " Z"
+
+
+def d_curve(pts):
+    """Cubic pieces (for Art.ink) of a smooth open line through the points."""
+    n = len(pts)
+    out = []
+    for i in range(n - 1):
+        p0 = pts[max(i - 1, 0)]; p1 = pts[i]; p2 = pts[i + 1]; p3 = pts[min(i + 2, n - 1)]
+        out.append((p1[0], p1[1], p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6,
+                    p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]))
+    return out
+
+
+def d_arc(cx, cy, r, a0, a1, r1=None, ky=1.0):
+    """Cubic pieces of an arc from angle a0 to a1 (degrees; 0 = right, 90 = down). r1: end radius (spiral)."""
+    r1 = r if r1 is None else r1
+    m = max(2, int(abs(a1 - a0) / 15) + 1)
+    pts = []
+    for j in range(m + 1):
+        t = j / m
+        an = _dm.radians(a0 + (a1 - a0) * t)
+        rr = r + (r1 - r) * t
+        pts.append((cx + rr * _dm.cos(an), cy + rr * ky * _dm.sin(an)))
+    return d_curve(pts)
+
+
+def d_leaf(bx, by, tx, ty, w, skew=0.0):
+    """A pointed leaf from its base (bx, by) to its tip; w = how fat it is."""
+    vx, vy = tx - bx, ty - by
+    L = (vx * vx + vy * vy) ** 0.5
+    nx, ny = -vy / L, vx / L
+    P = lambda t, k: f"{bx + vx * t + nx * k:.1f} {by + vy * t + ny * k:.1f}"
+    k1, k2 = w * 0.75, w * 0.5
+    return (f"M{P(0, 0)} C{P(0.14, k1 * (1 + skew))} {P(0.7, k2 * (1 + skew))} {P(1, 0)} "
+            f"C{P(0.7, -k2 * (1 - skew))} {P(0.14, -k1 * (1 - skew))} {P(0, 0)} Z")
+
+
+def d_vein(a, bx, by, tx, ty, col, w=7, t0=0.06, t1=0.8, bow=0.0):
+    """The middle line of a leaf: thick at the base, fading toward the tip."""
+    vx, vy = tx - bx, ty - by
+    nx, ny = -vy * bow, vx * bow
+    q = lambda t, k=0.0: (bx + vx * t + nx * k, by + vy * t + ny * k)
+    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = q(t0), q(t0 + (t1 - t0) / 3, 1), q(t0 + (t1 - t0) * 2 / 3, 1), q(t1)
+    a.ink([(x0, y0, x1, y1, x2, y2, x3, y3)], w, a=0.9, b=0, col=col)
+
+
+def d_grain(a, x, y, deg=0.0, col="#e2d9c2", L=9, w=8):
+    """One grain of rice (a short fat mark)."""
+    c, s = _dm.cos(_dm.radians(deg)) * L, _dm.sin(_dm.radians(deg)) * L
+    a.ink([(x - c, y - s, x - c / 3, y - s / 3, x + c / 3, y + s / 3, x + c, y + s)], w, a=0.55, b=0.55, col=col)
+
+
+def d_flower5(a, cx, cy, R, rot=0.0, col="#f9c3d0", vein="#ee8fa8", notch=True, w=0.8):
+    """A five-petal flower as one part (one outline); short lines from the middle split the petals."""
+    with a.part():
+        for i in range(5):
+            a.sil(petal(cx, cy, R, rot + i * 2 * _dm.pi / 5, w=w, notch=notch), col)
+        for i in range(5):
+            an = rot + (i + 0.5) * 2 * _dm.pi / 5
+            sx, sy = _dm.sin(an), -_dm.cos(an)
+            a.ink([(cx + sx * R * 0.1, cy + sy * R * 0.1, cx + sx * R * 0.2, cy + sy * R * 0.2,
+                    cx + sx * R * 0.32, cy + sy * R * 0.32, cx + sx * R * 0.44, cy + sy * R * 0.44)], R * 0.09, a=1, b=0, col=vein)
+        a.blob(d_circ(cx, cy, R * 0.2), vein)
+        for i in range(5):
+            an = rot + i * 2 * _dm.pi / 5
+            a.dot(cx + _dm.sin(an) * R * 0.3, cy - _dm.cos(an) * R * 0.3, R * 0.06, "#f7c948")
+        a.dot(cx, cy, R * 0.1, "#f7d36b")
+
+
+def d_blade(x0, base, w, tx, ty):
+    """A blade of grass: flat foot at (x0, base), curved to the tip (tx, ty)."""
+    h = base - ty
+    return (f"M{x0 - w / 2:.1f} {base} C{x0 - w / 2:.1f} {base - h * 0.5:.1f} {tx - (tx - x0) * 0.25 - w * 0.12:.1f} {ty + h * 0.28:.1f} {tx:.1f} {ty:.1f} "
+            f"C{tx - (tx - x0) * 0.25 + w * 0.3:.1f} {ty + h * 0.3:.1f} {x0 + w / 2:.1f} {base - h * 0.5:.1f} {x0 + w / 2:.1f} {base} Z")
+# --- batch D helpers end ---
+
+
 @word
 def sakura():
     a = Art()
-    a.path("M440 470 C380 420 320 380 250 310 C200 260 170 220 160 170", sw=34)
-    a.path("M440 470 C380 420 320 380 250 310 C200 260 170 220 160 170", stroke="#9a6b4a", sw=16)
-    a.path("M250 310 C230 320 210 326 196 330", sw=26)
-    a.path("M250 310 C230 320 210 326 196 330", stroke="#9a6b4a", sw=11)
-    blossom(a, 168, 150, 88, 0.2)
-    blossom(a, 340, 230, 100, 0.55)
-    blossom(a, 392, 408, 66, 0.0)
-    blossom(a, 196, 330, 70, 0.4)
+    BR = "#9a6b4a"
+    with a.part():
+        a.sil(taper([(444, 474, 384, 424, 320, 380, 250, 310), (250, 310, 200, 260, 172, 222, 162, 176)], 30, 14), BR)
+        a.sil(taper([(262, 322, 236, 326, 214, 330, 196, 334)], 18, 12), BR)
+        a.sil(taper([(350, 400, 362, 372, 360, 330, 344, 300)], 16, 11), BR)
+        a.ink([(424, 462, 384, 428, 340, 396, 300, 362)], 7, a=0, b=0, col="#7d5237")
+    d_flower5(a, 168, 150, 90, 0.2)
+    d_flower5(a, 340, 228, 100, 0.55)
+    d_flower5(a, 196, 334, 70, 0.4)
+    d_flower5(a, 398, 404, 62, 0.0)
+    # a bud at the top of the twig
+    a.sil("M262 60 C286 64 300 90 290 116 C270 122 248 104 250 78 C252 68 256 62 262 60 Z", "#f7a9bd")
+    a.shine("M118 128 C122 110 134 96 150 90", sw=6)
     return a
 
 
@@ -1080,26 +2046,34 @@ def himawari():
     import math
     a = Art()
     LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
-    a.path("M256 300 C256 340 252 380 256 420", sw=40)
-    a.path("M256 300 C256 340 252 380 256 420", stroke=LEAF, sw=18)
-    for s in (-1, 1):
-        d = "M256 372 C300 346 352 342 390 366 C354 402 298 408 256 386 Z"
-        a.path(d if s > 0 else mirror(d), fill=LEAF)
-        v = "M270 376 C310 366 340 366 366 370"
-        a.path(v if s > 0 else mirror(v), stroke=LEAF_D, sw=6)
+    with a.part():
+        a.sil("M244 300 L268 300 L268 470 C268 478 244 478 244 470 Z", LEAF)
+        a.sil(d_leaf(262, 404, 408, 356, 92, 0.25), LEAF)
+        a.sil(d_leaf(250, 404, 104, 356, 92, -0.25), LEAF)
+        d_vein(a, 266, 402, 408, 356, LEAF_D, t0=0.05, t1=0.78)
+        d_vein(a, 246, 402, 104, 356, LEAF_D, t0=0.05, t1=0.78)
     n = 12
-    for i in range(n):
-        a.path(petal(256, 190, 150, i * 2 * math.pi / n, w=0.46, notch=False), fill="#f4c23a")
-    for i in range(n):
-        a.path(petal(256, 190, 136, (i + 0.5) * 2 * math.pi / n, w=0.46, notch=False), fill=YEL2)
-    a.circle(256, 190, 74, "#8a5530")
-    a.circle(256, 190, 50, "#6e4224", sw=0, stroke="none")
-    for r, cnt in ((20, 6), (36, 12)):
-        for j in range(cnt):
-            t = j * 2 * math.pi / cnt + r
-            a.dot(256 + r * math.cos(t), 190 + r * math.sin(t), 5.5, "#b98255")
-    a.dot(256, 190, 5.5, "#b98255")
-    a.shine("M204 156 C210 134 226 118 246 112")
+    with a.part():
+        for i in range(n):
+            a.sil(petal(256, 190, 152, (i + 0.5) * 2 * math.pi / n, w=0.42, notch=False), "#f2b62e")
+    with a.part():
+        for i in range(n):
+            a.sil(petal(256, 190, 142, i * 2 * math.pi / n, w=0.44, notch=False), YEL2)
+        for i in range(n):
+            an = (i + 0.5) * 2 * math.pi / n
+            sx, sy = math.sin(an), -math.cos(an)
+            a.ink([(256 + sx * 70, 190 + sy * 70, 256 + sx * 80, 190 + sy * 80, 256 + sx * 90, 190 + sy * 90, 256 + sx * 100, 190 + sy * 100)],
+                  7, a=1, b=0, col="#e09a1c")
+    with a.part():
+        a.sil(d_circ(256, 190, 76), "#8a5530")
+        a.blob(d_circ(256, 190, 54), "#6e4224")
+        for r, cnt in ((22, 6), (40, 11)):
+            for j in range(cnt):
+                t = j * 2 * math.pi / cnt + r
+                a.dot(256 + r * math.cos(t), 190 + r * math.sin(t), 6, "#b98255")
+        a.dot(256, 190, 6, "#b98255")
+        a.blob(d_rim(d_circ(256, 190, 76), 50, 70, 12), "#74441f")
+    a.shine("M202 160 C208 140 222 126 240 120")
     return a
 
 
@@ -1108,40 +2082,43 @@ def tanpopo():
     import math
     a = Art()
     LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
-    # toothed leaves at the base
-    leaf = ("M250 462 L196 452 L206 426 L160 424 L170 396 L124 388 L146 364 L96 346 L150 338 "
-            "L186 372 L226 392 L252 420 Z")
-    a.path(leaf, fill=LEAF)
-    a.path(mirror(leaf), fill=LEAF)
-    a.path("M256 462 L256 300", sw=34)
-    a.path("M256 462 L256 300", stroke="#8fd07a", sw=14)
-    n = 22
-    pts = []
-    for i in range(n * 2):
-        r = 116 if i % 2 == 0 else 92
-        t = i * math.pi / n
-        pts.append(f"{256 + r * math.sin(t):.1f} {180 - r * math.cos(t):.1f}")
-    a.path("M" + " L".join(pts) + " Z", fill="#f7c948")
-    for i in range(n):
-        t = i * 2 * math.pi / n
-        a.path(f"M{256 + 40 * math.sin(t):.1f} {180 - 40 * math.cos(t):.1f} "
-               f"L{256 + 84 * math.sin(t):.1f} {180 - 84 * math.cos(t):.1f}", stroke="#fbe07a", sw=9)
-    a.circle(256, 180, 30, "#f0b429", sw=0, stroke="none")
-    a.shine("M206 140 C214 120 228 106 246 100")
+    leaf = ("M252 466 C226 468 204 462 190 452 L204 428 C182 432 164 426 152 416 L168 394 "
+            "C144 396 124 388 112 376 L132 358 C110 354 92 344 84 330 C112 322 142 330 160 344 "
+            "C186 364 214 384 236 404 C246 414 252 430 252 466 Z")
+    with a.part():
+        a.sil(leaf, LEAF)
+        a.sil(mirror(leaf), LEAF)
+        a.sil("M246 300 L266 300 L267 466 L245 466 Z", "#8fd07a")
+        a.ink([(240, 452, 204, 420, 160, 376, 112, 340)], 8, a=0.8, b=0, col=LEAF_D)
+        a.ink([(272, 452, 308, 420, 352, 376, 400, 340)], 8, a=0.8, b=0, col=LEAF_D)
+    cx, cy = 256, 178
+    n = 16
+    with a.part():
+        for i in range(n):
+            a.sil(petal(cx, cy, 122, i * 2 * math.pi / n, w=0.3, notch=False), "#f7c948")
+        for i in range(n):
+            a.blob(petal(cx, cy, 92, (i + 0.5) * 2 * math.pi / n, w=0.34, notch=False), "#fbe07a")
+        for i in range(10):
+            a.blob(petal(cx, cy, 58, i * 2 * math.pi / 10, w=0.5, notch=False), "#f7c948")
+        a.blob(d_circ(cx, cy, 26), "#f0b429")
+    a.shine("M206 142 C212 124 224 110 240 104")
     return a
 
 
 @word
 def ringo():
     a = Art()
-    a.path("M260 140 C262 110 268 86 282 60", sw=30)
-    a.path("M260 140 C262 110 268 86 282 60", stroke="#8a5530", sw=12)
-    a.path("M282 96 C312 46 372 40 404 62 C386 116 326 132 282 96 Z", fill=GREEN)
-    a.path("M296 92 C328 78 360 72 386 70", stroke="#58a24a", sw=6)
-    a.path("M256 142 C296 98 404 104 412 224 C418 342 344 436 292 436 C272 436 264 428 256 428 "
-           "C248 428 240 436 220 436 C168 436 94 342 100 224 C108 104 216 98 256 142 Z", fill=RED)
-    a.path("M326 392 C366 368 392 316 398 258 C384 330 350 372 306 398 Z", fill=RED_D, sw=0, stroke="none")
-    a.shine("M152 214 C148 178 164 150 192 138")
+    a.sil(taper([(258, 160, 258, 122, 266, 94, 284, 64)], 15, 20), "#8a5530")
+    with a.part():
+        a.sil("M286 106 C304 50 366 32 410 56 C400 112 338 140 286 106 Z", GREEN)
+        d_vein(a, 290, 102, 404, 60, "#58a24a", t1=0.76, bow=-0.04)
+    body = ("M256 142 C296 98 404 104 412 224 C418 342 344 436 292 436 C272 436 264 428 256 428 "
+            "C248 428 240 436 220 436 C168 436 94 342 100 224 C108 104 216 98 256 142 Z")
+    with a.part():
+        a.sil(body, RED)
+        a.blob(d_rim(body, 40, 62, 30), RED_D)
+        a.ink([(222, 138, 238, 158, 274, 158, 290, 138)], 9, a=0, b=0)
+    a.shine("M152 220 C148 184 164 154 192 142", sw=9)
     return a
 
 
@@ -1149,37 +2126,49 @@ def ringo():
 def mikan():
     a = Art()
     OR, OR_D = "#f7931e", "#e57d12"
-    a.path("M96 290 C96 190 170 140 256 140 C342 140 416 190 416 290 C416 380 346 436 256 436 C166 436 96 380 96 290 Z", fill=OR)
-    a.path("M330 408 C376 380 408 330 410 280 C404 350 372 394 316 420 Z", fill=OR_D, sw=0, stroke="none")
-    for dx, dy in ((-70, 250), (-30, 350), (60, 290), (30, 380), (-90, 330), (100, 350)):
-        a.dot(256 + dx, dy - 20, 3.5, "#f9b24f")
-    a.path("M256 144 L256 112", sw=26)
-    a.path("M256 144 L256 112", stroke="#6aa84f", sw=10)
-    star = "M256 150 C236 148 214 136 198 120 C226 112 244 124 256 150 C268 124 286 112 314 120 C298 136 276 148 256 150 Z"
-    a.path(star, fill=GREEN)
-    a.path("M262 112 C290 76 340 62 372 74 C356 112 306 126 262 112 Z", fill=GREEN)
-    a.path("M278 106 C308 94 336 88 360 82", stroke="#58a24a", sw=6)
-    a.shine("M140 262 C140 224 164 190 200 172")
+    with a.part():
+        a.sil(d_leaf(262, 150, 392, 66, 88, 0.2), GREEN)
+        d_vein(a, 262, 150, 392, 66, "#58a24a", t0=0.2, t1=0.8)
+    body = "M96 292 C96 198 170 146 256 146 C342 146 416 198 416 292 C416 380 346 436 256 436 C166 436 96 380 96 292 Z"
+    with a.part():
+        a.sil(body, OR)
+        a.blob(d_rim(body, 42, 62, 30), OR_D)
+        for dx, dy in ((-72, 262), (-30, 356), (58, 300), (24, 392), (-96, 336), (96, 362), (-10, 230)):
+            a.dot(256 + dx, dy - 20, 4, "#fbb657")
+    # the green star where the stem was
+    import math
+    pts = []
+    for i in range(10):
+        r = 40 if i % 2 == 0 else 15
+        t = -math.pi / 2 + i * math.pi / 5
+        pts.append((256 + r * math.cos(t), 158 + r * 0.56 * math.sin(t)))
+    with a.part(ow=9):
+        a.sil("M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z", "#5aa84c")
+        a.blob(d_circ(256, 157, 9, 6), "#3f8a3c")
+    a.shine("M140 268 C140 230 164 196 200 178", sw=9)
     return a
 
 
 @word
 def ichigo():
     a = Art()
-    a.path("M256 456 C176 420 98 340 98 250 C98 186 150 150 256 162 C362 150 414 186 414 250 C414 340 336 420 256 456 Z", fill=RED)
-    a.path("M330 410 C376 372 406 316 406 262 C396 330 360 380 312 420 Z", fill=RED_D, sw=0, stroke="none")
-    seeds = [(176, 238), (256, 226), (336, 238), (136, 282), (216, 286), (296, 286), (376, 282),
-             (176, 334), (256, 338), (336, 334), (216, 386), (296, 386), (256, 424)]
-    for x, y in seeds:
-        a.ellipse(x, y, 8, 12, "#ffe18a", sw=0, stroke="none")
-    # green top
-    a.path("M256 170 L256 116", sw=26)
-    a.path("M256 170 L256 116", stroke="#6aa84f", sw=10)
-    top = ("M256 190 C230 196 196 186 150 160 C176 152 206 154 232 168 C214 148 204 128 200 104 "
-           "C228 118 244 142 256 164 C268 142 284 118 312 104 C308 128 298 148 280 168 "
-           "C306 154 336 152 362 160 C316 186 282 196 256 190 Z")
-    a.path(top, fill=GREEN)
-    a.shine("M138 250 C136 220 156 192 186 182")
+    body = "M256 456 C232 456 98 356 98 250 C98 186 156 156 256 164 C356 156 414 186 414 250 C414 356 280 456 256 456 Z"
+    with a.part():
+        a.sil(body, RED)
+        a.blob(d_rim(body, 42, 58, 30), RED_D)
+        seeds = [(176, 244), (256, 232), (336, 244), (138, 290), (216, 292), (296, 292), (368, 288),
+                 (178, 340), (256, 342), (330, 338), (218, 390), (292, 388), (256, 428)]
+        for x, y in seeds:
+            a.ellipse(x, y, 8, 12, "#ffe18a", sw=0, stroke="none")
+    top = ("M256 196 C230 202 196 190 148 162 C176 152 206 156 232 170 C214 150 204 130 200 104 "
+           "C228 118 244 142 256 164 C268 142 284 118 312 104 C308 130 298 150 280 170 "
+           "C306 156 336 152 364 162 C316 190 282 202 256 196 Z")
+    with a.part():
+        a.sil(taper([(256, 170, 256, 150, 258, 132, 262, 112)], 14, 16), "#5aa84c")
+        a.sil(top, GREEN)
+        a.ink([(256, 190, 232, 186, 204, 176, 180, 166)], 6, a=0.6, b=0, col="#58a24a")
+        a.ink([(256, 190, 280, 186, 308, 176, 332, 166)], 6, a=0.6, b=0, col="#58a24a")
+    a.shine("M134 262 C132 228 152 200 182 190", sw=9)
     return a
 
 
@@ -1187,16 +2176,19 @@ def ichigo():
 def ninjin():
     a = Art()
     LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
-    for d in ("M250 160 C214 140 168 110 160 56 C206 62 248 96 266 156 Z",
-              "M240 160 C230 110 238 60 262 22 C292 62 296 118 280 160 Z",
-              "M262 162 C300 124 352 98 396 100 C382 148 330 176 270 172 Z"):
-        a.path(d, fill=LEAF)
-    a.path("M256 150 C340 140 370 170 352 210 C320 310 290 400 264 462 C258 474 250 474 246 462 "
-           "C220 400 188 310 160 210 C142 170 172 140 256 150 Z", fill="#f78d2e")
-    a.path("M318 240 C298 332 280 398 264 444 C294 394 312 326 322 252 Z", fill="#e07a1e", sw=0, stroke="none")
-    for y, x0, x1 in ((222, 190, 236), (292, 212, 252), (360, 232, 262)):
-        a.path(f"M{x0} {y} L{x1} {y}", stroke="#e07a1e", sw=8)
-    a.shine("M192 188 C190 172 202 162 220 160")
+    for bx, tx, ty, w, sk in ((244, 150, 62, 84, -0.2), (268, 370, 70, 84, 0.2), (256, 258, 18, 86, 0)):
+        with a.part():
+            a.sil(d_leaf(bx, 188, tx, ty, w, sk), LEAF)
+            d_vein(a, bx, 188, tx, ty, LEAF_D, t0=0.2, t1=0.8)
+    body = ("M256 158 C330 150 374 178 358 228 C336 306 298 400 269 456 C263 468 249 468 243 456 "
+            "C214 400 176 306 154 228 C138 178 182 150 256 158 Z")
+    with a.part():
+        a.sil(body, "#f78d2e")
+        a.blob(d_rim(body, 25, 62, 26), "#e07a1e")
+        a.ink([(160, 248, 182, 254, 204, 254, 224, 248)], 8, a=1, b=0)
+        a.ink([(331, 304, 312, 310, 294, 310, 278, 304)], 8, a=1, b=0)
+        a.ink([(203, 366, 220, 371, 236, 371, 250, 366)], 8, a=1, b=0)
+    a.shine("M188 212 C184 192 196 178 216 174", sw=9)
     return a
 
 
@@ -1204,45 +2196,42 @@ def ninjin():
 def daikon():
     a = Art()
     LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
-    for d, v in (("M246 196 C190 170 134 120 126 48 C196 58 246 108 262 190 Z", "M236 180 C202 144 170 108 144 66"),
-                 ("M246 196 C232 140 238 80 262 20 C296 82 298 144 272 196 Z", "M258 180 C252 130 254 84 262 44"),
-                 ("M266 196 C316 164 372 128 422 116 C410 176 340 212 270 206 Z", "M278 190 C320 168 366 146 404 132")):
-        a.path(d, fill=LEAF)
-        a.path(v, stroke=LEAF_D, sw=6)
-    a.path("M256 186 C310 182 330 214 324 262 C318 354 288 434 264 474 C260 482 252 482 248 474 "
-           "C224 434 194 354 188 262 C182 214 202 182 256 186 Z", fill="#f8f5ec")
-    a.path("M190 270 C186 218 202 186 256 190 C310 186 326 218 322 270 C296 242 216 242 190 270 Z",
-           fill="#cfe8b0", sw=0, stroke="none")
-    a.path("M302 270 C296 350 282 410 262 462 C292 420 316 350 320 280 Z", fill="#e9e3d2", sw=0, stroke="none")
-    for y, x0, x1 in ((300, 214, 238), (352, 226, 248), (404, 240, 256)):
-        a.path(f"M{x0} {y} L{x1} {y}", stroke="#d8d0bb", sw=7)
-    a.path("M256 186 C310 182 330 214 324 262 C318 354 288 434 264 474 C260 482 252 482 248 474 "
-           "C224 434 194 354 188 262 C182 214 202 182 256 186 Z")
-    a.shine("M210 236 C208 216 208 202 226 196")
+    for bx, tx, ty, w, sk in ((242, 126, 50, 104, -0.25), (270, 420, 112, 96, 0.25), (256, 262, 14, 100, 0)):
+        with a.part():
+            a.sil(d_leaf(bx, 214, tx, ty, w, sk), LEAF)
+            d_vein(a, bx, 214, tx, ty, LEAF_D, t0=0.2, t1=0.82)
+    body = ("M256 190 C318 186 340 218 334 268 C328 356 292 432 266 472 C261 480 251 480 246 472 "
+            "C220 432 184 356 178 268 C172 218 194 186 256 190 Z")
+    with a.part():
+        a.sil(body, "#fbf8ef")
+        a.blob("M182 264 C176 222 198 194 256 195 C314 194 336 222 330 264 C300 240 212 240 182 264 Z", "#cfe8b0")
+        a.blob(d_rim(body, 25, 68, 22), "#e6dfcc")
+        a.ink([(181, 300, 198, 305, 214, 305, 228, 300)], 7, a=1, b=0)
+        a.ink([(322, 340, 306, 345, 292, 345, 280, 340)], 7, a=1, b=0)
+        a.ink([(213, 398, 226, 402, 238, 402, 250, 398)], 7, a=1, b=0)
+    a.shine("M204 262 C200 238 204 218 222 208", sw=9)
     return a
 
 
 @word
 def kabocha():
     a = Art()
-    GRN, GRN_D, ORG = "#4f9a4a", "#3b7f3b", "#f0a030"
-    a.path("M262 150 C264 118 276 94 298 74", sw=32)
-    a.path("M262 150 C264 118 276 94 298 74", stroke="#8a6a3a", sw=14)
+    GRN, GRN_L, GRN_D = "#4f9a4a", "#63ad58", "#3f8440"
+    a.sil(taper([(258, 166, 258, 132, 266, 108, 288, 86)], 28, 30), "#b3945a")
     body = ("M256 152 C330 130 430 150 440 250 C448 340 380 420 256 420 C132 420 64 340 72 250 "
             "C82 150 182 130 256 152 Z")
-    a.path(body, fill=GRN)
-    # lobes: lighter segments with ribs
-    a.path("M256 152 C214 190 204 360 256 420 C308 360 298 190 256 152 Z", fill="#f4a93c", sw=0, stroke="none")
-    a.path("M256 152 C214 190 204 360 256 420", sw=8)
-    a.path("M256 152 C298 190 308 360 256 420", sw=8)
-    a.path("M170 148 C122 200 118 320 160 392", sw=7)
-    a.path("M342 148 C390 200 394 320 352 392", sw=7)
-    # orange lower part (ripe kabocha)
-    for x, y in ((112, 330), (404, 336), (150, 270), (368, 264), (150, 366), (362, 372)):
-        a.ellipse(x, y, 10, 7, "#f4a93c", sw=0, stroke="none")
-    a.path(body)
-    a.path("M254 150 L264 150", sw=10)
-    a.shine("M118 230 C118 196 142 170 176 160")
+    with a.part():
+        a.sil(body, GRN)
+        a.blob("M256 158 C212 196 204 356 256 414 C308 356 300 196 256 158 Z", GRN_L)
+        a.blob("M164 156 C116 204 112 316 152 384 C120 352 84 300 88 248 C92 204 124 170 164 156 Z", GRN_L)
+        a.blob(d_rim(body, 40, 62, 30), GRN_D)
+        a.ink([(256, 152, 212, 192, 204, 358, 256, 420)], 8, a=1, b=1)
+        a.ink([(256, 152, 300, 192, 308, 358, 256, 420)], 8, a=1, b=1)
+        a.ink([(176, 145, 124, 200, 118, 322, 162, 398)], 8, a=1, b=1)
+        a.ink([(336, 145, 388, 200, 394, 322, 350, 398)], 8, a=1, b=1)
+        for x, y in ((112, 300), (150, 250), (238, 330), (270, 240), (346, 300), (404, 262)):
+            a.ellipse(x, y, 9, 6, "#a5d48c", sw=0, stroke="none")
+    a.shine("M106 244 C106 208 124 182 150 170", sw=9)
     return a
 
 
@@ -1262,237 +2251,295 @@ def bug_face(a, cx, cy, gap=20, r=9, smile=True, blush=True):
 @word
 def chou():
     a = Art()
-    UP, LO = "#f6a04d", "#f58fb4"
-    up = "M250 232 C214 130 110 70 64 126 C34 180 84 262 250 262 Z"
-    lo = "M250 258 C170 262 100 308 118 372 C136 432 224 404 250 316 Z"
-    # antennae behind
-    for s in (-1, 1):
-        a.path(f"M{256+s*12} 150 C{256+s*20} 100 {256+s*48} 76 {256+s*74} 74", sw=8)
-        a.circle(256 + s * 76, 74, 11, O, sw=0, stroke="none")
-    for d in (lo, mirror(lo)):
-        a.path(d, fill=LO)
-    for d in (up, mirror(up)):
-        a.path(d, fill=UP)
-    for s in (-1, 1):
-        x = 256 + s * 1
-        a.circle(256 + s * 120, 160, 26, "#fff4cf", sw=0, stroke="none")
-        a.circle(256 + s * 120, 160, 12, "#c35f9a", sw=0, stroke="none")
-        a.circle(256 + s * 96, 342, 18, "#fff4cf", sw=0, stroke="none")
-    a.path("M256 150 C284 150 290 190 288 250 C286 330 276 396 256 410 C236 396 226 330 224 250 C222 190 228 150 256 150 Z", fill="#8a5a44")
-    a.circle(256, 160, 40, "#f5d6b0")
-    bug_face(a, 256, 162, gap=17, r=8)
-    a.shine("M88 126 C106 108 130 100 152 104")
+    UP, UPD, LO, LOD = "#f8a551", "#ee8a35", "#f79abb", "#ee7ea6"
+    cx = 256
+    b_antennae(a, cx, (268, 150, 276, 108, 300, 82, 328, 78), r=11)
+    with a.part():
+        sym(a, "M250 262 C186 258 110 298 114 362 C118 424 206 424 238 358 C248 334 252 300 250 262 Z", LO, cx)
+        for s in (-1, 1):
+            a.ellipse(cx + s * 84, 350, 24, 22, "#fff4cf", sw=0, stroke="none")
+    with a.part():
+        sym(a, "M250 252 C236 150 150 68 84 96 C32 120 42 204 100 240 C150 268 210 272 250 264 Z", UP, cx)
+        for s in (-1, 1):
+            a.blob(f"M{cx + s * 176} 108 C{cx + s * 214} 128 {cx + s * 214} 192 {cx + s * 164} 232 "
+                   f"C{cx + s * 196} 196 {cx + s * 200} 144 {cx + s * 176} 108 Z", UPD)
+            a.ellipse(cx + s * 124, 168, 32, 30, "#fff4cf", sw=0, stroke="none")
+            a.ellipse(cx + s * 124, 168, 15, 14, "#c35f9a", sw=0, stroke="none")
+            a.ellipse(cx + s * 70, 226, 12, 11, "#fff4cf", sw=0, stroke="none")
+    body = [(256, 200, 256, 280, 256, 340, 256, 400)]
+    with a.part():
+        a.sil(taper(body, 52, 20), "#8a5a44")
+        for t in (0.42, 0.6, 0.78):
+            band(a, body, t, t + 0.06, 52, 20, "#6e4532")
+    a.sil("M256 126 C290 126 310 148 310 176 C310 206 288 224 256 224 C224 224 202 206 202 176 C202 148 222 126 256 126 Z", "#f7d9b4")
+    b_face(a, cx, 176, 22, 11, cheek=(38, 18), mouth=18, mw=9)
+    a.shine("M84 128 C98 110 118 100 140 98")
     return a
 
 
 @word
 def tonbo():
     a = Art()
-    WG = "#cfeaf7"
-    up = "M246 196 C200 140 120 118 58 138 C40 164 90 214 246 222 Z"
-    lo = "M246 228 C190 232 118 262 78 306 C86 338 150 336 246 262 Z"
-    for d in (lo, mirror(lo), up, mirror(up)):
-        a.path(d, fill=WG)
-    for s in (-1, 1):
-        a.path(f"M{256+s*20} 196 C{256+s*100} 176 {256+s*150} 160 {256+s*190} 148", stroke="#a9d3ea", sw=5)
-        a.path(f"M{256+s*20} 244 C{256+s*80} 262 {256+s*120} 282 {256+s*160} 308", stroke="#a9d3ea", sw=5)
-    a.path("M256 120 C282 120 290 150 288 200 C286 300 274 400 256 470 C238 400 226 300 224 200 C222 150 230 120 256 120 Z", fill=RED)
-    for y in (232, 282, 332, 382):
-        a.path(f"M{231-(y-232)*0.03:.0f} {y} L{281+(y-232)*0.03*-1:.0f} {y}", stroke=RED_D, sw=7)
-    a.circle(256, 128, 40, "#f08a4b")
-    bug_face(a, 256, 130, gap=21, r=9)
-    a.shine("M70 140 C92 128 120 126 148 132")
+    WG, WGD, HD = "#d3ecf8", "#a9d3ea", "#f08a4b"
+    cx = 256
+    with a.part():
+        sym(a, "M248 236 C186 240 104 268 68 306 C52 328 70 348 98 340 C162 322 216 284 248 256 Z", WG, cx)
+    with a.part():
+        sym(a, "M248 210 C190 160 100 124 44 146 C20 158 26 190 58 204 C120 228 200 236 248 236 Z", WG, cx)
+        for s in (-1, 1):
+            m = lambda q: tuple((cx + s * (v - cx)) if i % 2 == 0 else v for i, v in enumerate(q))
+            a.ink([m((236, 222, 180, 200, 120, 178, 66, 172))], 6, a=0.4, b=0, col=WGD)
+            a.ellipse(cx + s * 186, 160, 13, 6, "#f29a76", sw=0, stroke="none")
+    body = [(256, 160, 256, 260, 256, 380, 256, 466)]
+    with a.part():
+        a.sil(taper(body, 56, 18), RED)
+        a.sil_ellipse(256, 216, 34, 46, RED)
+        for t in (0.42, 0.56, 0.7, 0.84):
+            band(a, body, t, t + 0.025, 56, 18, RED_D)
+    a.sil("M256 82 C296 82 318 104 318 132 C318 162 292 180 256 180 C220 180 194 162 194 132 C194 104 216 82 256 82 Z", HD)
+    b_face(a, cx, 130, 27, 13, cheek=(46, 20), mouth=20, mw=9)
+    a.shine("M70 150 C92 140 116 138 140 142")
     return a
 
 
 @word
 def hachi():
-    a = Art()
-    BEE, BLK, WG = "#f7c948", "#3b2f2a", "#d6eefb"
-    cx, cy, rx, ry = 322, 300, 134, 100
-    # wings behind
-    a.path("M290 214 C240 150 250 70 306 66 C352 70 350 160 330 214 Z", fill=WG)
-    a.path("M340 214 C340 150 380 90 428 106 C456 150 410 206 366 222 Z", fill=WG)
-    # stinger
-    a.path(f"M{cx+rx-6} 300 L{cx+rx+46} 316 L{cx+rx-4} 330 Z", fill=BLK)
-    a.ellipse(cx, cy, rx, ry, BEE)
     import math
-    def ytop(x):
-        return cy - ry * math.sqrt(max(0, 1 - ((x - cx) / rx) ** 2))
-    for x1, x2 in ((258, 296), (336, 374), (410, 436)):
-        t1, t2 = ytop(x1), ytop(x2)
-        b1, b2 = 2 * cy - t1, 2 * cy - t2
-        a.path(f"M{x1} {t1:.1f} A{rx} {ry} 0 0 1 {x2} {t2:.1f} L{x2} {b2:.1f} A{rx} {ry} 0 0 1 {x1} {b1:.1f} Z", fill=BLK, sw=0, stroke="none")
-    a.ellipse(cx, cy, rx, ry, "none")
-    # antennae, head
-    for dx in (-26, 26):
-        a.path(f"M{136+dx} 238 C{136+dx} 200 {136+dx*2} 182 {136+dx*2} 168", sw=8)
-        a.circle(136 + dx * 2, 164, 9, O, sw=0, stroke="none")
-    a.circle(140, 302, 76, BEE)
-    bug_face(a, 140, 300, gap=28, r=11)
-    a.shine("M92 262 C100 244 116 234 134 232")
+    a = Art()
+    BEE, BEE_D, BLK, WG = "#f9cd4e", "#eeb732", "#3b2f2a", "#d9effb"
+    cx, cy, rx, ry = 318, 306, 132, 98
+    hx = 164
+    HEADP = (f"M{hx} 218 C{hx + 56} 218 {hx + 90} 256 {hx + 90} 304 C{hx + 90} 352 {hx + 54} 386 {hx} 386 "
+             f"C{hx - 54} 386 {hx - 90} 352 {hx - 90} 304 C{hx - 90} 256 {hx - 56} 218 {hx} 218 Z")
+    a.sil("M300 226 C258 168 262 88 314 78 C360 74 368 150 348 226 Z", WG)
+    a.sil("M350 226 C352 166 392 106 436 120 C470 142 440 206 386 236 Z", WG)
+    b_antennae(a, hx, (hx + 22, 232, hx + 26, 200, hx + 42, 180, hx + 56, 170), r=10)
+    with a.part():
+        # head, body and sting are one part: the head melts into the body (no line between them)
+        a.sil(f"M{cx + rx - 12} 288 C{cx + rx + 20} 294 {cx + rx + 42} 306 {cx + rx + 52} 320 "
+              f"C{cx + rx + 30} 328 {cx + rx + 10} 332 {cx + rx - 14} 330 Z", BLK)
+        a.sil_ellipse(cx, cy, rx, ry, BEE)
+        a.sil(HEADP, BEE)
+        top = lambda x: cy - (ry - 1) * math.sqrt(max(0, 1 - ((x - cx) / (rx - 1)) ** 2))
+        for x1, x2 in ((232, 280), (322, 362), (398, 426)):
+            t1, t2 = top(x1), top(x2)
+            b1, b2 = 2 * cy - t1, 2 * cy - t2
+            a.blob(f"M{x1} {t1:.1f} A{rx - 1} {ry - 1} 0 0 1 {x2} {t2:.1f} Q{x2 + 22} {cy} {x2} {b2:.1f} "
+                   f"A{rx - 1} {ry - 1} 0 0 1 {x1} {b1:.1f} Q{x1 + 22} {cy} {x1} {t1:.1f} Z", BLK)
+        a.blob("M250 384 C296 402 370 400 420 368 C392 398 340 406 300 402 C278 400 262 394 250 384 Z", BEE_D)
+        a.blob(HEADP, BEE)
+    b_face(a, hx, 306, 36, 16, cheek=(60, 32), mouth=26, mw=11)
+    a.shine(f"M{hx - 56} 270 C{hx - 50} 252 {hx - 36} 240 {hx - 18} 236")
     return a
 
 
 @word
 def hotaru():
     a = Art()
-    BLK, WG = "#4a4458", "#d9eefb"
-    cx, cy = 300, 290
-    # wings behind
-    a.path("M250 280 C226 190 276 108 330 104 C380 104 366 200 330 280 Z", fill=WG)
-    a.path("M300 280 C300 200 360 130 404 146 C430 190 390 250 352 284 Z", fill=WG)
-    # glowing tail (bright, with a soft halo)
-    a.circle(412, 326, 76, "#fff2a6", sw=0, stroke="none", **{"fill-opacity": "0.55"})
-    a.path("M330 262 C390 238 456 270 456 322 C456 372 396 396 336 366 Z", fill="#ffe14d")
-    a.path("M344 260 C300 250 250 262 214 290 C204 320 214 350 244 372 C284 390 322 380 342 366 Z", fill=BLK)
-    a.ellipse(262, 330, 6, 6, BLK, sw=0, stroke="none") if False else None
-    a.path("M342 262 C354 296 354 334 340 366", sw=8)
-    # legs
-    for x in (252, 292):
-        a.path(f"M{x} 372 L{x-10} 412", stroke=O, sw=12)
-    # head
-    a.circle(160, 300, 74, "#f08a4b")
-    bug_face(a, 160, 300, gap=28, r=11)
-    for dx in (-24, 24):
-        a.path(f"M{160+dx} 232 C{160+dx} 200 {160+dx*2} 182 {160+dx*2} 168", sw=8)
-        a.circle(160 + dx * 2, 164, 9, O, sw=0, stroke="none")
-    a.shine("M112 262 C120 244 136 234 154 232")
+    BLK, BLK_L, WG, HD, GLOW = "#4a4458", "#625d70", "#dcf0fb", "#f0715f", "#ffe24d"
+    hx = 172
+    HEADP = (f"M{hx} 216 C{hx + 56} 216 {hx + 90} 254 {hx + 90} 302 C{hx + 90} 350 {hx + 54} 384 {hx} 384 "
+             f"C{hx - 54} 384 {hx - 90} 350 {hx - 90} 302 C{hx - 90} 254 {hx - 56} 216 {hx} 216 Z")
+    a.circle(420, 318, 92, "#fff2a6", sw=0, stroke="none", **{"fill-opacity": "0.55"})
+    a.sil("M262 262 C232 190 262 110 316 100 C366 98 364 190 334 262 Z", WG)
+    a.sil("M316 262 C322 196 366 138 410 152 C440 178 408 240 360 268 Z", WG)
+    b_antennae(a, hx, (hx + 22, 230, hx + 26, 198, hx + 42, 178, hx + 56, 168), r=10)
+    with a.part():
+        # head, wing cases and the light are one part: the red head melts into the dark body
+        a.sil("M330 250 C400 232 470 262 470 318 C470 374 404 396 334 372 Z", GLOW)
+        a.sil("M352 250 C300 232 236 236 200 262 L200 362 C240 388 300 392 352 372 "
+              "C366 334 366 288 352 250 Z", BLK)
+        a.sil(HEADP, HD)
+        a.blob("M352 250 C366 288 366 334 352 372 C372 372 384 366 392 356 C400 320 398 290 388 262 C378 254 366 250 352 250 Z", "#fff3a0")
+        a.ink([(270, 252, 300, 248, 330, 252, 354, 260)], 7, a=0, b=0, col=BLK_L)
+    b_face(a, hx, 302, 36, 16, cheek=(60, 32), mouth=26, mw=11)
+    a.shine(f"M{hx - 56} 268 C{hx - 50} 250 {hx - 36} 238 {hx - 18} 234")
+    a.shine("M420 276 C438 280 452 294 456 312", sw=7)
     return a
 
 
 @word
 def semi():
     a = Art()
-    BR, BRD, WG = "#8a5a3a", "#6b4429", "#f4fcfb"
-    # legs (behind)
-    for x in (230, 280, 330):
-        a.path(f"M{x} 330 L{x-14} 392", sw=22)
-        a.path(f"M{x} 330 L{x-14} 392", stroke=BRD, sw=10)
-    # body
-    a.path("M170 252 C190 190 270 170 340 190 C420 212 456 290 440 340 C380 372 250 372 190 336 C168 316 162 280 170 252 Z", fill=BR)
-    a.path("M250 336 C320 350 390 346 436 330", stroke="#e8a66a", sw=9)
-    a.path("M230 196 C240 250 238 300 226 334", stroke=BRD, sw=7)
-    # wings over the back
-    a.path("M214 214 C250 150 380 140 476 200 C486 240 400 306 252 312 C224 290 206 252 214 214 Z", fill=WG, **{"fill-opacity": "0.9"})
-    a.path("M250 226 C320 212 396 220 452 226", stroke="#b6d9d3", sw=5)
-    a.path("M246 270 C320 262 396 258 462 236", stroke="#b6d9d3", sw=5)
-    a.path("M300 214 C292 250 280 290 268 316", stroke="#b6d9d3", sw=5)
-    # head
-    a.ellipse(150, 270, 80, 66, BR)
-    a.path("M176 214 C190 232 192 250 188 266", stroke="#e8a66a", sw=9)
-    bug_face(a, 150, 270, gap=28, r=11)
-    a.shine("M100 252 C104 230 120 218 142 214")
+    BR, BRD, BRL, WG, VEIN = "#946240", "#6f4a2e", "#e9b37c", "#eefaf8", "#a9d6cf"
+    cx = 256
+    m = lambda q, s: tuple((cx + s * (v - cx)) if i % 2 == 0 else v for i, v in enumerate(q))
+    with a.part():
+        for s in (-1, 1):
+            a.sil(taper([m((330, 190, 356, 186, 376, 174, 388, 154), s)], 24, 14), BRD)
+            a.sil(taper([m((346, 244, 372, 246, 392, 240, 406, 226), s)], 24, 14), BRD)
+    with a.part():
+        a.sil("M256 150 C324 150 356 192 352 250 C346 334 302 412 256 432 C210 412 166 334 160 250 "
+              "C156 192 188 150 256 150 Z", BR)
+        a.blob("M214 204 C228 190 244 204 256 220 C268 204 284 190 298 204 C294 230 276 246 256 250 C236 246 218 230 214 204 Z", BRL)
+        for y, w_ in ((300, 50), (340, 40), (378, 28)):
+            a.ink([(cx - w_, y, cx - w_ * 0.4, y + 12, cx + w_ * 0.4, y + 12, cx + w_, y)], 9, a=0.4, b=0.4, col=BRD)
+    wing = ("M280 194 C336 186 378 236 390 312 C400 384 378 446 344 474 C314 444 288 382 276 310 "
+            "C270 262 270 220 280 194 Z")
+    for s in (-1, 1):
+        with a.part():
+            a.sil(wing if s > 0 else mirror(wing, cx), WG)
+            a.ink([m((292, 214, 322, 270, 340, 350, 344, 450), s)], 6, a=0.3, b=0, col=VEIN)
+            a.ink([m((306, 244, 340, 262, 364, 296, 376, 340), s)], 5, a=0, b=0, col=VEIN)
+            a.ink([m((326, 320, 348, 340, 364, 370, 370, 404), s)], 5, a=0, b=0, col=VEIN)
+    a.sil("M256 66 C322 66 364 94 364 132 C364 168 320 190 256 190 C192 190 148 168 148 132 C148 94 192 66 256 66 Z", BR)
+    a.blob("M214 76 C240 68 272 68 298 76 C284 88 228 88 214 76 Z", BRL)
+    b_face(a, cx, 132, 66, 15, cheek=(40, 26), mouth=16, mw=12)
+    a.shine("M176 112 C186 96 202 86 222 82")
     return a
 
 
 @word
 def kabutomushi():
     a = Art()
-    SH, SHD, HD = "#5b3a28", "#3f2a1e", "#7a4a2e"
-    for x in (240, 300, 360):
-        a.path(f"M{x} 350 L{x-6} 420 L{x-22} 432", sw=24)
-        a.path(f"M{x} 350 L{x-6} 420 L{x-22} 432", stroke=SHD, sw=12)
-    # shell (dome)
-    a.path("M170 310 C170 210 250 170 330 178 C416 186 452 250 446 322 C400 350 250 352 170 310 Z", fill=SH)
-    a.path("M312 180 C318 230 318 290 310 340", stroke=O, sw=8)
-    # horn (behind head, rises up and curls forward)
-    a.path("M132 270 C100 220 96 150 128 104 C160 80 190 90 196 108 C170 112 150 140 156 190 C160 230 176 260 176 290 Z", fill=SHD)
-    a.ellipse(160, 304, 70, 58, HD)
-    bug_face(a, 154, 304, gap=24, r=10)
-    a.shine("M350 214 C380 218 408 238 420 268")
+    SH, SHD, HD, HN = "#6b4530", "#4f3222", "#96623c", "#4f3222"
+    G = 440
+    with a.part():
+        for x, k in ((250, -1), (316, 0), (382, 1)):
+            a.sil(taper([(x, 340, x + k * 6, 380, x + k * 12 - 6, 410, x + k * 14 - 22, 430)], 26, 14), SHD)
+    with a.part():
+        a.sil("M176 322 C168 222 246 172 332 178 C418 184 462 250 452 330 C402 358 250 360 176 322 Z", SH)
+        a.blob("M176 322 C170 250 206 200 260 184 C248 232 246 300 258 348 C224 344 196 334 176 322 Z", "#7d5238")
+        a.ink([(262, 184, 248, 232, 246, 300, 258, 350)], 8, a=1, b=1)
+        a.ink([(330, 180, 380, 190, 424, 222, 446, 268)], 7, a=0, b=0, col=SHD)
+    horn = [(168, 282, 128, 246, 104, 196, 108, 140)]
+    with a.part():
+        a.sil(taper([(236, 208, 226, 186, 212, 172, 196, 166)], 24, 10), HN)
+        a.sil(taper(horn, 44, 30, cap=False), HN)
+        a.sil(taper([(107, 152, 102, 130, 92, 114, 76, 106)], 30, 18), HN)
+        a.sil(taper([(107, 152, 112, 128, 124, 112, 142, 104)], 30, 18), HN)
+    a.sil("M160 244 C206 244 234 272 234 306 C234 342 204 364 160 364 C116 364 86 342 86 306 C86 272 114 244 160 244 Z", HD)
+    b_face(a, 160, 306, 32, 13, cheek=(50, 26), mouth=22, mw=10)
+    a.shine("M356 212 C388 220 414 242 426 272")
     return a
 
 
 @word
 def tentoumushi():
     a = Art()
-    RD = "#e5453b"
-    for dx in (-22, 22):
-        a.path(f"M{256+dx*0.6} 140 C{256+dx*1.2} 106 {256+dx*2} 92 {256+dx*2.6} 84", sw=8)
-        a.circle(256 + dx * 2.6, 82, 8, O, sw=0, stroke="none")
-    # round red dome, seen from the back with the head peeking at the top
-    a.circle(256, 316, 128, RD)
-    a.path("M256 190 L256 444", stroke=O, sw=8)
-    for x, y, r in ((190, 270, 20), (322, 270, 20), (176, 352, 18), (336, 352, 18), (222, 410, 16), (290, 410, 16)):
-        a.circle(x, y, r, "#3b2f2a", sw=0, stroke="none")
-    a.ellipse(256, 176, 76, 54, "#4a4458")
-    for s in (-1, 1):
-        a.ellipse(256 + s * 30, 168, 20, 22, "#ffffff", sw=0, stroke="none")
-        a.ellipse(256 + s * 30 + s * 2, 172, 9, 11, EYE, sw=0, stroke="none")
-        a.dot(256 + s * 30 + 4, 166, 3.5, "#ffffff")
-    a.path("M242 200 C250 210 262 210 270 200", stroke="#ffffff", sw=6)
-    a.shine("M160 300 C158 262 172 236 196 222")
+    RD, RD_D, BLK = "#e8493f", "#cf3a35", "#3b2f2a"
+    cx = 256
+    with a.part():
+        for s in (-1, 1):
+            for y, dx, dy in ((250, 150, -22), (330, 164, 6), (404, 140, 34)):
+                a.sil(taper([(cx + s * 100, y, cx + s * 124, y, cx + s * (dx - 12), y + dy * 0.6, cx + s * dx, y + dy)], 22, 14), BLK)
+    b_antennae(a, cx, (272, 136, 280, 108, 296, 92, 314, 86), r=9)
+    with a.part():
+        a.sil("M256 184 C338 184 392 244 392 320 C392 398 334 450 256 450 C178 450 120 398 120 320 "
+              "C120 244 174 184 256 184 Z", RD)
+        a.blob("M146 390 C180 436 250 452 300 442 C340 434 368 412 382 384 C350 424 300 436 256 436 C212 436 172 420 146 390 Z", RD_D)
+        a.ink([(256, 196, 256, 280, 256, 360, 256, 449)], 8, a=1, b=1)
+        a.ellipse(cx, 252, 22, 21, BLK, sw=0, stroke="none")
+        for x, y, r in ((70, 296, 23), (92, 372, 19), (42, 420, 15)):
+            for s in (-1, 1):
+                a.ellipse(cx + s * x, y, r, r, BLK, sw=0, stroke="none")
+    a.sil("M256 116 C308 116 338 146 338 182 C338 214 302 232 256 232 C210 232 174 214 174 182 C174 146 204 116 256 116 Z", "#4a4458")
+    b_face(a, cx, 174, 34, 13, cheek=(60, 26), white=True, mouth=27, mw=10, col=WHITE)
+    a.shine("M150 306 C150 268 166 240 190 224")
     return a
 
 
 @word
 def katatsumuri():
     a = Art()
-    SK, SHL, SPI = "#f2d9a8", "#f4a261", "#d9742e"
-    # eye stalks
-    for dx in (-24, 24):
-        a.tube(f"M{140+dx} 290 C{140+dx} 240 {140+dx*1.6} 214 {140+dx*1.8} 190", SK, 30, 12)
-        a.circle(140 + dx * 1.8, 184, 17, SK)
-        a.dot(140 + dx * 1.8, 186, 6)
-    # body with a raised head
-    a.path("M70 424 C70 340 96 284 150 284 C196 284 224 312 226 352 L250 392 L440 392 C476 392 476 458 440 458 L112 458 C86 458 70 444 70 424 Z", fill=SK)
-    bug_face(a, 146, 336, gap=22, r=9)
-    # shell
-    a.circle(318, 262, 124, SHL)
-    a.path("M318 264 C318 238 350 238 352 266 C352 306 292 312 284 262 C276 208 340 190 372 236 C406 288 366 354 306 346 C240 336 228 262 262 214", stroke=SPI, sw=12)
-    a.shine("M246 188 C262 164 292 150 322 150")
+    SK, SK_D, SHL, SPI = "#f5dfb2", "#e6c98f", "#f4a261", "#d9742e"
+    with a.part():
+        for s in (-1, 1):
+            st = [(146 + s * 22, 300, 146 + s * 24, 262, 146 + s * 36, 230, 146 + s * 44, 204)]
+            a.sil(taper(st, 24, 18, cap=False), SK)
+            a.sil_ellipse(146 + s * 46, 198, 18, 17, SK)
+    with a.part():
+        a.sil("M72 420 C64 346 92 286 146 286 C194 286 218 320 222 358 C226 386 250 398 290 398 L420 398 "
+              "C466 400 500 430 504 458 L114 458 C88 458 74 444 72 420 Z", SK)
+        a.blob("M104 458 L504 458 C500 446 494 438 486 430 C380 440 200 440 84 432 C88 446 94 454 104 458 Z", SK_D)
+    with a.part():
+        a.sil("M322 138 C394 138 446 192 446 266 C446 340 392 392 320 392 C248 392 196 340 196 266 "
+              "C196 192 250 138 322 138 Z", SHL)
+        a.blob("M214 320 C240 372 300 392 350 382 C396 372 430 336 442 296 C420 344 372 370 320 370 C272 370 236 350 214 320 Z", "#e88d49")
+        sp = b_spiral(324, 270, 10, 88, 2.1, 200)
+        for i, c in enumerate(sp):
+            a.ink([c], 13, a=0 if i == 0 else 1, b=0 if i == len(sp) - 1 else 1, col=SPI)
+    b_face(a, 146, 344, 25, 12, cheek=(44, 22), mouth=20, mw=9)
+    a.shine("M250 196 C266 172 294 158 324 156")
     return a
 
 
 @word
 def momo():
     a = Art()
-    LEAF = "#6fbd5c"
-    body = ("M256 150 C340 116 424 178 412 282 C402 376 326 440 262 442 C190 444 108 384 100 284 "
-            "C92 180 176 118 256 150 Z")
-    a.path("M258 150 C262 124 276 108 296 100", sw=24)
-    a.path("M258 150 C262 124 276 108 296 100", stroke="#8a6a3a", sw=10)
-    a.path("M296 104 C322 70 380 62 410 86 C396 126 340 140 296 112 Z", fill=LEAF)
-    a.path("M304 100 C336 88 372 86 396 90", stroke="#4f9e48", sw=6)
-    a.path(body, fill="#fcc5bb")
-    a.path("M412 282 C402 376 326 440 262 442 C230 442 196 430 170 410 C260 420 360 360 380 220 C400 230 414 252 412 282 Z", fill="#f79fa4", sw=0, stroke="none")
-    a.path(body)
-    a.path("M256 150 C230 210 232 330 270 438", sw=7)
-    a.shine("M130 270 C124 228 142 190 180 168")
+    LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
+    with a.part():
+        a.sil(d_leaf(232, 424, 70, 440, 96, -0.3), LEAF)
+        a.sil(d_leaf(280, 424, 442, 440, 96, 0.3), LEAF)
+        d_vein(a, 190, 428, 70, 440, LEAF_D, t0=0, t1=0.7)
+        d_vein(a, 322, 428, 442, 440, LEAF_D, t0=0, t1=0.7)
+    body = ("M256 96 C290 138 420 170 420 290 C420 388 340 446 256 446 C172 446 92 388 92 290 "
+            "C92 170 222 138 256 96 Z")
+    with a.part():
+        a.sil(body, "#fcc9bf")
+        a.blob(d_rim(body, 50, 80, 48), "#f8a4aa")
+        a.ink([(256, 98, 232, 190, 234, 330, 262, 440)], 9, a=1, b=0, col="#de7482")
+    a.shine("M130 290 C126 244 146 206 182 184", sw=9)
     return a
 
 
 @word
 def budou():
+    import math
     a = Art()
     PU, PUD, LEAF = "#a46bd0", "#8a4fbc", "#6fbd5c"
-    # stem and leaf behind
-    a.path("M256 170 C252 130 262 100 290 78", sw=26)
-    a.path("M256 170 C252 130 262 100 290 78", stroke="#8a6a3a", sw=12)
-    a.path("M290 90 C322 52 398 50 430 84 C420 138 340 154 290 108 Z", fill=LEAF)
-    a.path("M300 96 C340 82 388 78 418 86", stroke="#4f9e48", sw=6)
-    rows = [(174, (176, 256, 336)), (238, (136, 216, 296, 376)), (302, (176, 256, 336)), (366, (216, 296)), (430, (256,))]
-    for y, xs in reversed(rows):
-        for x in xs:
-            a.circle(x, y, 44, PU)
-    a.shine("M222 160 C228 146 240 138 254 136")
+    a.sil(taper([(256, 176, 252, 134, 262, 104, 290, 80)], 16, 20), "#8a6a3a")
+    with a.part():
+        a.sil("M290 96 C318 46 398 44 436 84 C420 142 340 156 290 96 Z", LEAF)
+        d_vein(a, 294, 98, 428, 86, "#4f9e48", t1=0.76, bow=-0.05)
+    R = 45
+    rows = [(176, (176, 256, 336)), (240, (136, 216, 296, 376)), (304, (176, 256, 336)), (368, (216, 296)), (432, (256,))]
+    gr = [(x, y) for y, xs in reversed(rows) for x in xs]
+    with a.part():
+        for x, y in gr:
+            a.sil(d_circ(x, y, R), PU)
+        for i, (x, y) in enumerate(gr):
+            c = d_circ(x, y, R)
+            a.blob(c, PU)
+            a.blob(d_rim(c, 55, 85, 13, inset=0), PUD)
+            a.dot(x - 15, y - 17, 8, "#c7a0ea")
+            step = 5
+            cov = []
+            for k in range(360 // step):
+                t = math.radians(k * step)
+                px, py = x + (R + 5) * math.cos(t), y + (R + 5) * math.sin(t)
+                cov.append(any((px - gx) ** 2 + (py - gy) ** 2 < R * R for gx, gy in gr[:i]))
+            m = len(cov)
+            if not any(cov) or all(cov):
+                continue
+            s0 = next(k for k in range(m) if cov[k] and not cov[k - 1])
+            k = 0
+            while k < m:
+                if cov[(s0 + k) % m]:
+                    j = k
+                    while j < m and cov[(s0 + j) % m]:
+                        j += 1
+                    a.ink(d_arc(x, y, R - 3, (s0 + k) * step, (s0 + j - 1) * step), 7, a=0.7, b=0.7)
+                    k = j
+                else:
+                    k += 1
     return a
 
 
 @word
 def suika():
     a = Art()
-    a.path("M56 180 A200 200 0 0 0 456 180 Z", fill="#4f9a4a")
-    a.path("M76 180 A180 180 0 0 0 436 180 Z", fill="#f1f6d8", sw=0, stroke="none")
-    a.path("M92 180 A164 164 0 0 0 420 180 Z", fill="#ec4b52", sw=0, stroke="none")
-    # darker stripes on the rind
-    a.path("M56 180 A200 200 0 0 0 456 180 Z")
-    seed = lambda x, y, r: "M%d %d C%d %d %d %d %d %d C%d %d %d %d %d %d Z" % (
+    with a.part():
+        a.sil("M56 180 A200 200 0 0 0 456 180 Z", "#4f9a4a")
+        a.blob("M77 180 A179 179 0 0 0 435 180 Z", "#f1f6d8")
+        a.blob("M94 180 A162 162 0 0 0 418 180 Z", "#ec4b52")
+        a.blob("M99.5 222 A162 162 0 0 0 412.5 222 A200 200 0 0 1 99.5 222 Z", "#d83d48")
+    seed = lambda x, y: "M%d %d C%d %d %d %d %d %d C%d %d %d %d %d %d Z" % (
         x, y - 18, x + 12, y - 4, x + 10, y + 14, x, y + 20, x - 10, y + 14, x - 12, y - 4, x, y - 18)
-    for x, y in ((190, 220), (256, 250), (322, 220), (222, 290), (290, 290)):
-        a.path(seed(x, y, 0), fill=EYE, sw=0, stroke="none")
-    a.shine("M118 214 C130 262 160 296 200 318")
+    for x, y in ((186, 216), (256, 246), (326, 216), (220, 282), (292, 282)):
+        a.blob(seed(x, y), EYE)
+        a.dot(x - 3, y - 6, 2.5, "#8a7a72")
+    a.shine("M116 204 C122 232 136 256 156 274", sw=9)
     return a
 
 
@@ -1501,24 +2548,30 @@ def kuri():
     a = Art()
     body = ("M256 70 C286 90 312 120 350 160 C410 216 430 300 396 372 C368 430 316 452 256 452 "
             "C196 452 144 430 116 372 C82 300 102 216 162 160 C200 120 226 90 256 70 Z")
-    a.path(body, fill="#9a5a30")
-    # lighter base (the flat bottom of a chestnut) with a wavy top edge
-    a.path("M126 372 C160 350 190 392 224 366 C250 346 270 392 300 366 C330 346 360 380 388 360 "
-           "C368 424 316 452 256 452 C196 452 146 424 126 372 Z", fill="#e8c493", sw=0, stroke="none")
-    a.path("M256 70 C262 84 270 96 280 108 C268 112 244 112 232 108 C242 96 250 84 256 70 Z", fill="#6b3c1e", sw=0, stroke="none")
-    a.path(body)
-    a.shine("M148 250 C148 222 162 196 186 176")
+    with a.part():
+        a.sil(body, "#9a5a30")
+        a.blob(d_rim(body, 20, 70, 30), "#82481f")
+        # the pale, rough bottom of a chestnut, with a wavy top edge
+        a.blob("M124 376 C160 352 190 394 224 368 C250 348 270 394 300 368 C330 348 360 384 390 366 "
+               "C366 426 316 449 256 449 C196 449 148 426 124 376 Z", "#e8c493")
+        a.blob("M300 444 C340 434 370 408 388 370 C378 392 350 418 300 432 Z", "#d6ac74")
+        a.blob("M256 74 C264 88 274 100 286 112 C270 118 242 118 226 112 C238 100 248 88 256 74 Z", "#6b3c1e")
+    a.shine("M148 262 C146 228 162 198 188 178", sw=9)
     return a
 
 
 @word
 def dango():
     a = Art()
-    a.tube("M340 40 L172 476", "#e0bb85", 26, 12)
-    pts = [(300, 150, "#f7a8c0"), (256, 262, "#fffaf0"), (212, 374, "#a8d98a")]
-    for x, y, c in pts:
-        a.circle(x, y, 68, c)
-    a.shine("M258 120 C272 104 292 100 308 104")
+    a.sil(taper([(336, 56, 284, 190, 228, 336, 174, 474)], 13, 13), "#e0bb85")
+    for x, y, c, cd in ((212, 374, "#a8d98a", "#8cc56e"), (256, 262, "#fffaf0", "#ebe2cf"), (300, 150, "#f7a8c0", "#ee8aa9")):
+        with a.part():
+            d = d_circ(x, y, 70, 68)
+            a.sil(d, c)
+            a.blob(d_rim(d, 55, 75, 22), cd)
+    a.shine("M256 124 C266 106 284 96 302 96", sw=9)
+    a.shine("M212 236 C222 220 238 210 254 208", sw=8)
+    a.shine("M168 348 C178 332 194 322 210 320", sw=8)
     return a
 
 
@@ -1527,18 +2580,22 @@ def senbei():
     a = Art()
     import math
     R = 190
-    a.circle(256, 256, R, "#e8a95b")
-    a.circle(256, 256, R - 26, "#f0bd75", sw=0, stroke="none")
-    for x, y in ((156, 190), (196, 332), (350, 340), (332, 160), (112, 280), (400, 250)):
-        a.circle(x, y, 9, "#c98a42", sw=0, stroke="none")
-    x1, x2 = 206, 306
-    h = lambda x: math.sqrt(R * R - (x - 256) ** 2)
-    a.path(f"M{x1} {256-h(x1):.1f} A{R} {R} 0 0 1 {x2} {256-h(x2):.1f} L{x2} {256+h(x2):.1f} A{R} {R} 0 0 1 {x1} {256+h(x1):.1f} Z",
-           fill="#34423a", sw=0, stroke="none")
-    for x in (232, 256, 280):
-        a.path(f"M{x} {256-h(x)+24:.1f} L{x} {256+h(x)-24:.1f}", stroke="#4d6054", sw=5)
-    a.circle(256, 256, R, "none")
-    a.shine("M120 210 C132 170 160 140 200 124")
+    body = d_circ(256, 256, R)
+    with a.part():
+        a.sil(body, "#dc9a4c")
+        a.blob(d_circ(256, 256, R - 20), "#f0bd75")
+        for x, y, rx, ry in ((150, 200, 34, 24), (360, 330, 40, 28), (150, 330, 26, 20), (368, 176, 28, 22)):
+            a.blob(d_circ(x, y, rx, ry), "#e8ad62")
+        for x, y in ((140, 250), (182, 372), (356, 380), (338, 136), (106, 300), (404, 258), (168, 150)):
+            a.dot(x, y, 7, "#c98a42")
+        a.blob(d_rim(body, 45, 70, 20), "#c98540")
+        x1, x2 = 196, 316
+        h = lambda x: math.sqrt(R * R - (x - 256) ** 2)
+        a.blob(f"M{x1} {256 - h(x1):.1f} A{R} {R} 0 0 1 {x2} {256 - h(x2):.1f} L{x2} {256 + h(x2):.1f} A{R} {R} 0 0 1 {x1} {256 + h(x1):.1f} Z",
+               "#34423a")
+        for x in (226, 256, 286):
+            a.ink([(x, 104, x + 3, 200, x - 3, 310, x, 408)], 6, a=0, b=0, col="#50655a")
+    a.shine("M116 216 C128 176 156 144 196 126", sw=9)
     return a
 
 
@@ -1546,15 +2603,26 @@ def senbei():
 def wataame():
     a = Art()
     import math
-    a.tube("M256 250 L256 484", "#f4e3c4", 36, 18)
-    cx, cy, R, n = 256, 170, 124, 9
-    pts = [(cx + R * math.cos(2 * math.pi * i / n - math.pi / 2), cy + R * 0.92 * math.sin(2 * math.pi * i / n - math.pi / 2)) for i in range(n)]
-    d = f"M{pts[0][0]:.1f} {pts[0][1]:.1f} " + " ".join(
-        f"A58 58 0 0 1 {pts[(i+1) % n][0]:.1f} {pts[(i+1) % n][1]:.1f}" for i in range(n)) + " Z"
-    a.path(d, fill="#f9b8d2")
-    a.path("M256 100 C316 100 334 164 290 188 C248 208 206 172 232 142 C252 122 284 138 274 160", stroke="#f08fb8", sw=9)
-    a.path("M170 190 C180 240 230 252 262 238", stroke="#f08fb8", sw=9)
-    a.shine("M168 130 C184 100 214 80 248 76")
+    a.sil("M245 250 L267 250 L265 480 C265 490 247 490 247 480 Z", "#f4e3c4")
+    cx, cy = 256, 172
+    angs = [-90, -50, -8, 36, 74, 112, 150, 192, 232]
+    rad = [124, 132, 128, 132, 120, 118, 132, 128, 132]
+    pts = [(cx + r * math.cos(math.radians(t)), cy + r * 0.9 * math.sin(math.radians(t))) for t, r in zip(angs, rad)]
+    n = len(pts)
+    d = f"M{pts[0][0]:.1f} {pts[0][1]:.1f} "
+    for i in range(n):
+        p, q = pts[i], pts[(i + 1) % n]
+        rr = math.hypot(q[0] - p[0], q[1] - p[1]) * 0.6
+        d += f"A{rr:.1f} {rr:.1f} 0 0 1 {q[0]:.1f} {q[1]:.1f} "
+    with a.part():
+        a.sil(d + "Z", "#f9b8d2")
+        a.blob(d_circ(288, 200, 72, 60), "#f6a5c6")
+        a.blob(d_circ(254, 168, 84, 68), "#f9b8d2")
+        a.blob(d_circ(214, 128, 60, 44), "#fccbdf")
+        a.ink(d_arc(266, 176, 62, 200, 520, r1=10), 9, a=0, b=0, col="#ee8db6")
+        a.ink([(152, 196, 168, 240, 214, 262, 262, 250)], 9, a=0, b=0, col="#ee8db6")
+        a.ink([(316, 80, 352, 96, 372, 130, 370, 164)], 9, a=0, b=0, col="#ee8db6")
+    a.shine("M166 132 C180 104 206 86 236 80", sw=9)
     return a
 
 
@@ -1563,55 +2631,72 @@ def onigiri():
     a = Art()
     body = ("M256 84 C292 84 312 118 362 198 C412 278 432 340 426 386 C420 424 392 436 360 436 L152 436 "
             "C120 436 92 424 86 386 C80 340 100 278 150 198 C200 118 220 84 256 84 Z")
-    a.path(body, fill="#fffdf6")
-    for x, y, d in ((230, 190, 1), (284, 214, -1), (206, 262, -1), (300, 274, 1), (256, 168, 0)):
-        a.path(f"M{x-7} {y+d*5} L{x+7} {y-d*5}", stroke="#e4ddca", sw=8)
-    a.path("M362 198 C412 278 432 340 426 386 C420 424 392 436 360 436 L300 436 C360 380 360 280 330 150 Z", fill="#efe9d6", sw=0, stroke="none")
-    a.path("M104 332 C150 318 362 318 408 332 C422 366 428 394 424 404 C418 428 392 436 360 436 L152 436 "
-           "C120 436 94 428 88 404 C84 394 90 366 104 332 Z", fill="#2f4a3a", sw=0, stroke="none")
-    a.path("M130 372 L382 372", stroke="#4a6a56", sw=6)
-    a.path(body)
-    a.shine("M168 236 C192 190 214 150 242 118")
+    with a.part():
+        a.sil(body, "#fffdf6")
+        a.blob(d_rim(body, 20, 75, 30), "#ece5d0")
+        for x, y, g in ((226, 186, 30), (286, 214, -30), (196, 258, -20), (316, 276, 30), (256, 150, 0), (140, 330, 30), (372, 344, -30)):
+            d_grain(a, x, y, g)
+        a.sil("M170 322 C170 304 180 296 196 296 L316 296 C332 296 342 304 342 322 L346 436 L166 436 Z", "#2f4a3a")
+        a.blob("M316 296 C332 296 342 304 342 322 L346 436 L318 436 C322 390 320 340 312 296 Z", "#263d30")
+        a.ink([(190, 330, 192, 360, 192, 390, 190, 418)], 7, a=0, b=0, col="#4a6a56")
+    a.shine("M170 240 C192 196 214 154 240 122", sw=9)
     return a
 
 
 @word
 def sushi():
     a = Art()
-    a.path("M120 290 C70 290 70 440 130 440 L382 440 C442 440 442 290 392 290 Z", fill="#fffdf6")
-    for x, y in ((150, 388), (210, 408), (276, 390), (336, 408), (386, 378)):
-        a.path(f"M{x-7} {y+5} L{x+7} {y-5}", stroke="#e4ddca", sw=8)
-    a.path("M376 300 C428 300 442 380 400 430 C430 420 446 350 392 290 Z", fill="#efe9d6", sw=0, stroke="none")
-    a.path("M120 290 C70 290 70 440 130 440 L382 440 C442 440 442 290 392 290 Z", "none")
-    a.path("M54 270 C54 190 170 160 256 168 C342 160 458 190 458 270 C458 330 400 346 256 346 C112 346 54 330 54 270 Z", fill="#e8505b")
-    for d in ("M150 190 C168 240 160 290 128 332", "M240 172 C262 226 256 290 226 344", "M340 176 C362 226 358 288 330 342"):
-        a.path(d, stroke="#f9a0a0", sw=14)
-    a.path("M54 270 C54 190 170 160 256 168 C342 160 458 190 458 270 C458 330 400 346 256 346 C112 346 54 330 54 270 Z", "none")
-    a.shine("M92 250 C94 222 116 202 150 192")
+    rice = "M120 290 C70 290 70 440 130 440 L382 440 C442 440 442 290 392 290 Z"
+    with a.part():
+        a.sil(rice, "#fffdf6")
+        a.blob(d_rim(rice, 50, 70, 24), "#ece5d0")
+        for x, y, g in ((142, 384, -30), (204, 410, 20), (270, 388, -25), (330, 412, 25), (384, 380, -30), (112, 410, 20)):
+            d_grain(a, x, y, g)
+    fish = "M54 270 C54 190 170 160 256 168 C342 160 458 190 458 270 C458 330 400 346 256 346 C112 346 54 330 54 270 Z"
+    with a.part():
+        a.sil(fish, "#ea5560")
+        a.blob(d_rim(fish, 70, 80, 22), "#d2414e")
+        for c in ([(160, 196, 176, 240, 168, 286, 140, 322)], [(250, 182, 270, 232, 264, 288, 238, 334)], [(346, 190, 366, 236, 362, 286, 338, 330)]):
+            a.ink(c, 15, a=0.5, b=0.5, col="#f7a3a6")
+    a.shine("M90 252 C92 224 114 204 148 194", sw=9)
     return a
 
 
 @word
 def udon():
     a = Art()
-    # chopsticks behind
-    a.tube("M380 40 L300 210", "#d9a05f", 24, 10)
-    a.tube("M420 56 L330 214", "#d9a05f", 24, 10)
-    # bowl
-    a.path("M196 460 L316 460", sw=24)
-    a.path("M52 246 L460 246 C460 372 384 446 256 446 C128 446 52 372 52 246 Z", fill="#fffdf6")
-    a.path("M64 300 C140 330 372 330 448 300 C440 328 436 336 432 346 C360 372 152 372 80 346 C76 336 70 328 64 300 Z", fill="#4fa8e0", sw=0, stroke="none")
-    a.path("M52 246 L460 246 C460 372 384 446 256 446 C128 446 52 372 52 246 Z", "none")
-    a.ellipse(256, 246, 204, 40, "#e9b36a")
-    # noodles heaped up
-    for d in ("M110 250 C100 190 160 170 190 214 C216 252 270 250 270 200 C270 160 320 160 330 204 C338 240 380 236 396 212",
-              "M130 258 C140 214 190 206 210 236 C230 266 290 262 300 226 C310 196 350 196 366 224 C376 244 392 250 404 244"):
-        a.tube(d, "#fbf0d4", 50, 28)
-    a.circle(190, 200, 34, "#fffdf6")
-    a.circle(190, 200, 15, "#f58fb4", sw=0, stroke="none")
-    for x, y in ((290, 176), (330, 200), (236, 238)):
-        a.circle(x, y, 13, "#6fbd5c", sw=7)
-    a.shine("M84 330 C96 366 118 390 148 408")
+    BOWL = "#fffdf6"
+    for c in ([(384, 36, 356, 96, 326, 160, 300, 216)], [(426, 54, 396, 110, 364, 166, 336, 218)]):
+        a.sil(taper(c, 14, 12), "#d9a05f")
+    a.sil(d_circ(256, 246, 204, 40), "#e9b36a")
+    # noodles heaped up in the soup
+    with a.part():
+        a.sil("M100 252 C90 204 148 170 198 186 C226 148 302 148 328 186 C378 170 426 206 414 252 "
+              "C380 276 136 276 100 252 Z", "#fbf0d4")
+        for k in (0, 1, 2):
+            o = k * 17
+            a.ink([(116 + o, 250, 122 + o, 206 + o * 0.6, 196 - o * 0.3, 190 + o, 222 - o * 0.5, 236), (222 - o * 0.5, 236, 236, 262 - o * 0.3, 276, 262 - o * 0.5, 292 - o * 0.4, 240)], 8, a=0.3, b=0, col="#cfa968")
+            a.ink([(404 - o, 244, 404 - o, 204 + o * 0.5, 350, 182 + o, 322 + o * 0.3, 216), (322 + o * 0.3, 216, 312, 232, 300, 246, 286 + o, 262)], 8, a=0.3, b=0, col="#cfa968")
+            a.ink([(222 + o * 0.5, 178 + o * 0.9, 250, 160 + o, 286, 160 + o, 310 - o * 0.5, 182 + o * 0.9)], 8, a=0, b=0, col="#cfa968")
+    # fish cake and green onion
+    import math
+    pts = [(190 + (36 if i % 2 == 0 else 31) * math.cos(i * math.pi / 8), 206 + (36 if i % 2 == 0 else 31) * math.sin(i * math.pi / 8)) for i in range(16)]
+    with a.part(ow=9):
+        a.sil(smooth(pts), "#fffdf6")
+        a.ink(d_arc(190, 206, 20, 0, 500, r1=3), 7, a=0.6, b=0.6, col="#f58fb4")
+    for x, y in ((292, 180), (334, 206), (258, 228)):
+        with a.part(ow=8):
+            a.sil(d_circ(x, y, 12), "#6fbd5c")
+            a.dot(x, y, 5, "#d3efc2")
+    body = ("M52 246 C52 268.1 143.3 286 256 286 C368.7 286 460 268.1 460 246 C460 372 384 446 256 446 "
+            "C128 446 52 372 52 246 Z")
+    with a.part():
+        a.sil("M198 430 L314 430 L308 464 C308 470 204 470 204 464 Z", BOWL)
+        a.sil(body, BOWL)
+        a.blob(d_rim(body, 55, 55, 26), "#ebe4d2")
+        a.blob("M66 310 C140 342 372 342 446 310 C440 332 436 342 430 354 C360 382 152 382 82 354 C76 342 72 332 66 310 Z", "#4fa8e0")
+        a.blob("M200 448 L312 448 L308 464 C308 470 204 470 204 464 Z", "#ebe4d2")
+    a.shine("M82 320 C92 362 116 392 148 410", sw=9)
     return a
 
 
@@ -1631,318 +2716,329 @@ def sea_face(a, cx, cy, gap=44, r=14, mouth=True, blush_dx=None):
 @word
 def tako():
     a = Art()
-    R, RD = "#ee5b52", "#d9443f"
-    # 8 legs fanning out under the head, tips curled
-    legs = [(-200, 0, -1), (-146, 40, -1), (-92, 60, -1), (-36, 64, -1),
-            (36, 64, 1), (92, 60, 1), (146, 40, 1), (200, 0, 1)]
-    for dx, dy, s in legs:
-        x0 = 256 + dx * 0.55
-        x1 = 256 + dx
-        yb = 360 + dy
-        a.path(f"M{x0} 330 C{x0} 390 {x1} {yb-10} {x1} {yb+54} C{x1} {yb+94} {x1+s*22} {yb+90} {x1+s*30} {yb+66}",
-               fill="none", sw=52)
-        a.path(f"M{x0} 330 C{x0} 390 {x1} {yb-10} {x1} {yb+54} C{x1} {yb+94} {x1+s*22} {yb+90} {x1+s*30} {yb+66}",
-               stroke=R, sw=30)
-    # head
-    a.path("M256 56 C376 56 410 150 396 238 C386 306 330 340 256 340 C182 340 126 306 116 238 C102 150 136 56 256 56 Z", fill=R)
-    for x, y in ((190, 118), (320, 106), (356, 176)):
-        a.circle(x, y, 9, RD, sw=0, stroke="none")
-    sea_face(a, 256, 224, gap=54, r=16, blush_dx=96)
-    a.shine("M164 150 C166 112 188 88 220 78")
+    R, RD, RL = "#ef5f55", "#d9463f", "#f9a39a"
+    cx = 256
+    m = lambda q, s: tuple((cx + s * (v - cx)) if i % 2 == 0 else v for i, v in enumerate(q))
+    back = [[(336, 300, 342, 360, 356, 420, 392, 428), (392, 428, 418, 432, 428, 404, 408, 398)],
+            [(380, 268, 430, 290, 462, 296, 480, 268), (480, 268, 492, 246, 474, 228, 458, 240)]]
+    front = [[(296, 300, 290, 370, 296, 428, 330, 440), (330, 440, 356, 448, 368, 420, 348, 412)],
+             [(366, 284, 388, 340, 420, 372, 454, 364), (454, 364, 482, 356, 484, 324, 460, 324)]]
+    with a.part():
+        for leg in back:
+            for s in (-1, 1):
+                a.sil(taper([m(c, s) for c in leg], 50, 24), RD)
+    with a.part():
+        for leg in front:
+            for s in (-1, 1):
+                a.sil(taper([m(c, s) for c in leg], 54, 26), R)
+        a.sil("M256 52 C364 52 406 132 398 216 C394 264 372 300 346 324 L166 324 C140 300 118 264 114 216 "
+              "C106 132 148 52 256 52 Z", R)
+        a.ink([(256, 326, 256, 350, 256, 372, 256, 392)], 9, a=1, b=0)
+        for x, y in ((190, 112), (326, 104), (356, 170)):
+            a.ellipse(x, y, 10, 9, RD, sw=0, stroke="none")
+    b_face(a, cx, 222, 56, 18, cheek=(98, 34))
+    a.path("M244 250 C244 240 268 240 268 250 C268 262 244 262 244 250 Z", fill=RD, sw=7)
+    a.shine("M160 160 C162 118 186 92 220 80")
     return a
 
 
 @word
 def ika():
     a = Art()
-    BODYC, TOPC = "#fdf1ee", "#f6a9b4"
-    # tentacles
-    for i, dx in enumerate((-70, -36, 0, 36, 70)):
-        x = 256 + dx
-        a.path(f"M{x} 330 C{x+dx*0.2} 380 {x+dx*0.4} 400 {x+dx*0.5} 440", fill="none", sw=40)
-        a.path(f"M{x} 330 C{x+dx*0.2} 380 {x+dx*0.4} 400 {x+dx*0.5} 440", stroke=BODYC, sw=18)
-    # triangle fins on a pointed head
-    a.path("M256 20 L386 150 L322 170 Z", fill=TOPC)
-    a.path("M256 20 L126 150 L190 170 Z", fill=TOPC)
-    a.path("M256 40 C318 40 344 150 340 250 C338 310 300 346 256 346 C212 346 174 310 172 250 C168 150 194 40 256 40 Z",
-           fill=BODYC)
-    a.path("M256 60 C256 130 256 210 256 280", stroke=TOPC, sw=7, **{"stroke-opacity": "0.8"})
-    sea_face(a, 256, 252, gap=46, r=15, blush_dx=80)
-    a.shine("M200 110 C196 150 196 190 200 220")
+    WH, SH, PK = "#fffaf6", "#f1ddd8", "#f9c3cb"
+    cx = 256
+    m = lambda q, s: tuple((cx + s * (v - cx)) if i % 2 == 0 else v for i, v in enumerate(q))
+    with a.part():
+        # two long feeding arms with a leaf-shaped club (shadow colour, behind)
+        for s in (-1, 1):
+            a.sil(taper([m((296, 336, 338, 358, 322, 394, 356, 412), s), m((356, 412, 380, 426, 388, 440, 394, 460), s)],
+                        26, 14, cap=False), SH)
+            a.sil(mirror("M382 446 C394 434 416 444 422 466 C428 488 424 504 416 514 C400 508 382 490 378 470 "
+                         "C376 460 376 452 382 446 Z", cx) if s < 0 else
+                  "M382 446 C394 434 416 444 422 466 C428 488 424 504 416 514 C400 508 382 490 378 470 "
+                  "C376 460 376 452 382 446 Z", SH)
+    with a.part():
+        # five short soft arms, waving and spread out
+        for dx in (-54, -27, 0, 27, 54):
+            x, ph = cx + dx, (1 if dx >= 0 else -1)
+            a.sil(taper([(x, 334, x + 12 * ph + dx * 0.2, 366, x - 12 * ph + dx * 0.5, 398, x + dx * 0.7, 426),
+                         (x + dx * 0.7, 426, x + dx * 0.8 + 10 * ph, 442, x + dx * 0.95 + 8 * ph, 456, x + dx * 1.05 - 2 * ph, 470)],
+                        32, 10), WH)
+    with a.part():
+        a.sil("M256 22 C300 56 366 112 384 158 C350 178 300 170 256 160 C212 170 162 178 128 158 "
+              "C146 112 212 56 256 22 Z", PK)
+        a.sil("M256 44 C312 56 342 140 342 240 C342 300 338 334 328 356 C300 368 212 368 184 356 "
+              "C174 334 170 300 170 240 C170 140 200 56 256 44 Z", WH)
+        a.blob("M186 350 C214 362 298 362 326 350 C330 338 334 326 336 312 C300 328 212 328 176 312 C178 326 182 338 186 350 Z", SH)
+    b_face(a, cx, 250, 46, 16, cheek=(76, 30), mouth=22)
+    a.shine("M204 120 C198 156 196 190 198 220")
     return a
 
 
 @word
 def kani():
     a = Art()
-    R, RD = "#ee5b52", "#d9443f"
-    # legs (3 each side): out, then down
-    for s in (-1, 1):
-        for i, (y, ex, ey) in enumerate(((330, 200, 388), (352, 214, 418), (372, 222, 448))):
-            d = f"M{256+s*120} {y} L{256+s*ex} {y+8} L{256+s*(ex+4)} {ey}"
-            a.tube(d, R, 30, 12)
-    # arms with claws
-    for s in (-1, 1):
-        a.path(f"M{256+s*96} 250 C{256+s*150} 220 {256+s*170} 190 {256+s*168} 156", sw=38)
-        a.path(f"M{256+s*96} 250 C{256+s*150} 220 {256+s*170} 190 {256+s*168} 156", stroke=R, sw=18)
-        cx = 256 + s * 168
-        d = (f"M{cx} 160 C{cx-s*58} 160 {cx-s*74} 90 {cx-s*36} 56 C{cx-s*20} 44 {cx} 70 {cx} 92 "
-             f"C{cx} 70 {cx+s*24} 40 {cx+s*44} 58 C{cx+s*78} 92 {cx+s*54} 160 {cx} 160 Z")
-        a.path(d, fill=R)
-    # shell
-    a.path("M256 170 C376 170 430 240 430 310 C430 380 350 410 256 410 C162 410 82 380 82 310 C82 240 136 170 256 170 Z", fill=R)
-    for x, y in ((170, 360), (256, 380), (342, 360)):
-        a.circle(x, y, 9, RD, sw=0, stroke="none")
-    sea_face(a, 256, 270, gap=62, r=17, blush_dx=112)
-    a.shine("M130 280 C134 250 156 222 188 208")
+    R, RD, RL = "#ef5f55", "#d9463f", "#f9a39a"
+    cx = 256
+    m = lambda q, s: tuple((cx + s * (v - cx)) if i % 2 == 0 else v for i, v in enumerate(q))
+    with a.part():
+        for s in (-1, 1):
+            for i in range(3):
+                q = (390, 306 + i * 22, 452 + i * 2, 286 + i * 26, 494 - i * 8, 314 + i * 32, 502 - i * 14, 392 + i * 24)
+                a.sil(taper([m(q, s)], 34, 12), RD)
+    with a.part():
+        for s in (-1, 1):
+            a.sil(taper([m((380, 262, 426, 250, 448, 216, 446, 176), s)], 38, 32, cap=False), R)
+            a.sil(b_claw(cx + s * 190, 190, s, 1.05), R)
+    with a.part():
+        a.sil("M256 186 C352 186 432 226 432 300 C432 370 356 410 256 410 C156 410 80 370 80 300 "
+              "C80 226 160 186 256 186 Z", R)
+        a.blob("M100 350 C150 396 230 408 256 408 C300 408 370 394 412 350 C380 384 310 394 256 394 C200 394 134 384 100 350 Z", RD)
+    b_face(a, cx, 284, 60, 19, cheek=(108, 36), mouth=30, mw=14)
+    a.shine("M128 286 C132 254 156 228 190 214")
     return a
 
 
 @word
 def kame():
     a = Art()
-    G, GD, SH, SHL = "#8fcf6d", "#6fb552", "#4fa85a", "#7ccb6a"
-    # flippers and tail
-    a.path("M120 330 C70 330 56 390 106 408 C140 418 170 392 176 360 Z", fill=G)
-    a.path("M392 330 C442 330 456 390 406 408 C372 418 342 392 336 360 Z", fill=G)
-    a.path("M146 420 C120 430 118 470 156 472 C186 472 196 440 190 420 Z", fill=G)
-    a.path("M366 420 C392 430 394 470 356 472 C326 472 316 440 322 420 Z", fill=G)
-    a.path("M250 400 C256 430 266 440 276 446 C262 446 248 436 244 412 Z", fill=G, sw=8)
-    # head
-    a.path("M256 56 C320 56 346 108 340 156 C334 196 300 214 256 214 C212 214 178 196 172 156 C166 108 192 56 256 56 Z", fill=G)
-    sea_face(a, 256, 128, gap=36, r=13, blush_dx=66)
-    # shell
-    a.path("M96 340 C96 244 164 190 256 190 C348 190 416 244 416 340 C416 392 350 420 256 420 C162 420 96 392 96 340 Z", fill=SH)
-    # shell pattern: hexagon plates
-    a.path("M256 232 L306 262 L306 322 L256 352 L206 322 L206 262 Z", fill=SHL, sw=9)
-    a.path("M256 232 L256 200 M306 262 L350 240 M306 322 L352 346 M256 352 L256 400 M206 322 L160 346 M206 262 L162 240", sw=9)
-    a.shine("M130 320 C130 278 152 244 186 224")
+    G_, GD, SH, SHL, RIM, CR = "#9bd672", "#7cbd58", "#4fa85a", "#79c96a", "#3d9150", "#f6ecc0"
+    G = 452
+    with a.part():
+        a.sil(limb_d([(250, 350), (244, 392), (244, 432)], [60, 52, 48], G, foot=10, h=20), GD)
+        a.sil(limb_d([(376, 350), (372, 392), (372, 432)], [60, 52, 48], G, foot=10, h=20), GD)
+    with a.part():
+        a.sil(taper([(440, 366, 466, 370, 486, 384, 498, 404)], 28, 10), G_)
+        a.sil(taper([(250, 340, 196, 344, 150, 320, 132, 270)], 84, 70, cap=False), G_)
+        a.sil("M170 350 C230 384 400 384 452 350 C452 392 410 404 310 404 C230 404 176 392 170 350 Z", CR)
+        a.sil(limb_d([(200, 360), (192, 398), (192, 432)], [66, 56, 52], G, foot=12, h=22), G_)
+        a.sil(limb_d([(420, 360), (424, 398), (424, 432)], [66, 56, 52], G, foot=12, h=22), G_)
+    with a.part():
+        a.sil("M150 362 C146 262 216 190 306 190 C396 190 466 262 462 362 C420 392 192 392 150 362 Z", SH)
+        a.blob("M150 362 C192 392 420 392 462 362 C462 350 461 340 459 330 C410 358 202 358 153 330 C151 340 150 350 150 362 Z", RIM)
+        hexa = lambda x, y, r: "M" + " L".join(f"{x + dx * r:.0f} {y + dy * r:.0f}" for dx, dy in (
+            (-1, 0), (-0.5, -0.84), (0.5, -0.84), (1, 0), (0.5, 0.84), (-0.5, 0.84))) + " Z"
+        a.blob(hexa(306, 262, 44), SHL)
+        a.blob(hexa(220, 302, 30), SHL)
+        a.blob(hexa(392, 302, 30), SHL)
+    a.sil("M128 140 C180 140 214 176 214 222 C214 270 178 300 128 300 C78 300 42 270 42 222 C42 176 76 140 128 140 Z", G_)
+    b_face(a, 128, 226, 36, 16, mouth=26, mw=11)
+    for s in (-1, 1):
+        a.ellipse(128 + s * 58, 256, 15, 9, "#f3b3a4", sw=0, stroke="none")
+    a.shine("M196 300 C202 262 226 232 258 216")
     return a
 
 
 @word
 def kujira():
     a = Art()
-    B, BD, BELLY = "#5ab0e8", "#3f97d0", "#e8f6ff"
-    # water spout
-    for dx, dy in ((-34, 0), (0, -26), (34, 0)):
-        a.path(f"M{200+dx*0.2} 140 C{200+dx*0.6} {100+dy} {200+dx*1.4} {80+dy} {200+dx*1.8} {96+dy}", stroke="#9bd6f6", sw=26)
-    # tail
-    a.path("M400 300 C440 290 456 250 450 214 C478 224 496 252 480 290 C470 316 440 330 410 334 Z", fill=B)
-    a.path("M400 300 C398 270 430 238 450 214 C428 230 408 236 396 232 Z", fill=B, sw=0, stroke="none")
-    # body
-    a.path("M60 300 C60 200 140 140 256 140 C372 140 430 220 424 310 C418 380 340 410 240 410 C140 410 60 376 60 300 Z", fill=B)
-    # belly
-    a.path("M74 340 C130 392 330 408 414 350 C400 388 330 412 240 412 C150 412 92 386 74 340 Z", fill=BELLY, sw=0, stroke="none")
-    a.path("M60 300 C60 200 140 140 256 140 C372 140 430 220 424 310 C418 380 340 410 240 410 C140 410 60 376 60 300 Z", "none")
-    # fin
-    a.path("M200 330 C214 366 250 380 276 366 C264 342 236 326 200 330 Z", fill=BD)
-    sea_face(a, 160, 270, gap=34, r=14, blush_dx=70)
-    a.shine("M128 214 C150 188 186 172 224 168")
+    B, BD, BELLY, SP = "#5ab0e8", "#3f97d0", "#eaf6ff", "#a6dcf8"
+    with a.part():
+        for s in (-1, 1):
+            a.sil(taper([(214, 150, 214, 110, 214 + s * 14, 82, 214 + s * 50, 78),
+                         (214 + s * 50, 78, 214 + s * 74, 76, 214 + s * 84, 96, 214 + s * 80, 112)], 26, 20), SP)
+    with a.part():
+        a.sil(taper([(392, 340, 440, 336, 464, 296, 464, 250)], 80, 34, cap=False), B)
+        a.sil("M464 268 C430 256 408 226 412 192 C440 192 458 212 464 234 C470 212 488 192 516 192 "
+              "C520 226 498 256 464 268 Z", B)
+        a.sil("M60 304 C56 206 136 146 250 146 C356 146 416 214 420 296 C422 364 350 410 240 410 "
+              "C136 410 62 374 60 304 Z", B)
+        a.blob("M66 330 C130 372 330 384 416 322 C410 374 344 408 240 408 C144 408 78 380 66 330 Z", BELLY)
+        for x in (150, 200, 250):
+            a.ink([(x, 366 + (x - 150) * 0.06, x + 4, 378, x + 10, 390, x + 18, 400)], 6, a=0, b=0, col="#b9d6ea")
+    a.sil("M286 318 C292 356 322 378 356 370 C352 342 328 318 286 318 Z", BD)
+    b_face(a, 150, 270, 40, 16, cheek=(66, 32), mouth=26)
+    a.shine("M118 214 C142 186 180 170 222 166")
     return a
 
 
 @word
 def kurage():
     a = Art()
-    P, PL = "#f9b6d2", "#fde0ec"
-    # wavy tentacles
-    for dx in (-84, -42, 0, 42, 84):
-        x = 256 + dx
-        d = f"M{x} 300 C{x-18} 340 {x+18} 372 {x} 410 C{x-14} 440 {x+10} 452 {x} 470"
-        a.path(d, sw=26)
-        a.path(d, stroke=PL, sw=9)
-    # frilly oral arms
-    a.path("M170 292 C190 332 222 332 232 296 C242 336 270 336 280 296 C290 332 322 332 342 292 Z", fill=PL, sw=9)
-    # dome
-    a.path("M80 292 C80 160 160 70 256 70 C352 70 432 160 432 292 C400 316 372 300 344 316 C316 332 292 304 256 316 C220 304 196 332 168 316 C140 300 112 316 80 292 Z", fill=P)
-    a.path("M164 120 C188 90 224 78 256 78", stroke="#ffffff", sw=7, **{"stroke-opacity": "0.6"})
-    for x, y in ((330, 150), (370, 220), (300, 110)):
-        a.circle(x, y, 9, "#f58fb4", sw=0, stroke="none", **{"fill-opacity": "0.8"})
-    sea_face(a, 256, 214, gap=56, r=16, blush_dx=100)
+    P, PD, PL = "#f9b6d2", "#f59ac0", "#fde3ee"
+    cx = 256
+    with a.part():
+        for dx, ph in ((-104, 1), (-36, -1), (36, 1), (104, -1)):
+            x = cx + dx
+            a.sil(taper([(x, 280, x - 22 * ph, 320, x + 22 * ph, 352, x, 392),
+                         (x, 392, x - 18 * ph, 424, x + 14 * ph, 444, x + 4 * ph, 470)], 26, 14), PL)
+    with a.part():
+        for dx, ph in ((-70, -1), (0, 1), (70, -1)):
+            x = cx + dx
+            a.sil(taper([(x, 280, x - 20 * ph, 316, x + 20 * ph, 344, x, 376),
+                         (x, 376, x - 12 * ph, 396, x + 8 * ph, 410, x + 2 * ph, 424)], 34, 18), PD)
+    with a.part():
+        a.sil("M82 286 C82 160 160 68 256 68 C352 68 430 160 430 286 C430 304 414 312 398 304 "
+              "C380 294 362 294 344 306 C324 318 306 318 286 306 C268 296 244 296 226 306 "
+              "C206 318 188 318 168 306 C150 294 132 294 114 304 C98 312 82 304 82 286 Z", P)
+        a.blob("M96 270 C150 290 362 290 416 270 C420 286 416 296 404 296 C380 286 360 288 344 298 C324 310 306 310 286 298 "
+               "C268 288 244 288 226 298 C206 310 188 310 168 298 C150 288 130 286 108 296 C96 296 92 286 96 270 Z", PD)
+        for x, y, r in ((330, 140, 11), (372, 200, 9), (300, 104, 8)):
+            a.ellipse(x, y, r, r, PL, sw=0, stroke="none")
+    b_face(a, cx, 206, 56, 18, cheek=(100, 34), mouth=28)
+    a.shine("M150 150 C166 114 196 92 232 84")
     return a
 
 
 @word
 def iruka():
     a = Art()
-    B, BD, BELLY = "#7fa9d6", "#6a93c2", "#eef6ff"
-    BODYD = ("M74 164 C130 236 230 206 312 174 C362 154 412 150 438 180 C454 186 488 200 494 220 "
-             "C488 238 458 244 438 244 C412 322 322 352 240 330 C150 306 100 236 74 194 Z")
-    # tail flukes (the tail is lifted, like a jump)
-    a.path("M78 164 C50 154 26 124 34 92 C64 98 92 128 104 168 Z", fill=BD)
-    a.path("M78 194 C48 208 26 238 36 270 C66 258 94 232 104 196 Z", fill=BD)
-    a.path(BODYD, fill=B)
-    # light belly
-    a.path("M126 244 C170 290 262 314 340 296 C390 284 420 266 440 246 C414 322 322 352 240 330 C186 314 150 280 126 244 Z",
-           fill=BELLY, sw=0, stroke="none")
-    a.path(BODYD, "none")
-    # dorsal fin and flipper
-    a.path("M240 196 C250 150 290 126 330 128 C320 152 326 168 342 180 Z", fill=BD)
-    a.path("M286 326 C274 360 294 388 334 392 C338 362 328 338 310 326 Z", fill=BD)
-    # face
-    a.ellipse(394, 198, 14, 17, EYE, sw=0, stroke="none")
-    a.dot(398, 191, 5, "#ffffff")
-    a.ellipse(404, 244, 15, 9, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
-    a.path("M430 228 C448 242 474 238 486 222", sw=7)
-    a.shine("M196 250 C226 232 262 222 298 212")
+    B, BD, BELLY = "#7fb0e0", "#6594c8", "#eef6ff"
+    with a.part():
+        a.sil("M122 378 C90 372 58 390 46 424 C78 432 108 422 126 404 C126 432 142 456 172 466 "
+              "C182 434 168 402 144 384 Z", B)
+        a.sil("M262 166 C270 122 298 96 338 92 C328 118 336 142 360 158 Z", B)
+        a.sil("M104 376 C116 270 210 150 330 150 C392 150 432 180 446 214 C468 216 494 228 500 244 "
+              "C494 258 468 264 448 262 C428 296 380 314 320 304 C240 290 176 324 142 394 Z", B)
+        a.blob("M448 262 C428 296 380 314 320 304 C246 292 184 320 150 380 C176 310 244 262 320 264 "
+               "C372 268 418 262 444 244 C452 248 452 256 448 262 Z", BELLY)
+    a.sil("M370 274 C362 310 334 342 294 356 C290 330 304 296 334 270 Z", BD)
+    a.path("M440 246 C458 252 480 250 496 244", sw=7)
+    b_side_eye(a, 404, 212, 15, cheek=(-4, 34))
+    a.shine("M200 232 C230 196 272 176 316 172")
     return a
 
 
 @word
 def sakana():
     a = Art()
-    OR, ORD, BELLY = "#f7a23b", "#ee8727", "#ffe3a8"
-    # tail
-    a.path("M120 256 C80 214 50 190 36 150 C34 212 34 300 36 362 C50 322 80 298 120 256 Z", fill=ORD)
-    # body (faces right)
-    a.path("M96 256 C112 176 200 132 292 132 C376 132 440 190 456 256 C440 322 376 380 292 380 C200 380 112 336 96 256 Z", fill=OR)
-    # belly
-    a.path("M130 300 C190 352 330 372 440 296 C400 360 340 382 290 382 C220 382 160 350 130 300 Z", fill=BELLY, sw=0, stroke="none")
-    a.path("M96 256 C112 176 200 132 292 132 C376 132 440 190 456 256 C440 322 376 380 292 380 C200 380 112 336 96 256 Z", "none")
-    # fins
-    a.path("M230 140 C238 96 280 70 330 84 C318 104 322 124 336 140 Z", fill=ORD)
-    a.path("M250 300 C250 346 218 376 186 372 C198 344 208 322 220 300 Z", fill=ORD)
-    # gill + scales
-    a.path("M214 196 C196 228 196 284 214 316", sw=8)
-    for x, y in ((266, 220), (310, 256), (266, 290), (346, 212)):
-        a.path(f"M{x-14} {y} C{x-8} {y-12} {x+8} {y-12} {x+14} {y}", stroke=ORD, sw=7)
-    # face
-    a.ellipse(380, 232, 15, 18, EYE, sw=0, stroke="none")
-    a.dot(384, 225, 5.5, "#ffffff")
-    a.ellipse(386, 286, 15, 9, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
-    a.path("M426 262 C438 274 454 270 460 258", sw=7)
-    a.shine("M150 214 C166 184 204 162 252 158")
+    OR, ORD, BELLY = "#f8a640", "#ee8727", "#ffe6ae"
+    with a.part():
+        a.sil("M136 256 C100 226 64 196 42 150 C28 200 28 312 42 362 C64 316 100 286 136 256 Z", ORD)
+        a.sil("M214 150 C226 102 276 76 330 88 C320 110 326 130 346 146 Z", ORD)
+        a.sil("M268 366 C268 408 244 432 208 430 C216 404 224 388 230 364 Z", ORD)
+        a.sil("M112 256 C130 180 210 134 296 134 C380 134 444 192 458 256 C444 320 380 378 296 378 "
+              "C210 378 130 332 112 256 Z", OR)
+        a.blob("M150 310 C200 350 340 362 440 296 C410 350 350 376 296 376 C234 376 180 350 150 310 Z", BELLY)
+        a.ink([(330, 150, 304, 200, 304, 300, 330, 360)], 8, a=0, b=0, col=ORD)
+        for x, y in ((250, 216), (212, 256), (250, 296), (176, 226)):
+            a.ink([(x + 16, y - 20, x + 34, y - 8, x + 34, y + 10, x + 16, y + 22)], 7, a=0, b=0, col=ORD)
+        a.ink([(60, 200, 80, 220, 96, 236, 112, 248)], 6, a=0, b=0, col="#d9741c")
+        a.ink([(60, 312, 80, 292, 96, 276, 112, 264)], 6, a=0, b=0, col="#d9741c")
+    a.sil("M300 262 C276 268 260 290 264 316 C292 314 312 296 316 274 Z", ORD)
+    a.path("M430 270 C440 280 452 278 458 268", sw=7)
+    b_side_eye(a, 388, 228, 17, cheek=(2, 44))
+    a.shine("M160 220 C178 184 216 162 262 156")
     return a
 
 
 @word
 def hitode():
     a = Art()
-    OR, ORD = "#f58f4a", "#e8793a"
+    OR, ORL = "#f7954f", "#fbbf8a"
     import math
-    pts = []
-    for k in range(10):
-        ang = -math.pi / 2 + k * math.pi / 5
-        r = 230 if k % 2 == 0 else 112
-        pts.append((256 + r * math.cos(ang), 280 + r * math.sin(ang)))
-    d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z"
-    a.path(d, fill=OR, sw=40)  # rounded corners via a thick outline
-    a.path(d, fill=OR, sw=0, stroke="none")
-    a.path(d, stroke=OR, sw=22)
-    # bumps
+    cx, cy = 256, 276
+    a.sil(b_star(cx, cy, 232, 122, tip=0), OR)
     for k in range(5):
-        ang = -math.pi / 2 + k * 2 * math.pi / 5
-        for t in (0.42, 0.62, 0.8):
-            a.circle(256 + 230 * t * math.cos(ang), 280 + 230 * t * math.sin(ang), 8, ORD, sw=0, stroke="none")
-    sea_face(a, 256, 270, gap=40, r=14, blush_dx=76)
-    a.shine("M214 150 C226 120 246 100 262 88")
+        ang = math.radians(-90 + k * 72)
+        for t, r in ((0.5, 10), (0.7, 8)):
+            a.ellipse(cx + 226 * t * math.cos(ang), cy + 226 * t * math.sin(ang), r, r, ORL, sw=0, stroke="none")
+    b_face(a, cx, 272, 36, 15, cheek=(62, 26), mouth=22)
     return a
 
 
 @word
 def kaeru():
     a = Art()
-    G, GD, BELLY = "#7cc96a", "#5fb257", "#e6f6c8"
-    # back legs
-    a.path("M112 330 C60 330 48 410 110 430 L196 430 C196 380 170 330 112 330 Z", fill=G)
-    a.path("M400 330 C452 330 464 410 402 430 L316 430 C316 380 342 330 400 330 Z", fill=G)
+    G_, GD, BELLY = "#7fcb6c", "#5fb257", "#eaf7cc"
+    cx = 256
+    with a.part():
+        sym(a, "M134 316 C76 316 48 368 58 408 C64 440 94 456 150 456 L204 456 C204 392 182 328 134 316 Z", G_, cx)
+        for s in (-1, 1):
+            a.ink([(cx + s * 190, 392, cx + s * 170, 372, cx + s * 150, 366, cx + s * 130, 372)], 8, a=0, b=1)
+    with a.part():
+        for s in (-1, 1):
+            a.sil_ellipse(cx + s * 84, 142, 60, 58, G_)
+        a.sil("M256 146 C356 146 422 194 422 262 C422 300 400 328 372 342 C392 374 388 420 360 442 "
+              "C330 458 182 458 152 442 C124 420 120 374 140 342 C112 328 90 300 90 262 C90 194 156 146 256 146 Z", G_)
+        a.blob("M256 332 C310 332 340 368 336 406 C330 438 300 450 256 450 C212 450 182 438 176 406 "
+               "C172 368 202 332 256 332 Z", BELLY)
     for s in (-1, 1):
-        for dx in (0, 22, 44):
-            a.circle(256 + s * (190 - dx * 0.2) - s * 0, 440, 0.01, G, sw=0, stroke="none")
-    # body
-    a.path("M256 150 C372 150 420 240 410 330 C402 400 330 440 256 440 C182 440 110 400 102 330 C92 240 140 150 256 150 Z", fill=G)
-    a.path("M170 340 C200 420 312 420 342 340 C330 380 290 396 256 396 C222 396 182 380 170 340 Z", fill=BELLY, sw=0, stroke="none")
-    # front feet
+        x = cx + s * 62
+        with a.part():
+            a.sil(f"M{x - 30} 458 C{x - 36} 438 {x - 16} 426 {x} 426 C{x + 16} 426 {x + 36} 438 {x + 30} 458 "
+                  f"C{x + 14} 462 {x - 14} 462 {x - 30} 458 Z", G_)
+            for dx in (-10, 10):
+                a.ink([(x + dx, 460, x + dx, 452, x + dx * 0.9, 446, x + dx * 0.8, 440)], 6, a=1, b=0)
     for s in (-1, 1):
-        a.path(f"M{256+s*92} 418 C{256+s*130} 420 {256+s*140} 456 {256+s*108} 460 C{256+s*84} 462 {256+s*70} 442 {256+s*72} 418 Z", fill=G)
-    # big eyes on top
-    for s in (-1, 1):
-        a.circle(256 + s * 86, 128, 62, G)
-    for s in (-1, 1):
-        a.circle(256 + s * 86, 128, 40, "#ffffff", sw=8)
-        a.ellipse(256 + s * 86 + s * 4, 132, 18, 22, EYE, sw=0, stroke="none")
-        a.dot(256 + s * 86 + s * 4 + 6, 122, 7, "#ffffff")
-    for s in (-1, 1):
-        a.ellipse(256 + s * 120, 280, 18, 11, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
-    a.path("M196 262 C226 306 286 306 316 262", sw=9)
-    a.shine("M130 260 C128 226 146 196 176 182")
+        a.ellipse(cx + s * 84, 142, 36, 38, WHITE, sw=0, stroke="none")
+        a.eye(cx + s * 84, 144, 21)
+        a.ellipse(cx + s * 122, 268, 18, 11, "#f3b3a4", sw=0, stroke="none")
+    a.path("M192 254 C222 292 290 292 320 254", sw=8)
+    a.shine("M118 248 C122 222 138 204 160 196")
     return a
 
 
 @word
 def medaka():
     a = Art()
-    BODYC, BELLY, FIN = "#f3d98a", "#fff6d6", "#f9e8ae"
-    # tail (small)
-    a.path("M120 256 C96 226 74 212 56 196 C58 236 58 276 56 316 C74 300 96 286 120 256 Z", fill=FIN)
-    # slim body
-    a.path("M92 256 C112 190 200 160 290 160 C372 160 436 208 450 256 C436 304 372 352 290 352 C200 352 112 322 92 256 Z", fill=BODYC)
-    a.path("M130 296 C190 332 330 346 440 280 C402 340 340 354 290 354 C220 354 160 332 130 296 Z", fill=BELLY, sw=0, stroke="none")
-    a.path("M92 256 C112 190 200 160 290 160 C372 160 436 208 450 256 C436 304 372 352 290 352 C200 352 112 322 92 256 Z", "none")
-    # little fins
-    a.path("M260 166 C268 138 296 124 322 130 C314 144 318 158 326 168 Z", fill=FIN)
-    a.path("M252 316 C250 346 226 366 204 360 C214 342 222 326 232 314 Z", fill=FIN)
-    # large eye (medaka = big eyes)
-    a.circle(384, 236, 28, "#ffffff", sw=8)
-    a.ellipse(390, 238, 15, 18, EYE, sw=0, stroke="none")
-    a.dot(396, 230, 6, "#ffffff")
-    a.ellipse(380, 296, 15, 9, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
-    a.path("M414 274 C424 286 438 284 442 272", sw=7)
-    a.shine("M150 214 C170 192 204 180 244 178")
+    BODYC, BACK, BELLY, FIN = "#f6d77c", "#e9bd55", "#fff8dc", "#fbe9ae"
+    with a.part():
+        a.sil("M128 262 C104 236 76 218 46 208 C36 244 36 284 46 318 C76 308 104 290 128 262 Z", FIN)
+        a.sil("M196 196 C196 162 220 146 248 150 C240 166 242 180 252 190 Z", FIN)
+        a.sil("M286 330 C276 366 226 382 172 366 C182 348 192 332 200 318 Z", FIN)
+        a.sil("M100 264 C122 208 200 180 290 180 C372 180 438 210 458 250 C442 300 372 336 290 340 "
+              "C200 342 122 318 100 264 Z", BODYC)
+        a.blob("M128 222 C180 192 250 180 290 180 C350 180 404 196 440 222 C380 204 220 202 128 222 Z", BACK)
+        a.blob("M140 302 C200 328 340 334 440 280 C410 322 350 338 290 340 C230 340 176 326 140 302 Z", BELLY)
+        a.ink([(338, 196, 320, 230, 320, 290, 338, 326)], 7, a=0, b=0, col=BACK)
+        a.ink([(60, 240, 76, 250, 92, 256, 106, 260)], 5, a=0, b=0, col=BACK)
+        a.ink([(60, 288, 76, 280, 92, 272, 106, 266)], 5, a=0, b=0, col=BACK)
+    a.sil("M300 268 C280 272 268 288 270 308 C292 306 308 294 312 278 Z", FIN)
+    a.ellipse(396, 240, 27, 30, WHITE, sw=0, stroke="none")
+    a.path("M436 252 C444 248 452 242 456 234", sw=7)
+    b_side_eye(a, 396, 242, 19, cheek=(-6, 46))
+    a.shine("M170 218 C200 204 240 198 280 198")
     return a
 
 
 @word
 def zarigani():
     a = Art()
-    R, RD = "#e8493f", "#cf3a35"
-    # tail fan at the bottom
-    a.path("M214 380 L190 460 C216 476 296 476 322 460 L298 380 Z", fill=R)
-    a.path("M214 380 C200 430 196 450 190 460 M256 384 L256 470 M298 380 C312 430 316 450 322 460", sw=7)
-    # segmented abdomen
-    a.path("M196 270 C190 330 200 360 214 384 L298 384 C312 360 322 330 316 270 Z", fill=R)
-    for y in (312, 346):
-        a.path(f"M200 {y} C240 {y+14} 272 {y+14} 312 {y}", sw=7)
-    # legs
+    R, RD = "#e9503f", "#cf3a35"
+    cx = 256
+    m = lambda q, s: tuple((cx + s * (v - cx)) if i % 2 == 0 else v for i, v in enumerate(q))
     for s in (-1, 1):
-        for y in (286, 318, 350):
-            a.tube(f"M{256+s*56} {y} L{256+s*104} {y+18}", R, 22, 8)
-    # big claws
-    for s in (-1, 1):
-        a.path(f"M{256+s*56} 200 C{256+s*110} 190 {256+s*130} 160 {256+s*132} 126", sw=32)
-        a.path(f"M{256+s*56} 200 C{256+s*110} 190 {256+s*130} 160 {256+s*132} 126", stroke=R, sw=14)
-        cx = 256 + s * 132
-        d = (f"M{cx} 130 C{cx-s*50} 130 {cx-s*60} 70 {cx-s*28} 36 C{cx-s*14} 26 {cx} 50 {cx} 70 "
-             f"C{cx} 48 {cx+s*18} 26 {cx+s*36} 42 C{cx+s*64} 74 {cx+s*46} 130 {cx} 130 Z")
-        a.path(d, fill=R)
-    # head / carapace
-    a.path("M256 124 C328 124 352 176 346 236 C342 276 304 296 256 296 C208 296 170 276 166 236 C160 176 184 124 256 124 Z", fill=R)
-    # antennae
-    for s in (-1, 1):
-        a.path(f"M{256+s*22} 128 C{256+s*30} 100 {256+s*50} 80 {256+s*74} 70", sw=7)
-    sea_face(a, 256, 206, gap=36, r=13, blush_dx=66)
-    a.shine("M196 168 C200 150 214 138 232 134")
+        a.path(f"M{cx + s * 20} 130 C{cx + s * 30} 96 {cx + s * 56} 76 {cx + s * 92} 72", sw=7)
+    with a.part():
+        for s in (-1, 1):
+            for i in range(3):
+                y = 270 + i * 30
+                a.sil(taper([m((300, y, 330, y - 4, 356, y + 8, 374, y + 34), s)], 24, 10), RD)
+    with a.part():
+        for s in (-1, 1):
+            a.sil(taper([m((306, 214, 350, 204, 380, 176, 384, 144), s)], 32, 28, cap=False), R)
+            a.sil(b_claw(cx + s * 128, 152, s, 0.92), R)
+    with a.part():
+        a.sil("M214 398 C188 424 178 448 186 468 C222 484 290 484 326 468 C334 448 324 424 298 398 Z", R)
+        a.ink([(236, 420, 230, 440, 226, 456, 224, 474)], 7, a=0, b=1)
+        a.ink([(276, 420, 282, 440, 286, 456, 288, 474)], 7, a=0, b=1)
+    for y, w_ in ((372, 50), (338, 56), (302, 62)):
+        a.sil(f"M{cx - w_} {y - 14} C{cx - w_ - 8} {y + 10} {cx - w_ + 2} {y + 34} {cx - w_ + 14} {y + 40} "
+              f"L{cx + w_ - 14} {y + 40} C{cx + w_ - 2} {y + 34} {cx + w_ + 8} {y + 10} {cx + w_} {y - 14} Z", R)
+    with a.part():
+        a.sil("M256 104 C276 118 300 124 318 150 C344 180 348 220 342 252 C336 292 304 314 256 314 "
+              "C208 314 176 292 170 252 C164 220 168 180 194 150 C212 124 236 118 256 104 Z", R)
+        a.ink([(190, 270, 226, 290, 286, 290, 322, 270)], 7, a=0, b=0, col=RD)
+    b_face(a, cx, 212, 36, 15, cheek=(64, 28), mouth=24, mw=11)
+    a.shine("M196 186 C202 164 216 150 234 142")
     return a
 
 
 @word
 def otamajakushi():
     a = Art()
-    BK, BKL = "#3b3a45", "#55546a"
-    # wavy tail
-    a.path("M300 300 C360 260 400 340 450 300 C470 284 480 296 482 316 C470 350 420 396 366 366 C340 352 320 350 296 346 Z", fill=BK)
-    # round head/body
-    a.path("M256 100 C350 100 398 176 392 252 C388 320 330 356 256 356 C182 356 124 320 120 252 C114 176 162 100 256 100 Z", fill=BK)
-    # face: white eyes (so they show on black), smile and cheeks
-    for s in (-1, 1):
-        a.ellipse(256 + s * 62, 220, 24, 28, "#ffffff", sw=0, stroke="none")
-        a.ellipse(256 + s * 62 + s * 2, 224, 13, 16, EYE, sw=0, stroke="none")
-        a.dot(256 + s * 62 + 5, 214, 6, "#ffffff")
-        a.ellipse(256 + s * 106, 282, 17, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.8"})
-    a.path("M226 276 C240 296 272 296 286 276", stroke="#ffffff", sw=8)
-    a.shine("M168 170 C184 138 216 118 252 114")
+    BK, BKL = "#45424f", "#6a667a"
+    tail = [(300, 280, 370, 240, 400, 340, 474, 296)]
+    with a.part():
+        a.sil(taper(tail, 116, 30), BKL)
+        a.sil(taper(tail, 66, 12), BK)
+        a.sil("M214 104 C300 104 358 166 354 244 C350 316 292 358 214 358 C136 358 80 316 76 244 "
+              "C72 166 128 104 214 104 Z", BK)
+    b_face(a, 214, 226, 58, 17, cheek=(100, 44), white=True, mouth=40, mw=14, col=WHITE)
+    a.shine("M128 176 C144 144 174 124 210 118")
     return a
+
 
 # --------------------------------------------------------------------- sky --
 import math
@@ -1982,44 +3078,210 @@ CLOUD_PARTS = [(150, 270, 66), (236, 210, 88), (336, 244, 74), (400, 296, 52)]
 CLOUD_BASE = (130, 420, 270, 350)
 
 
+# --- batch E1 helpers begin ---
+from lib import _tx_path as e1_tx
+
+
+def e1_tf(d, s=1.0, dx=0.0, dy=0.0, flip=False):
+    """A path scaled by s and moved by (dx, dy); flip mirrors it around x = 256 first."""
+    return e1_tx(mirror(d, 256) if flip else d, s, dx, dy)
+
+
+def e1_tc(c, s=1.0, dx=0.0, dy=0.0, flip=False):
+    """The same for one cubic tuple (for ink())."""
+    return tuple((s * ((512 - v) if flip else v) + dx) if i % 2 == 0 else (s * v + dy) for i, v in enumerate(c))
+
+
+def e1_sub(c, t0, t1):
+    """The piece of a cubic (x0, y0, ..., x3, y3) between t0 and t1 (so a blob can follow an outline exactly)."""
+    def split(P, t):
+        l = lambda p, q: (p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t)
+        p01, p12, p23 = l(P[0], P[1]), l(P[1], P[2]), l(P[2], P[3])
+        p012, p123 = l(p01, p12), l(p12, p23)
+        m = l(p012, p123)
+        return [P[0], p01, p012, m], [m, p123, p23, P[3]]
+    P = [(c[0], c[1]), (c[2], c[3]), (c[4], c[5]), (c[6], c[7])]
+    if t0 > 0:
+        P = split(P, t0)[1]
+    if t1 < 1:
+        P = split(P, (t1 - t0) / (1 - t0))[0]
+    return tuple(v for p in P for v in p)
+
+
+def e1_rev(cubics):
+    return [(c[6], c[7], c[4], c[5], c[2], c[3], c[0], c[1]) for c in reversed(cubics)]
+
+
+def e1_pt(c, t):
+    s = e1_sub(c, 0, t)
+    return s[6], s[7]
+
+
+def e1_d(cubics, close=True, start="M"):
+    """A path through a chain of cubics (a straight line is put in where two of them do not meet)."""
+    out, cur = [], None
+    for c in cubics:
+        if cur is None:
+            out.append(f"{start}{c[0]:.1f} {c[1]:.1f}")
+        elif abs(cur[0] - c[0]) > 0.05 or abs(cur[1] - c[1]) > 0.05:
+            out.append(f"L{c[0]:.1f} {c[1]:.1f}")
+        out.append(f"C{c[2]:.1f} {c[3]:.1f} {c[4]:.1f} {c[5]:.1f} {c[6]:.1f} {c[7]:.1f}")
+        cur = (c[6], c[7])
+    return " ".join(out) + (" Z" if close else "")
+
+
+def e1_arc(cx, cy, rx, a0, a1, ry=None):
+    """Cubics along a circle/ellipse arc from angle a0 to a1 (degrees; 0 = right, 90 = down)."""
+    ry = ry or rx
+    n = max(1, int(math.ceil(abs(a1 - a0) / 90)))
+    res = []
+    for i in range(n):
+        t0 = math.radians(a0 + (a1 - a0) * i / n)
+        t1 = math.radians(a0 + (a1 - a0) * (i + 1) / n)
+        k = 4 / 3 * math.tan((t1 - t0) / 4)
+        c0, s0, c1, s1 = math.cos(t0), math.sin(t0), math.cos(t1), math.sin(t1)
+        res.append((cx + rx * c0, cy + ry * s0, cx + rx * (c0 - k * s0), cy + ry * (s0 + k * c0),
+                    cx + rx * (c1 + k * s1), cy + ry * (s1 - k * c1), cx + rx * c1, cy + ry * s1))
+    return res
+
+
+def e1_line(x0, y0, x1, y1):
+    return (x0, y0, x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3, x0 + (x1 - x0) * 2 / 3, y0 + (y1 - y0) * 2 / 3, x1, y1)
+
+
+def e1_round_poly(pts, ks):
+    """A polygon with rounded corners; ks = how far (0..0.5) each corner is cut back along its sides."""
+    n = len(pts)
+    out = []
+    for i, v in enumerate(pts):
+        p, q = pts[i - 1], pts[(i + 1) % n]
+        k = ks[i % len(ks)]
+        ax, ay = v[0] + (p[0] - v[0]) * k, v[1] + (p[1] - v[1]) * k
+        bx, by = v[0] + (q[0] - v[0]) * k, v[1] + (q[1] - v[1]) * k
+        out.append(f"{'M' if i == 0 else 'L'}{ax:.1f} {ay:.1f} Q{v[0]:.1f} {v[1]:.1f} {bx:.1f} {by:.1f}")
+    return " ".join(out) + " Z"
+
+
+def e1_star(cx, cy, ro, ri, rot=-90, k=0.24, ki=0.14):
+    """A five-point star with soft tips."""
+    pts = []
+    for i in range(10):
+        t = math.radians(rot + i * 36)
+        r = ro if i % 2 == 0 else ri
+        pts.append((cx + math.cos(t) * r, cy + math.sin(t) * r))
+    return e1_round_poly(pts, [k, ki])
+
+
+def e1_face(a, cx, cy, gap, r=15, cheek_dx=None, cheek_dy=None, mouth=True, sleepy=False):
+    """The pilot face for sky things: same-size shiny eyes set wide and low, small smile, cheeks outside."""
+    for s in (-1, 1):
+        x = cx + s * gap
+        if sleepy:
+            a.ink([(x - r, cy - 2, x - r * 0.5, cy + r * 0.9, x + r * 0.5, cy + r * 0.9, x + r, cy - 2)], 7.5, a=0.7, b=0.7)
+        else:
+            a.eye(x, cy, r)
+        a.cheek(cx + s * (cheek_dx or gap + r * 2.3), cy + (cheek_dy or r * 2.0), r * 1.05, r * 0.62)
+    if mouth:
+        w, y = r * 0.8, cy + r * 1.45
+        a.path(f"M{cx - w:.1f} {y:.1f} C{cx - w * 0.45:.1f} {y + w * 0.85:.1f} {cx + w * 0.45:.1f} {y + w * 0.85:.1f} "
+               f"{cx + w:.1f} {y:.1f}", sw=7)
+
+
+# one cloud outline: three lobes that meet in soft notches, flat bottom
+E1_CLOUD = ("M150 352 C96 352 70 320 74 284 C78 248 110 226 146 232 C148 176 194 138 250 140 "
+            "C296 142 332 168 346 206 C390 196 432 228 432 272 C466 278 480 312 466 334 C456 350 438 352 416 352 Z")
+E1_CLOUD_SHADE = "M150 352 L416 352 C438 352 456 350 466 334 C400 336 200 338 90 331.5 C103 344 123 352 150 352 Z"
+E1_CLOUD_INK = [(146, 232, 158, 232, 168, 238, 174, 248), (346, 206, 332, 210, 322, 220, 318, 232),
+                (432, 272, 420, 272, 410, 278, 404, 288)]
+
+
+def e1_cloud(a, fill, shade, s=1.0, dx=0.0, dy=0.0, flip=False, ow=SW):
+    with a.part(ow):
+        a.sil(e1_tf(E1_CLOUD, s, dx, dy, flip), fill)
+        a.blob(e1_tf(E1_CLOUD_SHADE, s, dx, dy, flip), shade)
+        for c in E1_CLOUD_INK:
+            a.ink([e1_tc(c, s, dx, dy, flip)], max(6, 9 * s), a=1, b=0)
+
+
+def e1_mountain(a, L, T, R, fill, snow_t, n=5):
+    """A mountain inside a part: left slope L, rounded top T, right slope R (cubics, left to right).
+    The snow cap follows the outline down to snow_t of each slope; one see-through shade lies over the right face."""
+    a.sil(e1_d([L, T, R]), fill)
+    pl, pr = e1_pt(L, 1 - snow_t), e1_pt(R, snow_t)
+    pts = []
+    for i in range(2 * n + 1):
+        f = i / (2 * n)
+        dip = (10 if i % 2 else -14) if 0 < i < 2 * n else 0
+        pts.append((pr[0] + (pl[0] - pr[0]) * f, pr[1] + (pl[1] - pr[1]) * f + dip))
+    edge = smooth(pts, closed=False).replace("M", "L", 1)
+    a.blob(e1_d([e1_sub(L, 1 - snow_t, 1), T, e1_sub(R, 0, snow_t)], close=False) + " " + edge + " Z", WHITE)
+    mx, my = e1_pt(T, 0.56)
+    bx = L[0] + (R[6] - L[0]) * 0.68
+    back = (bx, R[7], bx - (bx - mx) * 0.12, my + (R[7] - my) * 0.6, mx + (bx - mx) * 0.3, my + (R[7] - my) * 0.25, mx, my)
+    a.blob(e1_d([e1_sub(T, 0.56, 1), R, back]), "#2f5fa8", **{"fill-opacity": "0.2"})
+
+
+def e1_drop(a, x, y):
+    with a.part(9):
+        a.sil(f"M{x} {y} C{x-6} {y+26} {x-26} {y+44} {x-26} {y+66} C{x-26} {y+86} {x-12} {y+98} {x} {y+98} "
+              f"C{x+12} {y+98} {x+26} {y+86} {x+26} {y+66} C{x+26} {y+44} {x+6} {y+26} {x} {y} Z", "#5ab4ea")
+        a.blob(f"M{x} {y+98} C{x+12} {y+98} {x+26} {y+86} {x+26} {y+66} C{x+18} {y+80} {x+6} {y+89} {x-8} {y+92} "
+               f"C{x-5} {y+96} {x-2} {y+98} {x} {y+98} Z", "#3f9ad6")
+        a.ink([(x - 9, y + 46, x - 15, y + 56, x - 15, y + 66, x - 10, y + 74)], 7, col=WHITE)
+
+
+def e1_stone(a, x, y, rx, ry):
+    with a.part(9):
+        a.sil(f"M{x-rx} {y+ry*0.3} C{x-rx} {y-ry*0.7} {x-rx*0.3} {y-ry} {x+rx*0.2} {y-ry*0.95} "
+              f"C{x+rx*0.8} {y-ry*0.9} {x+rx} {y-ry*0.2} {x+rx} {y+ry*0.35} C{x+rx} {y+ry} {x-rx} {y+ry} {x-rx} {y+ry*0.3} Z", STONE)
+        a.ink([(x - rx * 0.5, y - ry * 0.35, x - rx * 0.3, y - ry * 0.6, x, y - ry * 0.65, x + rx * 0.25, y - ry * 0.6)], 6, col=WHITE)
+
+
+def e1_pad(a, cx, cy, rx, ry, a0):
+    """A lily pad seen from above-front: an ellipse with a V cut at angle a0."""
+    arc = e1_arc(cx, cy, rx, a0 + 22, a0 + 338, ry=ry)
+    with a.part(9):
+        a.sil(f"M{cx} {cy} L{arc[0][0]:.1f} {arc[0][1]:.1f} " + e1_d(arc, close=False, start="L") + " Z", LEAF1)
+        for da in (120, 180, 240):
+            t = math.radians(a0 + da)
+            a.ink([e1_line(cx, cy, cx + rx * 0.72 * math.cos(t), cy + ry * 0.72 * math.sin(t))], 6, a=1, b=0, col=LEAF2)
+# --- batch E1 helpers end ---
+
+
 @word
 def kumo():
     a = Art()
-    cloud_shape(a, CLOUD_PARTS, CLOUD_BASE, "#ffffff", shade="#cfe6f7")
-    sky_face(a, 262, 268, gap=50, r=15, blush_dx=92)
-    a.shine("M170 236 C176 214 192 200 212 196")
+    e1_cloud(a, WHITE, "#cfe6f7")
+    e1_face(a, 262, 282, 50, 16)
+    a.shine("M190 196 C202 176 220 164 242 160")
     return a
 
 
 @word
 def niji():
     a = Art()
-    cx, cy = 256, 400
-    bands = [(190, "#ee5b52"), (158, "#f7a94b"), (126, "#f6d36b"), (94, "#7cc36a"), (62, "#4fa8e0")]
-    mid = 126
-    a.path(f"M{cx-mid} {cy} A{mid} {mid} 0 0 1 {cx+mid} {cy}", sw=(190 - 62) + 32 + 11, stroke_linecap="butt")
-    for r, col in bands:
-        a.path(f"M{cx-r} {cy} A{r} {r} 0 0 1 {cx+r} {cy}", stroke=col, sw=32, stroke_linecap="butt")
-    for s in (-1, 1):
-        x = cx + s * 126
-        cloud_shape(a, [(x - 50, 392, 40), (x, 366, 54), (x + 52, 392, 40)],
-                    (x - 90, x + 92, 392, 440), "#ffffff", shade="#cfe6f7")
+    cx, cy, R0, bw = 256, 392, 208, 30
+    cols = ["#ee5b52", "#f7a94b", "#f6d36b", "#7cc36a", "#4fa8e0"]
+    ri = R0 - bw * len(cols)
+    ring = lambda ro: e1_d(e1_arc(cx, cy, ro, 180, 360) + e1_arc(cx, cy, ri, 360, 180))
+    with a.part():
+        a.sil(ring(R0), cols[0])
+        for i in range(1, len(cols)):
+            a.blob(ring(R0 - bw * i), cols[i])
+    a.shine(e1_d(e1_arc(cx, cy, R0 - 13, 208, 250), close=False))
+    e1_cloud(a, WHITE, "#cfe6f7", 0.5, -13, 270)
+    e1_cloud(a, WHITE, "#cfe6f7", 0.5, 269, 270, flip=True)
     return a
 
 
 @word
 def ame():
     a = Art()
-    parts = [(160, 190, 58), (240, 140, 78), (330, 168, 66), (388, 210, 46)]
-    cloud_shape(a, parts, (140, 410, 190, 250), "#c9d9ea", shade="#a9bed4")
-    sky_face(a, 262, 176, gap=46, r=14, blush_dx=86)
-    def drop(x, y):
-        return (f"M{x} {y} C{x-8} {y+22} {x-24} {y+40} {x-24} {y+60} C{x-24} {y+84} {x-8} {y+98} {x} {y+98} "
-                f"C{x+8} {y+98} {x+24} {y+84} {x+24} {y+60} C{x+24} {y+40} {x+8} {y+22} {x} {y} Z")
-    for x, y in ((190, 290), (270, 320), (350, 290)):
-        a.path(drop(x, y), fill="#5ab4ea", sw=9)
-        a.path(f"M{x-10} {y+52} C{x-14} {y+64} {x-12} {y+72} {x-6} {y+78}", stroke="#ffffff", sw=6,
-               **{"stroke-opacity": "0.7"})
+    e1_cloud(a, "#c9d9ea", "#a9bed4", 0.8, 35, -72)
+    e1_face(a, 245, 152, 42, 14)
+    a.shine("M186 86 C196 70 210 60 228 56")
+    for x, y in ((170, 252), (250, 290), (330, 252)):
+        e1_drop(a, x, y)
     return a
 
 
@@ -2027,54 +3289,77 @@ def ame():
 def yuki():
     a = Art()
     ICE, ICE_L = "#a9d8f5", "#e6f4fd"
+    cx = cy = 256
+    arms, cores = [], []
     for ang in (90, 150, 210, 270, 330, 30):
         t = math.radians(ang)
         dx, dy = math.cos(t), math.sin(t)
-        x1, y1 = 256 + dx * 215, 256 + dy * 215
-        a.tube(f"M256 256 L{x1:.1f} {y1:.1f}", ICE, 36, 16)
-        # little branches
-        for k in (0.62, 0.84):
-            bx, by = 256 + dx * 215 * k, 256 + dy * 215 * k
+        arms.append((e1_line(cx + dx * 40, cy + dy * 40, cx + dx * 214, cy + dy * 214), 30, 26))
+        cores.append(e1_line(cx + dx * 96, cy + dy * 96, cx + dx * 204, cy + dy * 204))
+        for k, ln in ((132, 62), (182, 42)):
+            bx, by = cx + dx * k, cy + dy * k
             for sgn in (-1, 1):
-                t2 = t + sgn * math.radians(50)
-                ex, ey = bx + math.cos(t2) * 46, by + math.sin(t2) * 46
-                a.tube(f"M{bx:.1f} {by:.1f} L{ex:.1f} {ey:.1f}", ICE, 28, 12)
-    a.circle(256, 256, 86, "#ffffff")
-    a.circle(256, 256, 70, ICE_L, sw=0, stroke="none")
-    sky_face(a, 256, 246, gap=32, r=11, blush_dx=58)
-    a.shine("M206 220 C212 200 226 188 244 184")
+                t2 = t + sgn * math.radians(52)
+                arms.append((e1_line(bx, by, bx + math.cos(t2) * ln, by + math.sin(t2) * ln), 24, 22))
+    with a.part():
+        for c, w0, w1 in arms:
+            a.sil(taper([c], w0, w1), ICE)
+        for c in cores:
+            a.ink([c], 8, col=ICE_L)
+    hexa = [(cx + 92 * math.cos(math.radians(60 * i)), cy + 92 * math.sin(math.radians(60 * i))) for i in range(6)]
+    with a.part():
+        a.sil(e1_round_poly(hexa, [0.3]), WHITE)
+        a.blob(e1_round_poly([(cx + (x - cx) * 0.82, cy + (y - cy) * 0.82) for x, y in hexa], [0.3]), ICE_L)
+    e1_face(a, cx, cy - 8, 30, 12)
+    a.shine("M212 214 C218 202 228 194 240 190", sw=6)
     return a
 
 
 @word
 def kaminari():
     a = Art()
-    parts = [(150, 190, 56), (232, 140, 76), (326, 164, 66), (388, 206, 46)]
-    cloud_shape(a, parts, (130, 410, 186, 244), "#8c9db3", shade="#6f8099")
-    sky_face(a, 258, 172, gap=46, r=14, blush_dx=86)
-    bolt = "M290 232 L214 330 L262 330 L226 454 L330 308 L280 308 L324 232 Z"
-    a.path(bolt, fill="#ffd84d", sw=11)
-    a.path("M286 246 L238 316", stroke="#fff3b0", sw=7)
+    with a.part():
+        a.sil("M300 180 L214 318 L266 318 L226 452 L342 292 L286 292 L332 180 Z", "#ffd84d")
+        a.blob("M290 212 L232 306 L250 306 L302 212 Z", "#fff3b0")
+        a.blob("M342 292 L226 452 L254 386 L320 292 Z", "#f7b731")
+    e1_cloud(a, "#8c9db3", "#6f8099", 0.8, 35, -72)
+    e1_face(a, 245, 152, 42, 14)
+    for s in (-1, 1):
+        x = 245 + s * 42
+        a.ink([(x - s * 16, 126, x - s * 8, 127, x + s * 2, 130, x + s * 10, 134)], 7.5, a=0.6, b=0.6)
+    a.shine("M186 86 C196 70 210 60 228 56")
     return a
 
 
 @word
 def kaze():
     a = Art()
-    # blowing face
-    a.circle(190, 250, 120, "#e3f2fc")
-    a.circle(190, 250, 108, "#e3f2fc", sw=0, stroke="none")
+    W1, W2, PUFF = "#8ec9f0", "#bfe3fa", "#e3f2fc"
+    swirls = [
+        ([(250, 196, 330, 196, 392, 196, 432, 188), (432, 188, 478, 178, 482, 122, 442, 118),
+          (442, 118, 410, 116, 398, 152, 424, 160)], W1),
+        ([(290, 262, 360, 258, 430, 262, 464, 282), (464, 282, 506, 308, 484, 362, 446, 350),
+          (446, 350, 418, 340, 426, 306, 450, 310)], W2),
+        ([(250, 322, 310, 326, 362, 344, 382, 374), (382, 374, 402, 412, 362, 440, 338, 416),
+          (338, 416, 324, 398, 342, 380, 358, 392)], W1),
+    ]
+    for cub, col in swirls:
+        with a.part(9):
+            a.sil(taper(cub, 24, 13, n=72), col)
+    with a.part():
+        a.sil("M150 372 C104 372 76 338 84 300 C60 270 70 222 108 208 C112 160 160 128 206 140 "
+              "C240 112 296 128 304 172 C340 184 350 232 326 258 C348 290 332 338 296 350 "
+              "C286 366 266 372 246 372 Z", PUFF)
+        for c in ((108, 208, 118, 204, 130, 206, 138, 212), (304, 172, 294, 172, 284, 176, 278, 184),
+                  (296, 350, 290, 340, 282, 334, 272, 332)):
+            a.ink([c], 9, a=1, b=0)
+    cx, cy = 200, 244
     for s in (-1, 1):
-        x = 190 + s * 46
-        a.path(f"M{x-16} 232 C{x-8} 220 {x+8} 220 {x+16} 232", sw=8)
-        a.ellipse(190 + s * 86, 282, 18, 11, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
-    a.ellipse(190, 290, 17, 21, "#d9645e", sw=8, stroke=O)
-    a.shine("M118 214 C128 186 150 168 176 162")
-    # swirling wind lines to the right
-    W1, W2 = "#8ec9f0", "#bfe3fa"
-    a.tube("M300 214 C356 204 400 204 428 190 C458 172 440 140 414 150 C396 158 404 178 420 176", W1, 30, 14)
-    a.tube("M312 262 C380 262 430 270 454 288 C478 306 456 338 428 326 C408 316 416 296 432 300", W2, 30, 14)
-    a.tube("M296 312 C340 322 372 340 380 366 C386 392 358 404 344 388", W1, 28, 12)
+        x = cx + s * 44
+        a.ink([(x - 15, cy + 5, x - 8, cy - 9, x + 8, cy - 9, x + 15, cy + 5)], 7.5, a=0.7, b=0.7)
+        a.cheek(cx + s * 78, cy + 36, 17, 10)
+    a.ellipse(cx, cy + 46, 12, 15, "#d9645e", sw=7)
+    a.shine("M118 236 C122 222 130 214 142 210")
     return a
 
 
@@ -2082,19 +3367,25 @@ def kaze():
 def taiyou():
     a = Art()
     cx = cy = 256
-    for i in range(12):
-        t = math.radians(i * 30)
-        ux, uy = math.cos(t), math.sin(t)
-        px, py = -uy, ux
-        b = 128
-        tip = 218
-        pts = (f"M{cx+ux*b+px*30:.1f} {cy+uy*b+py*30:.1f} L{cx+ux*tip:.1f} {cy+uy*tip:.1f} "
-               f"L{cx+ux*b-px*30:.1f} {cy+uy*b-py*30:.1f} Z")
-        a.path(pts, fill="#ffb347", sw=9)
-    a.circle(cx, cy, 124, "#ffd84d")
-    a.circle(cx, cy, 112, "#ffd84d", sw=0, stroke="none")
-    sky_face(a, cx, cy - 8, gap=48, r=15, blush_dx=88)
-    a.shine("M168 200 C180 172 206 154 238 148")
+    with a.part():
+        for i in range(12):
+            t = math.radians(i * 30 - 90)
+            ux, uy = math.cos(t), math.sin(t)
+            px, py = -uy, ux
+            tip = 222 if i % 2 == 0 else 200
+            hw = 40 if i % 2 == 0 else 34
+            b1 = (cx + ux * 112 + px * hw, cy + uy * 112 + py * hw)
+            b2 = (cx + ux * 112 - px * hw, cy + uy * 112 - py * hw)
+            tp = (cx + ux * tip, cy + uy * tip)
+            t1 = (b1[0] + (tp[0] - b1[0]) * 0.72, b1[1] + (tp[1] - b1[1]) * 0.72)
+            t2 = (b2[0] + (tp[0] - b2[0]) * 0.72, b2[1] + (tp[1] - b2[1]) * 0.72)
+            a.sil(f"M{b1[0]:.1f} {b1[1]:.1f} L{t1[0]:.1f} {t1[1]:.1f} Q{tp[0]:.1f} {tp[1]:.1f} {t2[0]:.1f} {t2[1]:.1f} "
+                  f"L{b2[0]:.1f} {b2[1]:.1f} Z", "#ffb347")
+    with a.part():
+        a.sil(e1_d(e1_arc(cx, cy, 128, 0, 360)), "#ffd84d")
+        a.blob(e1_d(e1_arc(cx, cy, 128, -10, 110) + e1_arc(cx - 14, cy - 14, 126, 104, -4)), "#f9c22e")
+    e1_face(a, cx, cy - 2, 48, 17)
+    a.shine("M170 206 C182 178 206 160 236 154")
     return a
 
 
@@ -2110,9 +3401,11 @@ def star_path(cx, cy, ro, ri, rot=-90):
 @word
 def hoshi():
     a = Art()
-    a.path(star_path(256, 268, 220, 124), fill="#ffd84d", sw=14)
-    sky_face(a, 256, 270, gap=44, r=14, blush_dx=82)
-    a.shine("M206 160 C214 138 232 120 252 112")
+    with a.part(12):
+        a.sil(e1_star(256, 268, 226, 124), "#ffd84d")
+        a.blob(e1_star(256, 262, 150, 84), "#ffe27a")
+    e1_face(a, 256, 268, 46, 17)
+    a.shine("M214 150 C222 132 234 116 248 104")
     return a
 
 
@@ -2120,7 +3413,7 @@ def hoshi():
 def tsuki():
     a = Art()
     R1, c1 = 190, (240, 256)
-    R2, c2 = 150, (330, 226)
+    R2, c2 = 150, (345, 226)
     dx, dy = c2[0] - c1[0], c2[1] - c1[1]
     d = math.hypot(dx, dy)
     aa = (R1 * R1 - R2 * R2 + d * d) / (2 * d)
@@ -2128,48 +3421,57 @@ def tsuki():
     mx, my = c1[0] + aa * dx / d, c1[1] + aa * dy / d
     p1 = (mx + h * dy / d, my - h * dx / d)
     p2 = (mx - h * dy / d, my + h * dx / d)
-    # outer arc the long way round the left, then back along the inner circle
     top, bot = (p1, p2) if p1[1] < p2[1] else (p2, p1)
-    path = (f"M{top[0]:.1f} {top[1]:.1f} A{R1} {R1} 0 1 0 {bot[0]:.1f} {bot[1]:.1f} "
-            f"A{R2} {R2} 0 0 1 {top[0]:.1f} {top[1]:.1f} Z")
-    a.circle(c1[0], c1[1], R1 + 7, "none", sw=0, stroke="none")  # keeps the whole outer arc inside the fit
-    a.path(path, fill="#ffe9a0", sw=14)
-    a.circle(130, 330, 20, "#f4d27a", sw=0, stroke="none")
-    a.circle(188, 140, 14, "#f4d27a", sw=0, stroke="none")
-    sky_face(a, 150, 250, gap=30, r=12, blush_dx=54, sleepy=True)
-    a.path(star_path(412, 120, 30, 15), fill="#ffd84d", sw=8)
-    a.path(star_path(448, 330, 22, 11), fill="#ffd84d", sw=8)
-    a.shine("M92 220 C94 180 110 150 138 130")
+    ang = lambda p, c: math.degrees(math.atan2(p[1] - c[1], p[0] - c[0])) % 360
+    outer = e1_arc(c1[0], c1[1], R1, ang(top, c1), ang(bot, c1))          # round the left side
+    inner = e1_arc(c2[0], c2[1], R2, ang(bot, c2), ang(top, c2))
+    with a.part(12):
+        a.sil(e1_d(outer + inner), "#ffe9a0")
+        ab = ang(bot, c1)
+        a.blob(e1_d(e1_arc(c1[0], c1[1], R1, 215, ab + 28) + e1_arc(c1[0] + 14, c1[1] - 12, R1 - 4, ab + 34, 210)), "#f7d886")
+    for x, y, r in ((98, 352, 17), (160, 150, 13), (214, 398, 10)):
+        a.ellipse(x, y, r, r * 0.9, "#f0cd72", sw=0, stroke="none")
+    e1_face(a, 128, 246, 31, 14, cheek_dx=52, sleepy=True)
+    for x, y, r, rot in ((420, 122, 34, -80), (456, 326, 24, -100)):
+        with a.part(8):
+            a.sil(e1_star(x, y, r, r * 0.55, rot), "#ffd84d")
+    a.shine("M84 196 C92 164 108 140 130 124")
     return a
 
 
 @word
 def uchuujin():
     a = Art()
-    G, GD = "#93d86f", "#7cc65a"
-    # antennae
-    for s in (-1, 1):
-        a.path(f"M{256+s*60} 130 C{256+s*84} 90 {256+s*100} 70 {256+s*112} 52", sw=9)
-        a.circle(256 + s * 114, 46, 20, "#ffd84d", sw=9)
-    # little body
-    a.path("M196 372 C196 350 220 342 256 342 C292 342 316 350 316 372 L324 430 C324 446 314 452 300 452 "
-           "L212 452 C198 452 188 446 188 430 Z", fill="#a9b6f2")
-    a.path("M216 372 L204 430 M296 372 L308 430", stroke="#8695dc", sw=7)
-    for s in (-1, 1):
-        a.circle(256 + s * 70, 400, 22, G, sw=9)
-    # big head
-    a.path("M256 100 C370 100 424 170 420 236 C416 306 340 354 256 354 C172 354 96 306 92 236 "
-           "C88 170 142 100 256 100 Z", fill=G)
-    # big glossy eyes
-    for s in (-1, 1):
-        a.path(f"M{256+s*30} 200 C{256+s*58} 184 {256+s*118} 196 {256+s*128} 250 "
-               f"C{256+s*130} 284 {256+s*84} 292 {256+s*56} 270 C{256+s*34} 252 {256+s*26} 222 {256+s*30} 200 Z",
-               fill=EYE, sw=0, stroke="none")
-        a.ellipse(256 + s * 92, 226, 14, 18, "#ffffff", sw=0, stroke="none")
-        a.dot(256 + s * 66, 262, 7, "#ffffff")
-        a.ellipse(256 + s * 126, 296, 17, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
-    a.path("M232 302 C244 318 268 318 280 302", sw=8)
-    a.shine("M138 190 C150 160 180 138 218 130")
+    G, GD, SUIT, SUIT_D = "#93d86f", "#74c255", "#a9b6f2", "#8695dc"
+    cx, GY = 256, 478
+    for s in (-1, 1):                         # antennae: stalk, then the ball over its end
+        a.sil(taper([(cx + s * 52, 124, cx + s * 70, 100, cx + s * 88, 80, cx + s * 104, 58)], 14, 11), GD)
+        a.sil(e1_d(e1_arc(cx + s * 108, 50, 21, 0, 360)), "#ffd84d")
+        a.dot(cx + s * 108 - 6, 43, 5, WHITE)
+    with a.part():                            # arms: one waves, one hangs
+        a.sil(taper([(296, 384, 332, 398, 378, 390, 404, 350)], 38, 32), G)
+        a.sil(taper([(216, 384, 184, 390, 164, 412, 162, 440)], 38, 32), G)
+    with a.part():                            # suit and short legs in one piece
+        a.sil("M200 362 C200 336 312 336 312 362 L318 440 C318 454 194 454 194 440 Z", SUIT)
+        a.sil(limb_d([(228, 430), (226, 460)], [54, 46], GY, d=-1, foot=8, h=18), SUIT)
+        a.sil(limb_d([(284, 430), (286, 460)], [54, 46], GY, d=1, foot=8, h=18), SUIT)
+        a.blob("M194 460 C202 455 242 455 252 461 C254 472 250 478 240 478 L206 478 C194 478 190 470 194 460 Z", SUIT_D)
+        a.blob(mirror("M194 460 C202 455 242 455 252 461 C254 472 250 478 240 478 L206 478 C194 478 190 470 194 460 Z", cx), SUIT_D)
+        a.blob(e1_star(cx, 404, 22, 12), "#ffd84d")
+        a.ink([(256, 479, 256, 468, 256, 458, 256, 446)], 8, a=1, b=0)
+    HEADP = ("M256 100 C370 100 424 170 420 236 C416 306 340 354 256 354 C172 354 96 306 92 236 "
+             "C88 170 142 100 256 100 Z")
+    with a.part():
+        a.sil(HEADP, G)
+        a.blob("M108 290 C150 332 204 346 256 346 C308 346 362 332 404 290 C380 334 320 354 256 354 C192 354 132 334 108 290 Z", GD)
+    for s in (-1, 1):                         # big almond eyes, the same on both sides
+        a.blob(f"M{cx+s*30} 204 C{cx+s*58} 186 {cx+s*118} 198 {cx+s*128} 250 "
+               f"C{cx+s*130} 284 {cx+s*84} 292 {cx+s*56} 270 C{cx+s*34} 252 {cx+s*26} 226 {cx+s*30} 204 Z", EYE)
+        a.ellipse(cx + s * 84 + 8, 228, 14, 17, WHITE, sw=0, stroke="none")
+        a.dot(cx + s * 84 - 12, 264, 6.5, WHITE)
+        a.cheek(cx + s * 122, 300, 17, 10)
+    a.path("M240 304 C247 314 265 314 272 304", sw=7)
+    a.shine("M140 190 C152 160 182 138 220 130")
     return a
 
 # -------------------------------------------------------------- plaything --
@@ -2183,166 +3485,195 @@ ORANGE, PURPLE = "#f7a94b", "#9b7fd1"
 @word
 def tsumiki():
     a = Art()
-    # bottom: red and blue cubes; then a yellow cube; a green roof on top
-    a.rect(84, 330, 160, 140, RED, rx=16)
-    a.rect(268, 330, 160, 140, BLUE, rx=16)
-    a.rect(176, 190, 160, 140, YEL, rx=16)
-    a.path("M170 196 L256 84 L342 196 Z", fill="#7cc36a")
-    # marks on the blocks
-    a.circle(164, 400, 34, WHITE, sw=7)
-    a.rect(318, 372, 60, 56, WHITE, rx=10, sw=7)
-    a.path("M214 316 C214 276 298 276 298 316", stroke=O, sw=8, fill="#ffffff")
-    a.shine("M104 360 C104 348 112 344 124 344", sw=8)
-    a.shine("M288 350 C288 342 294 338 304 338", sw=8)
+    GR, GR_D = "#7cc36a", "#62a853"
+
+    def cube(x, y, col, dark):
+        with a.part():
+            a.sil(e2_rr(x, y, 160, 140, 18), col)
+            a.blob(f"M{x} {y + 112} L{x + 160} {y + 112} L{x + 160} {y + 122} C{x + 160} {y + 132} {x + 152} {y + 140} {x + 142} {y + 140} "
+                   f"L{x + 18} {y + 140} C{x + 8} {y + 140} {x} {y + 132} {x} {y + 122} Z", dark)
+
+    cube(84, 330, RED, RED_D)
+    cube(268, 330, BLUE, BLUE_D)
+    a.dot(164, 394, 34, WHITE)
+    a.blob(e2_rr(318, 364, 60, 58, 12), WHITE)
+    with a.part():                                      # the arch block sits on both cubes
+        a.sil("M194 188 L318 188 C330 188 336 194 336 206 L336 330 L300 330 C300 270 212 270 212 330 "
+              "L176 330 L176 206 C176 194 182 188 194 188 Z", YEL)
+        a.blob("M300 330 L336 330 L336 206 C336 198 333 192 328 190 C324 240 316 290 300 330 Z", "#e9bd3c")
+    with a.part():                                      # roof
+        a.sil("M256 84 L346 190 L166 190 Z", GR)
+        a.blob("M256 84 L346 190 L300 190 C296 150 280 112 256 84 Z", GR_D)
+    a.shine("M104 362 C104 350 112 346 124 346", sw=8)
+    a.shine("M288 362 C288 350 296 346 308 346", sw=8)
+    a.shine("M196 222 C196 212 202 208 212 208", sw=8)
     return a
 
 
 @word
 def koma():
     a = Art()
-    # handle, body, stripe, spike
-    a.rect(232, 92, 48, 96, WOOD, rx=14)
-    a.path("M242 120 L270 120", stroke=WOOD_D, sw=7)
-    a.path("M240 392 L256 466 L272 392 Z", fill="#9aa5b1", sw=10)
-    a.path("M120 262 C120 206 192 184 256 184 C320 184 392 206 392 262 L392 300 "
-           "C392 356 328 396 256 396 C184 396 120 356 120 300 Z", fill=RED)
-    a.path("M122 278 C170 316 342 316 390 278 L392 316 C342 354 170 354 120 316 Z", fill=YEL, sw=8)
-    a.path("M120 262 C120 206 192 184 256 184 C320 184 392 206 392 262 C392 296 328 316 256 316 "
-           "C184 316 120 296 120 262 Z", fill="#ee6a62", sw=0, stroke="none")
-    a.path("M120 262 C120 206 192 184 256 184 C320 184 392 206 392 262 L392 300 "
-           "C392 356 328 396 256 396 C184 396 120 356 120 300 Z")
-    a.shine("M162 238 C176 218 206 206 240 202")
+    TOP = "#ee6a62"
+    with a.part():                                      # handle
+        a.sil(e2_rr(232, 88, 48, 110, 16), WOOD)
+        a.blob(e2_poly([(262, 92), (280, 100), (280, 198), (262, 198)]), WOOD_D)
+    with a.part():                                      # tip
+        a.sil("M236 380 L276 380 L262 462 C260 470 252 470 250 462 Z", "#b9c4cf")
+        a.blob("M258 380 L276 380 L262 462 C260 468 257 468 256 466 Z", "#98a5b2")
+    with a.part():                                      # body
+        a.sil("M118 262 C118 204 192 182 256 182 C320 182 394 204 394 262 L394 296 "
+              "C394 356 328 398 256 398 C184 398 118 356 118 296 Z", RED)
+        a.blob("M118 262 C118 204 192 182 256 182 C320 182 394 204 394 262 C394 296 328 318 256 318 "
+               "C184 318 118 296 118 262 Z", TOP)
+        a.blob("M119 276 C166 316 346 316 393 276 L394 300 C394 306 393 312 392 317 C344 354 168 354 120 317 "
+               "C119 312 118 306 118 300 Z", YEL)
+        a.blob("M196 386 C240 398 300 394 340 370 C312 392 284 398 256 398 C234 398 214 394 196 386 Z", RED_D)
+        a.ink([(119, 276, 166, 316, 346, 316, 393, 276)], 7, a=1, b=1)
+        a.ink([(120, 317, 168, 354, 344, 354, 392, 317)], 7, a=1, b=1)
+        a.blob("M196 230 C196 214 316 214 316 230 C316 246 196 246 196 230 Z", "#f6d36b")
+        a.blob("M222 228 C222 220 290 220 290 228 C290 236 222 236 222 228 Z", TOP)
+    a.shine("M150 250 C160 226 184 212 210 206")
     return a
 
 
 @word
 def kendama():
     a = Art()
-    # string from the handle to the ball
-    a.path("M320 236 C430 270 410 380 292 408", stroke="#8a6a50", sw=7)
-    # handle (ken): a stick with a spike on the top and a cup at each side
-    a.tube("M256 480 L256 330", WOOD, 64, 40)
-    for s in (-1, 1):
-        x = 256 + s * 78
-        a.path(f"M{x-46} 318 C{x-46} 372 {x+46} 372 {x+46} 318 Z", fill=WOOD_L)
-        a.ellipse(x, 318, 46, 15, "#a9672f")
-    a.tube("M200 336 L312 336", WOOD, 44, 24)
-    a.path("M246 330 L256 236 L266 330 Z", fill=WOOD, sw=10)
-    # ball skewered on the spike, with a hole at the bottom
-    a.circle(256, 170, 84, RED)
-    a.ellipse(256, 244, 20, 11, "#a9362f", sw=7)
-    a.shine("M204 130 C212 106 236 90 260 88")
+    a.path("M352 334 C440 350 430 430 300 444", stroke="#8a6a50", sw=7)
+    with a.part():                                      # handle and spike
+        a.sil("M234 320 L278 320 C278 380 284 428 294 460 C298 474 288 484 274 484 L238 484 "
+              "C224 484 214 474 218 460 C228 428 234 380 234 320 Z", WOOD)
+        a.sil("M238 334 C242 296 250 262 256 240 C262 262 270 296 274 334 Z", WOOD)
+        a.blob("M262 352 L278 352 C278 392 284 430 294 460 C298 474 288 484 274 484 L262 484 "
+               "C270 444 266 396 262 352 Z", WOOD_D)
+    with a.part():                                      # cross piece with a cup at each end
+        a.sil("M148 290 C148 282 156 278 164 284 C190 304 222 312 256 312 C290 312 322 304 348 284 "
+              "C356 278 364 282 364 290 L364 378 C364 386 356 390 348 384 C322 364 290 356 256 356 "
+              "C222 356 190 364 164 384 C156 390 148 386 148 378 Z", WOOD_L)
+        a.blob("M148 356 C190 340 222 334 256 334 C290 334 322 340 364 356 L364 378 C364 386 356 390 348 384 "
+               "C322 364 290 356 256 356 C222 356 190 364 164 384 C156 390 148 386 148 378 Z", WOOD)
+        e2_ink2(a, [(170, 290, 178, 320, 178, 348, 170, 378)], 6, 1, 1, col=WOOD_D)
+    with a.part():                                      # ball on the spike
+        a.sil_ellipse(256, 168, 86, 86, RED)
+        a.blob("M338 144 C348 200 310 250 256 254 C296 240 326 200 322 150 C320 130 314 112 304 98 "
+               "C322 108 334 124 338 144 Z", RED_D)
+        a.blob("M232 250 C232 240 280 240 280 250 C272 254 264 254 256 254 C248 254 240 254 232 250 Z", "#8f2c27")
+    a.shine("M200 136 C208 110 232 92 258 90")
     return a
 
 
 @word
 def fuusen():
     a = Art()
-    def balloon(cx, cy, col, dark, s=1.0, tilt=0):
+
+    def balloon(cx, cy, col, dark, s=1.0):
         w, h = 120 * s, 150 * s
-        d = (f"M{cx} {cy-h} C{cx+w*0.9} {cy-h} {cx+w} {cy-h*0.2} {cx+w*0.62} {cy+h*0.42} "
-             f"C{cx+w*0.4} {cy+h*0.76} {cx+w*0.12} {cy+h*0.9} {cx+10*s} {cy+h*0.98} "
-             f"L{cx+22*s} {cy+h*1.1} L{cx-22*s} {cy+h*1.1} L{cx-10*s} {cy+h*0.98} "
-             f"C{cx-w*0.12} {cy+h*0.9} {cx-w*0.4} {cy+h*0.76} {cx-w*0.62} {cy+h*0.42} "
-             f"C{cx-w} {cy-h*0.2} {cx-w*0.9} {cy-h} {cx} {cy-h} Z")
-        return d
-    # blue balloon behind
-    a.path("M350 470 C320 430 372 410 340 372", sw=7)
-    a.path(balloon(344, 188, BLUE, BLUE_D, 0.74), fill=BLUE)
-    a.shine("M296 124 C306 106 324 96 344 94", sw=7)
-    # red balloon in front
-    a.path("M196 486 C160 452 224 436 190 396", sw=7)
-    a.path(balloon(190, 214, RED, RED_D, 1.0), fill=RED)
-    a.shine("M120 150 C132 118 160 100 194 96")
+        P = lambda u, v: f"{e2_f(cx + w * u)} {e2_f(cy + h * v)}"
+        d = (f"M{P(0, -1)} C{P(0.9, -1)} {P(1, -0.2)} {P(0.62, 0.42)} C{P(0.4, 0.76)} {P(0.14, 0.9)} {P(0.08, 0.98)} "
+             f"L{P(0.2, 1.12)} L{P(-0.2, 1.12)} L{P(-0.08, 0.98)} C{P(-0.14, 0.9)} {P(-0.4, 0.76)} {P(-0.62, 0.42)} "
+             f"C{P(-1, -0.2)} {P(-0.9, -1)} {P(0, -1)} Z")
+        with a.part():
+            a.sil(d, col)
+            a.blob(f"M{P(0.62, 0.42)} C{P(0.4, 0.76)} {P(0.14, 0.9)} {P(0.08, 0.98)} L{P(-0.08, 0.98)} "
+                   f"C{P(0.12, 0.74)} {P(0.5, 0.5)} {P(0.84, -0.3)} C{P(0.9, -0.05)} {P(0.8, 0.16)} {P(0.62, 0.42)} Z", dark)
+            a.ink([(cx - w * 0.07, cy + h * 0.99, cx - w * 0.02, cy + h * 1.01, cx + w * 0.02, cy + h * 1.01,
+                    cx + w * 0.07, cy + h * 0.99)], 6, a=0.3, b=0.3)
+
+    a.path("M344 276 C332 320 372 344 352 392 C344 412 348 430 356 446", sw=7)
+    balloon(344, 180, BLUE, BLUE_D, 0.76)
+    a.shine("M292 130 C298 108 314 94 334 90", sw=7)
+    a.path("M190 380 C176 420 222 438 202 478 C198 486 198 492 200 498", sw=7)
+    balloon(190, 214, RED, RED_D, 1.0)
+    a.shine("M118 160 C126 124 152 100 186 94")
     return a
 
 
 @word
 def ningyou():
     a = Art()
-    HAIR, SKIN = "#3b3a45", "#ffe3c9"
-    # back hair (bob)
-    a.path("M148 190 C140 96 196 66 256 66 C316 66 372 96 364 190 C362 236 350 262 342 270 "
-           "L170 270 C162 262 150 236 148 190 Z", fill=HAIR)
-    # kimono
-    a.path("M172 282 C172 270 204 264 256 264 C308 264 340 270 340 282 L378 448 C380 462 368 470 354 470 "
-           "L158 470 C144 470 132 462 134 448 Z", fill=RED)
-    for x, y in ((196, 410), (256, 440), (316, 410), (176, 340), (336, 340)):
-        a.circle(x, y, 11, "#ffd1d6", sw=0, stroke="none")
-    # collar and obi
-    a.path("M222 266 L256 332 L290 266", stroke=WHITE, sw=20)
-    a.path("M222 266 L256 332 L290 266", sw=7)
-    a.rect(152, 352, 208, 44, YEL, rx=8)
-    a.path("M256 352 L256 396", sw=6)
-    # face
-    a.ellipse(256, 188, 98, 92, SKIN)
-    a.path("M158 188 C152 118 204 88 256 88 C308 88 360 118 354 188 C324 160 292 146 256 150 "
-           "C220 146 188 160 158 188 Z", fill=HAIR)
-    for s in (-1, 1):
-        a.ellipse(256 + s * 42, 204, 11, 14, EYE, sw=0, stroke="none")
-        a.dot(256 + s * 42 + 4, 198, 4, WHITE)
-        a.ellipse(256 + s * 68, 232, 17, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
-    a.path("M244 238 C250 246 262 246 268 238", sw=7)
-    # a hair clip
-    a.circle(330, 112, 15, "#ffd84d", sw=7)
-    a.shine("M196 112 C214 100 236 96 258 96", sw=7)
+    HAIR, HAIR_L, SKIN = "#3b3a45", "#5a5968", "#ffe3c9"
+    with a.part():                                      # kimono
+        a.sil("M256 256 C300 256 336 266 350 288 C374 322 390 360 390 392 C390 412 372 418 358 408 L352 402 "
+              "L366 452 C368 464 360 472 348 472 L164 472 C152 472 144 464 146 452 L160 402 L154 408 "
+              "C140 418 122 412 122 392 C122 360 138 322 162 288 C176 266 212 256 256 256 Z", RED)
+        a.blob("M152 440 L360 440 L366 452 C368 464 360 472 348 472 L164 472 C152 472 144 464 146 452 Z", RED_D)
+        for x, y in ((150, 356), (362, 356), (206, 424), (256, 446), (306, 424)):
+            e2_blossom(a, x, y, 14)
+        a.blob(e2_poly([(214, 262), (298, 262), (256, 340)]), WHITE)
+        a.blob(e2_poly([(232, 262), (280, 262), (256, 308)]), "#f7a8b3")
+        e2_line(a, 214, 262, 256, 340, 6, 1, 0.4)
+        e2_line(a, 298, 262, 256, 340, 6, 1, 0.4)
+        a.blob(e2_poly([(175, 352), (337, 352), (348, 394), (164, 394)]), YEL)
+        a.blob(e2_poly([(171, 370), (341, 370), (343, 378), (169, 378)]), "#f6a04d")
+        e2_ink2(a, [(160, 406, 162, 372, 172, 336, 190, 304)], 8, 1, 0)
+        e2_line(a, 175, 352, 337, 352, 6)
+        e2_line(a, 164, 394, 348, 394, 6)
+    with a.part():                                      # bob hair and face in one part
+        a.sil("M136 196 C126 94 194 54 256 54 C318 54 386 94 376 196 C374 240 362 270 350 282 "
+              "L162 282 C150 270 138 240 136 196 Z", HAIR)
+        a.sil("M256 96 C320 96 362 138 362 196 C362 252 318 290 256 290 C194 290 150 252 150 196 "
+              "C150 138 192 96 256 96 Z", SKIN)
+        a.blob("M146 206 C136 112 200 78 256 78 C312 78 376 112 366 206 C338 166 298 150 256 154 "
+               "C214 150 174 166 146 206 Z", HAIR)
+    a.shine("M184 118 C202 98 228 88 256 86", sw=7)
+    e2_face(a, 256, 214, 48, 15, cheek_dx=76, cheek_dy=32)
+    with a.part(ow=8):                                  # hair clip
+        a.sil_ellipse(342, 118, 19, 19, "#ffd84d")
+    e2_blossom(a, 342, 118, 22, col="#ffd84d", mid=RED)
     return a
 
 
 @word
 def taiko():
     a = Art()
-    # legs
-    for x in (116, 340):
-        a.rect(x, 410, 56, 64, WOOD, rx=12)
-    # body (barrel)
-    a.path("M108 190 C84 250 84 330 112 410 C150 432 362 432 400 410 C428 330 428 250 404 190 Z", fill=RED)
-    for y in (232, 352):
-        a.path(f"M96 {y} C150 {y+22} 362 {y+22} 416 {y}", stroke=RED_D, sw=7)
-    for i in range(9):
-        t = i / 8
-        x = 128 + 256 * t
-        a.circle(x, 222 + 16 * (1 - (2 * t - 1) ** 2) + 6, 8, YEL, sw=6)
-        a.circle(x, 372 + 16 * (1 - (2 * t - 1) ** 2) + 6, 8, YEL, sw=6)
-    a.path("M108 190 C84 250 84 330 112 410 C150 432 362 432 400 410 C428 330 428 250 404 190")
-    # drumhead
-    a.ellipse(256, 190, 148, 52, CREAM)
-    a.ellipse(256, 190, 100, 32, "#f3dcbb", sw=6)
-    a.circle(256, 190, 12, RED, sw=0, stroke="none")
-    # sticks
-    a.tube("M150 70 L232 172", WOOD, 40, 22)
-    a.tube("M362 70 L280 172", WOOD, 40, 22)
-    a.circle(150, 70, 14, WOOD_L, sw=8)
-    a.circle(362, 70, 14, WOOD_L, sw=8)
+    HEAD_D = "#f1d9b6"
+    with a.part():                                      # legs
+        for x in (112, 344):
+            a.sil(e2_rr(x, 400, 56, 76, 14), WOOD)
+            a.blob(e2_rr(x + 34, 404, 22, 72, 10), WOOD_D)
+    with a.part():                                      # barrel
+        a.sil("M108 190 C82 250 82 334 112 410 C150 434 362 434 400 410 C430 334 430 250 404 190 Z", RED)
+        a.blob("M360 196 C388 250 390 340 366 424 C382 420 394 414 400 410 C430 334 430 250 404 190 Z", RED_D)
+        for i in range(7):
+            t = i / 6
+            x = 132 + 248 * t
+            dy = 20 * (1 - (2 * t - 1) ** 2)
+            a.dot(x, 236 + dy, 9, YEL)
+            a.dot(x, 376 + dy, 9, YEL)
+    with a.part():                                      # drumhead
+        a.sil_ellipse(256, 190, 150, 54, CREAM)
+        a.blob("M132 204 C170 232 342 232 380 204 C352 250 160 250 132 204 Z", HEAD_D)
+        a.ellipse(256, 188, 92, 28, HEAD_D, sw=0, stroke="none")
+    a.sil(e2_cap(150, 62, 236, 176, 30, 24), WOOD)       # sticks
+    a.sil(e2_cap(362, 62, 276, 176, 30, 24), WOOD)
+    a.shine("M118 262 C112 300 114 340 124 374")
     return a
 
 
 @word
 def fue():
     a = Art()
-    def P(t):
-        return 100 + 312 * t, 424 - 312 * t
-    x0, y0 = P(0.0)
-    x1, y1 = P(1.0)
-    # body
-    a.tube(f"M{x0:.0f} {y0:.0f} L{x1:.0f} {y1:.0f}", "#fff4e2", 76, 54)
-    # mouthpiece and bell end
-    ax, ay = P(0.80)
-    a.tube(f"M{ax:.0f} {ay:.0f} L{x1:.0f} {y1:.0f}", BLUE, 76, 54)
-    bx, by = P(0.2)
-    a.tube(f"M{x0:.0f} {y0:.0f} L{bx:.0f} {by:.0f}", BLUE, 76, 54)
-    # holes
-    for t in (0.32, 0.41, 0.50, 0.60, 0.69):
-        x, y = P(t)
-        a.circle(x, y, 11, EYE, sw=0, stroke="none")
-    # ring bands
-    for t in (0.20, 0.80):
-        x, y = P(t)
-        a.line(x - 22, y - 22, x + 22, y + 22, sw=9)
-    a.shine("M150 330 L300 180", sw=7)
-    # a little note
-    a.circle(120, 200, 20, "#ee6a62", sw=8)
-    a.path("M138 196 L138 96 C158 112 178 112 188 140", sw=10)
+    P = lambda t, off=0.0: (100 + 312 * t + off * 0.7071, 424 - 312 * t + off * 0.7071)
+    S = lambda t0, t1: [e2_seg(*P(t0), *P(t1))]
+    with a.part():
+        a.sil(taper(S(0.16, 0.84), 56, 54, cap=False), CREAM)
+        a.sil(taper(S(0.80, 1.02), 56, 34), BLUE)        # mouthpiece
+        a.sil(taper(S(0.22, 0.0), 58, 82, cap=False), BLUE)   # bell end
+        for t0, t1 in ((0.22, 0.80),):
+            (x0, y0), (x1, y1) = P(t0, 14), P(t1, 14)
+            (x2, y2), (x3, y3) = P(t1, 27), P(t0, 28)
+            a.blob(e2_poly([(x0, y0), (x1, y1), (x2, y2), (x3, y3)]), "#f1dcbc")
+        for t in (0.22, 0.80):
+            (x0, y0), (x1, y1) = P(t, -29), P(t, 29)
+            e2_line(a, x0, y0, x1, y1, 7)
+        for t in (0.31, 0.40, 0.49, 0.58, 0.67):
+            x, y = P(t, -3)
+            a.dot(x, y, 11, EYE)
+        (x0, y0), (x1, y1) = P(0.86, -4), P(0.91, -4)
+        a.blob(e2_cap(x0, y0, x1, y1, 12), EYE)
+    (x0, y0), (x1, y1) = P(0.30, -17), P(0.72, -17)
+    a.shine(f"M{e2_f(x0)} {e2_f(y0)} L{e2_f(x1)} {e2_f(y1)}", sw=7)
+    e2_note(a, 126, 214, 1.0, "#ee6a62")
     return a
 
 
@@ -2350,18 +3681,23 @@ def fue():
 def suzu():
     a = Art()
     GOLD, GOLD_D = "#f7c948", "#e5a92d"
-    # ribbon and ring
-    a.path("M256 140 C204 70 150 90 170 140 C184 170 236 150 256 140 Z", fill=RED)
-    a.path("M256 140 C308 70 362 90 342 140 C328 170 276 150 256 140 Z", fill=RED)
-    a.circle(256, 144, 20, RED_D, sw=8)
-    a.circle(256, 196, 30, "none", sw=9)
-    # bell body
-    a.circle(256, 330, 134, GOLD)
-    a.circle(256, 330, 122, GOLD, sw=0, stroke="none")
-    a.path("M126 360 C170 392 342 392 386 360", stroke=GOLD_D, sw=8)
-    a.ellipse(256, 392, 26, 14, EYE, sw=8)
-    a.line(256, 406, 256, 462, sw=9)
-    a.shine("M164 290 C174 262 198 242 226 236")
+    with a.part():                                      # bell with its little loop
+        a.sil(e2_rr(232, 172, 48, 60, 18), GOLD_D)
+        a.sil_ellipse(256, 334, 134, 132, GOLD)
+        a.blob("M384 300 C398 380 340 458 256 466 C324 446 368 384 364 308 C362 276 350 246 332 226 "
+               "C360 242 378 268 384 300 Z", GOLD_D)
+        a.blob("M124 352 C170 386 342 386 388 352 C389 358 390 364 390 370 C340 402 172 402 122 370 "
+               "C122 364 123 358 124 352 Z", GOLD_D)
+        a.blob("M228 398 C228 380 284 380 284 398 C284 412 270 416 262 418 L262 466 L250 466 L250 418 "
+               "C242 416 228 412 228 398 Z", EYE)
+    with a.part(ow=9):                                  # ribbon
+        for d in ("M256 162 C226 110 160 104 158 142 C156 180 220 186 256 162 Z",
+                  "M256 162 C286 110 352 104 354 142 C356 180 292 186 256 162 Z"):
+            a.sil(d, RED)
+        a.ink([(240, 160, 220, 150, 200, 146, 184, 148)], 6, a=1, b=0)
+        a.ink([(272, 160, 292, 150, 312, 146, 328, 148)], 6, a=1, b=0)
+    a.sil_ellipse(256, 162, 19, 18, RED_D)
+    a.shine("M162 300 C172 266 198 242 230 234")
     return a
 
 
@@ -2369,118 +3705,135 @@ def suzu():
 def mokkin():
     a = Art()
     cols = [RED, ORANGE, YEL, GREEN, BLUE, PURPLE]
-    # rails
-    a.tube("M64 252 L448 252", WOOD, 40, 20)
-    a.tube("M64 380 L448 380", WOOD, 40, 20)
-    for i, c in enumerate(cols):
-        x = 84 + i * 62
-        top = 150 + i * 16
-        bot = 440 - i * 16
-        a.path(f"M{x} {top+14} C{x} {top} {x+52} {top} {x+52} {top+14} L{x+52} {bot-14} "
-               f"C{x+52} {bot} {x} {bot} {x} {bot-14} Z", fill=c)
-        a.circle(x + 26, 252, 7, WHITE, sw=0, stroke="none")
-        a.circle(x + 26, 380, 7, WHITE, sw=0, stroke="none")
-    # mallets
-    a.tube("M424 56 L330 182", WOOD, 30, 14)
-    a.tube("M474 112 L344 206", WOOD, 30, 14)
-    a.circle(424, 56, 28, "#ee6a62", sw=9)
-    a.circle(474, 112, 28, "#4fa8e0", sw=9)
+    with a.part():                                      # rails get closer to the right, like the bars
+        a.sil(e2_cap(66, 214, 446, 266, 28), WOOD)
+        a.sil(e2_cap(66, 376, 446, 324, 28), WOOD)
+    with a.part():                                      # bars (one part: a single line between neighbours)
+        for i, c in enumerate(cols):
+            x = 84 + i * 62
+            top = 150 + i * 16
+            bot = 440 - i * 16
+            a.sil(e2_rr(x, top, 52, bot - top, 16), c)
+            a.blob(e2_rr(x + 36, top + 6, 16, bot - top - 12, 8), "#3b2f2a", fill_opacity="0.13")
+            a.dot(x + 22, 217 + i * 8.5, 7, WHITE)
+            a.dot(x + 22, 373 - i * 8.5, 7, WHITE)
+    a.sil(e2_cap(330, 186, 420, 66, 16), WOOD)           # mallets
+    a.sil(e2_cap(350, 210, 470, 122, 16), WOOD)
+    a.sil_ellipse(424, 60, 30, 30, "#ee6a62")
+    a.sil_ellipse(474, 118, 30, 30, BLUE)
+    a.shine("M98 190 L98 260", sw=7)
     return a
 
 
 @word
 def nawatobi():
     a = Art()
-    # rope
-    d = "M160 150 C60 470 452 470 352 150"
-    a.path(d, sw=30)
-    a.path(d, stroke=RED, sw=14)
-    a.path(d, stroke=WHITE, sw=5, stroke_dasharray="18 18", **{"stroke-opacity": "0.9"})
-    # handles
-    for x in (150, 362):
-        a.rect(x - 22, 56, 44, 130, BLUE, rx=20)
-        a.rect(x - 22, 56, 44, 34, YEL, rx=16)
-        a.path(f"M{x-22} 122 L{x+22} 122", stroke=BLUE_D, sw=6)
-    a.shine("M138 110 L138 168", sw=7)
-    a.shine("M350 110 L350 168", sw=7)
+    rope = [(150, 196, 96, 300, 110, 452, 256, 452), (256, 452, 402, 452, 416, 300, 362, 196)]
+    with a.part():                                    # rope
+        a.sil(taper(rope, 15, 15, n=64), RED)
+    for s_ in (0, 1):                                 # handles, leaning out a little
+        f = (lambda d: mirror(d)) if s_ else (lambda d: d)
+        with a.part():
+            a.sil(f(c_bar(120, 72, 150, 190, 46)), BLUE)
+            a.blob(f("M99 70 C96 46 138 36 144 62 L154 100 L108 112 Z"), YEL)
+        a.path(f("M114 136 L158 125"), stroke=BLUE_D, sw=6)
+        a.path(f("M119 156 L163 145"), stroke=BLUE_D, sw=6)
+    a.shine("M112 84 L120 112", sw=7)
     return a
 
 
 @word
 def tetsubou():
     a = Art()
-    # posts
-    for x in (140, 372):
-        a.tube(f"M{x} 130 L{x} 440", BLUE, 52, 30)
-        a.ellipse(x, 448, 52, 18, "#8a8f98")
-    # bar with end caps
-    a.tube("M72 130 L440 130", STEEL, 50, 28)
-    for x in (72, 440):
-        a.circle(x, 130, 20, STEEL_D, sw=8)
-    a.path("M96 124 L416 124", stroke=WHITE, sw=7, **{"stroke-opacity": "0.8"})
-    # braces
-    a.path("M140 360 L100 440 M372 360 L412 440", sw=10)
+    POST, POST_D, FOOT = BLUE, BLUE_D, "#8a8f98"
+    # three posts, a high bar and a low bar
+    with a.part():
+        for x in (88, 256, 424):
+            a.sil(c_circ(x, 450, 40, 13), FOOT)
+    with a.part(8):                                   # bars (behind the posts)
+        a.sil(c_bar(72, 140, 256, 140, 18), STEEL)
+        a.sil(c_bar(256, 236, 440, 236, 18), STEEL)
+    a.path("M100 136 L240 136 M270 232 L410 232", stroke=WHITE, sw=5, **{"stroke-opacity": "0.9"})
+    for x, top in ((88, 110), (256, 110), (424, 206)):
+        with a.part():
+            a.sil(c_rpoly([(x - 16, top), (x + 16, top), (x + 16, 450), (x - 16, 450)], [14, 14, 4, 4]), POST)
+            a.blob(c_rpoly([(x + 4, top + 6), (x + 15, top + 6), (x + 15, 449), (x + 4, 449)], [0, 8, 3, 0]), POST_D)
+        a.path(f"M{x - 7} {top + 22} L{x - 7} {top + 120}", stroke=WHITE, sw=5, **{"stroke-opacity": "0.5"})
     return a
 
 
 @word
 def tobibako():
     a = Art()
-    # cushion on the top
-    a.path("M84 150 C84 100 128 82 256 82 C384 82 428 100 428 150 L428 190 L84 190 Z", fill="#b9754a")
-    a.path("M100 140 C150 120 362 120 412 140", stroke="#d99c70", sw=7)
-    for x in (140, 256, 372):
-        a.circle(x, 164, 6, "#8a5530", sw=0, stroke="none")
-    # tiers
-    for i in range(4):
-        y = 190 + i * 70
-        fill = WOOD if i % 2 == 0 else WOOD_L
-        a.rect(76 - i * 4, y, 360 + i * 8, 70, fill, rx=10)
-        a.rect(214, y + 18, 84, 34, "#c97f3e", rx=16, sw=8)
+    TOP, TOP_L, HOLE = "#b9754a", "#d99c70", "#b06a30"
+    # tiers, bottom first; each is a little narrower than the one below
+    for i in range(3, -1, -1):
+        y = 186 + i * 68
+        w0, w1 = 150 + i * 12, 162 + i * 12          # half widths at the top and bottom of the tier
+        fill, shade = (WOOD_L, "#eeb878") if i % 2 == 0 else (WOOD, "#e3a257")
+        with a.part():
+            a.sil(c_rpoly([(256 - w0, y), (256 + w0, y), (256 + w1, y + 72), (256 - w1, y + 72)], 9), fill)
+            a.blob(c_rpoly([(256 - w1 + 3, y + 56), (256 + w1 - 3, y + 56), (256 + w1 - 1, y + 71), (256 - w1 + 1, y + 71)], [0, 0, 7, 7]), shade)
+        a.blob(c_rect(214, y + 22, 84, 26, 13), HOLE)
+        a.blob(c_rpoly([(214, y + 22), (298, y + 22), (298, y + 34), (214, y + 34)], [13, 13, 0, 0]), "#8f5226")
+    with a.part():                                    # cushion on the top
+        a.sil("M100 190 C92 190 88 184 90 172 C96 110 150 82 256 82 C362 82 416 110 422 172 C424 184 420 190 412 190 Z", TOP)
+        a.blob("M92 168 L420 168 C424 184 420 189 412 189 L100 189 C92 189 88 184 92 168 Z", "#a26238")
+    a.path("M128 136 C170 106 342 106 384 136", stroke=TOP_L, sw=7)
     return a
 
 
 @word
 def burango():
-    full, frame, seat = swing_parts()
+    full, frame, seat, rope = swing_parts()
     return full
 
 
 def swing_parts():
     """The whole swing, and the frame and the seat on their own (same fit, so they line up)."""
     def frame_part(a):
-        a.tube("M70 100 L442 100", RED, 50, 30)
-        for ax, bx0, bx1 in ((132, 60, 204), (380, 308, 452)):
-            a.tube(f"M{ax} 100 L{bx0} 450", RED, 44, 24)
-            a.tube(f"M{ax} 100 L{bx1} 450", RED, 44, 24)
-            a.path(f"M{bx0+6} 450 L{bx0-14} 450 M{bx1+14} 450 L{bx1-6} 450", sw=10)
-        a.tube("M70 100 L442 100", RED, 50, 30)
+        with a.part():                                # the far legs
+            for ax, bx in ((132, 204), (380, 308)):
+                a.sil(c_bar(ax, 100, bx, 448, 24), RED_D)
+        with a.part():                                # the beam and the near legs
+            a.sil(c_bar(72, 100, 440, 100, 32), RED)
+            for ax, bx in ((132, 62), (380, 450)):
+                a.sil(c_bar(ax, 100, bx, 448, 26), RED)
+        a.path("M92 93 L420 93", stroke=WHITE, sw=6, **{"stroke-opacity": "0.5"})
 
-    def seat_part(a):
-        for x, bx in ((218, 214), (294, 298)):
-            a.path(f"M{x} 100 L{bx} 354", stroke="#8a6a50", sw=11)
-        a.rect(196, 350, 120, 36, YEL, rx=14)
-        a.circle(218, 104, 11, STEEL, sw=7)
-        a.circle(294, 104, 11, STEEL, sw=7)
+    def ropes_part(a, xs):
+        with a.part(6):                               # ropes
+            for x in xs:
+                a.sil(c_bar(x, 100, x, 366, 6), "#b08a68")
 
-    full = Art(); frame_part(full); seat_part(full)
+    def seat_only(a):
+        with a.part():
+            a.sil(c_rect(194, 352, 124, 36, 14), YEL)
+            a.blob(c_rpoly([(195, 374), (317, 374), (317, 387), (195, 387)], [0, 0, 13, 13]), "#eab94e")
+
+    def hooks_part(a, xs):
+        with a.part(7):
+            for x in xs:
+                a.sil(c_circ(x, 102, 10), STEEL)
+
+    full = Art(); frame_part(full); ropes_part(full, (218, 294)); seat_only(full); hooks_part(full, (218, 294))
     frame = Art(); frame_part(frame)
-    seat = Art(); seat_part(seat)
-    return full, frame, seat
+    seat = Art(); seat_only(seat)                     # the seat on its own: it stays level and slides along the arc
+    rope = Art(); ropes_part(rope, (218,)); hooks_part(rope, (218,))   # one rope with its hook; the app turns it about the hook
+    return full, frame, seat, rope
 
 
 
 def slide_art(chute_only=False):
     a = Art()
     if not chute_only:
-        # posts and ladder
-        for x in (92, 188):
-            a.tube(f"M{x} 150 L{x} 452", YEL, 40, 20)
-        for y in (220, 290, 360, 430):
-            a.line(92, y, 188, y, sw=12)
-        # platform and rail
-        a.rect(70, 130, 160, 32, RED, rx=10)
-        a.path("M74 130 L74 70 M74 74 L196 74 M196 74 L196 130", sw=11)
+        a.path("M78 136 L78 78 Q78 64 92 64 L184 64 Q198 64 198 78 L198 136", sw=11)   # rail
+        with a.part(8):                               # rungs
+            for y in (216, 282, 348, 414):
+                a.sil(c_bar(96, y, 184, y, 8), "#e9b43a")
+        with a.part():                                # posts
+            for x in (92, 188):
+                a.sil(c_bar(x, 160, x, 448, 22), YEL)
     return a
 
 
@@ -2492,35 +3845,42 @@ SLIDE_CURVE = ((214, 170), (314, 200), (386, 330), (446, 404))
 def suberidai():
     a = slide_art()
     (x0, y0), (x1, y1), (x2, y2), (x3, y3) = SLIDE_CURVE
-    d = f"M{x0} {y0} C{x1} {y1} {x2} {y2} {x3} {y3} L474 {y3}"
-    a.path(d, sw=60)
-    a.path(d, stroke=BLUE, sw=36)
-    a.path(d, stroke=SKY, sw=10, **{"stroke-opacity": "0.9"})
-    # redraw the ladder over the chute start
-    a.rect(70, 130, 160, 32, RED, rx=10)
+    chute = [(x0, y0, x1, y1, x2, y2, x3, y3), (x3, y3, x3 + 10, y3 + 5, x3 + 18, y3 + 5, 474, y3 + 5)]
+    with a.part():
+        a.sil(taper(chute, 40, 40, n=64), BLUE)
+        a.sil(c_circ(x0, y0, 20), BLUE)
+    a.blob(taper(chute, 16, 16, n=64), SKY)
+    with a.part():                                    # platform, over the top of the chute
+        a.sil(c_rect(66, 130, 168, 36, 12), RED)
+        a.blob(c_rpoly([(67, 152), (233, 152), (233, 165), (67, 165)], [0, 0, 11, 11]), RED_D)
     return a
 
 
 @word
 def sunaba():
     a = Art()
-    # outer frame (back), sand, front board
-    a.path("M104 196 L408 196 L452 332 L60 332 Z", fill=WOOD_D)
-    a.path("M126 216 L386 216 L424 318 L88 318 Z", fill=SAND)
-    a.path("M164 318 C178 258 246 238 292 318 Z", fill=SAND_D, sw=0, stroke="none")
-    # bucket (on the sand)
-    a.path("M332 190 C346 150 396 150 410 190", sw=8)
-    a.path("M326 206 L416 206 L402 308 L340 308 Z", fill=RED)
-    a.ellipse(371, 206, 45, 12, RED_D)
-    a.path("M336 250 L408 250", stroke=YEL, sw=14)
-    # shovel
-    a.tube("M214 318 L170 134", WOOD, 30, 14)
-    a.circle(166, 118, 15, WOOD, sw=8)
-    a.path("M196 286 L246 296 L252 346 L206 340 Z", fill=YEL)
-    # front board
-    a.path("M60 332 L452 332 L452 420 C452 434 442 442 428 442 L84 442 C70 442 60 434 60 420 Z", fill=WOOD)
-    for x in (150, 256, 362):
-        a.path(f"M{x} 350 L{x} 424", stroke=WOOD_D, sw=7)
+    with a.part():                                    # wooden frame (back and sides), sand inside
+        a.sil(c_rpoly([(108, 190), (404, 190), (456, 336), (56, 336)], [12, 12, 0, 0]), WOOD_D)
+    with a.part(8):
+        a.sil(c_rpoly([(132, 214), (380, 214), (424, 330), (88, 330)], [10, 10, 0, 0]), SAND)
+        a.blob("M150 330 C168 262 240 250 276 330 Z", SAND_D)
+    with a.part(8):                                   # shovel stuck in the sand hill
+        a.sil(c_bar(206, 300, 170, 142, 13), WOOD)
+        a.sil(c_circ(168, 128, 15), WOOD)
+    with a.part(8):
+        a.sil(c_rpoly([(184, 262), (236, 250), (252, 318), (212, 334)], [8, 8, 14, 14]), YEL)
+    a.path("M344 196 C352 150 404 150 412 196", sw=8)             # bucket
+    with a.part():
+        a.sil(c_rpoly([(326, 196), (430, 196), (414, 312), (342, 312)], [8, 8, 14, 14]), RED)
+        a.blob(c_rpoly([(331, 236), (425, 236), (422, 256), (334, 256)], 0), YEL)
+        a.blob(c_rpoly([(340, 292), (417, 292), (414, 311), (342, 311)], [0, 0, 12, 12]), RED_D)
+    a.path("M344 214 L346 228", stroke=WHITE, sw=7, **{"stroke-opacity": "0.6"})
+    with a.part():                                    # front board
+        a.sil(c_rpoly([(56, 330), (456, 330), (456, 444), (56, 444)], [8, 8, 20, 20]), WOOD)
+        a.blob(c_rpoly([(57, 418), (455, 418), (455, 443), (57, 443)], [0, 0, 19, 19]), "#e3a257")
+    for x in (156, 256, 356):
+        c_line(a, x, 344, x, 430, 6, col=WOOD_D)
+    a.shine("M78 346 L140 346", sw=6)
     return a
 
 
@@ -2533,147 +3893,184 @@ STONE, STONE_D, STONE_L = "#c9c4bd", "#a8a29b", "#e4e0da"
 @word
 def yama():
     a = Art()
-    a.path("M250 440 C300 340 336 262 366 226 C388 200 406 200 428 228 C462 272 500 350 526 440 Z", fill="#b4d0ee")
-    a.path("M366 226 C388 200 406 200 428 228 C440 244 452 264 464 286 C440 280 430 296 410 284 C396 300 380 284 366 226 Z",
-           fill=WHITE, sw=0, stroke="none")
-    a.path("M250 440 C300 340 336 262 366 226 C388 200 406 200 428 228 C462 272 500 350 526 440 Z", "none")
-    main = "M14 440 C76 346 146 222 210 126 C234 90 266 90 288 126 C346 216 420 346 480 440 Z"
-    a.path(main, fill="#7aa5dc")
-    a.path("M258 94 C270 98 280 108 288 126 C346 216 420 346 480 440 L338 440 C330 340 300 196 258 94 Z",
-           fill="#6590c6", sw=0, stroke="none")
-    a.path("M160 210 C176 180 196 148 210 126 C234 90 266 90 288 126 C304 150 318 178 330 206 "
-           "C316 224 302 204 288 224 C274 198 258 224 244 206 C230 226 214 206 200 226 C184 206 170 226 160 210 Z",
-           fill=WHITE)
-    a.path(main, "none")
-    # green foothills
-    a.path("M14 440 C60 400 120 396 168 424 C190 436 214 440 240 440 Z", fill="#8fd08a")
-    a.path("M300 440 C340 410 408 396 462 424 C474 432 480 438 480 440 Z", fill="#8fd08a")
-    a.shine("M122 330 C140 292 156 262 172 240")
+    with a.part():                            # far peak
+        e1_mountain(a, (270, 440, 322, 384, 356, 284, 378, 236), (378, 236, 392, 206, 420, 206, 434, 236),
+                    (434, 236, 458, 290, 498, 392, 534, 440), "#b4d0ee", 0.3, n=3)
+    with a.part():                            # main peak: wide top, slopes that sag a little like ふじさん
+        e1_mountain(a, (14, 440, 120, 404, 176, 270, 204, 150), (204, 150, 220, 100, 292, 100, 308, 150),
+                    (308, 150, 336, 270, 392, 404, 498, 440), "#7aa5dc", 0.3)
+    with a.part():                            # green foothills in front
+        a.sil("M14 440 C52 396 124 390 176 420 C200 434 222 440 250 440 Z", "#8fd08a")
+        a.sil("M304 440 C348 404 424 394 478 420 C508 434 524 438 534 440 Z", "#8fd08a")
+        a.blob("M112 440 C140 420 170 420 196 430 C212 436 228 440 250 440 Z", "#74bd72")
+        a.blob("M414 440 C444 420 472 420 494 428 C512 434 524 438 534 440 Z", "#74bd72")
+    a.shine("M160 350 C170 332 180 312 189 292")
     return a
 
 
 @word
 def taki():
     a = Art()
-    ROCK, ROCK_D = "#b69a7e", "#8f7660"
-    # left and right cliffs
-    a.path("M40 120 L186 120 L186 396 L40 396 Z", fill=ROCK)
-    a.path("M326 120 L472 120 L472 396 L326 396 Z", fill=ROCK)
-    # water falling
-    a.path("M186 120 L326 120 L326 410 L186 410 Z", fill="#9fdcf7", sw=0, stroke="none")
-    for x in (222, 256, 290):
-        a.path(f"M{x} 150 L{x} 380", stroke=WHITE, sw=9, **{"stroke-opacity": "0.85"})
-    a.path("M186 120 L186 396 M326 120 L326 396", sw=11)
-    # tops: grass and a bush
-    a.path("M40 120 C40 92 60 84 90 84 L186 84 L186 120 Z", fill=LEAF1)
-    a.path("M326 84 L420 84 C452 84 472 92 472 120 L326 120 Z", fill=LEAF1)
-    a.circle(100, 78, 34, LEAF2)
-    a.circle(430, 78, 34, LEAF2)
-    a.path("M186 112 C220 130 292 130 326 112", sw=9)
-    # pool
-    a.ellipse(256, 410, 190, 50, "#6cc0ec")
-    a.path("M96 410 C150 424 210 428 256 426", stroke=WHITE, sw=8, **{"stroke-opacity": "0.8"})
-    for x, y, r in ((226, 398, 24), (268, 392, 30), (306, 404, 20)):
-        a.circle(x, y, r, WHITE, sw=0, stroke="none", **{"fill-opacity": "0.9"})
-    a.shine("M70 160 L70 330")
+    ROCK, ROCK_D, ROCK_L = "#b69a7e", "#967b63", "#c9b096"
+    with a.part():                            # the cliff, one mass
+        a.sil("M50 400 C38 300 40 196 54 108 L458 108 C472 196 474 300 462 400 Z", ROCK)
+        a.blob("M156 120 L200 120 L196 398 L166 398 C156 300 152 200 156 120 Z", ROCK_D)
+        a.blob("M312 120 L356 120 C360 200 356 300 346 398 L316 398 Z", ROCK_D)
+        a.blob("M66 230 C90 222 118 222 140 230 C142 240 138 248 128 248 L76 248 C68 248 64 240 66 230 Z", ROCK_L)
+        a.blob("M376 300 C398 292 424 292 446 300 C448 310 444 318 434 318 L386 318 C378 318 374 310 376 300 Z", ROCK_L)
+        a.ink([(41, 320, 62, 314, 82, 320, 102, 314)], 8, a=1, b=0)
+        a.ink([(471, 216, 450, 210, 430, 216, 410, 210)], 8, a=1, b=0)
+    grass = ("M36 126 C28 98 50 84 84 84 L204 84 C210 100 204 122 192 128 C178 136 166 120 152 130 "
+             "C138 140 122 122 106 132 C90 142 72 126 58 134 C46 138 38 134 36 126 Z")
+    bush = "M60 92 C44 70 62 44 88 50 C98 26 138 28 144 54 C168 52 176 80 160 92 Z"
+    for flip in (False, True):
+        with a.part():
+            a.sil(e1_tf(grass, flip=flip), LEAF1)
+            a.sil(e1_tf(bush, flip=flip), LEAF2)
+            a.ink([e1_tc((88, 50, 94, 58, 96, 66, 94, 74), flip=flip)], 8, a=1, b=0)
+            a.ink([e1_tc((144, 54, 136, 58, 130, 64, 128, 72), flip=flip)], 8, a=1, b=0)
+    with a.part():                            # pool
+        a.sil(e1_d(e1_arc(256, 414, 204, 0, 360, ry=48)), "#6cc0ec")
+        a.blob(e1_d(e1_arc(256, 414, 204, 10, 170, ry=48) + e1_arc(256, 406, 198, 172, 8, ry=42)), "#4fa9dc")
+        a.ink([(86, 418, 120, 432, 160, 438, 200, 440)], 7, col=WHITE)
+        a.ink([(330, 442, 364, 440, 396, 434, 420, 424)], 7, col=WHITE)
+    with a.part(9):                           # falling water
+        a.sil("M198 92 C232 102 280 102 314 92 L322 404 L190 404 Z", "#9fdcf7")
+        a.blob("M198 92 C232 102 280 102 314 92 L315 112 C280 122 232 122 197 112 Z", "#c9ecfb")
+        for x, y0, y1 in ((224, 136, 330), (256, 156, 376), (290, 128, 300)):
+            a.ink([e1_line(x, y0, x, y1)], 9, col=WHITE)
+    a.blob("M186 410 C170 390 190 368 212 378 C218 354 256 350 268 372 C288 356 322 366 322 390 "
+           "C344 394 344 418 322 424 C290 434 214 434 196 424 C188 420 186 414 186 410 Z", WHITE)
+    a.blob("M210 418 C240 426 280 426 316 416 C300 430 226 432 210 418 Z", "#d5effb")
     return a
 
 
 @word
 def ishi():
     a = Art()
-    big = "M86 400 C70 330 96 250 160 214 C210 186 290 186 336 222 C392 266 408 340 392 400 C380 436 340 446 260 446 L190 446 C130 446 94 436 86 400 Z"
-    a.path(big, fill=STONE)
-    a.path("M336 222 C392 266 408 340 392 400 C380 436 340 446 260 446 L240 446 C330 430 350 330 316 206 Z",
-           fill=STONE_D, sw=0, stroke="none")
-    a.path(big)
-    a.path("M170 270 C190 244 226 232 262 236", stroke=WHITE, sw=10, **{"stroke-opacity": "0.7"})
-    a.path("M220 330 L248 350 L242 384", stroke=STONE_D, sw=8)
-    small = "M376 446 C366 410 384 378 422 372 C456 368 484 390 482 420 C480 440 468 446 452 446 Z"
-    a.path(small, fill=STONE_L)
-    a.path("M404 392 C416 386 432 386 442 392", stroke=WHITE, sw=7, **{"stroke-opacity": "0.8"})
-    a.path("M30 448 C60 420 70 436 90 408 M60 448 C70 424 90 428 100 410", stroke=LEAF2, sw=9)
-    a.path("M420 448 L492 448", stroke=LEAF2, sw=9)
+    c1 = (92, 404, 70, 350, 96, 262, 158, 220)
+    c2 = (158, 220, 210, 200, 290, 190, 344, 226)
+    c3 = (344, 226, 392, 266, 416, 336, 402, 404)
+    c4 = (402, 404, 394, 438, 350, 448, 262, 448)
+    c5 = e1_line(262, 448, 196, 448)
+    c6 = (196, 448, 132, 448, 102, 438, 92, 404)
+    with a.part():
+        a.sil(e1_d([c1, c2, c3, c4, c5, c6]), STONE)
+        p = e1_pt(c2, 0.7)
+        a.blob(e1_d([e1_sub(c2, 0.7, 1), c3, c4, (262, 448, 330, 430, 356, 330, p[0], p[1])]), STONE_D)
+        a.blob("M132 300 C140 262 176 240 222 232 C262 226 296 232 300 240 C260 244 200 258 170 296 "
+               "C158 312 148 322 140 322 C134 320 130 312 132 300 Z", STONE_L)
+        q = e1_pt(c2, 0.34)
+        a.ink([(q[0], q[1], q[0] + 6, q[1] + 26, q[0] - 12, q[1] + 44, q[0] + 2, q[1] + 66),
+               (q[0] + 2, q[1] + 66, q[0] + 10, q[1] + 78, q[0] + 22, q[1] + 82, q[0] + 30, q[1] + 96)], 8, a=1, b=0)
+        a.ink([(220, 449, 232, 430, 252, 420, 268, 400)], 8, a=1, b=0)
+    with a.part():                            # small stone in front
+        a.sil("M372 448 C360 412 384 380 422 374 C460 370 488 392 486 422 C484 440 472 448 454 448 Z", STONE_L)
+        a.blob("M486 422 C484 440 472 448 454 448 L400 448 C440 444 468 430 478 396 C484 404 487 412 486 422 Z", STONE)
+        a.ink([(400, 400, 408, 392, 420, 388, 432, 388)], 7, col=WHITE)
+    with a.part(9):                           # grass tuft
+        a.sil("M60 448 C56 414 44 392 22 380 C52 384 76 408 84 448 Z", LEAF2)
+        a.sil("M76 448 C70 400 76 368 92 344 C96 380 104 414 104 448 Z", LEAF1)
+        a.sil("M96 448 C100 420 114 400 136 392 C126 412 122 430 122 448 Z", LEAF2)
     return a
 
 
 @word
 def ike():
     a = Art()
-    a.ellipse(256, 340, 232, 112, "#c9a06d")
-    a.ellipse(256, 334, 210, 96, "#6cc0ec")
-    a.path("M96 322 C130 292 190 280 240 284", stroke=WHITE, sw=9, **{"stroke-opacity": "0.75"})
-    # rim stones
-    for x, y, rx, ry in ((60, 336, 36, 24), (118, 436, 36, 22), (400, 438, 38, 22), (458, 336, 36, 24), (256, 226, 36, 20)):
-        a.ellipse(x, y, rx, ry, STONE)
-    # lily pads
-    for cx, cy, rot in ((190, 346, 0), (320, 380, 1)):
-        a.path(f"M{cx} {cy} L{cx+60} {cy-18} C{cx+66} {cy+24} {cx+30} {cy+52} {cx} {cy+46} C{cx-30} {cy+52} {cx-66} {cy+24} {cx-60} {cy-18} Z"
-               if False else f"M{cx} {cy} L{cx+54} {cy-16} C{cx+58} {cy+26} {cx+26} {cy+44} {cx} {cy+40} C{cx-28} {cy+44} {cx-58} {cy+26} {cx-54} {cy-16} Z",
-               fill=LEAF1)
-    # lotus flower
-    for d in ("M326 330 C300 312 296 280 322 264 C340 280 342 310 326 330 Z",
-              "M326 330 C352 312 356 280 330 264 C312 280 310 310 326 330 Z",
-              "M326 336 C296 336 276 312 284 292 C312 296 330 316 326 336 Z",
-              "M326 336 C356 336 376 312 368 292 C340 296 322 316 326 336 Z"):
-        a.path(d, fill="#f9b8d2", sw=9)
-    a.circle(326, 328, 10, YEL2, sw=0, stroke="none")
-    # reeds
-    for x, top, lean in ((52, 140, -10), (84, 112, 6), (116, 150, 14)):
-        a.path(f"M{x} 330 C{x} 260 {x+lean} 200 {x+lean} {top+30}", stroke=LEAF2, sw=10)
-        a.path(f"M{x+lean} {top+60} L{x+lean} {top}", stroke="#8a5a3a", sw=26)
+    SAND, WATER, WATER_D = "#d2ab78", "#6cc0ec", "#4fa9dc"
+    a.sil("M256 228 C382 224 494 270 492 346 C490 420 380 458 256 458 C132 458 22 420 20 346 "
+          "C18 270 130 232 256 228 Z", SAND)
+    with a.part(9):
+        a.sil("M256 250 C366 246 466 284 464 344 C462 404 366 436 256 436 C146 436 50 404 48 344 "
+              "C46 284 146 254 256 250 Z", WATER)
+        a.blob("M48 344 C50 404 146 436 256 436 C366 436 462 404 464 344 C452 392 360 418 256 418 "
+               "C152 418 60 392 48 344 Z", WATER_D)
+        a.ink([(104, 316, 134, 292, 184, 280, 232, 280)], 8, col=WHITE)
+        a.ink([(280, 412, 320, 412, 356, 406, 384, 396)], 7, col=WHITE)
+    e1_pad(a, 200, 366, 56, 30, 300)
+    e1_pad(a, 336, 356, 62, 32, 230)
+    lot = (336, 344)                           # lotus on the right pad: back petals, side petals, front petal
+    x, y = lot
+    with a.part(8):
+        sym(a, f"M{x} {y} C{x-40} {y-2} {x-58} {y-26} {x-52} {y-48} C{x-26} {y-44} {x-6} {y-26} {x} {y} Z", "#f7a3c4", x)
+    with a.part(8):
+        sym(a, f"M{x} {y+2} C{x-28} {y-12} {x-34} {y-46} {x-20} {y-66} C{x-2} {y-50} {x+4} {y-22} {x} {y+2} Z", "#f9b8d2", x)
+    with a.part(8):
+        a.sil(f"M{x} {y+6} C{x-22} {y-8} {x-20} {y-36} {x} {y-54} C{x+20} {y-36} {x+22} {y-8} {x} {y+6} Z", "#fcd3e3")
+    for sx, sy, rx, ry in ((62, 318, 34, 22), (124, 438, 36, 21), (396, 440, 38, 21), (456, 322, 34, 22), (250, 232, 36, 19)):
+        e1_stone(a, sx, sy, rx, ry)
+    with a.part(9):                           # cattails
+        a.sil(taper([(100, 352, 110, 320, 130, 296, 150, 286)], 16, 3), LEAF1)
+        for x0, top, lean in ((50, 150, -8), (84, 112, 4), (116, 168, 14)):
+            stem = [(x0, 344, x0, 290, x0 + lean, 230, x0 + lean, top - 22)]
+            a.sil(taper(stem, 10, 8), LEAF2)
+            a.sil(e1_d(e1_arc(x0 + lean, top + 34, 14, 0, 360, ry=40)), "#8a5a3a")
+            a.ink([e1_line(x0 + lean - 5, top + 12, x0 + lean - 5, top + 40)], 5, col="#b07a52")
     return a
 
 
 @word
 def kusa():
+    import math
     a = Art()
     G1, G2, G3 = "#8fd070", LEAF1, LEAF2
-
-    def tuft(cx, base, h, w, col, lean=0):
-        # a clump of three blades
-        for dx, hh, ln in ((-0.5, 0.72, -1), (0.5, 0.78, 1), (0, 1.0, lean)):
-            x0 = cx + dx * w
-            tip = (cx + dx * w * 1.6 + ln * w * 0.55, base - h * hh)
-            a.path(f"M{x0 - w*0.28:.0f} {base} C{x0 - w*0.2:.0f} {base - h*hh*0.5:.0f} {tip[0] - ln*w*0.2:.0f} {tip[1] + h*0.2:.0f} {tip[0]:.0f} {tip[1]:.0f} "
-                   f"C{tip[0] + w*0.1:.0f} {tip[1] + h*0.3:.0f} {x0 + w*0.3:.0f} {base - h*hh*0.5:.0f} {x0 + w*0.28:.0f} {base} Z", fill=col, sw=9)
-
-    tuft(120, 452, 200, 46, G1, -1)
-    tuft(392, 452, 190, 46, G1, 1)
-    tuft(256, 452, 330, 62, G2)
-    # tiny white flowers
-    for cx, cy in ((70, 300), (446, 330), (330, 150)):
-        for i in range(5):
-            import math
-            t = -math.pi / 2 + i * 2 * math.pi / 5
-            a.dot(cx + 15 * math.cos(t), cy + 15 * math.sin(t), 12, WHITE)
-        a.dot(cx, cy, 9, YEL2)
-    a.path("M60 454 L452 454", sw=11)
+    B = 452
+    # two small white flowers on thin stems, behind the grass
+    for (fx, fy, sx) in ((84, 262, 130), (436, 214, 386)):
+        a.sil(taper([(sx, B, sx - (sx - fx) * 0.2, B - 90, fx + (sx - fx) * 0.2, fy + 80, fx, fy)], 10, 8), G3)
+    with a.part():
+        a.sil(d_blade(256, B, 62, 250, 96), G3)
+        a.sil(d_blade(168, B, 54, 108, 230), G3)
+        a.sil(d_blade(348, B, 54, 408, 244), G3)
+    with a.part():
+        a.sil(d_blade(206, B, 56, 176, 172), G2)
+        a.sil(d_blade(310, B, 56, 346, 160), G2)
+        a.sil(d_blade(112, B, 50, 52, 330), G2)
+        a.sil(d_blade(404, B, 50, 462, 322), G2)
+    with a.part():
+        a.sil(d_blade(160, B, 48, 138, 318), G1)
+        a.sil(d_blade(258, B, 52, 268, 262), G1)
+        a.sil(d_blade(356, B, 48, 382, 310), G1)
+    for cx, cy in ((84, 258), (436, 210)):
+        with a.part(ow=9):
+            for i in range(5):
+                t = -math.pi / 2 + i * 2 * math.pi / 5
+                a.sil(d_circ(cx + 20 * math.cos(t), cy + 20 * math.sin(t), 16), WHITE)
+            a.blob(d_circ(cx, cy, 14), WHITE)
+            a.dot(cx, cy, 11, YEL2)
     return a
 
 
 @word
 def matsu():
     a = Art()
-    trunk = "M246 470 C226 420 276 380 250 330 C236 300 214 280 220 250 L262 250 C256 280 290 306 300 340 C314 390 276 430 292 470 Z"
-    a.path(trunk, fill=BARK)
-    a.path("M262 250 C256 280 290 306 300 340 C314 390 276 430 292 470 L276 470 C262 430 290 390 276 340 C268 310 244 286 250 250 Z",
-           fill=BARK_D, sw=0, stroke="none")
-    a.path(trunk, "none")
-    a.path("M214 470 C240 462 296 462 322 470", sw=10)
+    GN, GN_D, GN_L = "#4e9a55", "#3d7f46", "#7cc17f"
+    trunk = "M240 470 C222 420 276 380 250 330 C236 300 214 280 220 240 L266 240 C258 280 292 306 302 340 C316 390 282 430 298 470 Z"
+    with a.part():
+        a.sil(taper([(250, 316, 220, 290, 184, 262, 150, 246)], 34, 22), BARK)
+        a.sil(taper([(276, 300, 306, 270, 340, 236, 372, 214)], 32, 22), BARK)
+        a.sil(trunk, BARK)
+        a.sil("M214 470 C214 458 232 452 268 452 C306 452 324 458 324 470 Z", BARK)
+        a.blob("M266 244 C258 280 292 306 302 340 C316 390 282 430 298 468 L280 468 C266 430 292 390 278 340 C270 310 246 286 254 244 Z", BARK_D)
+        a.ink([(236, 420, 244, 400, 250, 384, 250, 366)], 7, a=0, b=0, col=BARK_D)
 
-    def tier(cx, cy, rx, ry):
-        a.ellipse(cx, cy, rx, ry, "#4e9a55")
-        a.path(f"M{cx-rx+16} {cy+ry*0.35} C{cx-rx*0.4} {cy+ry*0.9} {cx+rx*0.4} {cy+ry*0.9} {cx+rx-16} {cy+ry*0.35}",
-               stroke="#3d7f46", sw=8)
-        for dx in (-0.5, 0, 0.5):
-            a.path(f"M{cx+dx*rx-10} {cy-ry*0.3} L{cx+dx*rx} {cy-ry*0.55} L{cx+dx*rx+10} {cy-ry*0.3}",
-                   stroke="#7cc17f", sw=7)
+    def pad(cx, cy, rx, ry):
+        d = (f"M{cx - rx} {cy + ry * 0.45} C{cx - rx * 1.12} {cy - ry * 0.4} {cx - rx * 0.72} {cy - ry * 1.02} {cx - rx * 0.42} {cy - ry * 0.74} "
+             f"C{cx - rx * 0.26} {cy - ry * 1.4} {cx + rx * 0.26} {cy - ry * 1.4} {cx + rx * 0.42} {cy - ry * 0.74} "
+             f"C{cx + rx * 0.72} {cy - ry * 1.02} {cx + rx * 1.12} {cy - ry * 0.4} {cx + rx} {cy + ry * 0.45} "
+             f"C{cx + rx * 0.9} {cy + ry * 1.05} {cx - rx * 0.9} {cy + ry * 1.05} {cx - rx} {cy + ry * 0.45} Z")
+        with a.part():
+            a.sil(d, GN)
+            a.blob(d_rim(d, 90, 80, ry * 0.42), GN_D)
+            for dx, dy in ((-0.5, -0.1), (0, -0.5), (0.5, -0.1), (-0.05, 0.15)):
+                x, y = cx + dx * rx, cy + dy * ry
+                a.ink([(x - 12, y + 8, x - 6, y, x - 2, y - 6, x, y - 12)], 7, a=0, b=0.6, col=GN_L)
+                a.ink([(x + 12, y + 8, x + 6, y, x + 2, y - 6, x, y - 12)], 7, a=0, b=0.6, col=GN_L)
 
-    tier(150, 226, 110, 54)
-    tier(374, 190, 104, 50)
-    tier(250, 118, 118, 56)
-    a.path("M120 182 C110 172 116 156 128 152", stroke=WHITE, sw=0, **{"stroke-opacity": "0"})
+    pad(146, 234, 112, 56)
+    pad(376, 198, 106, 52)
+    pad(250, 122, 122, 60)
     return a
 
 
@@ -2681,49 +4078,58 @@ def matsu():
 def donguri():
     a = Art()
 
-    def acorn(cx, cy, s, rot=0):
-        # cap
-        a.path(f"M{cx} {cy-110*s} L{cx} {cy-140*s}", sw=14 * s + 4)
-        a.path(f"M{cx-96*s} {cy-48*s} C{cx-96*s} {cy-112*s} {cx-44*s} {cy-120*s} {cx} {cy-120*s} "
-               f"C{cx+44*s} {cy-120*s} {cx+96*s} {cy-112*s} {cx+96*s} {cy-48*s} Z", fill="#9a6a3c")
-        for dx, dy in ((-52, -76), (0, -90), (52, -76), (-26, -58), (26, -58), (-70, -60), (70, -60)):
-            a.circle(cx + dx * s, cy + dy * s, 6 * s, "#7a4f2a", sw=0, stroke="none")
-        # nut
-        a.path(f"M{cx-86*s} {cy-48*s} C{cx-92*s} {cy+60*s} {cx-40*s} {cy+130*s} {cx} {cy+150*s} "
-               f"C{cx+40*s} {cy+130*s} {cx+92*s} {cy+60*s} {cx+86*s} {cy-48*s} Z", fill="#d9a35f")
-        a.path(f"M{cx+86*s} {cy-48*s} C{cx+92*s} {cy+60*s} {cx+40*s} {cy+130*s} {cx} {cy+150*s} "
-               f"C{cx+20*s} {cy+120*s} {cx+60*s} {cy+40*s} {cx+50*s} {cy-48*s} Z", fill="#c18544", sw=0, stroke="none")
-        a.path(f"M{cx-86*s} {cy-48*s} C{cx-92*s} {cy+60*s} {cx-40*s} {cy+130*s} {cx} {cy+150*s} "
-               f"C{cx+40*s} {cy+130*s} {cx+92*s} {cy+60*s} {cx+86*s} {cy-48*s} Z", "none")
-        a.path(f"M{cx-96*s} {cy-48*s} C{cx-96*s} {cy-112*s} {cx-44*s} {cy-120*s} {cx} {cy-120*s} "
-               f"C{cx+44*s} {cy-120*s} {cx+96*s} {cy-112*s} {cx+96*s} {cy-48*s} Z", "none")
-        a.shine(f"M{cx-60*s} {cy-10*s} C{cx-62*s} {cy+30*s} {cx-44*s} {cy+66*s} {cx-24*s} {cy+90*s}")
+    def acorn(cx, cy, s, deg):
+        T = lambda d: d_tf(d, s, cx, cy, deg)
+        c, sn = math.cos(math.radians(deg)), math.sin(math.radians(deg))
+        P = lambda x, y: (s * (x * c - y * sn) + cx, s * (x * sn + y * c) + cy)
+        nut = T("M-84 -60 C-92 50 -44 122 -10 146 C-4 152 4 152 10 146 C44 122 92 50 84 -60 Z")
+        with a.part():
+            a.sil(nut, "#d9a35f")
+            a.blob(d_rim(nut, 30 + deg, 70, 26 * s), "#c18544")
+        cap = T("M-100 -44 C-104 -112 -46 -126 0 -126 C46 -126 104 -112 100 -44 C100 -30 88 -26 76 -30 "
+                "C30 -42 -30 -42 -76 -30 C-88 -26 -100 -30 -100 -44 Z")
+        with a.part():
+            a.sil(T("M-9 -120 L-7 -150 C-7 -160 9 -160 9 -150 L9 -120 Z"), "#7a4f2a")
+            a.sil(cap, "#9a6a3c")
+            a.blob(d_rim(cap, 20 + deg, 70, 16 * s), "#835630")
+            for dx, dy in ((-56, -74), (0, -92), (56, -74), (-28, -58), (28, -58), (-74, -52), (74, -52), (-28, -104), (28, -104)):
+                x, y = P(dx, dy)
+                a.dot(x, y, 6.5 * s, "#7a4f2a")
+        (x0, y0), (x1, y1), (x2, y2), (x3, y3) = P(-56, -10), P(-58, 30), P(-44, 66), P(-26, 92)
+        a.shine(f"M{x0:.1f} {y0:.1f} C{x1:.1f} {y1:.1f} {x2:.1f} {y2:.1f} {x3:.1f} {y3:.1f}", sw=9 if s > 1 else 7)
 
-    acorn(206, 270, 1.4)
-    acorn(420, 380, 0.7)
+    import math
+    acorn(206, 270, 1.4, -8)
+    acorn(420, 372, 0.72, 16)
     return a
 
 
 @word
 def happa():
     a = Art()
-    # small orange leaf behind
-    a.path("M330 470 C330 430 340 410 362 392", sw=22)
-    a.path("M330 470 C330 430 340 410 362 392", stroke="#8a6a3a", sw=9)
-    a.path("M362 396 C300 360 290 270 340 210 C410 230 446 330 392 396 C380 410 370 408 362 396 Z", fill="#f2a24a")
-    a.path("M362 394 C360 340 366 280 340 222", stroke="#d9822a", sw=7)
-    # big green leaf
-    a.path("M170 470 C170 420 184 390 214 352", sw=26)
-    a.path("M170 470 C170 420 184 390 214 352", stroke="#8a6a3a", sw=11)
-    leaf = "M214 360 C120 330 80 220 122 120 C214 100 300 150 316 250 C324 330 270 392 214 360 Z"
-    a.path(leaf, fill=LEAF1)
-    a.path("M214 360 C270 392 324 330 316 250 C300 300 260 340 214 360 Z", fill=LEAF2, sw=0, stroke="none")
-    a.path(leaf, "none")
-    a.path("M214 352 C190 280 172 210 134 134", stroke=LEAF2, sw=9)
-    for d in ("M190 296 C162 292 138 270 126 244", "M178 238 C204 232 226 214 236 192",
-              "M168 196 C142 190 122 170 116 148", "M204 322 C240 320 266 296 276 268"):
-        a.path(d, stroke=LEAF2, sw=7)
-    a.shine("M150 150 C176 130 204 122 234 126")
+    ST = "#8a6a3a"
+    # the small orange leaf behind
+    with a.part():
+        a.sil(taper([(332, 468, 332, 432, 342, 410, 362, 390)], 12, 12), ST)
+    leaf2 = "M362 400 C298 364 286 270 338 204 C412 226 450 330 394 398 C382 412 372 410 362 400 Z"
+    with a.part():
+        a.sil(leaf2, "#f2a24a")
+        a.blob("M362 398 C372 408 382 408 392 396 C444 330 410 232 342 210 C372 276 370 340 362 398 Z", "#e58d32")
+        a.ink([(362, 396, 362, 340, 366, 280, 342, 226)], 8, a=1, b=0, col="#c9741f")
+        a.ink([(360, 330, 340, 322, 324, 306, 316, 288)], 6, a=1, b=0, col="#c9741f")
+        a.ink([(364, 290, 384, 286, 400, 274, 408, 258)], 6, a=1, b=0, col="#c9741f")
+    # the big green leaf
+    with a.part():
+        a.sil(taper([(172, 470, 172, 422, 186, 392, 214, 354)], 14, 14), ST)
+    leaf = "M214 362 C118 332 78 220 120 116 C214 98 302 150 318 250 C326 332 270 394 214 362 Z"
+    with a.part():
+        a.sil(leaf, LEAF1)
+        a.blob("M214 360 C268 390 324 330 316 250 C302 160 220 106 128 120 C160 200 190 290 214 360 Z", "#63b253")
+        a.ink([(214, 358, 190, 284, 172, 212, 130, 128)], 10, a=1, b=0, col=LEAF2)
+        for c in ([(196, 300, 168, 296, 142, 274, 130, 246)], [(180, 242, 206, 238, 230, 220, 242, 196)],
+                  [(170, 204, 146, 198, 126, 180, 118, 156)], [(204, 322, 240, 322, 268, 300, 280, 270)]):
+            a.ink(c, 8, a=1, b=0, col=LEAF2)
+    a.shine("M150 156 C174 138 202 130 232 132", sw=9)
     return a
 
 
@@ -2731,141 +4137,179 @@ def happa():
 def kinoko():
     a = Art()
 
-    def shroom(cx, base, w, h, cap, spot, stem="#fff4e2", face=False):
+    def shroom(cx, base, w, h, cap, cap_d, spots, stem="#fff4e2", stem_d="#f0dfc4", face=False):
         top = base - h
         sh = h * 0.5
-        a.path(f"M{cx-w*0.22} {base} C{cx-w*0.2} {base-sh*0.7} {cx-w*0.26} {top+sh*0.9} {cx-w*0.3} {top+sh*0.7} "
-               f"L{cx+w*0.3} {top+sh*0.7} C{cx+w*0.26} {top+sh*0.9} {cx+w*0.2} {base-sh*0.7} {cx+w*0.22} {base} Z", fill=stem)
-        a.path(f"M{cx-w*0.5} {top+sh*0.8} C{cx-w*0.52} {top-sh*0.1} {cx-w*0.3} {top-sh*0.2} {cx} {top-sh*0.2} "
-               f"C{cx+w*0.3} {top-sh*0.2} {cx+w*0.52} {top-sh*0.1} {cx+w*0.5} {top+sh*0.8} "
-               f"C{cx+w*0.3} {top+sh*1.0} {cx-w*0.3} {top+sh*1.0} {cx-w*0.5} {top+sh*0.8} Z", fill=cap)
-        for dx, dy, r in ((-0.26, 0.2, 0.09), (0.04, -0.02, 0.1), (0.28, 0.24, 0.08), (-0.06, 0.5, 0.07)):
-            a.circle(cx + w * dx, top + sh * dy + sh * 0.35, w * r, spot, sw=0, stroke="none")
+        sd = (f"M{cx - w * 0.2} {top + sh * 0.7} C{cx - w * 0.2} {base - sh * 0.5} {cx - w * 0.3} {base} {cx - w * 0.17} {base} "
+              f"L{cx + w * 0.17} {base} C{cx + w * 0.3} {base} {cx + w * 0.2} {base - sh * 0.5} {cx + w * 0.2} {top + sh * 0.7} Z")
+        with a.part():
+            a.sil(sd, stem)
+            a.blob(d_rim(sd, 20, 60, w * 0.07), stem_d)
+        cd = (f"M{cx - w * 0.5} {top + sh * 0.78} C{cx - w * 0.54} {top - sh * 0.1} {cx - w * 0.3} {top - sh * 0.22} {cx} {top - sh * 0.22} "
+              f"C{cx + w * 0.3} {top - sh * 0.22} {cx + w * 0.54} {top - sh * 0.1} {cx + w * 0.5} {top + sh * 0.78} "
+              f"C{cx + w * 0.5} {top + sh * 0.94} {cx + w * 0.4} {top + sh * 0.98} {cx + w * 0.32} {top + sh * 0.94} "
+              f"C{cx + w * 0.12} {top + sh * 0.84} {cx - w * 0.12} {top + sh * 0.84} {cx - w * 0.32} {top + sh * 0.94} "
+              f"C{cx - w * 0.4} {top + sh * 0.98} {cx - w * 0.5} {top + sh * 0.94} {cx - w * 0.5} {top + sh * 0.78} Z")
+        with a.part():
+            a.sil(cd, cap)
+            a.blob(d_rim(cd, 30, 70, w * 0.09), cap_d)
+            for dx, dy, r in spots:
+                a.blob(d_circ(cx + w * dx, top + sh * dy, w * r, w * r * 0.9), "#fffaf0")
         if face:
-            fy = base - h * 0.22
-            for s in (-1, 1):
-                a.ellipse(cx + s * w * 0.1, fy, 8, 10, EYE, sw=0, stroke="none")
-                a.ellipse(cx + s * w * 0.19, fy + 18, 10, 6, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.7"})
-            a.path(f"M{cx-9} {fy+14} C{cx-4} {fy+22} {cx+4} {fy+22} {cx+9} {fy+14}", sw=6)
+            fy = base - h * 0.2
+            a.eye(cx - w * 0.095, fy, 11)
+            a.eye(cx + w * 0.095, fy, 11)
+            a.cheek(cx - w * 0.16, fy + 20, 11, 7)
+            a.cheek(cx + w * 0.16, fy + 20, 11, 7)
+            a.path(f"M{cx - 9} {fy + 16} C{cx - 4} {fy + 24} {cx + 4} {fy + 24} {cx + 9} {fy + 16}", sw=6)
 
-    shroom(354, 450, 180, 200, "#d9a05b", "#fff4e2")
-    shroom(206, 450, 300, 330, "#e5534b", WHITE, face=True)
-    a.path("M60 452 C80 430 100 440 116 452 M410 452 C426 436 446 440 460 452", stroke=LEAF2, sw=9)
+    for x0, tx, ty in ((84, 62, 404), (106, 122, 396), (432, 448, 400), (454, 474, 410)):
+        a.sil(d_blade(x0, 452, 22, tx, ty), LEAF1)
+    shroom(366, 450, 176, 196, "#d9a05b", "#c48a45", ((-0.2, 0.42, 0.08), (0.1, 0.16, 0.09), (0.3, 0.52, 0.06)))
+    shroom(206, 450, 300, 330, "#e5534b", "#c9403a", ((-0.27, 0.5, 0.085), (0.02, 0.2, 0.1), (0.28, 0.5, 0.075), (-0.14, 0.02, 0.05)), face=True)
+    a.shine("M84 214 C86 184 98 158 118 140", sw=9)
     return a
 
 
 @word
 def ie():
     a = Art()
-    a.rect(88, 248, 336, 204, "#fff0d4", rx=6)
-    a.path("M424 248 L424 452 L330 452 L330 248 Z", fill="#f1dfbd", sw=0, stroke="none")
-    a.rect(88, 248, 336, 204, "none", rx=6)
-    # chimney
-    a.path("M326 150 L326 90 L384 90 L384 190 Z", fill="#c97f3e")
-    a.rect(318, 76, 74, 24, "#a8672f", rx=6)
-    # roof
-    a.path("M44 266 L256 96 L468 266 C468 278 458 284 446 284 L66 284 C54 284 44 278 44 266 Z", fill=RED)
-    a.path("M256 96 L468 266 C468 278 458 284 446 284 L380 284 Z", fill=RED_D, sw=0, stroke="none")
-    a.path("M44 266 L256 96 L468 266 C468 278 458 284 446 284 L66 284 C54 284 44 278 44 266 Z", "none")
-    a.circle(256, 218, 30, SKY)
-    a.path("M226 218 L286 218 M256 188 L256 248", sw=8)
-    # door and windows
-    a.path("M130 452 L130 346 C130 322 188 322 188 346 L188 452 Z", fill=WOOD_D)
-    a.circle(176, 400, 7, YEL, sw=0, stroke="none")
-    a.rect(236, 330, 66, 66, SKY, rx=6)
-    a.path("M269 330 L269 396 M236 363 L302 363", sw=7)
-    a.rect(334, 330, 66, 66, SKY, rx=6)
-    a.path("M367 330 L367 396 M334 363 L400 363", sw=7)
-    a.path("M70 452 L442 452", sw=11)
-    a.path("M40 454 C60 432 76 440 90 454 M430 454 C444 436 462 440 474 454", stroke=LEAF2, sw=9)
+    WALL, WALL_D = "#fff0d4", "#ecd8b2"
+    with a.part():                                    # chimney
+        a.sil(c_rect(322, 96, 58, 120, 4), "#c97f3e")
+    with a.part():
+        a.sil(c_rect(312, 78, 78, 28, 9), "#a8672f")
+    with a.part():                                    # walls
+        a.sil(c_rpoly([(92, 250), (420, 250), (420, 454), (92, 454)], [0, 0, 12, 12]), WALL)
+        a.blob("M93 288 L419 288 L419 308 L93 308 Z", WALL_D)
+    with a.part():                                    # roof
+        a.sil("M256 92 Q270 92 282 102 L466 250 Q482 264 474 278 Q468 290 452 290 L60 290 Q44 290 38 278 "
+              "Q30 264 46 250 L230 102 Q242 92 256 92 Z", RED)
+        a.blob("M48 266 L464 266 Q478 268 473 278 Q468 289 452 289 L60 289 Q44 289 39 278 Q34 268 48 266 Z", RED_D)
+    c_glass(a, c_circ(256, 204, 28))
+    c_line(a, 232, 204, 280, 204, 5, s=1, e=1)
+    c_line(a, 256, 180, 256, 228, 5, s=1, e=1)
+    a.shine("M214 138 L160 182")
+    with a.part(9):                                   # door
+        a.sil("M132 454 L132 352 C132 322 196 322 196 352 L196 454 Z", WOOD_D)
+    a.dot(180, 400, 7, YEL)
+    for x in (236, 332):                              # windows
+        c_glass(a, c_rect(x, 334, 68, 68, 9))
+        c_line(a, x + 34, 338, x + 34, 398, 5, s=1, e=1)
+        c_line(a, x + 4, 368, x + 64, 368, 5, s=1, e=1)
+    for s_ in (0, 1):                                 # bushes at the corners
+        d = "M44 460 C36 436 62 422 78 436 C92 426 112 438 108 460 Z"
+        with a.part(9):
+            a.sil(mirror(d) if s_ else d, LEAF1)
     return a
 
 
 @word
 def gakkou():
     a = Art()
-    # clock tower
-    a.rect(206, 70, 100, 120, "#fff0d4", rx=6)
-    a.path("M196 76 L256 22 L316 76 Z", fill="#6f8fb8")
-    a.circle(256, 126, 34, WHITE)
-    a.path("M256 126 L256 102 M256 126 L274 136", sw=8)
-    # main building
-    a.rect(40, 188, 432, 262, "#fff0d4", rx=8)
-    a.path("M40 188 L472 188 L472 214 L40 214 Z", fill="#6f8fb8", sw=11)
-    for x in (66, 146):
-        for y in (240, 340):
-            a.rect(x, y, 60, 66, SKY, rx=6)
-            a.path(f"M{x+30} {y} L{x+30} {y+66}", sw=6)
-    for x in (386, 306):
-        for y in (240, 340):
-            a.rect(x, y, 60, 66, SKY, rx=6)
-            a.path(f"M{x+30} {y} L{x+30} {y+66}", sw=6)
-    # entrance
-    a.rect(214, 330, 84, 120, "#c97f3e", rx=6)
-    a.path("M256 330 L256 450", sw=7)
-    a.rect(194, 296, 124, 34, "#6f8fb8", rx=8)
-    a.path("M30 452 L482 452", sw=11)
-    # flag pole
-    a.path("M452 190 L452 90", sw=9)
-    a.path("M452 94 L496 94 L496 126 L452 126 Z", fill=WHITE, sw=8)
-    a.circle(474, 110, 9, RED, sw=0, stroke="none")
+    WALL, WALL_D, ROOF = "#fff0d4", "#ecd8b2", "#6f8fb8"
+    a.path("M448 200 L448 84", sw=9)                 # flag
+    with a.part(8):
+        a.sil(c_rect(448, 86, 52, 38, 5), WHITE)
+    a.dot(474, 105, 10, RED)
+    with a.part():                                    # clock tower
+        a.sil(c_rect(204, 82, 104, 130, 6), WALL)
+    with a.part():
+        a.sil(c_rpoly([(256, 20), (326, 86), (186, 86)], [12, 12, 12]), ROOF)
+    with a.part(8):
+        a.sil(c_circ(256, 138, 31), WHITE)
+    c_line(a, 256, 138, 256, 116, 7, s=1, e=1)
+    c_line(a, 256, 138, 272, 146, 7, s=1, e=1)
+    with a.part():                                    # main building
+        a.sil(c_rpoly([(40, 196), (472, 196), (472, 454), (40, 454)], [12, 12, 10, 10]), WALL)
+        a.blob(c_rpoly([(41, 197), (471, 197), (471, 226), (41, 226)], [11, 11, 0, 0]), ROOF)
+        a.blob("M41 226 L471 226 L471 238 L41 238 Z", WALL_D)
+    for x in (64, 138, 314, 388):
+        for y in (256, 350):
+            c_glass(a, c_rect(x, y, 60, 62, 8), ow=5)
+            c_line(a, x + 30, y + 3, x + 30, y + 59, 4, s=1, e=1)
+    with a.part(9):                                   # entrance
+        a.sil(c_rect(216, 336, 80, 118, 0), "#c97f3e")
+    c_line(a, 256, 340, 256, 452, 6, s=1, e=1)
+    with a.part(9):
+        a.sil(c_rect(198, 306, 116, 34, 10), ROOF)
     return a
 
 
 @word
 def byouin():
     a = Art()
-    a.rect(64, 160, 270, 292, WHITE, rx=8)
-    a.path("M334 160 L334 452 L290 452 L290 160 Z", fill="#e9eef4", sw=0, stroke="none")
-    a.rect(64, 160, 270, 292, "none", rx=8)
-    a.rect(318, 254, 130, 198, "#eaf4fb", rx=8)
-    # red cross sign on top
-    a.rect(150, 66, 98, 98, RED, rx=14)
-    a.path("M199 90 L199 140 M174 115 L224 115", stroke=WHITE, sw=22)
-    for y in (196, 276):
-        for x in (92, 176, 252):
-            a.rect(x, y, 52, 56, SKY, rx=6)
+    WIN = "#bfe6fa"
+    with a.part():                                    # main building
+        a.sil(c_rpoly([(62, 160), (338, 160), (338, 454), (62, 454)], [14, 14, 10, 10]), WHITE)
+        a.blob("M63 366 L337 366 L337 382 L63 382 Z", "#7fc0e8")
+    with a.part():                                    # the wing on the right
+        a.sil(c_rpoly([(318, 254), (452, 254), (452, 454), (318, 454)], [14, 14, 10, 10]), "#e3f1fa")
+        a.blob(c_rpoly([(319, 420), (451, 420), (451, 453), (319, 453)], [0, 0, 9, 9]), "#cfe5f3")
+    with a.part():                                    # red cross sign on the roof
+        a.sil(c_rect(148, 60, 104, 104, 20), RED)
+        a.blob(c_rect(189, 82, 22, 60, 6), WHITE)
+        a.blob(c_rect(170, 101, 60, 22, 6), WHITE)
+    for y in (196, 280):
+        for x in (86, 162, 238):
+            c_glass(a, c_rect(x, y, 48, 56, 8), ow=5, col=WIN)
     for x in (338, 392):
-        a.rect(x, 282, 40, 50, SKY, rx=6)
-    a.path("M64 378 L334 378", stroke="#7fc0e8", sw=14)
-    # entrance
-    a.rect(156, 386, 88, 66, "#bfe6fa", rx=6)
-    a.path("M200 386 L200 452", sw=7)
-    a.path("M40 452 L472 452", sw=11)
-    a.path("M360 392 L428 392 L428 452 L360 452 Z", fill="#e5f3fb", sw=0, stroke="none")
+        c_glass(a, c_rect(x, 284, 42, 52, 8), ow=5, col=WIN)
+    with a.part(8):                                   # entrance
+        a.sil(c_rpoly([(154, 394), (246, 394), (246, 454), (154, 454)], [8, 8, 0, 0]), WIN)
+    c_line(a, 200, 398, 200, 452, 5, s=1, e=1)
+    a.shine("M84 176 L200 176", sw=6)
+    with a.part(9):                                   # a bush
+        a.sil("M22 460 C14 436 40 422 56 436 C70 426 90 438 86 460 Z", LEAF1)
     return a
 
 
 @word
 def oshiro():
     a = Art()
-    ROOF, ROOF_D = "#5d7894", "#486079"
-    # stone base
-    a.path("M60 450 L110 350 L402 350 L452 450 Z", fill="#b6b0a8")
-    for x in (170, 256, 342):
-        a.path(f"M{x} 352 L{x - (x - 256) * 0.0 + (x - 256) * 0.2:.0f} 450", stroke="#8f8981", sw=6)
-    a.path("M92 400 L420 400", stroke="#8f8981", sw=6)
-    # tiers (bottom to top)
-    a.rect(132, 266, 248, 84, WHITE, rx=4)
-    a.path("M100 266 C100 252 112 246 128 246 L384 246 C400 246 412 252 412 266 L430 296 L82 296 Z", fill=ROOF)
-    a.rect(172, 168, 168, 78, WHITE, rx=4)
-    a.path("M146 168 C146 154 158 148 174 148 L338 148 C354 148 366 154 366 168 L384 196 L128 196 Z", fill=ROOF)
-    a.rect(212, 76, 88, 72, WHITE, rx=4)
-    a.path("M182 76 C198 52 228 40 256 36 C284 40 314 52 330 76 L344 104 L168 104 Z", fill=ROOF)
-    # roof highlights
-    for y, x0, x1 in ((266, 100, 412), (168, 146, 366)):
-        pass
-    # windows
-    for x in (170, 236, 302):
-        a.rect(x, 292 + 16, 40, 34, "#33425a", rx=6)
-    for x in (220, 270):
-        a.rect(x - 14, 204, 28, 30, "#33425a", rx=6)
-    a.rect(242, 110, 28, 28, "#33425a", rx=6)
-    # gold ornaments (shachi) at the top
-    a.path("M214 50 C200 34 212 18 226 24 C222 36 226 44 232 48 Z", fill="#f6c548", sw=8)
-    a.path("M298 50 C312 34 300 18 286 24 C290 36 286 44 280 48 Z", fill="#f6c548", sw=8)
-    # entrance
-    a.path("M236 450 L236 392 C236 372 276 372 276 392 L276 450 Z", fill="#33425a")
+    ROOF, ROOF_D, WIN, GOLD = "#5d7894", "#486079", "#33425a", "#f6c548"
+    cx = 256
+
+    def roof(y, w, tw, h):
+        """A tiled roof with turned-up eaves: bottom edge at y, half width w, top half width tw, height h."""
+        d = (f"M{cx - w} {y - 12} Q{cx - w - 6} {y + 2} {cx - w + 16} {y + 4} C{cx - w / 2} {y + 10} {cx + w / 2} {y + 10} {cx + w - 16} {y + 4} "
+             f"Q{cx + w + 6} {y + 2} {cx + w} {y - 12} C{cx + w - 34} {y - 16} {cx + tw + 10} {y - h + 16} {cx + tw} {y - h} "
+             f"L{cx - tw} {y - h} C{cx - tw - 10} {y - h + 16} {cx - w + 34} {y - 16} {cx - w} {y - 12} Z")
+        shade = (f"M{cx - w + 4} {y - 9} Q{cx - w} {y + 1} {cx - w + 16} {y + 3} C{cx - w / 2} {y + 9} {cx + w / 2} {y + 9} {cx + w - 16} {y + 3} "
+                 f"Q{cx + w} {y + 1} {cx + w - 4} {y - 9} C{cx + w / 2} {y - 4} {cx - w / 2} {y - 4} {cx - w + 4} {y - 9} Z")
+        with a.part():
+            a.sil(d, ROOF)
+            a.blob(shade, ROOF_D)
+
+    with a.part():                                    # stone base
+        a.sil(c_rpoly([(116, 370), (396, 370), (440, 454), (72, 454)], [8, 8, 12, 12]), "#b6b0a8")
+        a.blob(c_rpoly([(82, 432), (430, 432), (439, 453), (73, 453)], [0, 0, 11, 11]), "#a39d95")
+    for x0, y0, x1, y1 in ((100, 404, 206, 404), (306, 404, 412, 404), (160, 374, 156, 404), (352, 374, 356, 404),
+                           (196, 404, 192, 432), (320, 404, 324, 432)):
+        c_line(a, x0, y0, x1, y1, 5, col="#8f8981")
+    with a.part(8):                                   # gate
+        a.sil("M232 454 L232 412 C232 386 280 386 280 412 L280 454 Z", WIN)
+    with a.part():                                    # first floor
+        a.sil(c_rect(140, 296, 232, 78, 0), WHITE)
+    for x in (170, 240, 310):
+        a.blob(c_rect(x, 330, 32, 28, 6), WIN)
+    with a.part():                                    # second floor
+        a.sil(c_rect(176, 196, 160, 76, 0), WHITE)
+    roof(306, 168, 96, 44)
+    with a.part():                                    # small gable on the first roof
+        a.sil(c_rpoly([(256, 256), (294, 302), (218, 302)], [8, 6, 6]), ROOF)
+        a.blob(c_rpoly([(256, 276), (274, 297), (238, 297)], [4, 3, 3]), WHITE)
+    for x in (200, 280):
+        a.blob(c_rect(x, 226, 32, 26, 6), WIN)
+    with a.part():                                    # top floor
+        a.sil(c_rect(210, 100, 92, 72, 0), WHITE)
+    roof(204, 130, 62, 42)
+    a.blob(c_rect(240, 126, 32, 26, 6), WIN)
+    for s_ in (0, 1):                                 # golden shachi on the ridge
+        d = "M216 66 C202 54 206 30 226 28 C222 40 230 50 242 54 L242 68 Z"
+        with a.part(8):
+            a.sil(mirror(d) if s_ else d, GOLD)
+    roof(108, 92, 34, 52)
     return a
 
 
@@ -2876,17 +4320,19 @@ SHINGOU_Y, SHINGOU_R = 145, 42
 @word
 def shingou():
     a = Art()
-    # pole
-    a.tube("M256 200 L256 540", "#9aa5a8", 34, 16)
-    a.path("M214 540 L298 540", sw=18)
-    # signal box (lamps are lit by the app; the picture shows green)
-    a.rect(60, 76, 392, 138, "#4a5560", rx=66)
-    a.path("M70 124 C70 98 94 86 116 86 L250 86", stroke="#6c7884", sw=8, **{"stroke-opacity": "0.8"})
-    for cx, col in zip(SHINGOU_LAMPS, ("#58d36a", "#5e5320", "#6b2a28")):
-        a.circle(cx, SHINGOU_Y, SHINGOU_R, col)
-    a.shine("M120 132 C126 118 138 110 150 108")
-    for cx in SHINGOU_LAMPS:
-        a.path(f"M{cx-48} 100 C{cx-28} 90 {cx+28} 90 {cx+48} 100", sw=8)
+    POLE, POLE_D, BOX = "#9aa5a8", "#7f8a8e", "#4a5560"
+    with a.part():                                    # pole and its foot
+        a.sil(c_rect(241, 200, 30, 334, 0), POLE)
+        a.blob("M259 200 L270 200 L270 534 L259 534 Z", POLE_D)
+        a.sil(c_rpoly([(218, 520), (294, 520), (306, 548), (206, 548)], [10, 10, 8, 8]), POLE_D)
+    with a.part():                                    # signal box (lamps are lit by the app; the picture shows green)
+        a.sil(c_bar(129, 145, 383, 145, 138), BOX)
+        a.blob("M92 110 C104 92 122 86 142 86 L370 86 C390 86 408 92 420 110 C404 100 388 98 370 98 L142 98 "
+               "C124 98 108 100 92 110 Z", "#66727e")
+    with a.part():
+        for cx, col in zip(SHINGOU_LAMPS, ("#58d36a", "#5e5320", "#6b2a28")):
+            a.sil(c_circ(cx, SHINGOU_Y, SHINGOU_R - SW / 2), col)
+    a.shine("M118 138 C122 124 132 116 144 114", sw=7)
     return a
 
 
@@ -2897,49 +4343,69 @@ FUMIKIRI_Y, FUMIKIRI_R = 233, 22
 @word
 def fumikiri():
     a = Art()
-    # rails and sleepers
-    for x in (48, 130, 212, 294, 376, 458):
-        a.rect(x - 16, 430, 32, 46, "#a58a6c", rx=4, sw=8)
-    a.path("M20 446 L492 446 M20 462 L492 462", stroke="#8a949a", sw=10)
-    # post
-    a.tube("M110 440 L110 140", "#f4f1ea", 40, 20)
-    a.path("M92 440 L92 330 M128 440 L128 330", stroke="none", sw=0)
-    # crossbuck sign
-    a.path("M54 112 L170 176 M170 112 L54 176", stroke=O, sw=40)
-    a.path("M54 112 L170 176 M170 112 L54 176", stroke=WHITE, sw=22)
-    # signal box with two red lamps
-    a.rect(52, 196, 120, 74, "#4a5560", rx=22)
-    for cx in FUMIKIRI_LAMPS:
-        a.circle(cx, FUMIKIRI_Y, FUMIKIRI_R, "#e5534b")
-    a.path("M110 270 L110 290", sw=12)
-    # barrier arm (striped)
-    a.path("M120 340 L470 340", sw=48)
-    a.path("M120 340 L470 340", stroke="#f6d33a", sw=26)
-    for x in (178, 238, 298, 358, 418):
-        a.path(f"M{x} 340 L{x+22} 340", stroke="#33343a", sw=26)
-    a.path("M120 340 L470 340", stroke="none", sw=0)
-    a.circle(110, 340, 20, "#f4f1ea")
+    YB, BLK, POST, BOX = "#f6d33a", "#33343a", "#f4f1ea", "#4a5560"
+
+    def band(p, q, t0, t1, w):
+        """A flat black band across a bar from p to q, between fractions t0 and t1."""
+        dx, dy = q[0] - p[0], q[1] - p[1]
+        L = (dx * dx + dy * dy) ** 0.5
+        nx, ny = -dy / L * w / 2, dx / L * w / 2
+        x0, y0, x1, y1 = p[0] + dx * t0, p[1] + dy * t0, p[0] + dx * t1, p[1] + dy * t1
+        a.blob(f"M{x0 + nx:.1f} {y0 + ny:.1f} L{x1 + nx:.1f} {y1 + ny:.1f} L{x1 - nx:.1f} {y1 - ny:.1f} L{x0 - nx:.1f} {y0 - ny:.1f} Z", BLK)
+
+    with a.part(8):                                   # sleepers and rails
+        for x in (48, 130, 212, 294, 376, 458):
+            a.sil(c_rect(x - 17, 432, 34, 46, 6), "#b3936f")
+    with a.part(6):
+        for y in (446, 464):
+            a.sil(c_bar(22, y, 490, y, 9), "#aab3b8")
+    with a.part():                                    # post
+        a.sil(c_rect(96, 116, 28, 330, 4), POST)
+        a.blob("M113 118 L123 118 L123 444 L113 444 Z", "#dcd7cc")
+    with a.part():                                    # barrier arm
+        a.sil(c_bar(124, 340, 470, 340, 28), YB)
+        for x in (186, 256, 326, 396):
+            a.blob(f"M{x} 326 L{x + 30} 326 L{x + 18} 354 L{x - 12} 354 Z", BLK)
+    a.shine("M150 332 L172 332", sw=5)
+    with a.part():
+        a.sil(c_circ(110, 340, 22), POST)
+    a.dot(110, 340, 8, "#8a949a")
+    with a.part():                                    # warning lamps (lit by the app)
+        a.sil(c_rect(48, 194, 128, 78, 26), BOX)
+    with a.part():
+        for cx in FUMIKIRI_LAMPS:
+            a.sil(c_circ(cx, FUMIKIRI_Y, FUMIKIRI_R - SW / 2), "#e5534b")
+    with a.part():                                    # crossbuck sign
+        for p, q in (((52, 70), (168, 138)), ((168, 70), (52, 138))):
+            a.sil(c_bar(p[0], p[1], q[0], q[1], 26), YB)
+            band(p, q, 0.06, 0.24, 26)
+            band(p, q, 0.76, 0.94, 26)
     return a
 
 
 @word
 def gaitou():
     a = Art()
-    GREEN_D = "#46665a"
-    a.path("M180 470 C200 440 232 436 256 436 C280 436 312 440 332 470 Z", fill=GREEN_D)
-    a.path("M232 440 C240 400 244 300 244 190 L268 190 C268 300 272 400 280 440 Z", fill=GREEN_D)
-    a.tube("M256 200 C256 150 256 110 256 96", GREEN_D, 40, 22)
-    # lamp cage
-    a.path("M196 100 L316 100 L296 70 L216 70 Z", fill=GREEN_D)
-    a.path("M226 70 C226 54 286 54 286 70", sw=10)
-    a.circle(256, 38, 12, GREEN_D)
-    a.path("M204 100 C190 130 200 176 226 190 L286 190 C312 176 322 130 308 100 Z", fill="#fff1a8")
-    a.path("M226 190 L286 190 L276 210 L236 210 Z", fill=GREEN_D)
-    a.path("M226 112 C214 132 218 160 230 176", stroke=WHITE, sw=9, **{"stroke-opacity": "0.75"})
-    for dx, dy in ((-76, -10), (76, -10), (-70, 70), (70, 70)):
-        pass
-    for x1, y1, x2, y2 in ((150, 120, 118, 112), (362, 120, 394, 112), (150, 168, 122, 184), (362, 168, 390, 184)):
-        a.path(f"M{x1} {y1} L{x2} {y2}", stroke="#f6c548", sw=9)
+    GREEN_D, GREEN_DD, GLOW = "#46665a", "#38544a", "#fff1a8"
+    for x0, y0, x1, y1 in ((176, 112, 136, 100), (336, 112, 376, 100), (172, 160, 134, 178), (340, 160, 378, 178)):
+        c_line(a, x0, y0, x1, y1, 11, s=0.9, e=0.2, col="#f6c548")
+    with a.part():                                    # pole and foot: one shape
+        a.sil("M184 468 C196 444 226 440 240 430 C246 380 247 300 247 210 L265 210 C265 300 266 380 272 430 "
+              "C286 440 316 444 328 468 Q330 476 322 476 L190 476 Q182 476 184 468 Z", GREEN_D)
+        a.blob("M257 212 L264 212 C264 300 265 380 271 431 C285 441 315 445 327 469 Q328 475 322 475 L262 475 "
+               "C262 440 258 300 257 212 Z", GREEN_DD)
+    with a.part():
+        a.sil(c_rect(236, 286, 40, 18, 8), GREEN_D)
+    with a.part():                                    # holder under the lamp
+        a.sil(c_rpoly([(224, 186), (288, 186), (276, 220), (236, 220)], [4, 4, 8, 8]), GREEN_D)
+    with a.part():                                    # glass
+        a.sil("M206 100 C190 132 200 176 228 194 L284 194 C312 176 322 132 306 100 Z", GLOW)
+        a.blob(c_circ(256, 148, 26, 32), "#ffe07a")
+    a.path("M222 112 C212 132 214 158 226 174", stroke=WHITE, sw=8, **{"stroke-opacity": "0.8"})
+    with a.part():                                    # cap
+        a.sil("M200 104 Q190 104 196 94 L212 72 Q218 64 228 64 L284 64 Q294 64 300 72 L316 94 Q322 104 312 104 Z", GREEN_D)
+    with a.part():
+        a.sil(c_circ(256, 48, 13), GREEN_D)
     return a
 
 
@@ -2947,26 +4413,43 @@ def gaitou():
 def asagao():
     import math
     a = Art()
-    # stake and vine
-    a.path("M256 480 L256 70", stroke=O, sw=24)
-    a.path("M256 480 L256 70", stroke="#d6a56e", sw=10)
-    a.path("M256 440 C190 400 330 360 256 320 C190 280 330 240 256 200", stroke=LEAF2, sw=12)
-    # leaves
-    for d in ("M256 410 C200 400 160 430 166 462 C204 480 252 450 256 410 Z",
-              "M256 300 C312 290 352 318 346 350 C310 368 262 340 256 300 Z"):
-        a.path(d, fill=LEAF1, sw=9)
+    a.sil("M247 76 C247 66 265 66 265 76 L265 480 L247 480 Z", "#d6a56e")
+    with a.part():
+        a.sil(taper([(256, 452, 200, 420, 318, 372, 256, 330), (256, 330, 198, 292, 312, 250, 258, 208)], 13, 11), LEAF2)
+
+    def leaf(bx, by, s):
+        # heart-shaped leaf, tip pointing away from the stake (s = -1 left, 1 right)
+        d = (f"M{bx} {by} C{bx + s * 6} {by - 44} {bx + s * 64} {by - 52} {bx + s * 82} {by - 20} "
+             f"C{bx + s * 104} {by - 4} {bx + s * 112} {by + 22} {bx + s * 118} {by + 40} "
+             f"C{bx + s * 84} {by + 52} {bx + s * 30} {by + 50} {bx} {by} Z")
+        with a.part():
+            a.sil(d, LEAF1)
+            a.ink([(bx + s * 8, by + 4, bx + s * 40, by + 12, bx + s * 70, by + 22, bx + s * 96, by + 34)], 7, a=1, b=0, col=LEAF2)
+
+    leaf(250, 404, -1)
+    leaf(262, 300, 1)
 
     def bloom(cx, cy, r, col, col2):
-        a.circle(cx, cy, r, col)
-        a.circle(cx, cy, r * 0.62, col2, sw=0, stroke="none")
-        for i in range(5):
-            t = -math.pi / 2 + i * 2 * math.pi / 5
-            a.path(f"M{cx} {cy} L{cx + r*0.9*math.cos(t):.1f} {cy + r*0.9*math.sin(t):.1f}", stroke=WHITE, sw=r * 0.12)
-        a.circle(cx, cy, r * 0.2, "#fff4b0", sw=0, stroke="none")
+        pts = []
+        for i in range(10):
+            t = -math.pi / 2 + i * math.pi / 5
+            rr = r * (0.93 if i % 2 == 0 else 1.0)
+            pts.append((cx + rr * math.cos(t), cy + rr * math.sin(t)))
+        d = smooth(pts)
+        with a.part():
+            a.sil(d, col)
+            a.blob(d_circ(cx, cy, r * 0.6), col2)
+            for i in range(5):
+                t = -math.pi / 2 + i * 2 * math.pi / 5
+                c, s = math.cos(t), math.sin(t)
+                w = r * 0.085
+                a.blob(f"M{cx - s * w:.1f} {cy + c * w:.1f} L{cx + c * r * 0.86:.1f} {cy + s * r * 0.86:.1f} L{cx + s * w:.1f} {cy - c * w:.1f} Z", WHITE)
+            a.blob(d_circ(cx, cy, r * 0.22), "#fff4b0")
 
-    bloom(170, 180, 82, "#6f8be8", "#a9bbf5")
-    bloom(350, 120, 62, "#d86ab8", "#efa6d8")
-    bloom(346, 250, 50, "#6f8be8", "#a9bbf5")
+    bloom(166, 184, 86, "#6f8be8", "#a9bbf5")
+    bloom(352, 124, 66, "#d86ab8", "#efa6d8")
+    bloom(350, 256, 52, "#6f8be8", "#a9bbf5")
+    a.shine("M106 160 C112 136 128 118 150 110", sw=8)
     return a
 
 
@@ -2974,28 +4457,43 @@ def asagao():
 def bara():
     import math
     a = Art()
-    a.path("M256 300 C250 360 262 420 256 484", stroke=O, sw=26)
-    a.path("M256 300 C250 360 262 420 256 484", stroke=LEAF2, sw=12)
-    for y, s in ((380, -1), (440, 1)):
-        a.path(f"M{256 + s*4} {y} L{256 + s*22} {y-10} L{256 + s*6} {y-18}", fill=LEAF2, sw=7)
-    for d in ("M256 410 C316 380 380 392 404 440 C350 464 282 450 256 410 Z",
-              "M256 360 C196 330 132 346 112 396 C170 414 238 400 256 360 Z"):
-        a.path(d, fill=LEAF1, sw=9)
-    a.path("M270 408 C320 410 358 420 386 436", stroke=LEAF2, sw=6)
-    a.path("M242 362 C190 362 156 372 130 388", stroke=LEAF2, sw=6)
-    # rose bloom
+    RD, RL, RDD = "#e8505b", "#f2747d", "#cf3d4b"
+    with a.part():
+        a.sil(taper([(256, 300, 252, 360, 260, 430, 256, 496)], 16, 16), LEAF2)
+        a.sil("M250 452 L228 444 L249 430 Z", LEAF2)
+        a.sil("M262 372 L284 364 L263 350 Z", LEAF2)
+    for bx, by, tx, ty in ((258, 432, 392, 404), (254, 392, 118, 364)):
+        with a.part():
+            a.sil(d_leaf(bx, by, tx, ty, 76, 0.2 if tx < 256 else -0.2), LEAF1)
+            d_vein(a, bx, by, tx, ty, LEAF2, t0=0.12, t1=0.8)
     cx, cy = 256, 196
-    a.circle(cx, cy, 134, "#e8505b")
-    for k, (r, col) in enumerate(((100, "#f06a74"), (68, "#e8505b"), (38, "#f06a74"))):
-        a.circle(cx, cy, r, col, sw=9)
-    a.path(f"M{cx-60} {cy+10} C{cx-60} {cy-50} {cx+20} {cy-70} {cx+60} {cy-20}", stroke=O, sw=9)
-    a.path(f"M{cx-30} {cy+40} C{cx+20} {cy+70} {cx+80} {cy+30} {cx+84} {cy-20}", stroke=O, sw=9)
-    a.path(f"M{cx-18} {cy-6} C{cx-8} {cy-26} {cx+20} {cy-18} {cx+14} {cy+6}", stroke=O, sw=8)
-    # sepals under the bloom
-    for d in ("M200 320 C190 340 196 358 214 364 C214 346 214 332 222 320 Z",
-              "M312 320 C322 340 316 358 298 364 C298 346 298 332 290 320 Z"):
-        a.path(d, fill=LEAF1, sw=8)
-    a.shine("M150 150 C160 112 192 84 232 78")
+
+    def lobes(R, rot, k=0.9):
+        pts = []
+        for i in range(10):
+            t = math.radians(rot) + i * math.pi / 5
+            rr = R * (1.0 if i % 2 == 0 else k)
+            pts.append((cx + rr * math.cos(t), cy + rr * math.sin(t)))
+        return smooth(pts)
+
+    outer = lobes(138, -90, 0.93)
+    with a.part():
+        a.sil(outer, RD)
+        a.blob(d_rim(outer, 60, 80, 22), RDD)
+        # five outer petals: a short line runs in from each dip of the edge
+        for i in range(5):
+            t = math.radians(-54 + i * 72)
+            pts = [(cx + r * math.cos(t + k), cy + r * math.sin(t + k)) for r, k in ((130, 0), (118, 0.1), (106, 0.24), (97, 0.42))]
+            a.ink(d_curve(pts), 9, a=1, b=0)
+        a.blob(d_circ(cx, cy, 88), RL)
+        for a0 in (-100, 20, 140):
+            a.ink(d_arc(cx, cy, 88, a0, a0 + 112, r1=88), 9, a=0, b=0)
+        a.blob(d_circ(cx, cy, 54), RD)
+        for a0 in (-40, 140):
+            a.ink(d_arc(cx, cy, 54, a0, a0 + 150, r1=54), 9, a=0, b=0)
+        a.blob(d_circ(cx, cy, 26), RL)
+        a.ink(d_arc(cx, cy, 26, 60, 400, r1=6), 8, a=0.3, b=0)
+    a.shine("M150 156 C160 118 190 90 228 82", sw=9)
     return a
 
 
@@ -3053,163 +4551,198 @@ def note(a, x, y, s=1.0, col="#7a6fe0"):
 @word
 def te():
     a = Art()
-    # palm and four fingers and the thumb, drawn as one hand
-    blobs(a, [
-        ("t", 256, 330, 256, 372, 200),
-        ("t", 178, 300, 168, 168, 46), ("t", 232, 290, 232, 118, 48),
-        ("t", 288, 296, 296, 142, 46), ("t", 336, 316, 352, 214, 40),
-        ("t", 158, 360, 92, 288, 50),
-    ], SKIN)
-    for x1, y1, x2, y2 in ((168, 166, 168, 150), (232, 116, 232, 98), (296, 140, 296, 124)):
-        pass
-    eyes(a, 256, 352, 42)
-    cheeks(a, 256, 384, 70)
-    smile(a, 256, 380)
-    # little shine on the palm
-    a.shine("M196 300 C192 282 196 262 206 248")
-    # waving marks
-    a.path("M404 150 C426 176 428 212 410 240", sw=9)
-    a.path("M436 122 C468 160 470 220 442 262", sw=9)
+    with a.part():                                      # palm, four fingers and the thumb: one hand
+        a.sil("M150 340 C150 292 190 276 256 276 C322 276 364 292 364 340 L364 378 C364 432 316 462 256 462 "
+              "C196 462 150 432 150 378 Z", SKIN)
+        a.sil(e2_cap(192, 318, 168, 204, 58, 52), SKIN)
+        a.sil(e2_cap(242, 306, 238, 162, 60, 54), SKIN)
+        a.sil(e2_cap(296, 310, 308, 186, 58, 52), SKIN)
+        a.sil(e2_cap(340, 334, 370, 250, 52, 46), SKIN)
+        a.sil(e2_cap(190, 400, 104, 322, 64, 54), SKIN)
+        a.blob("M190 446 C230 468 284 468 322 446 C302 458 280 462 256 462 C232 462 210 458 190 446 Z", SKIN_D)
+    e2_face(a, 256, 366, 42, 15, cheek_dx=72, cheek_dy=32)
+    a.shine("M230 262 C228 236 228 212 230 190")
+    a.ink([(416, 176, 436, 204, 438, 238, 420, 266)], 11, a=0.6, b=0.6)
+    a.ink([(450, 148, 480, 188, 482, 248, 454, 290)], 11, a=0.6, b=0.6)
     return a
 
 
 @word
 def ashi():
     a = Art()
-    # the sole of a bare foot: five round toes behind the foot, and a little face
-    for cx, cy, r in ((172, 200, 50), (244, 166, 38), (300, 172, 34), (346, 192, 30), (380, 224, 26)):
-        a.circle(cx, cy, r, SKIN)
-    a.ellipse(256, 346, 118, 140, SKIN)
-    a.ellipse(256, 412, 70, 34, SKIN_D, sw=0, stroke="none", **{"fill-opacity": "0.5"})
-    eyes(a, 256, 330, 42)
-    cheeks(a, 256, 372, 74)
-    smile(a, 256, 368)
-    a.shine("M162 300 C158 340 164 372 178 396")
+    # the sole of a bare foot: one part, so the toes join the foot and only a rounded toe line shows
+    toes_ = ((190, 166, 48, 52), (268, 150, 31, 36), (324, 166, 28, 32), (370, 194, 25, 29), (404, 232, 22, 26))
+    with a.part():
+        a.sil("M250 480 C200 480 174 444 178 394 C180 352 170 330 156 296 C138 250 138 178 198 158 "
+              "C250 142 334 148 384 196 C414 226 406 300 392 342 C380 388 366 422 344 450 "
+              "C326 472 290 480 250 480 Z", SKIN)
+        for cx, cy, rx, ry in toes_:
+            a.sil_ellipse(cx, cy, rx, ry, SKIN)
+        a.blob("M204 430 C200 396 312 396 316 430 C316 458 292 472 256 472 C224 472 206 454 204 430 Z", SKIN_D,
+               fill_opacity="0.45")
+        import math
+        for (cx, cy, rx, ry), (dx, dy, sx, sy) in zip(toes_, toes_[1:]):     # a short notch where two toes meet
+            best = None
+            for k in range(720):
+                t = math.pi * k / 360
+                x, y = cx + rx * math.cos(t), cy + ry * math.sin(t)
+                err = abs(((x - dx) / sx) ** 2 + ((y - dy) / sy) ** 2 - 1)
+                if err < 0.04 and (best is None or y < best[1]):
+                    best = (x, y)
+            x, y = best
+            e2_line(a, x, y - 9, x + 2, y + 24, 10, 1, 0)
+    e2_face(a, 268, 312, 42, 15, cheek_dx=74, cheek_dy=34)
+    a.shine("M168 184 C166 164 172 146 184 136")
     return a
 
 
 @word
 def me():
     a = Art()
-    # eyebrow, white of the eye, iris, pupil, shine and lashes
-    a.path("M96 150 C150 70 360 66 416 150", sw=18, stroke=HAIR)
-    a.path("M70 270 C130 168 382 168 442 270 C382 372 130 372 70 270 Z", fill=WHITE)
-    a.circle(256, 268, 84, "#8fc9a8")
-    a.circle(256, 268, 58, "#5da98a", sw=0, stroke="none")
-    a.circle(256, 268, 36, EYE, sw=0, stroke="none")
-    a.circle(228, 238, 20, WHITE, sw=0, stroke="none")
-    a.circle(284, 296, 10, WHITE, sw=0, stroke="none")
-    a.path("M70 270 C130 168 382 168 442 270", sw=16)
-    for x1, y1, x2, y2 in ((118, 216, 74, 176), (176, 188, 150, 140), (336, 188, 362, 140), (394, 216, 438, 176)):
-        a.path(f"M{x1} {y1} L{x2} {y2}", sw=12)
+    IRIS, IRIS_D = "#8fc9a8", "#5da98a"
+    a.sil(taper([(100, 138, 170, 70, 340, 66, 414, 132)], 20, 16), HAIR)     # eyebrow
+    with a.part():
+        a.sil("M62 276 C110 162 402 162 450 276 C402 388 110 388 62 276 Z", WHITE)
+        a.blob("M62 276 C110 162 402 162 450 276 C400 214 112 214 62 276 Z", "#e8eef2")
+        a.ellipse(256, 276, 78, 78, IRIS_D, sw=0, stroke="none")
+        a.ellipse(256, 276, 62, 62, IRIS, sw=0, stroke="none")
+        a.ellipse(256, 276, 36, 38, EYE, sw=0, stroke="none")
+        a.dot(284, 246, 20, WHITE)
+        a.dot(232, 304, 9, WHITE)
+        a.ink([(62, 276, 110, 162, 402, 162, 450, 276)], 20, a=0.5, b=0.5)   # upper lid
+    for x0, y0, x1, y1 in ((106, 216, 74, 186), (166, 190, 146, 150)):       # lashes
+        a.blob(e2_cap(x0, y0, x1, y1, 14, 11), O)
+        a.blob(e2_cap(512 - x0, y0, 512 - x1, y1, 14, 11), O)
     return a
 
 
 @word
 def mimi():
     a = Art()
-    # the ear, its curls, and a few music notes
-    blobs(a, [
-        ("p", "M280 90 C380 80 430 170 400 270 C380 340 340 360 330 410 C322 460 262 470 240 430 "
-              "C220 394 210 360 210 300 C210 190 220 100 280 90 Z"),
-    ], SKIN)
-    a.path("M286 138 C340 136 366 190 346 250 C334 288 296 296 292 340", sw=10, stroke=SKIN_D)
-    a.ellipse(284, 330, 30, 20, SKIN_D, sw=0, stroke="none")
-    a.path("M296 186 C316 190 322 214 310 236", sw=8, stroke=SKIN_D)
-    a.ellipse(310, 400, 22, 14, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
-    a.shine("M246 150 C236 190 234 226 238 262")
-    note(a, 96, 190, 1.0)
-    note(a, 130, 350, 0.8, "#f0a23c")
+    with a.part():
+        a.sil("M286 88 C382 82 428 170 400 268 C382 334 344 356 334 406 C326 456 266 466 244 428 "
+              "C224 394 214 360 214 300 C214 190 226 96 286 88 Z", SKIN)
+        a.blob("M292 138 C340 140 366 190 348 246 C336 284 304 296 298 336 C294 360 264 360 260 334 "
+               "C252 282 254 144 292 138 Z", SKIN_D, fill_opacity="0.75")
+        a.ink([(300, 180, 330, 190, 334, 232, 312, 256), (312, 256, 300, 268, 294, 280, 292, 296)], 10,
+              a=0, b=0, col="#e89a76")
+    a.cheek(304, 400, 20, 13)
+    a.shine("M246 160 C238 196 236 230 240 262")
+    e2_note(a, 98, 196, 1.0)
+    e2_note(a, 132, 352, 0.8, "#f0a23c")
     return a
 
 
 @word
 def kuchi():
     a = Art()
-    # smiling open mouth: lips, dark inside, teeth, tongue
-    a.path("M66 214 C122 184 196 204 256 238 C316 204 390 184 446 214 C446 346 360 440 256 440 "
-           "C152 440 66 346 66 214 Z", fill=LIPS)
-    a.path("M112 240 C170 224 220 250 256 266 C292 250 342 224 400 240 C392 330 330 396 256 396 "
-           "C182 396 120 330 112 240 Z", fill=MOUTH_IN)
-    a.path("M142 250 C190 242 226 262 256 276 C286 262 322 242 370 250 C368 270 360 290 346 300 "
-           "C316 286 286 312 256 318 C226 312 196 286 166 300 C152 290 144 270 142 250 Z",
-           fill=WHITE, sw=7)
-    a.ellipse(256, 370, 70, 40, TONGUE, sw=0, stroke="none")
-    a.path("M256 334 L256 372", stroke="#e0607a", sw=7)
-    a.shine("M104 222 C140 212 170 216 196 226")
+    RIM, IN = "#f58f9f", "#c2506a"
+    with a.part():                                      # a child's big open smile: soft rim, inside, teeth, tongue
+        a.sil("M82 196 C96 184 114 188 130 194 C212 222 300 222 382 194 C398 188 416 184 430 196 "
+              "C442 208 442 228 438 246 C420 352 348 424 256 424 C164 424 92 352 74 246 C70 228 70 208 82 196 Z", RIM)
+        a.blob("M106 214 C206 246 306 246 406 214 C410 226 410 238 408 250 C392 338 332 398 256 398 "
+               "C180 398 120 338 104 250 C102 238 102 226 106 214 Z", IN)
+        a.blob("M124 220 C212 246 300 246 388 220 C388 240 384 256 376 270 C300 288 212 288 136 270 "
+               "C128 256 124 240 124 220 Z", WHITE)
+        a.blob("M184 372 C200 330 312 330 328 372 C310 390 284 398 256 398 C228 398 202 390 184 372 Z", TONGUE)
+        a.ink([(256, 350, 256, 360, 256, 370, 256, 382)], 7, a=0, b=0, col="#e0607a")
     return a
 
 
 @word
 def atama():
     a = Art()
-    # a child's head: ears, round face, hair with a tuft, eyes and a smile
-    blobs(a, [("c", 90, 300, 40), ("c", 422, 300, 40), ("e", 256, 290, 168, 172)], SKIN)
-    a.circle(90, 300, 20, SKIN_D, sw=0, stroke="none")
-    a.circle(422, 300, 20, SKIN_D, sw=0, stroke="none")
-    a.path("M92 262 C70 130 170 100 256 102 C346 100 442 130 420 262 C402 222 350 196 306 210 "
-           "C280 180 224 186 202 212 C160 208 110 226 92 262 Z", fill=HAIR)
-    a.path("M248 108 C226 56 262 14 306 34 C286 46 288 74 280 108 Z", fill=HAIR)
-    a.shine("M150 168 C170 146 196 136 224 134")
-    eyes(a, 256, 300, 60)
-    cheeks(a, 256, 340, 104, rx=20, ry=12)
-    smile(a, 256, 340, 18)
+    with a.part():                                      # ears, face and hair: one head
+        a.sil_ellipse(94, 304, 38, 40, SKIN)
+        a.sil_ellipse(418, 304, 38, 40, SKIN)
+        a.sil("M256 120 C356 120 424 196 424 294 C424 392 350 462 256 462 C162 462 88 392 88 294 "
+              "C88 196 156 120 256 120 Z", SKIN)
+        a.sil("M90 270 C66 138 166 100 256 102 C346 100 446 138 422 270 C404 226 352 198 306 212 "
+              "C280 182 224 188 202 214 C160 208 108 228 90 270 Z", HAIR)
+        a.sil("M246 110 C222 58 262 14 308 34 C288 46 290 74 282 110 Z", HAIR)
+        a.ellipse(88, 304, 17, 20, SKIN_D, sw=0, stroke="none")
+        a.ellipse(424, 304, 17, 20, SKIN_D, sw=0, stroke="none")
+    a.shine("M150 170 C170 148 196 138 224 136")
+    e2_face(a, 256, 310, 62, 18, cheek_dx=106, cheek_dy=42, w=18)
     return a
 
 
 @word
 def onaka():
     a = Art()
-    # a round tummy sticking out between a shirt hem and shorts, with a belly button
-    a.ellipse(256, 300, 170, 150, SKIN)
-    a.path("M112 60 C112 44 128 40 148 40 L364 40 C384 40 400 44 400 60 L406 174 "
-           "C350 218 162 218 106 174 Z", fill=YEL)
-    a.path("M106 408 C162 452 350 452 406 408 L400 490 C400 504 384 508 364 508 L148 508 "
-           "C128 508 112 504 112 490 Z", fill=BLUE)
-    a.path("M140 100 L152 100", stroke="#ffffff", sw=10, **{"stroke-opacity": "0.5"})
-    a.path("M140 470 C180 484 210 488 244 488", stroke="#ffffff", sw=9, **{"stroke-opacity": "0.5"})
-    a.path("M234 316 C240 296 272 296 278 316 C272 338 240 338 234 316 Z", fill=SKIN_D, sw=8)
-    cheeks(a, 256, 350, 100, rx=18, ry=12)
-    a.shine("M130 270 C126 310 136 346 156 372")
-    a.circle(462, 270, 14, "#ffffff", sw=7)
-    a.circle(484, 226, 9, "#ffffff", sw=6)
+    from lib import _tx_path
+    SH_D = "#e9bd3c"
+    with a.part():                                      # short legs
+        a.sil(e2_cap(214, 430, 210, 484, 50, 46), SKIN)
+        a.sil(e2_cap(298, 430, 302, 484, 50, 46), SKIN)
+    with a.part():                                      # shorts
+        a.sil("M164 404 C200 426 312 426 348 404 L354 452 C355 462 348 468 338 468 L272 468 L256 452 "
+              "L240 468 L174 468 C164 468 157 462 158 452 Z", BLUE)
+    with a.part():                                      # the round tummy is the star
+        a.sil_ellipse(256, 366, 112, 84, SKIN)
+        a.blob("M170 404 C204 436 308 436 342 404 C322 432 292 444 256 444 C220 444 190 432 170 404 Z", SKIN_D,
+               fill_opacity="0.55")
+    with a.part():                                      # arms: both hands hold the tummy
+        a.sil(taper([(170, 296, 128, 318, 124, 366, 172, 380)], 44, 46), SKIN)
+        a.sil(taper([(342, 296, 384, 318, 388, 366, 340, 380)], 44, 46), SKIN)
+    with a.part():                                      # shirt, lifted over the tummy
+        a.sil("M192 262 C214 254 298 254 320 262 C346 270 364 290 368 316 C370 328 362 336 350 332 "
+              "C300 312 212 312 162 332 C150 336 142 328 144 316 C148 290 166 270 192 262 Z", YEL)
+        a.blob("M146 310 C200 288 312 288 366 310 L368 316 C370 328 362 336 350 332 C300 312 212 312 162 332 "
+               "C150 336 142 328 144 316 Z", SH_D)
+    k, tx, ty = 0.62, 256 - 0.62 * 256, 2               # the head: the same child as あたま, smaller
+    T = lambda d: _tx_path(d, k, tx, ty)
+    with a.part():
+        for x in (94, 418):
+            a.sil_ellipse(k * x + tx, k * 304 + ty, k * 38, k * 40, SKIN)
+        a.sil(T("M256 120 C356 120 424 196 424 294 C424 392 350 462 256 462 C162 462 88 392 88 294 "
+                "C88 196 156 120 256 120 Z"), SKIN)
+        a.sil(T("M90 270 C66 138 166 100 256 102 C346 100 446 138 422 270 C404 226 352 198 306 212 "
+                "C280 182 224 188 202 214 C160 208 108 228 90 270 Z"), HAIR)
+        a.sil(T("M246 110 C222 58 262 14 308 34 C288 46 290 74 282 110 Z"), HAIR)
+        for x in (88, 424):
+            a.ellipse(k * x + tx, k * 304 + ty, k * 17, k * 20, SKIN_D, sw=0, stroke="none")
+    a.shine(T("M150 170 C170 148 196 138 224 136"), sw=6)
+    e2_face(a, 256, k * 312 + ty, 38, 12, cheek_dx=66, cheek_dy=26, w=12)
+    a.ellipse(256, 378, 7, 9, "#e89a76", sw=6)
+    a.shine("M190 362 C194 344 206 332 222 326", sw=8)
     return a
 
 
 @word
 def hoppe():
     a = Art()
-    # a round face with puffed-up cheeks, closed happy eyes, a tiny mouth
-    blobs(a, [
-        ("p", "M256 100 C380 100 446 190 446 290 C446 390 362 450 256 450 C150 450 66 390 66 290 "
-              "C66 190 132 100 256 100 Z"),
-        ("c", 118, 342, 66), ("c", 394, 342, 66),
-    ], SKIN)
-    a.path("M70 262 C60 150 150 96 256 98 C362 96 452 150 442 262 C418 214 372 190 330 206 "
-           "C300 180 212 180 182 206 C140 190 94 214 70 262 Z", fill=HAIR)
-    a.circle(124, 342, 50, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.75"})
-    a.circle(388, 342, 50, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.75"})
+    with a.part():                                      # a face with puffed-up cheeks, hair on top
+        a.sil("M256 104 C366 104 432 176 434 262 C466 276 476 320 462 358 C446 400 404 414 372 406 "
+              "C342 438 300 452 256 452 C212 452 170 438 140 406 C108 414 66 400 50 358 C36 320 46 276 78 262 "
+              "C80 176 146 104 256 104 Z", SKIN)
+        a.sil("M74 270 C58 150 150 96 256 98 C362 96 454 150 438 270 C418 218 372 192 330 208 "
+              "C300 182 212 182 182 208 C140 192 94 218 74 270 Z", HAIR)
+    a.ellipse(122, 344, 52, 46, CHEEK, sw=0, stroke="none", fill_opacity="0.8")
+    a.ellipse(390, 344, 52, 46, CHEEK, sw=0, stroke="none", fill_opacity="0.8")
     for s in (-1, 1):
-        x = 256 + s * 82
-        a.path(f"M{x-24} 296 C{x-14} 268 {x+14} 268 {x+24} 296", sw=9)
+        x = 256 + s * 78
+        a.ink([(x - 26, 300, x - 16, 270, x + 16, 270, x + 26, 300)], 10, a=0.4, b=0.4)
         for k in (-1, 0, 1):
-            a.path(f"M{256 + s*134 + k*18 - 6} 366 L{256 + s*134 + k*18 + 6} 340", stroke="#ffffff", sw=7)
+            cx = 256 + s * 134 + k * 19
+            a.path(f"M{cx - 6} 358 L{cx + 6} 332", stroke=WHITE, sw=7)
     a.path("M232 340 C240 356 256 352 256 340 C256 352 272 356 280 340", sw=8)
-    a.shine("M150 150 C176 124 210 112 244 110")
+    a.shine("M150 152 C176 126 210 114 244 112")
     return a
-
 
 
 def write_swing_parts():
     """The frame and the seat of the swing go to Content/Art/parts/ (D173). Same fit as burango.svg."""
-    full, frame, seat = swing_parts()
+    full, frame, seat, rope = swing_parts()
     params = fit_params([full])
     out = os.path.join(HERE, "..", "..", "Content", "Art", "parts")
     os.makedirs(out, exist_ok=True)
     open(os.path.join(out, "burango-frame.svg"), "w").write(frame.svg(params=params))
     open(os.path.join(out, "burango-seat.svg"), "w").write(seat.svg(params=params))
+    open(os.path.join(out, "burango-rope.svg"), "w").write(rope.svg(params=params))
     s, tx, ty = params
-    print("swing pivot (fraction of the image):", round((s * 256 + tx) / 512, 4), round((s * 100 + ty) / 512, 4))
+    print("swing hooks (fractions of the image):", [(round((s * x + tx) / 512, 4), round((s * 102 + ty) / 512, 4)) for x in (218, 294)],
+          "rope length:", round(s * (366 - 102) / 512, 4))
     s2, tx2, ty2 = fit_params([W["suberidai"]()])
     print("slide curve:", [(round((s2 * x + tx2) / 512, 4), round((s2 * y + ty2) / 512, 4)) for x, y in SLIDE_CURVE])
 
@@ -3226,7 +4759,8 @@ def print_lamps():
 if __name__ == "__main__":
     names = sys.argv[1:] or list(W)
     for n in names:
-        open(os.path.join(OUT, f"{n}.svg"), "w").write(W[n]().svg())
+        art = W[n]()
+        open(os.path.join(OUT, f"{n}.svg"), "w").write(art.svg(params=art.ground_params()) if n in GROUND else art.svg())
     if not sys.argv[1:] or "burango" in names:
         write_swing_parts()
     if not sys.argv[1:] or "shingou" in names or "fumikiri" in names:
