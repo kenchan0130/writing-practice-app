@@ -9,13 +9,15 @@ import UIKit
 enum PlayMotion {
   private static let outline = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)
 
-  /// ぶらんこで ゆれる ひもの付け根（絵に対する割合。`Scripts/art/words.py` が出す値）。
-  private static let swingPivot = (x: 0.5, yFromTop: 0.1611)
+  /// ぶらんこの ひもの留め金（絵に対する割合。`Scripts/art/words.py` が出す値）と、ひもの長さ。
+  private static let swingHooks = [0.4269, 0.5731]
+  private static let swingHookY = 0.1689
+  private static let swingRopeLength = 0.5082
   /// すべりだいの すべる面の曲線（絵に対する割合。上が原点。`Scripts/art/words.py` が出す値）。
   private static let slideCurve: [(x: Double, y: Double)] = [
-    (0.3639, 0.3096), (0.5576, 0.3678), (0.6971, 0.6196), (0.8134, 0.763),
+    (0.3751, 0.3181), (0.5643, 0.3749), (0.7006, 0.6209), (0.8141, 0.761),
   ]
-  private static let slideEnd = (x: 0.88, y: 0.763)
+  private static let slideEnd = (x: 0.8671, y: 0.7704)
 
   /// 絵の中の位置（左上が原点・0〜1）を、ノードの中の座標にする。
   private static func local(_ node: SKSpriteNode, _ x: Double, _ yFromTop: Double) -> CGPoint {
@@ -154,26 +156,45 @@ enum PlayMotion {
 
   // MARK: ぶらんこ
 
-  /// ぶらんこ: 絵を「わく」だけにして、座るところ（ひも付き）を ゆらす。
+  /// ぶらんこ: 絵を「わく」だけにして、ひも2本と座るところを別に動かす。
+  /// ひもは、それぞれの留め金を中心に同じ角度で ふれ（平行のまま）、
+  /// 座るところは水平のまま、ひものさきと同じ弧をえがいて動く。
   private static func installSwing(_ node: SKSpriteNode, reduceMotion reduce: Bool, phase: Double) {
     guard
-      let frame = UIImage(named: "part-burango-frame"), let seat = UIImage(named: "part-burango-seat")
+      let frame = UIImage(named: "part-burango-frame"), let seat = UIImage(named: "part-burango-seat"),
+      let rope = UIImage(named: "part-burango-rope")
     else { return }
     node.texture = SKTexture(image: rasterized(frame, side: 320))
-    let part = SKSpriteNode(texture: SKTexture(image: rasterized(seat, side: 320)))
-    part.size = node.size
-    part.anchorPoint = CGPoint(x: swingPivot.x, y: 1 - swingPivot.yFromTop)
-    part.position = local(node, swingPivot.x, swingPivot.yFromTop)
-    part.zPosition = 0.1
-    part.name = "seat"
-    node.addChild(part)
-    let angle: CGFloat = reduce ? 0.03 : 0.2
-    let swing = SKAction.sequence([
-      .rotate(toAngle: angle, duration: reduce ? 3 : 1.2), .rotate(toAngle: -angle, duration: reduce ? 6 : 2.4),
-      .rotate(toAngle: 0, duration: reduce ? 3 : 1.2),
-    ])
-    swing.timingMode = .easeInEaseOut
-    part.run(.sequence([.wait(forDuration: phase), .repeatForever(swing)]))
+    let ropeTexture = SKTexture(image: rasterized(rope, side: 320))
+    // ひもの絵は左の留め金のぶんだけ。右のひもは、同じ絵を横にずらして使う。
+    for (index, hookX) in swingHooks.enumerated() {
+      let ropeNode = SKSpriteNode(texture: ropeTexture)
+      ropeNode.size = node.size
+      ropeNode.anchorPoint = CGPoint(x: swingHooks[0], y: 1 - swingHookY)
+      ropeNode.position = local(node, hookX, swingHookY)
+      ropeNode.zPosition = 0.1
+      ropeNode.name = "rope\(index)"
+      node.addChild(ropeNode)
+    }
+    let seatNode = SKSpriteNode(texture: SKTexture(image: rasterized(seat, side: 320)))
+    seatNode.size = node.size
+    seatNode.anchorPoint = node.anchorPoint
+    seatNode.position = .zero
+    seatNode.zPosition = 0.15
+    seatNode.name = "seat"
+    node.addChild(seatNode)
+    let amplitude = reduce ? 0.03 : 0.2
+    let period = reduce ? 12.0 : 4.8
+    let length = swingRopeLength * Double(node.size.height)
+    let drive = SKAction.customAction(withDuration: period) { seatNode, elapsed in
+      let theta = amplitude * sin(2 * Double.pi * Double(elapsed) / period)
+      guard let parent = seatNode.parent else { return }
+      for index in 0..<2 {
+        parent.childNode(withName: "rope\(index)")?.zRotation = CGFloat(theta)
+      }
+      seatNode.position = CGPoint(x: length * sin(theta), y: length * (1 - cos(theta)))
+    }
+    seatNode.run(.sequence([.wait(forDuration: phase), .repeatForever(drive)]))
   }
 
   // MARK: すべりだい

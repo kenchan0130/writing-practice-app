@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <path d="M256 154.1 L256 458.8" fill="none" stroke="#4a3428" stroke-width="34" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M256 154.1 L256 458.8" fill="none" stroke="#9aa5a8" stroke-width="16" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M218.4 458.8 L293.6 458.8" fill="none" stroke="#4a3428" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
-  <rect x="80.3" y="42.9" width="351.3" height="123.7" rx="59.1" fill="#4a5560" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M89.3 85.9 C89.3 62.6 110.8 51.9 130.5 51.9 L250.6 51.9" fill="none" stroke="#6c7884" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.8"/>
-  <circle cx="152" cy="104.8" r="37.6" fill="#58d36a" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
-  <circle cx="256" cy="104.8" r="37.6" fill="#5e5320" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
-  <circle cx="360" cy="104.8" r="37.6" fill="#6b2a28" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M134.1 93.1 C139.5 80.6 150.2 73.4 161 71.6" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
-  <path d="M109 64.4 C126.9 55.5 177.1 55.5 195.1 64.4" fill="none" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M213 64.4 C230.9 55.5 281.1 55.5 299 64.4" fill="none" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
-  <path d="M316.9 64.4 C334.9 55.5 385.1 55.5 403 64.4" fill="none" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M242.8 157.1 L269.2 157.1 L269.2 451.9 L242.8 451.9 Z M219 447.7 Q222.5 439.6 231.3 439.6 L280.7 439.6 Q289.5 439.6 293 447.7 L297.3 457.8 Q300.1 464.3 293.1 464.3 L218.9 464.3 Q211.9 464.3 214.7 457.8 Z" fill="#4a3428" stroke="#4a3428" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M242.8 157.1 L269.2 157.1 L269.2 451.9 L242.8 451.9 Z" fill="#9aa5a8"/>
+  <path d="M258.6 157.1 L268.4 157.1 L268.4 451.9 L258.6 451.9 Z" fill="#7f8a8e"/>
+  <path d="M219 447.7 Q222.5 439.6 231.3 439.6 L280.7 439.6 Q289.5 439.6 293 447.7 L297.3 457.8 Q300.1 464.3 293.1 464.3 L218.9 464.3 Q211.9 464.3 214.7 457.8 Z" fill="#7f8a8e"/>
+  <path d="M143.9 169.5 L368.1 169.5 C449.3 169.5 449.3 47.7 368.1 47.7 L143.9 47.7 C62.7 47.7 62.7 169.5 143.9 169.5 Z" fill="#4a3428" stroke="#4a3428" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M143.9 169.5 L368.1 169.5 C449.3 169.5 449.3 47.7 368.1 47.7 L143.9 47.7 C62.7 47.7 62.7 169.5 143.9 169.5 Z" fill="#4a5560"/>
+  <path d="M111.3 77.7 C121.8 61.8 137.7 56.5 155.4 56.5 L356.6 56.5 C374.3 56.5 390.2 61.8 400.7 77.7 C386.6 68.9 372.5 67.1 356.6 67.1 L155.4 67.1 C139.5 67.1 125.4 68.9 111.3 77.7 Z" fill="#66727e"/>
+  <path d="M185.8 108.6 C185.8 126.4 171.4 140.8 153.6 140.8 C135.8 140.8 121.4 126.4 121.4 108.6 C121.4 90.8 135.8 76.4 153.6 76.4 C171.4 76.4 185.8 90.8 185.8 108.6 Z M288.2 108.6 C288.2 126.4 273.8 140.8 256 140.8 C238.2 140.8 223.8 126.4 223.8 108.6 C223.8 90.8 238.2 76.4 256 76.4 C273.8 76.4 288.2 90.8 288.2 108.6 Z M390.6 108.6 C390.6 126.4 376.2 140.8 358.4 140.8 C340.6 140.8 326.2 126.4 326.2 108.6 C326.2 90.8 340.6 76.4 358.4 76.4 C376.2 76.4 390.6 90.8 390.6 108.6 Z" fill="#4a3428" stroke="#4a3428" stroke-width="22" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M185.8 108.6 C185.8 126.4 171.4 140.8 153.6 140.8 C135.8 140.8 121.4 126.4 121.4 108.6 C121.4 90.8 135.8 76.4 153.6 76.4 C171.4 76.4 185.8 90.8 185.8 108.6 Z" fill="#58d36a"/>
+  <path d="M288.2 108.6 C288.2 126.4 273.8 140.8 256 140.8 C238.2 140.8 223.8 126.4 223.8 108.6 C223.8 90.8 238.2 76.4 256 76.4 C273.8 76.4 288.2 90.8 288.2 108.6 Z" fill="#5e5320"/>
+  <path d="M390.6 108.6 C390.6 126.4 376.2 140.8 358.4 140.8 C340.6 140.8 326.2 126.4 326.2 108.6 C326.2 90.8 340.6 76.4 358.4 76.4 C376.2 76.4 390.6 90.8 390.6 108.6 Z" fill="#6b2a28"/>
+  <path d="M134.2 102.4 C137.7 90.1 146.6 83 157.1 81.2" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
 </svg>
