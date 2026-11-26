@@ -3,6 +3,8 @@ import XCTest
 /// UI テストの共通の土台。`-uiTesting YES` で動きと待ち時間を縮めて起動する（D171）。
 class MojimachiUITestCase: XCTestCase {
   var app: XCUIApplication!
+  /// 起動の引数に足すもの（テストごとに変える）。
+  var extraLaunchArguments: [String] { [] }
 
   @MainActor override func setUp() async throws {
     continueAfterFailure = false
@@ -10,7 +12,7 @@ class MojimachiUITestCase: XCTestCase {
     app.launchArguments = [
       "-inMemoryStore", "YES", "-localOnlyStore", "YES", "-penColor", "blue", "-fakePurchases",
       "none", "-skipOnboarding", "YES", "-uiTesting", "YES",
-    ]
+    ] + extraLaunchArguments
     app.launch()
   }
 

@@ -52,6 +52,10 @@ lint: ## swift-format で書式を確かめる
 judge-report: ## 判定の効き方を、わざと崩した線で表にする（D79・D107。正解の付いた線が集まったらそれも足す）
 	swift run --package-path $(PACKAGES) JudgeReport Content/Packs/hira
 
+.PHONY: shiritori-report
+shiritori-report: ## しりとりの字ごとのことばの数と、行き止まりの字を出す（D70）
+	swift run --package-path $(PACKAGES) ShiritoriReport
+
 .PHONY: content-check
 content-check: ## 文字とことばのデータを確かめる（D66・D106・D114。ことばの決まり D68・D70・D75 はことばのデータができたら足す）
 	swift test --package-path $(PACKAGES) --filter ContentModelTests

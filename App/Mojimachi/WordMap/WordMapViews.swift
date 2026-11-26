@@ -1,4 +1,5 @@
 import ContentModel
+import PracticeKit
 import SwiftUI
 
 /// ことばの入口の3つの画面（まちの地図 → テーマ → ことばのカード。D53・D67・D101・D166）。
@@ -132,6 +133,8 @@ private struct Heading: View {
 /// 場所を選ぶ（まちの地図）。絵のあることばがある場所だけを出す。
 struct PlacesView: View {
   var onSelect: (Place) -> Void
+  /// 下の帯の「しりとり」（D35・D166）。
+  var onShiritori: () -> Void = {}
 
   var body: some View {
     let places = WordArt.index.places
@@ -152,6 +155,52 @@ struct PlacesView: View {
         .padding(.bottom, 24)
       }
     }
+    .safeAreaInset(edge: .bottom) { WordMapBand(onShiritori: onShiritori) }
+  }
+}
+
+/// まちの地図の下の固定の帯（D35・D166）。ことばに出会う遊びの入口を並べる。
+private struct WordMapBand: View {
+  var onShiritori: () -> Void
+
+  var body: some View {
+    HStack(spacing: 24) {
+      BandButton(
+        title: "しりとり", character: ProgressStore.shared.mainCharacter, color: Theme.pink,
+        action: onShiritori)
+    }
+    .padding(.horizontal, 32)
+    .padding(.vertical, 12)
+    .frame(maxWidth: .infinity)
+    .background(.white.opacity(0.7))
+  }
+}
+
+/// 帯の大きなボタン（高さ 104pt をこえる。D101）。
+private struct BandButton: View {
+  var title: String
+  var character: MainCharacter
+  var color: Color
+  var action: () -> Void
+
+  var body: some View {
+    Button {
+      SoundPlayer.shared.play(.tap)
+      action()
+    } label: {
+      HStack(spacing: 16) {
+        MainCharacterArt(character: character, size: 80, pose: .wave)
+        Text(title).font(.ui(38, bold: true))
+      }
+      .foregroundStyle(.white)
+      .padding(.horizontal, 36)
+      .frame(maxWidth: 420, minHeight: 112)
+      .frame(maxWidth: .infinity)
+      .background(color.gradient, in: .rect(cornerRadius: Theme.Radius.button))
+      .softShadow()
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(title)
   }
 }
 

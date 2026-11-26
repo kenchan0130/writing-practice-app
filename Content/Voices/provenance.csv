@@ -5,6 +5,13 @@ voice_line_onboarding_done.caf,できたね！ まちに きたよ,,猫使ビィ
 voice_line_onboarding_hello.caf,こんにちは！ いっしょに かこうね,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-19
 voice_line_locked.caf,この もじで あそびたいときは、おとなのひとに おねがいしてね,,猫使ビィ,59（おちつき）,0.26.2,2026-11-19
 voice_line_lock_thanks.caf,おねがい できたよ,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-19
+voice_line_shiritori_start.caf,しりとり しよう！,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-27
+voice_line_shiritori_kore.caf,これ！,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-27
+voice_line_shiritori_your_turn.caf,つぎは どれに する？,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-27
+voice_line_shiritori_give_up.caf,うーん……まいった！,うーん、まいった！,猫使ビィ,58（ノーマル）,0.26.2,2026-11-27
+voice_line_shiritori_win.caf,すごい！ かったね！,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-27
+voice_line_shiritori_end.caf,きょうは ここまで！ たのしかったね,,猫使ビィ,59（おちつき）,0.26.2,2026-11-27
+voice_line_today_word.caf,きょうの ことばは これ！,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-27
 voice_word_sori.caf,そり,,猫使ビィ,59（おちつき）,0.26.2,2026-11-19
 voice_word_kuruma.caf,くるま,,猫使ビィ,59（おちつき）,0.26.2,2026-11-19
 voice_word_fune.caf,ふね,,猫使ビィ,59（おちつき）,0.26.2,2026-11-19

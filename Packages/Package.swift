@@ -50,6 +50,8 @@ let package = Package(
     .testTarget(name: "SoundKitTests", dependencies: ["SoundKit", "ContentModel"]),
     // 判定の効き方の表を出す（`make judge-report`）。
     .executableTarget(name: "JudgeReport", dependencies: ["JudgeKit", "ContentModel"]),
+    // しりとりの字ごとのことばの数と行き止まりを出す（`make shiritori-report`。D70）。
+    .executableTarget(name: "ShiritoriReport", dependencies: ["PracticeKit", "ContentModel"]),
   ],
   swiftLanguageModes: [.v6]
 )
