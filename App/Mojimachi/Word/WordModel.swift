@@ -84,6 +84,8 @@ final class WordModel {
 
   /// まちに置く（D53 の「動きまわる」型の試作）。
   func placeInTown() {
+    // 空のことばは まちに置かない。書いた記録（WordRecord）から、まちの空が しばらく変わる（D172）。
+    guard kind != .sky else { return }
     store.place(PlacedObject(word: word, symbol: asset, kind: kind))
   }
 

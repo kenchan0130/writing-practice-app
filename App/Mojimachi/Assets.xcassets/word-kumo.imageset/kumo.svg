@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <circle cx="120.3" cy="295.1" r="75.9" fill="#ffffff" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="219.2" cy="226.1" r="101.2" fill="#ffffff" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="334.2" cy="265.2" r="85.1" fill="#ffffff" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="407.9" cy="325" r="59.8" fill="#ffffff" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="97.2" y="295.1" width="333.6" height="92" rx="46" fill="#ffffff" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="120.3" cy="295.1" r="69.6" fill="#ffffff"/>
+  <circle cx="219.2" cy="226.1" r="94.9" fill="#ffffff"/>
+  <circle cx="334.2" cy="265.2" r="78.8" fill="#ffffff"/>
+  <circle cx="407.9" cy="325" r="53.5" fill="#ffffff"/>
+  <rect x="103" y="300.9" width="322.1" height="80.5" rx="40.3" fill="#ffffff"/>
+  <path d="M131.8 371 C235.3 384.8 292.8 384.8 396.3 371" fill="none" stroke="#cfe6f7" stroke-width="10" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.9"/>
+  <ellipse cx="191.6" cy="292.8" rx="17.3" ry="20.7" fill="#3b2f2a"/>
+  <circle cx="196.2" cy="285.9" r="6.6" fill="#ffffff"/>
+  <ellipse cx="143.3" cy="327.3" rx="16.1" ry="10.4" fill="#ff9aa8" fill-opacity="0.7"/>
+  <ellipse cx="306.6" cy="292.8" rx="17.3" ry="20.7" fill="#3b2f2a"/>
+  <circle cx="311.2" cy="285.9" r="6.6" fill="#ffffff"/>
+  <ellipse cx="354.9" cy="327.3" rx="16.1" ry="10.4" fill="#ff9aa8" fill-opacity="0.7"/>
+  <path d="M235.3 318.1 C243.3 329.6 254.8 329.6 262.9 318.1" fill="none" stroke="#4a3428" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M143.3 256 C150.2 230.7 168.6 214.6 191.6 210" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>

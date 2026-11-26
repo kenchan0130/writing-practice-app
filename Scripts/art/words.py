@@ -1944,6 +1944,234 @@ def otamajakushi():
     a.shine("M168 170 C184 138 216 118 252 114")
     return a
 
+# --------------------------------------------------------------------- sky --
+import math
+
+
+def sky_face(a, cx, cy, gap=44, r=14, blush_dx=None, mouth=True, sleepy=False):
+    """Dot eyes (or closed sleepy eyes), smile and cheeks for the sky things."""
+    for s in (-1, 1):
+        x = cx + s * gap
+        if sleepy:
+            a.path(f"M{x-r} {cy} C{x-r*0.5} {cy+r*1.1} {x+r*0.5} {cy+r*1.1} {x+r} {cy}", sw=7)
+        else:
+            a.ellipse(x, cy, r, r * 1.2, EYE, sw=0, stroke="none")
+            a.dot(x + 4, cy - 6, r * 0.38, "#ffffff")
+        a.ellipse(cx + s * (blush_dx or gap + 38), cy + 30, 14, 9, CHEEK, sw=0, stroke="none",
+                  **{"fill-opacity": "0.7"})
+    if mouth:
+        a.path(f"M{cx-12} {cy+22} C{cx-5} {cy+32} {cx+5} {cy+32} {cx+12} {cy+22}", sw=7)
+
+
+def cloud_shape(a, parts, base, fill, shade=None):
+    """Outlined cloud from circles (cx, cy, r) and a flat-bottomed base (x0, x1, ytop, ybot)."""
+    x0, x1, yt, yb = base
+    for cx, cy, r in parts:
+        a.circle(cx, cy, r, fill)
+    a.rect(x0, yt, x1 - x0, yb - yt, fill, rx=(yb - yt) / 2)
+    # cover inner outlines
+    for cx, cy, r in parts:
+        a.circle(cx, cy, r - 5.5, fill, sw=0, stroke="none")
+    a.rect(x0 + 5, yt + 5, x1 - x0 - 10, yb - yt - 10, fill, rx=(yb - yt) / 2 - 5, sw=0, stroke="none")
+    if shade:
+        a.path(f"M{x0+30} {yb-14} C{x0+120} {yb-2} {x1-120} {yb-2} {x1-30} {yb-14}", stroke=shade, sw=10,
+               **{"stroke-opacity": "0.9"})
+
+
+CLOUD_PARTS = [(150, 270, 66), (236, 210, 88), (336, 244, 74), (400, 296, 52)]
+CLOUD_BASE = (130, 420, 270, 350)
+
+
+@word
+def kumo():
+    a = Art()
+    cloud_shape(a, CLOUD_PARTS, CLOUD_BASE, "#ffffff", shade="#cfe6f7")
+    sky_face(a, 262, 268, gap=50, r=15, blush_dx=92)
+    a.shine("M170 236 C176 214 192 200 212 196")
+    return a
+
+
+@word
+def niji():
+    a = Art()
+    cx, cy = 256, 400
+    bands = [(190, "#ee5b52"), (158, "#f7a94b"), (126, "#f6d36b"), (94, "#7cc36a"), (62, "#4fa8e0")]
+    mid = 126
+    a.path(f"M{cx-mid} {cy} A{mid} {mid} 0 0 1 {cx+mid} {cy}", sw=(190 - 62) + 32 + 11, stroke_linecap="butt")
+    for r, col in bands:
+        a.path(f"M{cx-r} {cy} A{r} {r} 0 0 1 {cx+r} {cy}", stroke=col, sw=32, stroke_linecap="butt")
+    for s in (-1, 1):
+        x = cx + s * 126
+        cloud_shape(a, [(x - 50, 392, 40), (x, 366, 54), (x + 52, 392, 40)],
+                    (x - 90, x + 92, 392, 440), "#ffffff", shade="#cfe6f7")
+    return a
+
+
+@word
+def ame():
+    a = Art()
+    parts = [(160, 190, 58), (240, 140, 78), (330, 168, 66), (388, 210, 46)]
+    cloud_shape(a, parts, (140, 410, 190, 250), "#c9d9ea", shade="#a9bed4")
+    sky_face(a, 262, 176, gap=46, r=14, blush_dx=86)
+    def drop(x, y):
+        return (f"M{x} {y} C{x-8} {y+22} {x-24} {y+40} {x-24} {y+60} C{x-24} {y+84} {x-8} {y+98} {x} {y+98} "
+                f"C{x+8} {y+98} {x+24} {y+84} {x+24} {y+60} C{x+24} {y+40} {x+8} {y+22} {x} {y} Z")
+    for x, y in ((190, 290), (270, 320), (350, 290)):
+        a.path(drop(x, y), fill="#5ab4ea", sw=9)
+        a.path(f"M{x-10} {y+52} C{x-14} {y+64} {x-12} {y+72} {x-6} {y+78}", stroke="#ffffff", sw=6,
+               **{"stroke-opacity": "0.7"})
+    return a
+
+
+@word
+def yuki():
+    a = Art()
+    ICE, ICE_L = "#a9d8f5", "#e6f4fd"
+    for ang in (90, 150, 210, 270, 330, 30):
+        t = math.radians(ang)
+        dx, dy = math.cos(t), math.sin(t)
+        x1, y1 = 256 + dx * 215, 256 + dy * 215
+        a.tube(f"M256 256 L{x1:.1f} {y1:.1f}", ICE, 36, 16)
+        # little branches
+        for k in (0.62, 0.84):
+            bx, by = 256 + dx * 215 * k, 256 + dy * 215 * k
+            for sgn in (-1, 1):
+                t2 = t + sgn * math.radians(50)
+                ex, ey = bx + math.cos(t2) * 46, by + math.sin(t2) * 46
+                a.tube(f"M{bx:.1f} {by:.1f} L{ex:.1f} {ey:.1f}", ICE, 28, 12)
+    a.circle(256, 256, 86, "#ffffff")
+    a.circle(256, 256, 70, ICE_L, sw=0, stroke="none")
+    sky_face(a, 256, 246, gap=32, r=11, blush_dx=58)
+    a.shine("M206 220 C212 200 226 188 244 184")
+    return a
+
+
+@word
+def kaminari():
+    a = Art()
+    parts = [(150, 190, 56), (232, 140, 76), (326, 164, 66), (388, 206, 46)]
+    cloud_shape(a, parts, (130, 410, 186, 244), "#8c9db3", shade="#6f8099")
+    sky_face(a, 258, 172, gap=46, r=14, blush_dx=86)
+    bolt = "M290 232 L214 330 L262 330 L226 454 L330 308 L280 308 L324 232 Z"
+    a.path(bolt, fill="#ffd84d", sw=11)
+    a.path("M286 246 L238 316", stroke="#fff3b0", sw=7)
+    return a
+
+
+@word
+def kaze():
+    a = Art()
+    # blowing face
+    a.circle(190, 250, 120, "#e3f2fc")
+    a.circle(190, 250, 108, "#e3f2fc", sw=0, stroke="none")
+    for s in (-1, 1):
+        x = 190 + s * 46
+        a.path(f"M{x-16} 232 C{x-8} 220 {x+8} 220 {x+16} 232", sw=8)
+        a.ellipse(190 + s * 86, 282, 18, 11, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
+    a.ellipse(190, 290, 17, 21, "#d9645e", sw=8, stroke=O)
+    a.shine("M118 214 C128 186 150 168 176 162")
+    # swirling wind lines to the right
+    W1, W2 = "#8ec9f0", "#bfe3fa"
+    a.tube("M300 214 C356 204 400 204 428 190 C458 172 440 140 414 150 C396 158 404 178 420 176", W1, 30, 14)
+    a.tube("M312 262 C380 262 430 270 454 288 C478 306 456 338 428 326 C408 316 416 296 432 300", W2, 30, 14)
+    a.tube("M296 312 C340 322 372 340 380 366 C386 392 358 404 344 388", W1, 28, 12)
+    return a
+
+
+@word
+def taiyou():
+    a = Art()
+    cx = cy = 256
+    for i in range(12):
+        t = math.radians(i * 30)
+        ux, uy = math.cos(t), math.sin(t)
+        px, py = -uy, ux
+        b = 128
+        tip = 218
+        pts = (f"M{cx+ux*b+px*30:.1f} {cy+uy*b+py*30:.1f} L{cx+ux*tip:.1f} {cy+uy*tip:.1f} "
+               f"L{cx+ux*b-px*30:.1f} {cy+uy*b-py*30:.1f} Z")
+        a.path(pts, fill="#ffb347", sw=9)
+    a.circle(cx, cy, 124, "#ffd84d")
+    a.circle(cx, cy, 112, "#ffd84d", sw=0, stroke="none")
+    sky_face(a, cx, cy - 8, gap=48, r=15, blush_dx=88)
+    a.shine("M168 200 C180 172 206 154 238 148")
+    return a
+
+
+def star_path(cx, cy, ro, ri, rot=-90):
+    pts = []
+    for i in range(10):
+        t = math.radians(rot + i * 36)
+        r = ro if i % 2 == 0 else ri
+        pts.append((cx + math.cos(t) * r, cy + math.sin(t) * r))
+    return "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z"
+
+
+@word
+def hoshi():
+    a = Art()
+    a.path(star_path(256, 268, 220, 124), fill="#ffd84d", sw=14)
+    sky_face(a, 256, 270, gap=44, r=14, blush_dx=82)
+    a.shine("M206 160 C214 138 232 120 252 112")
+    return a
+
+
+@word
+def tsuki():
+    a = Art()
+    R1, c1 = 190, (240, 256)
+    R2, c2 = 150, (330, 226)
+    dx, dy = c2[0] - c1[0], c2[1] - c1[1]
+    d = math.hypot(dx, dy)
+    aa = (R1 * R1 - R2 * R2 + d * d) / (2 * d)
+    h = math.sqrt(R1 * R1 - aa * aa)
+    mx, my = c1[0] + aa * dx / d, c1[1] + aa * dy / d
+    p1 = (mx + h * dy / d, my - h * dx / d)
+    p2 = (mx - h * dy / d, my + h * dx / d)
+    # outer arc the long way round the left, then back along the inner circle
+    top, bot = (p1, p2) if p1[1] < p2[1] else (p2, p1)
+    path = (f"M{top[0]:.1f} {top[1]:.1f} A{R1} {R1} 0 1 0 {bot[0]:.1f} {bot[1]:.1f} "
+            f"A{R2} {R2} 0 0 1 {top[0]:.1f} {top[1]:.1f} Z")
+    a.circle(c1[0], c1[1], R1 + 7, "none", sw=0, stroke="none")  # keeps the whole outer arc inside the fit
+    a.path(path, fill="#ffe9a0", sw=14)
+    a.circle(130, 330, 20, "#f4d27a", sw=0, stroke="none")
+    a.circle(188, 140, 14, "#f4d27a", sw=0, stroke="none")
+    sky_face(a, 150, 250, gap=30, r=12, blush_dx=54, sleepy=True)
+    a.path(star_path(412, 120, 30, 15), fill="#ffd84d", sw=8)
+    a.path(star_path(448, 330, 22, 11), fill="#ffd84d", sw=8)
+    a.shine("M92 220 C94 180 110 150 138 130")
+    return a
+
+
+@word
+def uchuujin():
+    a = Art()
+    G, GD = "#93d86f", "#7cc65a"
+    # antennae
+    for s in (-1, 1):
+        a.path(f"M{256+s*60} 130 C{256+s*84} 90 {256+s*100} 70 {256+s*112} 52", sw=9)
+        a.circle(256 + s * 114, 46, 20, "#ffd84d", sw=9)
+    # little body
+    a.path("M196 372 C196 350 220 342 256 342 C292 342 316 350 316 372 L324 430 C324 446 314 452 300 452 "
+           "L212 452 C198 452 188 446 188 430 Z", fill="#a9b6f2")
+    a.path("M216 372 L204 430 M296 372 L308 430", stroke="#8695dc", sw=7)
+    for s in (-1, 1):
+        a.circle(256 + s * 70, 400, 22, G, sw=9)
+    # big head
+    a.path("M256 100 C370 100 424 170 420 236 C416 306 340 354 256 354 C172 354 96 306 92 236 "
+           "C88 170 142 100 256 100 Z", fill=G)
+    # big glossy eyes
+    for s in (-1, 1):
+        a.path(f"M{256+s*30} 200 C{256+s*58} 184 {256+s*118} 196 {256+s*128} 250 "
+               f"C{256+s*130} 284 {256+s*84} 292 {256+s*56} 270 C{256+s*34} 252 {256+s*26} 222 {256+s*30} 200 Z",
+               fill=EYE, sw=0, stroke="none")
+        a.ellipse(256 + s * 92, 226, 14, 18, "#ffffff", sw=0, stroke="none")
+        a.dot(256 + s * 66, 262, 7, "#ffffff")
+        a.ellipse(256 + s * 126, 296, 17, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
+    a.path("M232 302 C244 318 268 318 280 302", sw=8)
+    a.shine("M138 190 C150 160 180 138 218 130")
+    return a
+
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(W)
