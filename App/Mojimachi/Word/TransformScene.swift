@@ -1,4 +1,5 @@
 import ContentModel
+import PracticeKit
 import SpriteKit
 import UIKit
 
@@ -98,6 +99,7 @@ final class TransformScene: SKScene {
     case .flyer: fly(object)
     case .scenery: settle(object)
     case .swimmer: swim(object)
+    case .sky: rise(object)
     }
   }
 
@@ -241,6 +243,36 @@ final class TransformScene: SKScene {
         .move(to: CGPoint(x: -size.width * 0.2, y: size.height * 0.8), duration: 0),
         back, .repeatForever(hover),
       ]), withKey: "fly")
+    run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 空を変える物の型: 背景の空が、そのことばの空に変わり、絵が空へふわっと浮かびあがる（D172）。
+  private func rise(_ object: SKNode) {
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    let effect = SkyWeather.effect(for: word) ?? .cloudy
+    let layers = SkyFX.make(effect, size: size, reduceMotion: reduce, showsMain: false)
+    // 絵と粒より奥。空は ゆっくり うつりかわる。
+    layers.back.position = CGPoint(x: size.width / 2, y: size.height / 2)
+    layers.back.zPosition = -50
+    layers.back.alpha = 0
+    addChild(layers.back)
+    layers.back.run(.fadeIn(withDuration: reduce ? 0.8 : 1.0))
+    object.zPosition = 10
+    // 絵が少し上へ昇って、小さくなって、空にういている。
+    let rise = SKAction.group([
+      .moveBy(x: 0, y: size.height * 0.08, duration: reduce ? 0.6 : 1.1),
+      .scale(to: 0.85, duration: reduce ? 0.6 : 1.1),
+    ])
+    rise.timingMode = .easeOut
+    if reduce {
+      object.run(rise)
+    } else {
+      let bob = SKAction.sequence([
+        .moveBy(x: 0, y: 10, duration: 1.0), .moveBy(x: 0, y: -10, duration: 1.0),
+      ])
+      bob.timingMode = .easeInEaseOut
+      object.run(.sequence([rise, .repeatForever(bob)]))
+    }
     run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
   }
 

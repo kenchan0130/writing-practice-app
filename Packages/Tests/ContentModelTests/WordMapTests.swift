@@ -48,14 +48,14 @@ struct WordMapTests {
     }
   }
 
-  @Test("78語は、すべてどれかのテーマに入っている")
+  @Test("88語は、すべてどれかのテーマに入っている")
   func everyWordHasATheme() {
     for entry in WordCatalog.all {
       #expect(WordMap.themes.contains { $0.words.contains(entry.text) }, "\(entry.text)")
     }
   }
 
-  @Test("78語の割りふり")
+  @Test("88語の割りふり")
   func assignment() {
     func theme(_ id: String) -> [String] { WordMap.theme(id: id)?.words ?? [] }
     #expect(Set(theme("norimono")) == ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ"])
@@ -78,16 +78,20 @@ struct WordMapTests {
       Set(theme("umi-ikimono"))
         == ["たこ", "いか", "かに", "かめ", "くじら", "くらげ", "いるか", "さかな", "ひとで"])
     #expect(Set(theme("kawa-ikimono")) == ["かえる", "めだか", "ざりがに", "おたまじゃくし"])
+    // 空のことば（D172）。ほし・つきは、そら・てんきと うちゅうの両方に入る。
+    #expect(
+      Set(theme("sora-tenki")) == ["くも", "にじ", "あめ", "ゆき", "かみなり", "かぜ", "ほし", "つき"])
+    #expect(Set(theme("uchu")) == ["たいよう", "ほし", "つき", "うちゅうじん"])
   }
 
   // MARK: - 出し分け
 
-  @Test("今の78語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・うみ・かわ・おみせが出る")
+  @Test("今の88語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・うみ・かわ・おみせ・うちゅうが出る")
   func todayPlaces() {
     let index = WordMapIndex { WordCatalog.entry(for: $0) != nil }
     #expect(
       index.places.map(\.id) == [
-        "eki", "michi", "sora", "dobutsuen", "makiba", "mori", "ie", "umi", "kawa", "omise",
+        "eki", "michi", "sora", "dobutsuen", "makiba", "mori", "ie", "umi", "kawa", "omise", "uchu",
       ])
     #expect(
       index.themes(in: WordMap.place(id: "ie")!).map(\.id) == [
@@ -114,7 +118,15 @@ struct WordMapTests {
     #expect(
       index.entrance(of: WordMap.place(id: "umi")!)
         == .words(WordMap.theme(id: "umi-ikimono")!))
-    #expect(index.entrance(of: WordMap.place(id: "uchu")!) == nil)
+    // うちゅうも、テーマが1つだけ（D172）。こうえんは、まだことばがない。
+    #expect(
+      index.entrance(of: WordMap.place(id: "uchu")!) == .words(WordMap.theme(id: "uchu")!))
+    #expect(index.entrance(of: WordMap.place(id: "koen")!) == nil)
+    // そらは、テーマが3つ（そらを とぶ もの・とり・そら・てんき）。
+    #expect(
+      index.themes(in: WordMap.place(id: "sora")!).map(\.id) == [
+        "sora-tobu-mono", "tori", "sora-tenki",
+      ])
   }
 
   @Test("絵のないことばは数えない。テーマも場所も、絵のあることばが1つあれば出る")

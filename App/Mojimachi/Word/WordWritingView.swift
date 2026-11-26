@@ -161,6 +161,7 @@ struct WordWritingView: View {
         scene: scene(for: proxy.size), options: [.allowsTransparency]
       )
       .background(.white.opacity(0.85), in: .rect(cornerRadius: 12))
+      .clipShape(.rect(cornerRadius: 12))
     }
   }
 

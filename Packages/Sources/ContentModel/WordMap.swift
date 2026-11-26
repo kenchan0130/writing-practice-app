@@ -102,7 +102,9 @@ public enum WordMap {
     WordTheme("oshare-komono", "おしゃれ こもの", in: "ie", row: .closet, words: ["くつ", "ぼうし", "くつした"]),
     WordTheme("oshigoto", "おしごと", in: "michi"),
     WordTheme("henshin", "へんしん", in: "ie", row: .closet),
-    WordTheme("sora-tenki", "そら・てんき", in: "sora"),
+    WordTheme(
+      "sora-tenki", "そら・てんき", in: "sora",
+      words: ["くも", "にじ", "あめ", "ゆき", "かみなり", "かぜ", "ほし", "つき"]),
     WordTheme("shizen", "しぜん", in: "kawa"),
     WordTheme("hana", "はな", in: "mori", words: ["さくら", "ひまわり", "たんぽぽ"]),
     WordTheme("ki-kusa-kinoko", "き・くさ・きのこ", in: "mori"),
@@ -117,7 +119,7 @@ public enum WordMap {
     WordTheme("bunbogu", "ぶんぼうぐ", in: "omise"),
     WordTheme("tatemono", "たてもの", in: "eki"),
     WordTheme("machi-no-mono", "まちの もの", in: "michi"),
-    WordTheme("uchu", "うちゅう", in: "uchu"),
+    WordTheme("uchu", "うちゅう", in: "uchu", words: ["たいよう", "ほし", "つき", "うちゅうじん"]),
     WordTheme("haru-natsu-gyoji", "はる・なつの ぎょうじ", in: "kisetsu"),
     WordTheme("aki-fuyu-gyoji", "あき・ふゆの ぎょうじ", in: "kisetsu"),
   ]

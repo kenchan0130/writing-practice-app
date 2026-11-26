@@ -21,6 +21,11 @@ final class TownScene: SKScene {
   private var sceneryObjects: [PlacedObject] = []
   /// 水べの生きもの（古い順。上限は `TownLayout.maxSwimmers`。D170）。
   private var swimObjects: [PlacedObject] = []
+  /// 空のことばを書いた記録と、いま出している空（D172）。
+  private var skyRecords: [SkyRecord] = []
+  private var skyStart: Date?
+  private var shownSky: SkyForecast?
+  private var skyNodes: [SKNode] = []
   private var worldWidth: CGFloat = 0
   private let cameraNode = SKCameraNode()
   private var panStartX: CGFloat = 0
@@ -64,7 +69,9 @@ final class TownScene: SKScene {
   func show(_ all: [PlacedObject]) {
     if layer == .town {
       let roaming = TownLayout.shown(
-        all.filter { $0.kind != .clothes && $0.kind != .scenery && $0.kind != .swimmer })
+        all.filter {
+          $0.kind != .clothes && $0.kind != .scenery && $0.kind != .swimmer && $0.kind != .sky
+        })
       let scenery = TownLayout.shownScenery(all.filter { $0.kind == .scenery })
       let swimmers = TownLayout.shownSwimmers(all.filter { $0.kind == .swimmer })
       guard
@@ -110,6 +117,8 @@ final class TownScene: SKScene {
     guard size.width > 0, size.height > 0 else { return }
     childNode(withName: "world")?.removeFromParent()
     cameraNode.removeAllChildren()
+    skyNodes = []
+    shownSky = nil
     let h = size.height
     let objectSize = unit * 0.23
     let plan = TownLayout.make(
@@ -140,13 +149,70 @@ final class TownScene: SKScene {
     for (object, slot) in zip(townObjects, plan.slots) {
       world.addChild(makeObject(object, slot: slot, objectSize: objectSize))
     }
+    applySky()
+  }
+
+  // MARK: 空が変わる（D172）
+
+  /// 空のことばを書いた記録を渡す。10分の間に書いたことばの空が、40秒だけ見える（`SkyWeather`）。
+  func setSky(_ records: [SkyRecord]) {
+    skyRecords = records
+    guard layer == .town else { return }
+    applySky()
+  }
+
+  private func applySky() {
+    guard layer == .town, size.width > 0, size.height > 0 else { return }
+    guard
+      let forecast = SkyWeather.forecast(records: skyRecords, now: Date(), shownSince: skyStart)
+    else {
+      removeSky()
+      return
+    }
+    // 同じ空がもう出ているなら、そのまま。
+    if let shown = shownSky, shown.effect == forecast.effect, shown.since == forecast.since,
+      !skyNodes.isEmpty
+    {
+      return
+    }
+    removeSky()
+    skyStart = forecast.since
+    shownSky = forecast
+    let layers = SkyFX.make(forecast.effect, size: size, reduceMotion: reduceMotion)
+    // 空・太陽・雲（z -100〜-85）をおおい、丘（-80）より奥に置く。うすい色は、物の手前（100）。
+    layers.back.zPosition = -84
+    var nodes: [SKNode] = [layers.back]
+    cameraNode.addChild(layers.back)
+    if let front = layers.front {
+      front.zPosition = 100
+      cameraNode.addChild(front)
+      nodes.append(front)
+    }
+    skyNodes = nodes
+    let fadeIn = min(2, forecast.remaining)
+    let hold = max(forecast.remaining - fadeIn - SkyWeather.fade, 0)
+    for node in nodes {
+      let target = node.alpha
+      node.alpha = 0
+      node.run(
+        .sequence([
+          .fadeAlpha(to: target, duration: fadeIn), .wait(forDuration: hold),
+          .fadeOut(withDuration: SkyWeather.fade), .removeFromParent(),
+        ]))
+    }
+  }
+
+  private func removeSky() {
+    for node in skyNodes { node.removeFromParent() }
+    skyNodes = []
+    shownSky = nil
   }
 
   private static func role(of kind: WordKind) -> TownRole {
     switch kind {
     case .vehicle: .vehicle
     case .flyer: .flyer
-    case .animal, .clothes, .scenery, .swimmer: .animal
+    case .animal, .clothes, .scenery, .swimmer, .sky: .animal
     }
   }
 

@@ -1,3 +1,4 @@
+import PracticeKit
 import SpriteKit
 import SwiftUI
 
@@ -17,6 +18,17 @@ struct TownView: View {
     return name.isEmpty ? (scene.layer == .closet ? "わたしの クローゼット" : "わたしの まち") : "\(name)の \(base)"
   }
 
+  /// 空のことばを書いた記録（まちの空が しばらく変わる。D172）。
+  private var skyRecords: [SkyRecord] {
+    #if DEBUG
+      // 確かめ用: `-skyWord くも` で、そのことばを いま書いたことにする。
+      if let word = UserDefaults.standard.string(forKey: "skyWord") {
+        return [SkyRecord(word: word, date: Date())]
+      }
+    #endif
+    return store.log.currentWords.map { SkyRecord(word: $0.word, date: $0.date) }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(title).font(.learning(40)).foregroundStyle(Theme.ink)
@@ -30,8 +42,10 @@ struct TownView: View {
               debugSeedTown(store)
             #endif
             scene.show(store.placed)
+            scene.setSky(skyRecords)
           }
           .onChange(of: store.placed) { _, placed in scene.show(placed) }
+          .onChange(of: store.log.words) { scene.setSky(skyRecords) }
       }
     }
     .padding(32)
