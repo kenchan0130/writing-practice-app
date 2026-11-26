@@ -10,7 +10,7 @@ YEL = "#f6d36b"
 CHEEK = "#ff9aa8"
 MOUTH = "#f28a9b"
 ZCOL = "#9fb3e6"
-POSES = ("normal", "wave", "happy", "sleep")
+POSES = ("normal", "wave", "happy", "sleep", "blink")
 
 
 def sparkle(a, cx, cy, r):
@@ -30,7 +30,7 @@ def face(a, pose, cx, cy, gap, mouth="smile", dx_blush=None):
         for s in (-1, 1):
             x = cx + s * gap
             a.path(f"M{x-14} {cy+6} C{x-8} {cy-12} {x+8} {cy-12} {x+14} {cy+6}", sw=8)
-    elif pose == "sleep":
+    elif pose in ("sleep", "blink"):  # blink: eyes shut for a moment, mouth still smiling (D175)
         for s in (-1, 1):
             x = cx + s * gap
             a.path(f"M{x-14} {cy} C{x-8} {cy+12} {x+8} {cy+12} {x+14} {cy}", sw=8)
@@ -52,7 +52,7 @@ def face(a, pose, cx, cy, gap, mouth="smile", dx_blush=None):
 
 def arms(a, pose, col, lx, ly, rx, ry):
     """Stubby arms from shoulder points (lx,ly) left and (rx,ry) right."""
-    if pose in ("normal", "sleep"):
+    if pose in ("normal", "sleep", "blink"):
         L, R = (lx - 22, ly + 30), (rx + 22, ry + 30)
     elif pose == "wave":
         L, R = (lx - 22, ly + 30), (rx + 40, ry - 54)

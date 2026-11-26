@@ -8,10 +8,10 @@ import UIKit
 @Suite("主人公の絵")
 @MainActor
 struct MainCharacterArtTests {
-  @Test("3人 × 4ポーズ すべてに、色のある絵がある")
+  @Test("3人 × 5ポーズ すべてに、色のある絵がある")
   func everyCharacterAndPoseHasArt() throws {
     #expect(MainCharacter.allCases.count == 3)
-    #expect(CharacterPose.allCases.count == 4)
+    #expect(CharacterPose.allCases.count == 5)
     for character in MainCharacter.allCases {
       for pose in CharacterPose.allCases {
         let name = character.assetName(pose)

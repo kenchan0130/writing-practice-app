@@ -4,7 +4,8 @@ import SwiftUI
 /// 主人公3人の絵（描いたイラスト。D164）。もとの SVG は `Content/Art/characters/`。
 /// いまは動かない1枚の絵。動かす絵は D134 の Rive で、同じ SVG から作る。
 enum CharacterPose: String, CaseIterable, Sendable {
-  case normal, wave, happy, sleep
+  /// blink: 目をとじた ひとときの顔（まばたき・ほっぺをふくらます。D175）。
+  case normal, wave, happy, sleep, blink
 }
 
 extension MainCharacter {

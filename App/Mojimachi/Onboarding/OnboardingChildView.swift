@@ -167,6 +167,7 @@ struct OnboardingChildView: View {
     case .swimmer: "うみ"
     case .sky: "そら"
     case .plaything: "こうえん"
+    case .bodyAction: "からだ"
     }
   }
 
@@ -180,6 +181,7 @@ struct OnboardingChildView: View {
     case .swimmer: "fish.fill"
     case .sky: "cloud.sun.fill"
     case .plaything: "figure.play"
+    case .bodyAction: "hand.wave.fill"
     }
   }
 
@@ -193,6 +195,7 @@ struct OnboardingChildView: View {
     case .swimmer: Color(red: 0.2, green: 0.6, blue: 0.85)
     case .sky: Color(red: 0.35, green: 0.55, blue: 0.9)
     case .plaything: Color(red: 0.95, green: 0.6, blue: 0.25)
+    case .bodyAction: Color(red: 0.93, green: 0.45, blue: 0.5)
     }
   }
 

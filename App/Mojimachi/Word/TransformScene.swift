@@ -104,6 +104,7 @@ final class TransformScene: SKScene {
     case .swimmer: swim(object)
     case .sky: rise(object)
     case .plaything: play(object)
+    case .bodyAction: show(object)
     }
   }
 
@@ -360,6 +361,121 @@ final class TransformScene: SKScene {
       }
     }
     run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 体のことばの型: あたたかい部屋で、体の絵が すみに小さく出て、主人公が その動きを見せる（D175）。
+  /// 部屋は全体をおおうので、下の書く場所の枠が すけない。動きは、間をあけて くりかえす。
+  private func show(_ object: SKNode) {
+    guard let sprite = object as? SKSpriteNode, let motion = BodyAction.motion(for: word) else {
+      run(.wait(forDuration: 2)) { [weak self] in self?.onFinished?() }
+      return
+    }
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    let w = size.width
+    let h = size.height
+    let unit = min(w, h)
+    addRoomBackground(reduceMotion: reduce)
+    // 体の絵: 左がわに、小さく。ふわふわ ういている。
+    let artSide = sprite.size.height * 0.62
+    let shrink = SKAction.group([
+      .move(to: CGPoint(x: w * 0.27, y: h * 0.56), duration: reduce ? 0.3 : 0.6),
+      .scale(to: artSide / max(sprite.size.height, 1), duration: reduce ? 0.3 : 0.6),
+    ])
+    shrink.timingMode = .easeInEaseOut
+    sprite.zPosition = 10
+    if reduce {
+      sprite.run(shrink)
+    } else {
+      let bob = SKAction.sequence([
+        .moveBy(x: 0, y: 8, duration: 1.1), .moveBy(x: 0, y: -8, duration: 1.1),
+      ])
+      bob.timingMode = .easeInEaseOut
+      sprite.run(.sequence([shrink, .repeatForever(bob)]))
+    }
+    // 主人公: 右がわの ラグの上に立つ。
+    guard let poses = BodyMotionFX.poses(for: character) else {
+      run(.wait(forDuration: 2)) { [weak self] in self?.onFinished?() }
+      return
+    }
+    let hero = SKSpriteNode(texture: poses.normal)
+    let heroSide = unit * 0.62
+    hero.size = CGSize(width: heroSide, height: heroSide)
+    hero.anchorPoint = CGPoint(x: 0.5, y: 0.04)
+    hero.position = CGPoint(x: w * 0.68, y: h * 0.15)
+    hero.zPosition = 11
+    hero.alpha = 0
+    addChild(hero)
+    hero.run(.sequence([.wait(forDuration: 0.5), .fadeIn(withDuration: 0.25)]))
+    // はじめの動きのあと、すこし間をあけて くりかえす（動きを減らすときは1回だけ）。
+    let seconds = BodyMotionFX.duration(of: motion, reduceMotion: reduce)
+    let once = SKAction.run {
+      BodyMotionFX.play(motion, hero: hero, poses: poses, reduceMotion: reduce)
+    }
+    let again = SKAction.sequence([once, .wait(forDuration: seconds + 1.0)])
+    run(.sequence([.wait(forDuration: 0.9), reduce ? once : .repeatForever(again)]), withKey: "bodyMotion")
+    run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 体のことばの変身の背景（D175）: あたたかい部屋のかべ・ゆか・まるいラグ。全体をおおう。絵と粒より奥。
+  private func addRoomBackground(reduceMotion: Bool) {
+    let w = size.width
+    let h = size.height
+    let room = SKNode()
+    room.zPosition = -50
+    room.alpha = 0
+    let wall = SKSpriteNode(texture: SKTexture(image: roomGradient()))
+    wall.size = size
+    wall.position = CGPoint(x: w / 2, y: h / 2)
+    wall.zPosition = -1
+    room.addChild(wall)
+    let floorTop = h * 0.3
+    let floor = SKShapeNode(rect: CGRect(x: 0, y: 0, width: w, height: floorTop))
+    floor.fillColor = UIColor(red: 0.96, green: 0.8, blue: 0.58, alpha: 1)
+    floor.strokeColor = .clear
+    room.addChild(floor)
+    let trim = SKShapeNode(rect: CGRect(x: 0, y: floorTop, width: w, height: 8))
+    trim.fillColor = UIColor(red: 0.88, green: 0.66, blue: 0.44, alpha: 1)
+    trim.strokeColor = .clear
+    trim.zPosition = 0.2
+    room.addChild(trim)
+    let rug = SKShapeNode(ellipseOf: CGSize(width: w * 0.5, height: h * 0.2))
+    rug.fillColor = UIColor(red: 1, green: 0.78, blue: 0.82, alpha: 1)
+    rug.strokeColor = UIColor(red: 1, green: 0.92, blue: 0.94, alpha: 1)
+    rug.lineWidth = 8
+    rug.position = CGPoint(x: w * 0.68, y: h * 0.14)
+    rug.zPosition = 0.5
+    room.addChild(rug)
+    let hearts = ["♡", "★", "♡"]
+    for (index, text) in hearts.enumerated() {
+      let mark = SKLabelNode(text: text)
+      mark.fontName = "AvenirNext-Bold"
+      mark.fontSize = unitFont
+      mark.fontColor = UIColor(red: 1, green: 0.85, blue: 0.7, alpha: 1)
+      mark.position = CGPoint(
+        x: w * (0.1 + 0.34 * CGFloat(index)), y: h * (0.88 - 0.05 * CGFloat(index % 2)))
+      mark.zPosition = 0.3
+      room.addChild(mark)
+    }
+    addChild(room)
+    room.run(.fadeIn(withDuration: reduceMotion ? 0.2 : 0.4))
+  }
+
+  private var unitFont: CGFloat { min(size.width, size.height) * 0.07 }
+
+  private func roomGradient() -> UIImage {
+    let renderer = UIGraphicsImageRenderer(size: CGSize(width: 8, height: 256))
+    return renderer.image { context in
+      let colors = [
+        UIColor(red: 1, green: 0.88, blue: 0.8, alpha: 1).cgColor,
+        UIColor(red: 1, green: 0.96, blue: 0.88, alpha: 1).cgColor,
+      ]
+      guard
+        let gradient = CGGradient(
+          colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 1])
+      else { return }
+      context.cgContext.drawLinearGradient(
+        gradient, start: .zero, end: CGPoint(x: 0, y: 256), options: [])
+    }
   }
 
   /// 水の生きものの型: 水のなみの上で、その子らしく泳ぐ・ういている（D170）。

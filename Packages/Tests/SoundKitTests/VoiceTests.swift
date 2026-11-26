@@ -41,6 +41,31 @@ import Testing
     }
   }
 
+  /// 1字のことば（て・め）は、同じ字の声と同じ文字で引くので、ことば用のファイルは作らない（D175）。
+  /// 字の声は、ことばの声と同じ「おちつき」で、読みを変えていないので、同じ音になる。
+  @Test func oneKanaWordUsesTheKanaVoice() throws {
+    let manifest = try Self.manifest()
+    let lines = try String(
+      contentsOf: Self.root.appendingPathComponent("Content/Voices/lines.csv"), encoding: .utf8)
+    let rows = lines.split(separator: "\n").map {
+      $0.split(separator: ",", omittingEmptySubsequences: false)
+    }
+    let oneKana = WordCatalog.all.filter { $0.text.count == 1 }
+    #expect(!oneKana.isEmpty)
+    for word in oneKana {
+      let file = try #require(manifest.fileName(for: word.text))
+      #expect(file.hasPrefix("voice_kana_"), "\(word.text)")
+      let row = try #require(rows.first { $0.count >= 5 && "voice_" + $0[0] == file })
+      #expect(row[1] == Substring(word.text))
+      #expect(row[2] == "ochitsuki")
+      #expect(row[3].isEmpty, "読みを変えた字の声は、ことばの声にならない: \(word.text)")
+      #expect(
+        !rows.contains {
+          $0.first.map { $0.hasPrefix("word_") } == true && $0[1] == Substring(word.text)
+        })
+    }
+  }
+
   @Test func everyPracticableKanaHasAVoice() throws {
     let manifest = try Self.manifest()
     for script in KanaScript.allCases {

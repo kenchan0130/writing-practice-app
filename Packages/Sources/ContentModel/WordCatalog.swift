@@ -16,6 +16,8 @@ public enum WordKind: String, Sendable, CaseIterable, Codable {
   case sky
   /// キャラクターが使う物: まちのこうえんで、キャラクターが使って遊ぶ（D173）。
   case plaything
+  /// 体の一部: まちには置かず、主人公が その体の動きを見せる（D175）。
+  case bodyAction
 }
 
 /// ことば 1つ（絵は持たない。絵はアプリ側）。
@@ -29,7 +31,7 @@ public struct WordEntry: Sendable, Hashable {
   }
 }
 
-/// M0 後半の約20語（D78）に、D167 で14語、D168 で14語、D169 で18語、D170 で13語、D172 で10語、D173 で15語、D174 で18語を足した。
+/// M0 後半の約20語（D78）に、D167 で14語、D168 で14語、D169 で18語、D170 で13語、D172 で10語、D173 で15語、D174 で18語、D175 で8語を足した。
 public enum WordCatalog {
   public static let all: [WordEntry] =
     ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ", "しょうぼうしゃ", "きゅうきゅうしゃ"].map {
@@ -65,6 +67,9 @@ public enum WordCatalog {
       "なわとび", "てつぼう", "とびばこ",
       "ぶらんこ", "すべりだい", "すなば",
     ].map { WordEntry($0, .plaything) }
+    + [
+      "て", "あし", "め", "みみ", "くち", "あたま", "おなか", "ほっぺ",
+    ].map { WordEntry($0, .bodyAction) }
 
   /// はねずに、ゆっくり はう物（D169）。まちでは はずまず ゆっくり歩き、変身のあとも ゆっくり進む。
   public static let crawlers: Set<String> = ["かぶとむし", "てんとうむし", "かたつむり"]

@@ -114,7 +114,9 @@ public enum WordMap {
     WordTheme("gakki", "がっき", in: "koen", words: ["たいこ", "ふえ", "すず", "もっきん"]),
     WordTheme("sports", "スポーツ", in: "koen", words: ["なわとび", "てつぼう", "とびばこ"]),
     WordTheme("koen-asobi", "こうえんの あそび", in: "koen", words: ["ぶらんこ", "すべりだい", "すなば"]),
-    WordTheme("karada", "からだ", in: "ie", row: .closet),
+    WordTheme(
+      "karada", "からだ", in: "ie", row: .closet,
+      words: ["て", "あし", "め", "みみ", "くち", "あたま", "おなか", "ほっぺ"]),
     WordTheme("daidokoro", "だいどころ", in: "ie", row: .inside),
     WordTheme("ie-no-mono", "いえの もの", in: "ie", row: .inside),
     WordTheme("ofuro-mijitaku", "おふろ・みじたく", in: "ie", row: .inside),
