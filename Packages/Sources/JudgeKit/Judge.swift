@@ -88,6 +88,8 @@ public struct JudgeResult: Sendable, Hashable {
   public var maxDistances: [Double] = []
   /// 1画を分けて書いた線、または2画をつなげた線として読みとったか（D77）。
   public var splitOrJoined = false
+  /// お手本とは別の、正解にする書き方（書き順や画数がちがう。D66）で合格したか。
+  public var usedAlternate = false
 }
 
 /// ②③の1画ずつの判定の結果（D47）。
@@ -103,10 +105,33 @@ public enum StrokeCheck: Sendable, Hashable {
 public struct Judge: Sendable {
   public let character: CharacterData
   private let model: [Polyline]
+  /// お手本とは別の、正解にする書き方（D66）。書き順の入れ替え（`orders` の2つ目から）と、
+  /// 画数や画の分け方がちがう書き方（`alternates`）。それぞれを、別のお手本として見る。
+  private let variants: [Judge]
 
   public init(character: CharacterData) {
+    self.init(character: character, withVariants: true)
+  }
+
+  private init(character: CharacterData, withVariants: Bool) {
     self.character = character
     self.model = character.strokes.map { Geometry.resample(Geometry.polyline(of: $0)) }
+    guard withVariants else {
+      self.variants = []
+      return
+    }
+    let identity = Array(character.strokes.indices)
+    var others: [[CharacterData.Stroke]] = character.orders.dropFirst()
+      .filter { $0 != identity && $0.sorted() == identity }
+      .map { order in order.map { character.strokes[$0] } }
+    others += (character.alternates ?? []).filter { !$0.isEmpty }
+    self.variants = others.map { strokes in
+      var other = character
+      other.strokes = strokes
+      other.orders = [Array(strokes.indices)]
+      other.alternates = nil
+      return Judge(character: other, withVariants: false)
+    }
   }
 
   /// 2本の線の形の違い（いちばん離れた点の距離）。確かめ用の道具で、崩し方の大きさを測るのに使う。
@@ -115,7 +140,31 @@ public struct Judge: Sendable {
   }
 
   /// ④じぶんで の判定。字全体の位置と大きさをお手本に合わせてから比べる。
+  /// お手本の書き方で合格しなければ、別の正解の書き方（D66）でも見る。どれにも合わなければ、お手本と比べた結果を返す。
   public func judge(written: [Polyline], preset: JudgePreset) -> JudgeResult {
+    let primary = judgeAgainstModel(written: written, preset: preset)
+    // お手本の画数どおりに合格したら、それで決まり。
+    // 分けた線・つなげた線として合格したとき（D77）は、別の正解の書き方にそのまま合うほうを先に取る。
+    if primary.passed, !primary.splitOrJoined { return primary }
+    for variant in variants {
+      var result = variant.judgeAgainstModel(written: written, preset: preset)
+      if result.passed, !result.splitOrJoined {
+        result.usedAlternate = true
+        return result
+      }
+    }
+    if primary.passed { return primary }
+    for variant in variants {
+      var result = variant.judgeAgainstModel(written: written, preset: preset)
+      if result.passed {
+        result.usedAlternate = true
+        return result
+      }
+    }
+    return primary
+  }
+
+  private func judgeAgainstModel(written: [Polyline], preset: JudgePreset) -> JudgeResult {
     let config = JudgeConfig.preset(preset)
     let resampled = written.map { Geometry.resample($0) }
     var aligned = Geometry.align(resampled, to: model)
@@ -174,7 +223,28 @@ public struct Judge: Sendable {
 
   /// 書いた線がお手本のすべての画に当てはまるかを見て、書き終わりの合図を決める（D77）。
   /// 分けた線・つなげた線も、まとめ直して形が合えば当てはまったとみなす。
+  /// 別の正解の書き方（D66）に当てはまったときも、判定に進む。
   public func endSignal(for written: [Polyline]) -> EndSignal {
+    let primary = endSignalAgainstModel(for: written)
+    if primary == .judgeAfterPause { return primary }
+    for variant in variants where variant.matchesShape(written) { return .judgeAfterPause }
+    return primary
+  }
+
+  /// 書いた線が、この書き方のすべての画に、形で当てはまるか（画数が同じとき）。
+  private func matchesShape(_ written: [Polyline]) -> Bool {
+    guard written.count == model.count else { return false }
+    let aligned = Geometry.align(written.map { Geometry.resample($0) }, to: model)
+    let trial = evaluate(aligned, config: JudgeConfig.preset(.hajimete))
+    return !trial.issues.contains {
+      switch $0 {
+      case .shape, .deviation: true
+      default: false
+      }
+    }
+  }
+
+  private func endSignalAgainstModel(for written: [Polyline]) -> EndSignal {
     guard !written.isEmpty else { return .highlightAfterPause }
     if written.count >= model.count + 3 { return .highlightNow }
     let aligned = Geometry.align(written.map { Geometry.resample($0) }, to: model)

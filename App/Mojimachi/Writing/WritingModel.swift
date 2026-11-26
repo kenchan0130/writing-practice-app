@@ -143,6 +143,14 @@ final class WritingModel {
 
   var currentChar: Character? { character?.char.first }
 
+  /// アルファベットを書くときの4本の線の高さ（D180）。かなと数字は nil（十字の補助線）。
+  var letterLines: [Double]? {
+    guard script == .abc, let char = currentChar, AbcTable.page(of: char) != .digits else {
+      return nil
+    }
+    return AbcTable.guideLines
+  }
+
   /// 前後の字（パネルの矢印に使う。1つしかなければ nil）。
   var hasNeighbors: Bool { sequence.count > 1 }
 
@@ -456,7 +464,9 @@ final class WritingModel {
   /// ④ で合格したとき、終わり方がお手本と違う最初の画を探す（D145）。
   /// 分けた線・つなげた線は画の対応がずれるので出さない。
   private func endingMismatch() -> EndingHint? {
-    guard let character, result?.splitOrJoined != true else { return nil }
+    guard let character, result?.splitOrJoined != true, result?.usedAlternate != true else {
+      return nil
+    }
     let model = character.strokes.map(\.end)
     guard let index = EndingAnalysis.hintStroke(model: model, written: writtenEndings),
       let expected = model[index]

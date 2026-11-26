@@ -9,6 +9,7 @@ extension KanaScript {
     switch self {
     case .hiragana: .hiragana
     case .katakana: .katakana
+    case .abc: .abc
     }
   }
 
@@ -16,6 +17,18 @@ extension KanaScript {
     switch self {
     case .hiragana: "ひらがな"
     case .katakana: "カタカナ"
+    case .abc: "ABC"
+    }
+  }
+}
+
+extension AbcTable.Page {
+  /// 地図のページのつまみの名前（D180）。
+  var title: String {
+    switch self {
+    case .upper: "おおもじ"
+    case .lower: "こもじ"
+    case .digits: "すうじ"
     }
   }
 }
@@ -27,6 +40,18 @@ struct MapSelection: Equatable {
   var page: Page = .basic
   /// 狭いときの「あ行〜な行」(0)・「は行〜わ行」(1)。
   var half = 0
+  /// ABC のページ（おおもじ・こもじ・すうじ。D180）。
+  var abcPage = AbcTable.Page.upper
+
+  init(script: KanaScript = .hiragana) {
+    self.script = script
+  }
+
+  /// その字があるページを開く。
+  init(showing char: Character) {
+    script = KanaTable.script(of: char) ?? .hiragana
+    if let page = AbcTable.page(of: char) { abcPage = page }
+  }
 }
 
 /// 文字の地図（D101・D125・D146）。壁の50音表と同じく、あ行を右に置いて字を並べ、押すと字のカードへ。
@@ -40,12 +65,17 @@ struct MapView: View {
 
   var body: some View {
     GeometryReader { proxy in
-      let decision = MapLayout.decide(width: proxy.size.width)
+      // ABC は1段7字（D180）。段の左右に、はなばたけの印の分の空きを取る。
+      let decision =
+        selection.script == .abc
+        ? MapLayout.decide(
+          width: proxy.size.width - 2 * (28 + MapLayout.gap), columns: AbcTable.lettersPerRow)
+        : MapLayout.decide(width: proxy.size.width)
       VStack(spacing: 20) {
         scriptSwitch
         GrowthBadge(summary: ScriptGrowthSummary(script: selection.script, log: store.log))
         pageSwitch
-        if selection.page == .basic && decision.split {
+        if selection.script != .abc && selection.page == .basic && decision.split {
           halfSwitch
         }
         Spacer(minLength: 0)
@@ -71,7 +101,23 @@ struct MapView: View {
     }
   }
 
+  @ViewBuilder
   private var pageSwitch: some View {
+    if selection.script == .abc { abcPageSwitch } else { kanaPageSwitch }
+  }
+
+  /// ABC のページ（おおもじ・こもじ・すうじ。D180）。
+  private var abcPageSwitch: some View {
+    HStack(spacing: 16) {
+      ForEach(AbcTable.Page.allCases, id: \.self) { page in
+        MapSwitchButton(title: page.title, selected: selection.abcPage == page, small: true) {
+          selection.abcPage = page
+        }
+      }
+    }
+  }
+
+  private var kanaPageSwitch: some View {
     HStack(spacing: 16) {
       MapSwitchButton(title: "あいうえお", selected: selection.page == .basic, small: true) {
         selection.page = .basic
@@ -97,6 +143,40 @@ struct MapView: View {
 
   @ViewBuilder
   private func grid(decision: MapLayout.Decision) -> some View {
+    if selection.script == .abc {
+      abcGridView(AbcTable.grid(selection.abcPage), cell: decision.cell)
+    } else {
+      kanaGrid(decision: decision)
+    }
+  }
+
+  /// アルファベットと数字の表（D180）。左から右に読む。段の右に、はなばたけの印を出す。
+  private func abcGridView(_ grid: KanaGrid, cell: Double) -> some View {
+    VStack(spacing: MapLayout.gap) {
+      ForEach(Array(grid.cells.enumerated()), id: \.offset) { _, row in
+        HStack(spacing: MapLayout.gap) {
+          ForEach(Array(row.enumerated()), id: \.offset) { _, char in
+            if let char {
+              MapCell(
+                char: char, size: cell, state: state(of: char), locked: isLocked(char)
+              ) { tapped(char) }
+            } else {
+              Color.clear.frame(width: cell, height: cell)
+            }
+          }
+          ZStack {
+            if isGarden(row.compactMap { $0 }) { GardenMarker(size: 28) }
+          }
+          .frame(width: 28, height: cell)
+        }
+        // 印の分だけ左にも空きを取り、表をまん中に置く。
+        .padding(.leading, 28 + MapLayout.gap)
+      }
+    }
+  }
+
+  @ViewBuilder
+  private func kanaGrid(decision: MapLayout.Decision) -> some View {
     switch selection.page {
     case .basic:
       let halves = KanaTable.halves(selection.script)

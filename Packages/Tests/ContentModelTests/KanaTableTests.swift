@@ -24,7 +24,7 @@ struct KanaTableTests {
 
   @Test("50音表は10列5段で、字は46（ひらがな）と同じ形のカタカナ")
   func mainShape() {
-    for script in KanaScript.allCases {
+    for script in KanaScript.kana {
       let table = KanaTable.main(script)
       #expect(table.columnCount == 10)
       #expect(table.rowCount == 5)
@@ -82,7 +82,7 @@ struct KanaTableTests {
 
   @Test("2つに分けた表は、50音表をそのまま覆う")
   func halvesCoverTable() {
-    for script in KanaScript.allCases {
+    for script in KanaScript.kana {
       let halves = KanaTable.halves(script)
       #expect(halves.count == 2)
       #expect(halves[0].columnCount == 5 && halves[1].columnCount == 5)
@@ -109,7 +109,8 @@ struct KanaTableTests {
     #expect(KanaTable.characterID("ニ", script: .katakana) == "kata.30cb")
     #expect(KanaTable.script(of: "ニ") == .katakana)
     #expect(KanaTable.script(of: "そ") == .hiragana)
-    #expect(KanaTable.script(of: "A") == nil)
+    #expect(KanaTable.script(of: "A") == .abc)
+    #expect(KanaTable.script(of: "漢") == nil)
   }
 
   @Test("幅が足りるときは10列、足りないときは2つに分ける（D125）")
