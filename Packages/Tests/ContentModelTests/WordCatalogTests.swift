@@ -4,15 +4,15 @@ import Testing
 
 @Suite("ことばの一覧（D78）")
 struct WordCatalogTests {
-  @Test("103語で、種類ごとの数が合う")
+  @Test("121語で、種類ごとの数が合う")
   func counts() {
-    #expect(WordCatalog.all.count == 103)
-    #expect(Set(WordCatalog.all.map(\.text)).count == 103)
+    #expect(WordCatalog.all.count == 121)
+    #expect(Set(WordCatalog.all.map(\.text)).count == 121)
     #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 9)
     #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 21)
     #expect(WordCatalog.all.filter { $0.kind == .clothes }.count == 6)
     #expect(WordCatalog.all.filter { $0.kind == .flyer }.count == 10)
-    #expect(WordCatalog.all.filter { $0.kind == .scenery }.count == 19)
+    #expect(WordCatalog.all.filter { $0.kind == .scenery }.count == 37)
     #expect(WordCatalog.all.filter { $0.kind == .swimmer }.count == 13)
     #expect(WordCatalog.all.filter { $0.kind == .sky }.count == 10)
     #expect(WordCatalog.all.filter { $0.kind == .plaything }.count == 15)

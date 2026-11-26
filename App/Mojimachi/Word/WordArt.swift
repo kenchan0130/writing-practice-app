@@ -50,6 +50,10 @@ enum WordArt {
     "にんぎょう": "ningyou", "たいこ": "taiko", "ふえ": "fue", "すず": "suzu",
     "もっきん": "mokkin", "なわとび": "nawatobi", "てつぼう": "tetsubou", "とびばこ": "tobibako",
     "ぶらんこ": "burango", "すべりだい": "suberidai", "すなば": "sunaba",
+    "あさがお": "asagao", "ばら": "bara", "やま": "yama", "たき": "taki", "いし": "ishi",
+    "いけ": "ike", "くさ": "kusa", "まつ": "matsu", "どんぐり": "donguri", "はっぱ": "happa",
+    "きのこ": "kinoko", "いえ": "ie", "がっこう": "gakkou", "びょういん": "byouin",
+    "おしろ": "oshiro", "しんごう": "shingou", "ふみきり": "fumikiri", "がいとう": "gaitou",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
@@ -137,9 +141,29 @@ enum WordArt {
     }
   }
 
-  /// 景色になる物のうち、花（ゆれる）。ほかの くだもの・やさいは、ぽんと出て ひとはずみする。
-  static func isFlower(_ word: String) -> Bool {
-    ["さくら", "ひまわり", "たんぽぽ"].contains(word)
+  /// 景色になる物のうち、風でゆれる物（花・草・木・はっぱ）。ほかは、ぽんと出て ひとはずみする（D168・D174）。
+  static func sways(_ word: String) -> Bool {
+    ["さくら", "ひまわり", "たんぽぽ", "あさがお", "ばら", "くさ", "まつ", "はっぱ"].contains(word)
+  }
+
+  /// 大きな景色（D174）の倍率。丘と草の境目に立ち、背景の木・家と同じ奥に描く。
+  /// やまは、背景の家の2.5倍ほど。ふつうの景色の倍率（0.7）にこの倍をかける。
+  static func landmarkFactor(_ word: String) -> Double? {
+    switch word {
+    case "やま": 6.0
+    case "たき": 2.8
+    case "がっこう", "びょういん", "おしろ": 2.2
+    default: nil
+    }
+  }
+
+  /// 小さくて見えにくい景色の倍率（D174）。ふつうの景色は 1。
+  static func scenerySizeFactor(_ word: String) -> Double {
+    switch word {
+    case "ふみきり": 1.6
+    case "しんごう": 1.3
+    default: 1
+    }
   }
 
   /// ことばの絵のアセットの名前（SwiftUI の `Image(...)` に渡す）。

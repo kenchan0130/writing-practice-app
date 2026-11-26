@@ -323,4 +323,55 @@ struct TownLayoutTests {
     #expect(layout.swimSlots.count == 6)
     #expect(layout.parkSlots.count == 8)
   }
+
+  // MARK: 大きな景色（D174）
+
+  @Test("大きな景色は、同じ x のまま 丘と草の境目に立ち、factor 倍になる")
+  func landmarkPlacement() {
+    let layout = TownLayout.make(roles: [], scenery: 12, screenWidth: 1000, objectWidth: 160)
+    for place in layout.scenery {
+      let big = TownLayout.landmarkPlace(place, factor: 4)
+      #expect(big.index == place.index)
+      #expect(big.x == place.x)
+      #expect(big.yFraction == TownLayout.landmarkBaseY)
+      #expect(big.yFraction < 0.36)
+      #expect(big.scale == TownLayout.sceneryScale * 4)
+    }
+  }
+
+  @Test("背景の木と家は、画面の幅に1つずつ並び、家は3つに1つ")
+  func backdropSpotsLayout() {
+    let spots = TownLayout.backdropSpots(minX: 0, width: 2000, unit: 600)
+    #expect(spots.first?.x == 140)
+    #expect(spots.allSatisfy { $0.x < 2000 })
+    #expect(spots.filter(\.isHouse).allSatisfy { $0.index % 3 == 1 })
+    for (a, b) in zip(spots, spots.dropFirst()) { #expect(b.x > a.x) }
+    // はじまりを ずらしても、同じ並び方。
+    let shifted = TownLayout.backdropSpots(minX: 500, width: 2000, unit: 600)
+    #expect(
+      shifted.map(\.index)
+        == TownLayout.backdropSpots(minX: 500, width: 2000, unit: 600).map(\.index))
+    #expect(shifted.first?.x == 640)
+  }
+
+  @Test("大きな景色が立つはばには、背景の木・家を出さない。ほかは残る")
+  func landmarksClearTheBackdrop() {
+    let spots = TownLayout.backdropSpots(minX: 0, width: 4000, unit: 600)
+    let place = SceneryPlace(index: 0, x: 1000, yFraction: 0.30, row: 0, scale: 0.7)
+    let big = TownLayout.landmarkPlace(place, factor: 6)
+    let span = TownLayout.landmarkSpan(big, objectWidth: 160)
+    #expect(span.lowerBound < 1000 && span.upperBound > 1000)
+    let kept = TownLayout.backdrop(spots, avoiding: [span])
+    #expect(kept.count < spots.count)
+    for spot in kept {
+      #expect(
+        spot.x + spot.halfWidth < span.lowerBound || spot.x - spot.halfWidth > span.upperBound)
+    }
+    // はばの外の木・家は、そのまま。
+    for spot in spots where spot.x + spot.halfWidth < span.lowerBound {
+      #expect(kept.contains(spot))
+    }
+    // 大きな景色がなければ、何も消えない。
+    #expect(TownLayout.backdrop(spots, avoiding: []) == spots)
+  }
 }

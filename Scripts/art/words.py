@@ -2524,6 +2524,481 @@ def sunaba():
     return a
 
 
+# ------------------------------------------------------- scenery (D174) --
+LEAF1, LEAF2 = "#6fbd5c", "#4f9e48"
+BARK, BARK_D = "#b47a4a", "#8f5c34"
+STONE, STONE_D, STONE_L = "#c9c4bd", "#a8a29b", "#e4e0da"
+
+
+@word
+def yama():
+    a = Art()
+    a.path("M250 440 C300 340 336 262 366 226 C388 200 406 200 428 228 C462 272 500 350 526 440 Z", fill="#b4d0ee")
+    a.path("M366 226 C388 200 406 200 428 228 C440 244 452 264 464 286 C440 280 430 296 410 284 C396 300 380 284 366 226 Z",
+           fill=WHITE, sw=0, stroke="none")
+    a.path("M250 440 C300 340 336 262 366 226 C388 200 406 200 428 228 C462 272 500 350 526 440 Z", "none")
+    main = "M14 440 C76 346 146 222 210 126 C234 90 266 90 288 126 C346 216 420 346 480 440 Z"
+    a.path(main, fill="#7aa5dc")
+    a.path("M258 94 C270 98 280 108 288 126 C346 216 420 346 480 440 L338 440 C330 340 300 196 258 94 Z",
+           fill="#6590c6", sw=0, stroke="none")
+    a.path("M160 210 C176 180 196 148 210 126 C234 90 266 90 288 126 C304 150 318 178 330 206 "
+           "C316 224 302 204 288 224 C274 198 258 224 244 206 C230 226 214 206 200 226 C184 206 170 226 160 210 Z",
+           fill=WHITE)
+    a.path(main, "none")
+    # green foothills
+    a.path("M14 440 C60 400 120 396 168 424 C190 436 214 440 240 440 Z", fill="#8fd08a")
+    a.path("M300 440 C340 410 408 396 462 424 C474 432 480 438 480 440 Z", fill="#8fd08a")
+    a.shine("M122 330 C140 292 156 262 172 240")
+    return a
+
+
+@word
+def taki():
+    a = Art()
+    ROCK, ROCK_D = "#b69a7e", "#8f7660"
+    # left and right cliffs
+    a.path("M40 120 L186 120 L186 396 L40 396 Z", fill=ROCK)
+    a.path("M326 120 L472 120 L472 396 L326 396 Z", fill=ROCK)
+    # water falling
+    a.path("M186 120 L326 120 L326 410 L186 410 Z", fill="#9fdcf7", sw=0, stroke="none")
+    for x in (222, 256, 290):
+        a.path(f"M{x} 150 L{x} 380", stroke=WHITE, sw=9, **{"stroke-opacity": "0.85"})
+    a.path("M186 120 L186 396 M326 120 L326 396", sw=11)
+    # tops: grass and a bush
+    a.path("M40 120 C40 92 60 84 90 84 L186 84 L186 120 Z", fill=LEAF1)
+    a.path("M326 84 L420 84 C452 84 472 92 472 120 L326 120 Z", fill=LEAF1)
+    a.circle(100, 78, 34, LEAF2)
+    a.circle(430, 78, 34, LEAF2)
+    a.path("M186 112 C220 130 292 130 326 112", sw=9)
+    # pool
+    a.ellipse(256, 410, 190, 50, "#6cc0ec")
+    a.path("M96 410 C150 424 210 428 256 426", stroke=WHITE, sw=8, **{"stroke-opacity": "0.8"})
+    for x, y, r in ((226, 398, 24), (268, 392, 30), (306, 404, 20)):
+        a.circle(x, y, r, WHITE, sw=0, stroke="none", **{"fill-opacity": "0.9"})
+    a.shine("M70 160 L70 330")
+    return a
+
+
+@word
+def ishi():
+    a = Art()
+    big = "M86 400 C70 330 96 250 160 214 C210 186 290 186 336 222 C392 266 408 340 392 400 C380 436 340 446 260 446 L190 446 C130 446 94 436 86 400 Z"
+    a.path(big, fill=STONE)
+    a.path("M336 222 C392 266 408 340 392 400 C380 436 340 446 260 446 L240 446 C330 430 350 330 316 206 Z",
+           fill=STONE_D, sw=0, stroke="none")
+    a.path(big)
+    a.path("M170 270 C190 244 226 232 262 236", stroke=WHITE, sw=10, **{"stroke-opacity": "0.7"})
+    a.path("M220 330 L248 350 L242 384", stroke=STONE_D, sw=8)
+    small = "M376 446 C366 410 384 378 422 372 C456 368 484 390 482 420 C480 440 468 446 452 446 Z"
+    a.path(small, fill=STONE_L)
+    a.path("M404 392 C416 386 432 386 442 392", stroke=WHITE, sw=7, **{"stroke-opacity": "0.8"})
+    a.path("M30 448 C60 420 70 436 90 408 M60 448 C70 424 90 428 100 410", stroke=LEAF2, sw=9)
+    a.path("M420 448 L492 448", stroke=LEAF2, sw=9)
+    return a
+
+
+@word
+def ike():
+    a = Art()
+    a.ellipse(256, 340, 232, 112, "#c9a06d")
+    a.ellipse(256, 334, 210, 96, "#6cc0ec")
+    a.path("M96 322 C130 292 190 280 240 284", stroke=WHITE, sw=9, **{"stroke-opacity": "0.75"})
+    # rim stones
+    for x, y, rx, ry in ((60, 336, 36, 24), (118, 436, 36, 22), (400, 438, 38, 22), (458, 336, 36, 24), (256, 226, 36, 20)):
+        a.ellipse(x, y, rx, ry, STONE)
+    # lily pads
+    for cx, cy, rot in ((190, 346, 0), (320, 380, 1)):
+        a.path(f"M{cx} {cy} L{cx+60} {cy-18} C{cx+66} {cy+24} {cx+30} {cy+52} {cx} {cy+46} C{cx-30} {cy+52} {cx-66} {cy+24} {cx-60} {cy-18} Z"
+               if False else f"M{cx} {cy} L{cx+54} {cy-16} C{cx+58} {cy+26} {cx+26} {cy+44} {cx} {cy+40} C{cx-28} {cy+44} {cx-58} {cy+26} {cx-54} {cy-16} Z",
+               fill=LEAF1)
+    # lotus flower
+    for d in ("M326 330 C300 312 296 280 322 264 C340 280 342 310 326 330 Z",
+              "M326 330 C352 312 356 280 330 264 C312 280 310 310 326 330 Z",
+              "M326 336 C296 336 276 312 284 292 C312 296 330 316 326 336 Z",
+              "M326 336 C356 336 376 312 368 292 C340 296 322 316 326 336 Z"):
+        a.path(d, fill="#f9b8d2", sw=9)
+    a.circle(326, 328, 10, YEL2, sw=0, stroke="none")
+    # reeds
+    for x, top, lean in ((52, 140, -10), (84, 112, 6), (116, 150, 14)):
+        a.path(f"M{x} 330 C{x} 260 {x+lean} 200 {x+lean} {top+30}", stroke=LEAF2, sw=10)
+        a.path(f"M{x+lean} {top+60} L{x+lean} {top}", stroke="#8a5a3a", sw=26)
+    return a
+
+
+@word
+def kusa():
+    a = Art()
+    G1, G2, G3 = "#8fd070", LEAF1, LEAF2
+
+    def tuft(cx, base, h, w, col, lean=0):
+        # a clump of three blades
+        for dx, hh, ln in ((-0.5, 0.72, -1), (0.5, 0.78, 1), (0, 1.0, lean)):
+            x0 = cx + dx * w
+            tip = (cx + dx * w * 1.6 + ln * w * 0.55, base - h * hh)
+            a.path(f"M{x0 - w*0.28:.0f} {base} C{x0 - w*0.2:.0f} {base - h*hh*0.5:.0f} {tip[0] - ln*w*0.2:.0f} {tip[1] + h*0.2:.0f} {tip[0]:.0f} {tip[1]:.0f} "
+                   f"C{tip[0] + w*0.1:.0f} {tip[1] + h*0.3:.0f} {x0 + w*0.3:.0f} {base - h*hh*0.5:.0f} {x0 + w*0.28:.0f} {base} Z", fill=col, sw=9)
+
+    tuft(120, 452, 200, 46, G1, -1)
+    tuft(392, 452, 190, 46, G1, 1)
+    tuft(256, 452, 330, 62, G2)
+    # tiny white flowers
+    for cx, cy in ((70, 300), (446, 330), (330, 150)):
+        for i in range(5):
+            import math
+            t = -math.pi / 2 + i * 2 * math.pi / 5
+            a.dot(cx + 15 * math.cos(t), cy + 15 * math.sin(t), 12, WHITE)
+        a.dot(cx, cy, 9, YEL2)
+    a.path("M60 454 L452 454", sw=11)
+    return a
+
+
+@word
+def matsu():
+    a = Art()
+    trunk = "M246 470 C226 420 276 380 250 330 C236 300 214 280 220 250 L262 250 C256 280 290 306 300 340 C314 390 276 430 292 470 Z"
+    a.path(trunk, fill=BARK)
+    a.path("M262 250 C256 280 290 306 300 340 C314 390 276 430 292 470 L276 470 C262 430 290 390 276 340 C268 310 244 286 250 250 Z",
+           fill=BARK_D, sw=0, stroke="none")
+    a.path(trunk, "none")
+    a.path("M214 470 C240 462 296 462 322 470", sw=10)
+
+    def tier(cx, cy, rx, ry):
+        a.ellipse(cx, cy, rx, ry, "#4e9a55")
+        a.path(f"M{cx-rx+16} {cy+ry*0.35} C{cx-rx*0.4} {cy+ry*0.9} {cx+rx*0.4} {cy+ry*0.9} {cx+rx-16} {cy+ry*0.35}",
+               stroke="#3d7f46", sw=8)
+        for dx in (-0.5, 0, 0.5):
+            a.path(f"M{cx+dx*rx-10} {cy-ry*0.3} L{cx+dx*rx} {cy-ry*0.55} L{cx+dx*rx+10} {cy-ry*0.3}",
+                   stroke="#7cc17f", sw=7)
+
+    tier(150, 226, 110, 54)
+    tier(374, 190, 104, 50)
+    tier(250, 118, 118, 56)
+    a.path("M120 182 C110 172 116 156 128 152", stroke=WHITE, sw=0, **{"stroke-opacity": "0"})
+    return a
+
+
+@word
+def donguri():
+    a = Art()
+
+    def acorn(cx, cy, s, rot=0):
+        # cap
+        a.path(f"M{cx} {cy-110*s} L{cx} {cy-140*s}", sw=14 * s + 4)
+        a.path(f"M{cx-96*s} {cy-48*s} C{cx-96*s} {cy-112*s} {cx-44*s} {cy-120*s} {cx} {cy-120*s} "
+               f"C{cx+44*s} {cy-120*s} {cx+96*s} {cy-112*s} {cx+96*s} {cy-48*s} Z", fill="#9a6a3c")
+        for dx, dy in ((-52, -76), (0, -90), (52, -76), (-26, -58), (26, -58), (-70, -60), (70, -60)):
+            a.circle(cx + dx * s, cy + dy * s, 6 * s, "#7a4f2a", sw=0, stroke="none")
+        # nut
+        a.path(f"M{cx-86*s} {cy-48*s} C{cx-92*s} {cy+60*s} {cx-40*s} {cy+130*s} {cx} {cy+150*s} "
+               f"C{cx+40*s} {cy+130*s} {cx+92*s} {cy+60*s} {cx+86*s} {cy-48*s} Z", fill="#d9a35f")
+        a.path(f"M{cx+86*s} {cy-48*s} C{cx+92*s} {cy+60*s} {cx+40*s} {cy+130*s} {cx} {cy+150*s} "
+               f"C{cx+20*s} {cy+120*s} {cx+60*s} {cy+40*s} {cx+50*s} {cy-48*s} Z", fill="#c18544", sw=0, stroke="none")
+        a.path(f"M{cx-86*s} {cy-48*s} C{cx-92*s} {cy+60*s} {cx-40*s} {cy+130*s} {cx} {cy+150*s} "
+               f"C{cx+40*s} {cy+130*s} {cx+92*s} {cy+60*s} {cx+86*s} {cy-48*s} Z", "none")
+        a.path(f"M{cx-96*s} {cy-48*s} C{cx-96*s} {cy-112*s} {cx-44*s} {cy-120*s} {cx} {cy-120*s} "
+               f"C{cx+44*s} {cy-120*s} {cx+96*s} {cy-112*s} {cx+96*s} {cy-48*s} Z", "none")
+        a.shine(f"M{cx-60*s} {cy-10*s} C{cx-62*s} {cy+30*s} {cx-44*s} {cy+66*s} {cx-24*s} {cy+90*s}")
+
+    acorn(206, 270, 1.4)
+    acorn(420, 380, 0.7)
+    return a
+
+
+@word
+def happa():
+    a = Art()
+    # small orange leaf behind
+    a.path("M330 470 C330 430 340 410 362 392", sw=22)
+    a.path("M330 470 C330 430 340 410 362 392", stroke="#8a6a3a", sw=9)
+    a.path("M362 396 C300 360 290 270 340 210 C410 230 446 330 392 396 C380 410 370 408 362 396 Z", fill="#f2a24a")
+    a.path("M362 394 C360 340 366 280 340 222", stroke="#d9822a", sw=7)
+    # big green leaf
+    a.path("M170 470 C170 420 184 390 214 352", sw=26)
+    a.path("M170 470 C170 420 184 390 214 352", stroke="#8a6a3a", sw=11)
+    leaf = "M214 360 C120 330 80 220 122 120 C214 100 300 150 316 250 C324 330 270 392 214 360 Z"
+    a.path(leaf, fill=LEAF1)
+    a.path("M214 360 C270 392 324 330 316 250 C300 300 260 340 214 360 Z", fill=LEAF2, sw=0, stroke="none")
+    a.path(leaf, "none")
+    a.path("M214 352 C190 280 172 210 134 134", stroke=LEAF2, sw=9)
+    for d in ("M190 296 C162 292 138 270 126 244", "M178 238 C204 232 226 214 236 192",
+              "M168 196 C142 190 122 170 116 148", "M204 322 C240 320 266 296 276 268"):
+        a.path(d, stroke=LEAF2, sw=7)
+    a.shine("M150 150 C176 130 204 122 234 126")
+    return a
+
+
+@word
+def kinoko():
+    a = Art()
+
+    def shroom(cx, base, w, h, cap, spot, stem="#fff4e2", face=False):
+        top = base - h
+        sh = h * 0.5
+        a.path(f"M{cx-w*0.22} {base} C{cx-w*0.2} {base-sh*0.7} {cx-w*0.26} {top+sh*0.9} {cx-w*0.3} {top+sh*0.7} "
+               f"L{cx+w*0.3} {top+sh*0.7} C{cx+w*0.26} {top+sh*0.9} {cx+w*0.2} {base-sh*0.7} {cx+w*0.22} {base} Z", fill=stem)
+        a.path(f"M{cx-w*0.5} {top+sh*0.8} C{cx-w*0.52} {top-sh*0.1} {cx-w*0.3} {top-sh*0.2} {cx} {top-sh*0.2} "
+               f"C{cx+w*0.3} {top-sh*0.2} {cx+w*0.52} {top-sh*0.1} {cx+w*0.5} {top+sh*0.8} "
+               f"C{cx+w*0.3} {top+sh*1.0} {cx-w*0.3} {top+sh*1.0} {cx-w*0.5} {top+sh*0.8} Z", fill=cap)
+        for dx, dy, r in ((-0.26, 0.2, 0.09), (0.04, -0.02, 0.1), (0.28, 0.24, 0.08), (-0.06, 0.5, 0.07)):
+            a.circle(cx + w * dx, top + sh * dy + sh * 0.35, w * r, spot, sw=0, stroke="none")
+        if face:
+            fy = base - h * 0.22
+            for s in (-1, 1):
+                a.ellipse(cx + s * w * 0.1, fy, 8, 10, EYE, sw=0, stroke="none")
+                a.ellipse(cx + s * w * 0.19, fy + 18, 10, 6, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.7"})
+            a.path(f"M{cx-9} {fy+14} C{cx-4} {fy+22} {cx+4} {fy+22} {cx+9} {fy+14}", sw=6)
+
+    shroom(354, 450, 180, 200, "#d9a05b", "#fff4e2")
+    shroom(206, 450, 300, 330, "#e5534b", WHITE, face=True)
+    a.path("M60 452 C80 430 100 440 116 452 M410 452 C426 436 446 440 460 452", stroke=LEAF2, sw=9)
+    return a
+
+
+@word
+def ie():
+    a = Art()
+    a.rect(88, 248, 336, 204, "#fff0d4", rx=6)
+    a.path("M424 248 L424 452 L330 452 L330 248 Z", fill="#f1dfbd", sw=0, stroke="none")
+    a.rect(88, 248, 336, 204, "none", rx=6)
+    # chimney
+    a.path("M326 150 L326 90 L384 90 L384 190 Z", fill="#c97f3e")
+    a.rect(318, 76, 74, 24, "#a8672f", rx=6)
+    # roof
+    a.path("M44 266 L256 96 L468 266 C468 278 458 284 446 284 L66 284 C54 284 44 278 44 266 Z", fill=RED)
+    a.path("M256 96 L468 266 C468 278 458 284 446 284 L380 284 Z", fill=RED_D, sw=0, stroke="none")
+    a.path("M44 266 L256 96 L468 266 C468 278 458 284 446 284 L66 284 C54 284 44 278 44 266 Z", "none")
+    a.circle(256, 218, 30, SKY)
+    a.path("M226 218 L286 218 M256 188 L256 248", sw=8)
+    # door and windows
+    a.path("M130 452 L130 346 C130 322 188 322 188 346 L188 452 Z", fill=WOOD_D)
+    a.circle(176, 400, 7, YEL, sw=0, stroke="none")
+    a.rect(236, 330, 66, 66, SKY, rx=6)
+    a.path("M269 330 L269 396 M236 363 L302 363", sw=7)
+    a.rect(334, 330, 66, 66, SKY, rx=6)
+    a.path("M367 330 L367 396 M334 363 L400 363", sw=7)
+    a.path("M70 452 L442 452", sw=11)
+    a.path("M40 454 C60 432 76 440 90 454 M430 454 C444 436 462 440 474 454", stroke=LEAF2, sw=9)
+    return a
+
+
+@word
+def gakkou():
+    a = Art()
+    # clock tower
+    a.rect(206, 70, 100, 120, "#fff0d4", rx=6)
+    a.path("M196 76 L256 22 L316 76 Z", fill="#6f8fb8")
+    a.circle(256, 126, 34, WHITE)
+    a.path("M256 126 L256 102 M256 126 L274 136", sw=8)
+    # main building
+    a.rect(40, 188, 432, 262, "#fff0d4", rx=8)
+    a.path("M40 188 L472 188 L472 214 L40 214 Z", fill="#6f8fb8", sw=11)
+    for x in (66, 146):
+        for y in (240, 340):
+            a.rect(x, y, 60, 66, SKY, rx=6)
+            a.path(f"M{x+30} {y} L{x+30} {y+66}", sw=6)
+    for x in (386, 306):
+        for y in (240, 340):
+            a.rect(x, y, 60, 66, SKY, rx=6)
+            a.path(f"M{x+30} {y} L{x+30} {y+66}", sw=6)
+    # entrance
+    a.rect(214, 330, 84, 120, "#c97f3e", rx=6)
+    a.path("M256 330 L256 450", sw=7)
+    a.rect(194, 296, 124, 34, "#6f8fb8", rx=8)
+    a.path("M30 452 L482 452", sw=11)
+    # flag pole
+    a.path("M452 190 L452 90", sw=9)
+    a.path("M452 94 L496 94 L496 126 L452 126 Z", fill=WHITE, sw=8)
+    a.circle(474, 110, 9, RED, sw=0, stroke="none")
+    return a
+
+
+@word
+def byouin():
+    a = Art()
+    a.rect(64, 160, 270, 292, WHITE, rx=8)
+    a.path("M334 160 L334 452 L290 452 L290 160 Z", fill="#e9eef4", sw=0, stroke="none")
+    a.rect(64, 160, 270, 292, "none", rx=8)
+    a.rect(318, 254, 130, 198, "#eaf4fb", rx=8)
+    # red cross sign on top
+    a.rect(150, 66, 98, 98, RED, rx=14)
+    a.path("M199 90 L199 140 M174 115 L224 115", stroke=WHITE, sw=22)
+    for y in (196, 276):
+        for x in (92, 176, 252):
+            a.rect(x, y, 52, 56, SKY, rx=6)
+    for x in (338, 392):
+        a.rect(x, 282, 40, 50, SKY, rx=6)
+    a.path("M64 378 L334 378", stroke="#7fc0e8", sw=14)
+    # entrance
+    a.rect(156, 386, 88, 66, "#bfe6fa", rx=6)
+    a.path("M200 386 L200 452", sw=7)
+    a.path("M40 452 L472 452", sw=11)
+    a.path("M360 392 L428 392 L428 452 L360 452 Z", fill="#e5f3fb", sw=0, stroke="none")
+    return a
+
+
+@word
+def oshiro():
+    a = Art()
+    ROOF, ROOF_D = "#5d7894", "#486079"
+    # stone base
+    a.path("M60 450 L110 350 L402 350 L452 450 Z", fill="#b6b0a8")
+    for x in (170, 256, 342):
+        a.path(f"M{x} 352 L{x - (x - 256) * 0.0 + (x - 256) * 0.2:.0f} 450", stroke="#8f8981", sw=6)
+    a.path("M92 400 L420 400", stroke="#8f8981", sw=6)
+    # tiers (bottom to top)
+    a.rect(132, 266, 248, 84, WHITE, rx=4)
+    a.path("M100 266 C100 252 112 246 128 246 L384 246 C400 246 412 252 412 266 L430 296 L82 296 Z", fill=ROOF)
+    a.rect(172, 168, 168, 78, WHITE, rx=4)
+    a.path("M146 168 C146 154 158 148 174 148 L338 148 C354 148 366 154 366 168 L384 196 L128 196 Z", fill=ROOF)
+    a.rect(212, 76, 88, 72, WHITE, rx=4)
+    a.path("M182 76 C198 52 228 40 256 36 C284 40 314 52 330 76 L344 104 L168 104 Z", fill=ROOF)
+    # roof highlights
+    for y, x0, x1 in ((266, 100, 412), (168, 146, 366)):
+        pass
+    # windows
+    for x in (170, 236, 302):
+        a.rect(x, 292 + 16, 40, 34, "#33425a", rx=6)
+    for x in (220, 270):
+        a.rect(x - 14, 204, 28, 30, "#33425a", rx=6)
+    a.rect(242, 110, 28, 28, "#33425a", rx=6)
+    # gold ornaments (shachi) at the top
+    a.path("M214 50 C200 34 212 18 226 24 C222 36 226 44 232 48 Z", fill="#f6c548", sw=8)
+    a.path("M298 50 C312 34 300 18 286 24 C290 36 286 44 280 48 Z", fill="#f6c548", sw=8)
+    # entrance
+    a.path("M236 450 L236 392 C236 372 276 372 276 392 L276 450 Z", fill="#33425a")
+    return a
+
+
+SHINGOU_LAMPS = (140, 256, 372)   # x of the three lamps (green, yellow, red); y and r below
+SHINGOU_Y, SHINGOU_R = 145, 42
+
+
+@word
+def shingou():
+    a = Art()
+    # pole
+    a.tube("M256 200 L256 540", "#9aa5a8", 34, 16)
+    a.path("M214 540 L298 540", sw=18)
+    # signal box (lamps are lit by the app; the picture shows green)
+    a.rect(60, 76, 392, 138, "#4a5560", rx=66)
+    a.path("M70 124 C70 98 94 86 116 86 L250 86", stroke="#6c7884", sw=8, **{"stroke-opacity": "0.8"})
+    for cx, col in zip(SHINGOU_LAMPS, ("#58d36a", "#5e5320", "#6b2a28")):
+        a.circle(cx, SHINGOU_Y, SHINGOU_R, col)
+    a.shine("M120 132 C126 118 138 110 150 108")
+    for cx in SHINGOU_LAMPS:
+        a.path(f"M{cx-48} 100 C{cx-28} 90 {cx+28} 90 {cx+48} 100", sw=8)
+    return a
+
+
+FUMIKIRI_LAMPS = (84, 140)
+FUMIKIRI_Y, FUMIKIRI_R = 233, 22
+
+
+@word
+def fumikiri():
+    a = Art()
+    # rails and sleepers
+    for x in (48, 130, 212, 294, 376, 458):
+        a.rect(x - 16, 430, 32, 46, "#a58a6c", rx=4, sw=8)
+    a.path("M20 446 L492 446 M20 462 L492 462", stroke="#8a949a", sw=10)
+    # post
+    a.tube("M110 440 L110 140", "#f4f1ea", 40, 20)
+    a.path("M92 440 L92 330 M128 440 L128 330", stroke="none", sw=0)
+    # crossbuck sign
+    a.path("M54 112 L170 176 M170 112 L54 176", stroke=O, sw=40)
+    a.path("M54 112 L170 176 M170 112 L54 176", stroke=WHITE, sw=22)
+    # signal box with two red lamps
+    a.rect(52, 196, 120, 74, "#4a5560", rx=22)
+    for cx in FUMIKIRI_LAMPS:
+        a.circle(cx, FUMIKIRI_Y, FUMIKIRI_R, "#e5534b")
+    a.path("M110 270 L110 290", sw=12)
+    # barrier arm (striped)
+    a.path("M120 340 L470 340", sw=48)
+    a.path("M120 340 L470 340", stroke="#f6d33a", sw=26)
+    for x in (178, 238, 298, 358, 418):
+        a.path(f"M{x} 340 L{x+22} 340", stroke="#33343a", sw=26)
+    a.path("M120 340 L470 340", stroke="none", sw=0)
+    a.circle(110, 340, 20, "#f4f1ea")
+    return a
+
+
+@word
+def gaitou():
+    a = Art()
+    GREEN_D = "#46665a"
+    a.path("M180 470 C200 440 232 436 256 436 C280 436 312 440 332 470 Z", fill=GREEN_D)
+    a.path("M232 440 C240 400 244 300 244 190 L268 190 C268 300 272 400 280 440 Z", fill=GREEN_D)
+    a.tube("M256 200 C256 150 256 110 256 96", GREEN_D, 40, 22)
+    # lamp cage
+    a.path("M196 100 L316 100 L296 70 L216 70 Z", fill=GREEN_D)
+    a.path("M226 70 C226 54 286 54 286 70", sw=10)
+    a.circle(256, 38, 12, GREEN_D)
+    a.path("M204 100 C190 130 200 176 226 190 L286 190 C312 176 322 130 308 100 Z", fill="#fff1a8")
+    a.path("M226 190 L286 190 L276 210 L236 210 Z", fill=GREEN_D)
+    a.path("M226 112 C214 132 218 160 230 176", stroke=WHITE, sw=9, **{"stroke-opacity": "0.75"})
+    for dx, dy in ((-76, -10), (76, -10), (-70, 70), (70, 70)):
+        pass
+    for x1, y1, x2, y2 in ((150, 120, 118, 112), (362, 120, 394, 112), (150, 168, 122, 184), (362, 168, 390, 184)):
+        a.path(f"M{x1} {y1} L{x2} {y2}", stroke="#f6c548", sw=9)
+    return a
+
+
+@word
+def asagao():
+    import math
+    a = Art()
+    # stake and vine
+    a.path("M256 480 L256 70", stroke=O, sw=24)
+    a.path("M256 480 L256 70", stroke="#d6a56e", sw=10)
+    a.path("M256 440 C190 400 330 360 256 320 C190 280 330 240 256 200", stroke=LEAF2, sw=12)
+    # leaves
+    for d in ("M256 410 C200 400 160 430 166 462 C204 480 252 450 256 410 Z",
+              "M256 300 C312 290 352 318 346 350 C310 368 262 340 256 300 Z"):
+        a.path(d, fill=LEAF1, sw=9)
+
+    def bloom(cx, cy, r, col, col2):
+        a.circle(cx, cy, r, col)
+        a.circle(cx, cy, r * 0.62, col2, sw=0, stroke="none")
+        for i in range(5):
+            t = -math.pi / 2 + i * 2 * math.pi / 5
+            a.path(f"M{cx} {cy} L{cx + r*0.9*math.cos(t):.1f} {cy + r*0.9*math.sin(t):.1f}", stroke=WHITE, sw=r * 0.12)
+        a.circle(cx, cy, r * 0.2, "#fff4b0", sw=0, stroke="none")
+
+    bloom(170, 180, 82, "#6f8be8", "#a9bbf5")
+    bloom(350, 120, 62, "#d86ab8", "#efa6d8")
+    bloom(346, 250, 50, "#6f8be8", "#a9bbf5")
+    return a
+
+
+@word
+def bara():
+    import math
+    a = Art()
+    a.path("M256 300 C250 360 262 420 256 484", stroke=O, sw=26)
+    a.path("M256 300 C250 360 262 420 256 484", stroke=LEAF2, sw=12)
+    for y, s in ((380, -1), (440, 1)):
+        a.path(f"M{256 + s*4} {y} L{256 + s*22} {y-10} L{256 + s*6} {y-18}", fill=LEAF2, sw=7)
+    for d in ("M256 410 C316 380 380 392 404 440 C350 464 282 450 256 410 Z",
+              "M256 360 C196 330 132 346 112 396 C170 414 238 400 256 360 Z"):
+        a.path(d, fill=LEAF1, sw=9)
+    a.path("M270 408 C320 410 358 420 386 436", stroke=LEAF2, sw=6)
+    a.path("M242 362 C190 362 156 372 130 388", stroke=LEAF2, sw=6)
+    # rose bloom
+    cx, cy = 256, 196
+    a.circle(cx, cy, 134, "#e8505b")
+    for k, (r, col) in enumerate(((100, "#f06a74"), (68, "#e8505b"), (38, "#f06a74"))):
+        a.circle(cx, cy, r, col, sw=9)
+    a.path(f"M{cx-60} {cy+10} C{cx-60} {cy-50} {cx+20} {cy-70} {cx+60} {cy-20}", stroke=O, sw=9)
+    a.path(f"M{cx-30} {cy+40} C{cx+20} {cy+70} {cx+80} {cy+30} {cx+84} {cy-20}", stroke=O, sw=9)
+    a.path(f"M{cx-18} {cy-6} C{cx-8} {cy-26} {cx+20} {cy-18} {cx+14} {cy+6}", stroke=O, sw=8)
+    # sepals under the bloom
+    for d in ("M200 320 C190 340 196 358 214 364 C214 346 214 332 222 320 Z",
+              "M312 320 C322 340 316 358 298 364 C298 346 298 332 290 320 Z"):
+        a.path(d, fill=LEAF1, sw=8)
+    a.shine("M150 150 C160 112 192 84 232 78")
+    return a
+
+
 def write_swing_parts():
     """The frame and the seat of the swing go to Content/Art/parts/ (D173). Same fit as burango.svg."""
     full, frame, seat = swing_parts()
@@ -2538,9 +3013,20 @@ def write_swing_parts():
     print("slide curve:", [(round((s2 * x + tx2) / 512, 4), round((s2 * y + ty2) / 512, 4)) for x, y in SLIDE_CURVE])
 
 
+def print_lamps():
+    """Where the app lights the lamps (D174): fractions of the image come from these 512 px numbers."""
+    for name, xs, y, r, sw in (("shingou", SHINGOU_LAMPS, SHINGOU_Y, SHINGOU_R, 11),
+                               ("fumikiri", FUMIKIRI_LAMPS, FUMIKIRI_Y, FUMIKIRI_R, 11)):
+        s1, tx1, ty1 = fit_params([W[name]()])
+        print(name, "lamps (x, y, r in 512 px; r = lamp without its outline):",
+              [(round(s1 * x + tx1, 1), round(s1 * y + ty1, 1), round(s1 * (r - sw / 2), 1)) for x in xs])
+
+
 if __name__ == "__main__":
     names = sys.argv[1:] or list(W)
     for n in names:
         open(os.path.join(OUT, f"{n}.svg"), "w").write(W[n]().svg())
     if not sys.argv[1:] or "burango" in names:
         write_swing_parts()
+    if not sys.argv[1:] or "shingou" in names or "fumikiri" in names:
+        print_lamps()
