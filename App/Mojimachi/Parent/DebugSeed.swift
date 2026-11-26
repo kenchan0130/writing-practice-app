@@ -44,6 +44,28 @@
       }
     }
 
+    /// ずかんともじから さがすの確かめ用（`-seedZukan YES`）。ことばを書いた回数がちがう数語と、書けた字を入れる。
+    static func zukan() {
+      let store = ProgressStore.shared
+      guard store.log.words.isEmpty else { return }
+      let now = Date()
+      let counts = [
+        "いぬ": 3, "ぞう": 4, "くるま": 2, "きりん": 1, "ねこ": 1, "りんご": 2, "ほし": 1, "うま": 3,
+      ]
+      for (word, count) in counts.sorted(by: { $0.key < $1.key }) {
+        for index in 0..<count {
+          store.record(WordRecord(date: now.addingTimeInterval(Double(index)), word: word))
+        }
+      }
+      for char in "あいうえおかきくこさしすたつなんを" {
+        store.record(
+          CharacterRecord(
+            date: now,
+            characterID: "hira.\(String(char.unicodeScalars.first!.value, radix: 16))",
+            stage: .nazoru, passed: true))
+      }
+    }
+
     static func records() {
       let store = ProgressStore.shared
       guard store.log.characters.isEmpty else { return }
