@@ -100,8 +100,12 @@ public enum WordMap {
     WordTheme("okashi", "おかし", in: "omise", words: ["だんご", "せんべい", "わたあめ"]),
     WordTheme("fuku", "ふく", in: "ie", row: .closet, words: ["ふく", "ゆかた", "きもの"]),
     WordTheme("oshare-komono", "おしゃれ こもの", in: "ie", row: .closet, words: ["くつ", "ぼうし", "くつした"]),
-    WordTheme("oshigoto", "おしごと", in: "michi"),
-    WordTheme("henshin", "へんしん", in: "ie", row: .closet),
+    WordTheme(
+      "oshigoto", "おしごと", in: "michi",
+      words: ["だいく", "せんせい", "おいしゃさん", "おまわりさん", "しょうぼうし"]),
+    WordTheme(
+      "henshin", "へんしん", in: "ie", row: .closet,
+      words: ["にんじゃ", "おひめさま", "おうさま", "まほうつかい", "かいぞく"]),
     WordTheme(
       "sora-tenki", "そら・てんき", in: "sora",
       words: ["くも", "にじ", "あめ", "ゆき", "かみなり", "かぜ", "ほし", "つき"]),

@@ -4731,6 +4731,448 @@ def hoppe():
     return a
 
 
+# ----------------------------------------------------- costumes (D178) ---
+# --- batch H helpers begin (へんしん・おしごと: かぶる物と ふくの ひとそろい。人は描かない) ---
+H_NECK_ROUND = "M212 200 C226 222 286 222 300 200"
+H_NECK_FLAT = "M204 200 L308 200"
+H_TOP = (" L352 212 C368 216 378 226 384 242 L424 356 C429 370 424 380 410 384 "
+         "L382 392 C370 396 362 390 358 378 L346 318 C348 370 350 420 350 456 C350 472 342 480 326 480 "
+         "L186 480 C170 480 162 472 162 456 C162 420 164 370 166 318 L154 378 C150 390 142 396 130 392 "
+         "L102 384 C88 380 83 370 88 356 L128 242 C134 226 144 216 160 212 Z")
+H_HEM = "M162 446 L350 446 L350 456 C350 472 342 480 326 480 L186 480 C170 480 162 472 162 456 Z"
+
+
+def h_out(t):
+    return 384 + 40 * t, 242 + 114 * t
+
+
+def h_in(t):
+    return 338 + 20 * t, 258 + 120 * t
+
+
+def h_sleeve_band(a, t0, t1, col):
+    """A band across both sleeves of h_top (t = 0 at the shoulder, 1 at the end of the sleeve)."""
+    d = e2_poly([h_out(t0), h_out(t1), h_in(t1), h_in(t0)])
+    a.blob(d, col)
+    a.blob(mirror(d), col)
+
+
+def h_cuff(a, col, t=0.84):
+    (ox, oy), (ix, iy) = h_out(t), h_in(t)
+    d = (f"M{e2_f(ox)} {e2_f(oy)} L424 356 C429 370 424 380 410 384 L382 392 C370 396 362 390 358 378 "
+         f"L{e2_f(ix)} {e2_f(iy)} Z")
+    a.blob(d, col)
+    a.blob(mirror(d), col)
+
+
+def h_band(a, y0, y1, col):
+    """A band across the body of h_top (stays inside the side edges)."""
+    xl = lambda y: 167 - 4 * min(1, max(0, (y - 318) / 138))
+    a.blob(e2_poly([(xl(y0), y0), (512 - xl(y0), y0), (512 - xl(y1), y1), (xl(y1), y1)]), col)
+
+
+def h_top(a, col, shade, cuff=None, flat=False):
+    """Inside a part: a long-sleeved top laid flat. Shoulders at y = 200, hem at y = 480, centre x = 256."""
+    a.sil((H_NECK_FLAT if flat else H_NECK_ROUND) + H_TOP, col)
+    a.blob(H_HEM, shade)
+    h_cuff(a, cuff or shade)
+    e2_ink2(a, [(346, 326, 346, 302, 342, 284, 334, 270)], 8, 1, 0)
+
+
+def h_gem(a, x, y, r, col):
+    with a.part(ow=6):
+        a.sil_ellipse(x, y, r, r, col)
+    a.dot(x - r * 0.3, y - r * 0.3, r * 0.3, WHITE)
+# --- batch H helpers end ---
+
+
+@word
+def ninja():
+    a = Art()
+    IN, IN_D, IN_L = "#4a4f8c", "#383c70", "#7f86c4"
+    with a.part(ow=9):                                  # the tails of the knot (behind the hood)
+        a.sil("M330 104 C356 84 386 82 404 96 C388 104 372 116 352 124 Z", RED)
+        a.sil("M330 112 C360 116 384 134 392 158 C370 156 348 146 328 132 Z", RED_D)
+    with a.part():                                      # hood
+        a.sil("M256 34 C314 34 344 72 344 112 C344 152 312 178 256 178 C200 178 168 152 168 112 "
+              "C168 72 198 34 256 34 Z", IN)
+        a.blob("M310 52 C336 70 344 92 344 112 C344 152 312 178 256 178 C296 166 324 126 310 52 Z", IN_D)
+        a.blob(e2_rr(168, 76, 176, 20, 0), RED)          # headband
+        a.blob(e2_rr(318, 76, 26, 20, 0), RED_D)
+    with a.part(ow=6):                                  # the opening for the eyes
+        a.sil(e2_rr(198, 106, 116, 34, 17), "#2a2c52")
+    with a.part(ow=6):                                  # forehead plate
+        a.sil(e2_rr(226, 70, 60, 30, 8), "#dfe6ec")
+    a.blob(e2_rr(226, 88, 60, 12, 6), "#b9c4cf")
+    with a.part():                                      # top
+        h_top(a, IN, IN_D, flat=True)
+        e2_collar(a, IN_L, IN_D, x=256, y=200, obi=372)
+    with a.part():                                      # sash
+        a.sil(e2_rr(156, 368, 200, 40, 8), RED)
+        a.blob(e2_rr(156, 392, 200, 16, 8), RED_D)
+    with a.part(ow=9):                                  # knot
+        a.sil("M208 388 C196 410 190 436 194 462 C212 452 224 424 226 392 Z", RED)
+        a.sil("M214 388 C232 404 250 428 252 452 C232 448 214 428 206 398 Z", RED_D)
+    a.sil_ellipse(214, 388, 16, 15, RED)
+    a.shine("M196 96 C200 76 212 60 230 50")
+    a.shine("M108 352 L130 290")
+    return a
+
+
+@word
+def ohimesama():
+    a = Art()
+    PK, PK_D, PK_L, GOLD_D = "#f58fb0", "#e2709a", "#fcd3df", "#e9b62e"
+    with a.part():                                      # tiara
+        a.sil("M180 146 C180 118 194 96 210 82 C220 102 232 114 240 116 C244 90 250 62 256 44 "
+              "C262 62 268 90 272 116 C280 114 292 102 302 82 C318 96 332 118 332 146 C332 158 324 164 312 164 "
+              "L200 164 C188 164 180 158 180 146 Z", YEL2)
+        a.blob("M181 140 L331 140 C332 142 332 144 332 146 C332 158 324 164 312 164 L200 164 "
+               "C188 164 180 158 180 146 C180 144 180 142 181 140 Z", GOLD_D)
+    for x, y in ((210, 80), (256, 42), (302, 80)):
+        with a.part(ow=7):
+            a.sil_ellipse(x, y, 11, 11, YEL2)
+    h_gem(a, 256, 118, 15, PK)
+    h_gem(a, 214, 130, 9, "#6cb6e8")
+    h_gem(a, 298, 130, 9, "#6cb6e8")
+    with a.part():                                      # puff sleeves
+        a.sil_ellipse(178, 244, 48, 40, PK_L)
+        a.sil_ellipse(334, 244, 48, 40, PK_L)
+        a.blob("M132 256 C146 282 190 290 222 268 C200 300 140 296 132 256 Z", "#f7b3c8")
+        a.blob(mirror("M132 256 C146 282 190 290 222 268 C200 300 140 296 132 256 Z"), "#f7b3c8")
+    with a.part():                                      # skirt
+        a.sil("M204 304 L308 304 C356 346 394 408 402 456 C404 472 394 482 380 480 C300 494 212 494 132 480 "
+              "C118 482 108 472 110 456 C118 408 156 346 204 304 Z", PK)
+        a.blob("M114 436 C200 456 312 456 398 436 L402 456 C404 472 394 482 380 480 C300 494 212 494 132 480 "
+               "C118 482 108 472 110 456 Z", PK_L)
+        a.ink([(114, 436, 200, 456, 312, 456, 398, 436)], 6, a=1, b=1, col=PK_D)
+        a.ink([(230, 330, 222, 370, 210, 410, 196, 446)], 8, a=0, b=0, col=PK_D)
+        a.ink([(282, 330, 290, 370, 302, 410, 316, 446)], 8, a=0, b=0, col=PK_D)
+        for x, y in ((160, 420), (256, 432), (352, 420)):
+            a.blob(e2_star(x, y, 13, 6), YEL)
+    with a.part():                                      # bodice
+        a.sil("M212 204 C232 228 280 228 300 204 L324 216 C320 252 314 286 310 314 L202 314 "
+              "C198 286 192 252 188 216 Z", PK)
+        a.blob("M200 208 L212 204 C232 228 280 228 300 204 L312 208 C292 250 220 250 200 208 Z", PK_L)
+        a.ink([(200, 208, 220, 250, 292, 250, 312, 208)], 6, a=1, b=1, col=PK_D)
+    with a.part():                                      # sash
+        a.sil(e2_rr(198, 296, 116, 28, 8), YEL2)
+    with a.part(ow=9):                                  # bow
+        for d in ("M256 310 C232 280 190 286 192 310 C194 334 232 336 256 310 Z",
+                  "M256 310 C280 280 322 286 320 310 C318 334 280 336 256 310 Z"):
+            a.sil(d, YEL2)
+    a.sil_ellipse(256, 310, 13, 12, GOLD_D)
+    h_gem(a, 256, 268, 10, YEL)
+    a.shine("M150 420 C156 396 166 376 180 356")
+    return a
+
+
+@word
+def ousama():
+    a = Art()
+    GOLD_D, FUR, FUR_D = "#e9b62e", "#fffaf0", "#d9e6f0"
+    with a.part():                                      # crown
+        a.sil("M178 166 L160 76 C158 66 166 62 174 68 L212 104 L246 52 C252 44 260 44 266 52 L300 104 "
+              "L338 68 C346 62 354 66 352 76 L334 166 Z", YEL2)
+        a.blob("M172 136 L340 136 L334 166 L178 166 Z", GOLD_D)
+        a.blob("M318 88 L338 68 C346 62 354 66 352 76 L334 166 L308 166 Z", GOLD_D)
+    for x, y in ((166, 66), (256, 42), (346, 66)):
+        with a.part(ow=7):
+            a.sil_ellipse(x, y, 13, 13, RED)
+    h_gem(a, 256, 150, 11, RED)
+    h_gem(a, 214, 150, 8, "#6cb6e8")
+    h_gem(a, 298, 150, 8, "#6cb6e8")
+    with a.part():                                      # cloak
+        a.sil("M190 236 C214 220 298 220 322 236 C374 292 412 384 420 452 C422 470 412 480 394 480 "
+              "L118 480 C100 480 90 470 92 452 C100 384 138 292 190 236 Z", RED)
+        a.blob("M322 236 C374 292 412 384 420 452 C422 470 412 480 394 480 L360 480 C372 400 360 300 322 236 Z", RED_D)
+        a.blob("M95 438 L417 438 C420 444 420 448 420 452 C422 470 412 480 394 480 L118 480 "
+               "C100 480 90 470 92 452 C92 448 92 444 95 438 Z", FUR)
+        a.blob(e2_poly([(236, 250), (276, 250), (282, 440), (230, 440)]), FUR)
+        a.blob("M118 470 L394 470 C402 470 410 468 416 462 C420 472 410 480 394 480 L118 480 "
+               "C102 480 92 472 96 462 C102 468 110 470 118 470 Z", FUR_D)
+        e2_line(a, 95, 438, 230, 438, 6)
+        e2_line(a, 282, 438, 417, 438, 6)
+        e2_line(a, 236, 262, 230, 438, 6)
+        e2_line(a, 276, 262, 282, 438, 6)
+        for x, y in ((256, 310), (250, 372), (262, 424), (130, 458), (190, 462), (322, 462), (382, 458), (256, 462)):
+            a.ellipse(x, y, 5, 8, O, sw=0, stroke="none")
+    with a.part():                                      # fur collar
+        a.sil("M170 240 C170 214 206 198 256 198 C306 198 342 214 342 240 C342 264 322 280 298 272 "
+              "C284 288 228 288 214 272 C190 280 170 264 170 240 Z", FUR)
+        a.blob("M172 250 C184 266 200 268 214 262 C228 276 284 276 298 262 C312 268 328 266 340 250 "
+               "C336 270 318 278 298 272 C284 288 228 288 214 272 C194 278 176 270 172 250 Z", FUR_D)
+        for x, y in ((200, 234), (238, 246), (274, 246), (312, 234)):
+            a.ellipse(x, y, 5, 8, O, sw=0, stroke="none")
+    h_gem(a, 256, 276, 14, YEL2)
+    a.shine("M146 400 C154 366 166 336 182 308")
+    return a
+
+
+@word
+def mahoutsukai():
+    a = Art()
+    PU, PU_D, PU_L = "#8e6fd8", "#7257be", "#b39cf0"
+    with a.part():                                      # brim
+        a.sil_ellipse(256, 152, 116, 26, PU)
+        a.blob("M146 158 C190 176 322 176 366 158 C350 172 310 178 256 178 C202 178 162 172 146 158 Z", PU_D)
+    with a.part():                                      # cone, tip bent to the side
+        a.sil("M192 148 C210 110 226 66 268 38 C292 24 322 30 330 48 C312 44 298 50 296 66 "
+              "C300 96 310 122 322 148 C290 164 224 164 192 148 Z", PU)
+        a.blob("M296 66 C300 96 310 122 322 148 C310 154 298 158 284 160 C286 126 284 96 274 70 Z", PU_D)
+        a.blob("M202 126 C240 140 280 140 312 126 L322 148 C290 164 224 164 192 148 Z", YEL2)
+        a.ink([(202, 126, 240, 140, 280, 140, 312, 126)], 6, a=1, b=1)
+        a.blob(e2_star(252, 92, 17, 8), YEL)
+    with a.part():                                      # robe with wide sleeves
+        a.sil("M214 204 C230 224 282 224 298 204 L344 216 L438 328 C446 340 442 352 430 358 L392 378 "
+              "C382 382 374 380 368 370 L342 326 L360 460 C362 474 354 482 342 482 L170 482 "
+              "C158 482 150 474 152 460 L170 326 L144 370 C138 380 130 382 120 378 L82 358 "
+              "C70 352 66 340 74 328 L168 216 Z", PU)
+        a.blob("M155 444 L357 444 L360 460 C362 474 354 482 342 482 L170 482 C158 482 150 474 152 460 Z", PU_D)
+        for d in ("M420 308 L438 328 C446 340 442 352 430 358 L392 378 C382 382 374 380 368 370 L356 350 Z",):
+            a.blob(d, YEL2)
+            a.blob(mirror(d), YEL2)
+        a.blob("M202 208 L214 204 C230 224 282 224 298 204 L310 208 C296 262 216 262 202 208 Z", YEL2)
+        a.blob("M222 214 C240 226 272 226 290 214 C280 240 232 240 222 214 Z", PU_D)
+        a.ink([(202, 208, 216, 262, 296, 262, 310, 208)], 6, a=1, b=1)
+        e2_ink2(a, [(342, 330, 338, 306, 332, 288, 322, 272)], 8, 1, 0)
+        a.blob(e2_star(256, 340, 34, 16), YEL)
+        for x, y, r in ((200, 410, 13), (312, 410, 13), (256, 432, 10), (124, 326, 11), (388, 326, 11)):
+            a.blob(e2_star(x, y, r, r * 0.46), PU_L)
+    a.shine("M222 118 C230 96 242 78 256 64")
+    a.shine("M176 420 L184 350")
+    return a
+
+
+@word
+def kaizoku():
+    a = Art()
+    BK, BK_D, BELT = "#4a4656", "#35323f", "#9c6238"
+    with a.part():                                      # hat
+        a.sil("M140 154 C136 108 186 50 256 44 C326 50 376 108 372 154 C370 172 356 178 340 172 "
+              "C300 158 212 158 172 172 C156 178 142 172 140 154 Z", BK)
+        a.blob("M312 68 C352 92 376 124 372 154 C370 172 356 178 340 172 C330 168 320 166 310 164 "
+               "C330 136 332 100 312 68 Z", BK_D)
+        a.ink([(160, 148, 160, 110, 200, 66, 256, 62), (256, 62, 312, 66, 352, 110, 352, 148)], 9, a=0.5, b=0.5, col=YEL2)
+    a.circle(256, 88, 8, "none", stroke=WHITE, sw=7)    # anchor mark
+    a.path("M256 96 L256 138 M240 108 L272 108 M232 122 C236 142 276 142 280 122", stroke=WHITE, sw=7)
+    with a.part():                                      # striped shirt
+        h_top(a, CREAM, "#f1e2c8")
+        for y in (236, 284, 332, 444):
+            h_band(a, y, y + 22, RED)
+        for t in (0.2, 0.52):
+            h_sleeve_band(a, t, t + 0.16, RED)
+        e2_ink2(a, [(346, 326, 346, 302, 342, 284, 334, 270)], 8, 1, 0)
+    with a.part(ow=9):                                  # neckerchief
+        a.sil("M206 202 C226 226 286 226 306 202 L318 206 C300 232 280 250 256 262 C232 250 212 232 194 206 Z", RED)
+    with a.part():                                      # belt
+        a.sil(e2_rr(156, 398, 200, 36, 8), BELT)
+    with a.part(ow=7):
+        a.sil(e2_rr(232, 392, 48, 48, 10), YEL2)
+    a.blob(e2_rr(246, 406, 20, 20, 5), BELT)
+    a.shine("M176 132 C180 104 196 82 218 68")
+    a.shine("M108 352 L130 290")
+    return a
+
+
+@word
+def daiku():
+    a = Art()
+    HEL, HEL_D, SH, SH_D, BELT, POUCH = "#f7c948", "#e5ae22", "#8cc0ea", "#6ea9da", "#9c6238", "#c98a4e"
+    with a.part():                                      # hard hat
+        a.sil("M166 150 C166 86 204 42 256 42 C308 42 346 86 346 150 Z", HEL)
+        a.blob("M312 64 C336 86 346 116 346 150 L318 150 C324 118 322 90 312 64 Z", HEL_D)
+        a.blob(e2_rr(242, 42, 28, 96, 0), "#fbdc78")
+        e2_line(a, 242, 50, 242, 138, 6, 0, 1, col=HEL_D)
+        e2_line(a, 270, 50, 270, 138, 6, 0, 1, col=HEL_D)
+    with a.part():                                      # brim
+        a.sil(e2_rr(142, 140, 228, 30, 15), HEL)
+        a.blob(e2_rr(142, 156, 228, 14, 7), HEL_D)
+    with a.part(ow=6):                                  # safety mark
+        a.sil_ellipse(256, 104, 24, 24, WHITE)
+    a.blob(e2_rr(250, 88, 12, 32, 2), "#3aa35c")
+    a.blob(e2_rr(240, 98, 32, 12, 2), "#3aa35c")
+    with a.part():                                      # work shirt
+        h_top(a, SH, SH_D)
+        a.blob("M200 203 L212 200 C226 222 286 222 300 200 L312 203 C304 226 284 246 256 262 C228 246 208 226 200 203 Z", WHITE)
+        a.blob("M222 212 C240 224 272 224 290 212 C282 232 270 244 256 252 C242 244 230 232 222 212 Z", SH_D)
+        a.ink([(200, 203, 208, 226, 228, 246, 256, 262)], 6, a=1, b=1)
+        a.ink([(312, 203, 304, 226, 284, 246, 256, 262)], 6, a=1, b=1)
+        e2_line(a, 256, 262, 256, 392, 6, 1, 1)
+        for y in (296, 340):
+            a.dot(270, y, 6, WHITE)
+    with a.part():                                      # tool belt
+        a.sil(e2_rr(154, 388, 204, 30, 8), BELT)
+    with a.part(ow=7):                                  # pencil and folding ruler
+        a.sil(e2_poly([(196, 420), (196, 364), (205, 348), (214, 364), (214, 420)]), RED)
+        a.sil(e2_rr(292, 344, 22, 80, 4), YEL)
+        a.sil(e2_rr(318, 356, 22, 68, 4), YEL)
+    a.blob(e2_poly([(199, 362), (205, 350), (211, 362)]), "#f6dcb8")
+    for y in (358, 372, 386):
+        e2_line(a, 292, y, 304, y, 4)
+        e2_line(a, 318, y + 10, 330, y + 10, 4)
+    with a.part(ow=9):                                  # pouches
+        a.sil("M176 404 L236 404 L236 452 C236 464 228 470 218 470 L194 470 C184 470 176 464 176 452 Z", POUCH)
+        a.sil("M276 404 L340 404 L340 452 C340 464 332 470 322 470 L294 470 C284 470 276 464 276 452 Z", POUCH)
+    a.blob(e2_rr(176, 404, 60, 14, 0), BELT)
+    a.blob(e2_rr(276, 404, 64, 14, 0), BELT)
+    a.shine("M190 122 C192 96 204 74 222 60")
+    a.shine("M108 352 L130 290")
+    return a
+
+
+@word
+def sensei():
+    a = Art()
+    SH, SH_D, AP, AP_D, AP_L = "#fff0b8", "#f3d98a", "#f7a8b3", "#ee8a9c", "#fcd3df"
+    with a.part():                                      # shirt
+        h_top(a, SH, SH_D)
+        a.blob("M200 203 L212 200 C226 222 286 222 300 200 L312 203 C296 240 216 240 200 203 Z", WHITE)
+        a.ink([(200, 203, 216, 240, 296, 240, 312, 203)], 6, a=1, b=1)
+    with a.part():                                      # apron
+        a.sil(e2_poly([(214, 206), (232, 204), (236, 250), (216, 250)]), AP)
+        a.sil(e2_poly([(298, 206), (280, 204), (276, 250), (296, 250)]), AP)
+        a.sil("M214 244 L298 244 C300 268 302 290 304 308 C324 308 338 310 346 318 L348 474 "
+              "C348 486 340 492 330 492 L182 492 C172 492 164 486 164 474 L166 318 C174 310 188 308 208 308 "
+              "C210 290 212 268 214 244 Z", AP)
+        a.blob("M164 458 L348 458 L348 474 C348 486 340 492 330 492 L182 492 C172 492 164 486 164 474 Z", AP_D)
+    with a.part(ow=6):                                  # pocket
+        a.sil("M206 384 L306 384 L306 430 C306 442 298 448 288 448 L224 448 C214 448 206 442 206 430 Z", AP_L)
+    a.blob(e2_rr(206, 384, 100, 12, 0), WHITE)
+    with a.part(ow=6):                                  # tulip name tag
+        a.sil("M238 264 C244 270 250 272 251 266 C252 262 254 258 256 256 C258 258 260 262 261 266 "
+              "C262 272 268 270 274 264 C278 288 270 300 256 300 C242 300 234 288 238 264 Z", RED)
+    with a.part(ow=6):                                  # a chick patch on the pocket
+        a.sil_ellipse(256, 420, 17, 15, YEL)
+    a.dot(250, 417, 2.6, O)
+    a.dot(262, 417, 2.6, O)
+    a.blob(e2_poly([(252, 423), (260, 423), (256, 429)]), "#f6a04d")
+    a.shine("M186 440 L188 360")
+    a.shine("M108 352 L130 290")
+    return a
+
+
+@word
+def oishasan():
+    a = Art()
+    CO, CO_D, SH, TUBE, SIL = "#ffffff", "#d7e6f2", "#9fd3f2", "#5a6a80", "#cfd6dd"
+    band = [(172, 152, 180, 84, 332, 84, 340, 152)]
+    with a.part():                                      # head mirror: band and disc
+        a.sil(taper(band, 24, 24, cap=False), "#6ea9da")
+    with a.part():
+        a.sil_ellipse(256, 96, 44, 44, SIL)
+        a.ellipse(256, 96, 30, 30, "#eef4f8", sw=0, stroke="none")
+        a.dot(256, 96, 8, TUBE)
+    a.shine("M232 86 C236 78 242 72 250 70")
+    with a.part():                                      # white coat
+        h_top(a, CO, CO_D)
+        a.blob(e2_poly([(214, 204), (298, 204), (256, 292)]), SH)
+        a.blob("M200 203 L212 200 C222 216 234 222 246 222 L256 292 C232 270 210 240 200 203 Z", CO)
+        a.blob(mirror("M200 203 L212 200 C222 216 234 222 246 222 L256 292 C232 270 210 240 200 203 Z"), CO)
+        a.blob(e2_poly([(246, 222), (266, 222), (262, 240), (270, 280), (256, 292), (242, 280), (250, 240)]), "#e5534b")
+        a.ink([(200, 203, 210, 240, 232, 270, 256, 292)], 6, a=1, b=1)
+        a.ink([(312, 203, 302, 240, 280, 270, 256, 292)], 6, a=1, b=1)
+        e2_line(a, 256, 292, 256, 480, 6, 1, 1)
+        for y in (330, 384, 438):
+            a.dot(272, y, 6, CO_D)
+            a.circle(272, y, 6, "none", sw=4)
+    with a.part(ow=5):                                  # pockets
+        a.sil(e2_rr(288, 296, 44, 40, 6), CO)
+        a.sil(e2_rr(180, 400, 56, 50, 8), CO)
+    with a.part(ow=5):                                  # pen
+        a.sil(e2_rr(304, 280, 10, 28, 3), BLUE)
+    with a.part(ow=6):                                  # stethoscope
+        a.sil(taper([(214, 206, 204, 260, 204, 316, 222, 344), (222, 344, 236, 362, 262, 356, 268, 336)], 11, 11, cap=False), TUBE)
+        a.sil(taper([(298, 206, 306, 250, 300, 300, 268, 336)], 11, 11, cap=False), TUBE)
+        a.sil(taper([(222, 346, 214, 366, 212, 384, 212, 400)], 11, 11, cap=False), TUBE)
+    with a.part(ow=7):
+        a.sil_ellipse(212, 408, 22, 22, SIL)
+    a.dot(212, 408, 11, "#eef4f8")
+    a.shine("M108 352 L130 290")
+    return a
+
+
+@word
+def omawarisan():
+    a = Art()
+    NV, NV_D, VIS = "#34507e", "#293f66", "#2a2f45"
+    with a.part():                                      # cap
+        a.sil("M160 112 C156 72 204 48 256 48 C308 48 356 72 352 112 C350 126 340 134 328 136 L326 166 "
+              "L186 166 L184 136 C172 134 162 126 160 112 Z", NV)
+        a.blob("M184 136 L328 136 L326 166 L186 166 Z", NV_D)
+        a.blob("M320 62 C344 74 354 92 352 112 C350 126 340 134 328 136 L308 136 C324 114 328 88 320 62 Z", NV_D)
+        a.ink([(184, 136, 232, 144, 280, 144, 328, 136)], 6, a=1, b=1)
+        a.blob(e2_rr(186, 146, 140, 8, 0), YEL2)
+    with a.part():                                      # visor
+        a.sil("M182 164 C210 156 302 156 330 164 C346 180 326 194 256 194 C186 194 166 180 182 164 Z", VIS)
+    a.shine("M214 180 C230 184 250 186 270 186", sw=6)
+    with a.part(ow=6):                                  # badge
+        a.sil(e2_star(256, 102, 26, 14), YEL2)
+    a.dot(256, 102, 6, "#e5ae22")
+    with a.part():                                      # uniform
+        h_top(a, NV, NV_D)
+        a.blob(e2_poly([(214, 204), (298, 204), (256, 288)]), SKY)
+        a.blob("M200 203 L212 200 C222 216 234 222 246 222 L256 288 C232 268 210 240 200 203 Z", NV)
+        a.blob(mirror("M200 203 L212 200 C222 216 234 222 246 222 L256 288 C232 268 210 240 200 203 Z"), NV)
+        a.blob(e2_poly([(246, 222), (266, 222), (262, 240), (268, 276), (256, 288), (244, 276), (250, 240)]), NV_D)
+        a.ink([(200, 203, 210, 240, 232, 268, 256, 288)], 6, a=1, b=1)
+        a.ink([(312, 203, 302, 240, 280, 268, 256, 288)], 6, a=1, b=1)
+        e2_line(a, 256, 288, 256, 480, 6, 1, 1)
+        for y in (322, 356, 440):
+            a.dot(256, y, 9, YEL2)
+        h_sleeve_band(a, 0.74, 0.8, YEL2)
+    with a.part(ow=6):                                  # chest badge
+        a.sil(e2_star(306, 302, 20, 10), YEL2)
+    with a.part():                                      # belt
+        a.sil(e2_rr(156, 380, 200, 34, 8), VIS)
+    with a.part(ow=7):
+        a.sil(e2_rr(234, 376, 44, 42, 8), YEL2)
+    a.blob(e2_rr(247, 389, 18, 16, 4), "#e5ae22")
+    a.shine("M186 104 C190 86 202 72 220 64")
+    a.shine("M108 352 L130 290")
+    return a
+
+
+@word
+def shouboushi():
+    a = Art()
+    OR, OR_D, HEL, HEL_D, REF, SILV = "#f28c38", "#d97324", "#e8eef3", "#bcc8d3", "#fbe36a", "#e8eef3"
+    with a.part():                                      # neck flap (behind the helmet)
+        a.sil("M176 130 L336 130 L352 192 C354 202 348 208 338 208 L174 208 C164 208 158 202 160 192 Z", OR)
+        a.blob("M158 186 L354 186 L352 192 C354 202 348 208 338 208 L174 208 C164 208 158 202 160 192 Z", REF)
+    with a.part():                                      # helmet
+        a.sil("M166 150 C166 86 204 42 256 42 C308 42 346 86 346 150 Z", HEL)
+        a.blob("M312 64 C336 86 346 116 346 150 L318 150 C324 118 322 90 312 64 Z", HEL_D)
+        a.blob(e2_poly([(170, 122), (342, 122), (346, 150), (166, 150)]), RED)
+        e2_line(a, 170, 122, 342, 122, 6)
+    with a.part():                                      # brim
+        a.sil(e2_rr(142, 142, 228, 28, 14), HEL)
+        a.blob(e2_rr(142, 156, 228, 14, 7), HEL_D)
+    with a.part(ow=6):                                  # badge
+        a.sil(e2_star(256, 92, 30, 15), YEL2)
+    a.dot(256, 92, 7, "#e5ae22")
+    with a.part():                                      # coat
+        h_top(a, OR, OR_D)
+        h_band(a, 286, 314, REF)
+        h_band(a, 294, 306, SILV)
+        h_band(a, 410, 438, REF)
+        h_band(a, 418, 430, SILV)
+        h_sleeve_band(a, 0.56, 0.78, REF)
+        h_sleeve_band(a, 0.63, 0.71, SILV)
+        a.blob("M200 203 L212 200 C226 222 286 222 300 200 L312 203 C298 246 214 246 200 203 Z", NAVY)
+        a.ink([(200, 203, 214, 246, 298, 246, 312, 203)], 6, a=1, b=1)
+        a.blob(e2_rr(244, 236, 24, 244, 0), OR_D)
+        e2_line(a, 244, 240, 244, 480, 6, 1, 1)
+        e2_line(a, 268, 240, 268, 480, 6, 1, 1)
+        e2_ink2(a, [(346, 326, 346, 302, 342, 284, 334, 270)], 8, 1, 0)
+    for y in (262, 350, 386):
+        with a.part(ow=5):
+            a.sil(e2_rr(238, y, 36, 14, 5), SILV)
+    a.shine("M186 116 C188 92 200 72 218 60")
+    a.shine("M108 352 L130 290")
+    return a
+
+
 def write_swing_parts():
     """The frame and the seat of the swing go to Content/Art/parts/ (D173). Same fit as burango.svg."""
     full, frame, seat, rope = swing_parts()

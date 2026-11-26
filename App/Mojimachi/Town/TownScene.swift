@@ -1316,12 +1316,13 @@ final class TownScene: SKScene {
     let column = slot % perRow
     let row = slot / perRow
     let railY = size.height - 30 - CGFloat(row) * 190
-    if row == 0, childNode(withName: "rail") == nil {
+    // 横木は、段ごとに1本（着る物が増えて2段目からも出る。D178）。
+    if childNode(withName: "rail\(row)") == nil {
       let rail = SKShapeNode(
         rect: CGRect(x: 40, y: railY, width: size.width - 80, height: 6), cornerRadius: 3)
       rail.fillColor = UIColor(red: 0.55, green: 0.38, blue: 0.22, alpha: 1)
       rail.strokeColor = .clear
-      rail.name = "rail"
+      rail.name = "rail\(row)"
       rail.zPosition = 1
       addChild(rail)
     }
