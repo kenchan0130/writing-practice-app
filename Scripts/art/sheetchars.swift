@@ -1,5 +1,5 @@
 import AppKit
-let chars = ["ton","run","hira"], labels = ["とん","るん","ひら"], poses = ["normal","wave","happy","sleep"]
+let chars = ["ton","run","hira"], labels = ["とん","るん","ひら"], poses = ["normal","wave","happy","sleep","blink"]
 let cell = 260, labW = 120, gap = 10
 let W = labW + poses.count * (cell + gap) + gap, H = 4 * (cell + gap) + gap + 40
 let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: W, pixelsHigh: H, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
