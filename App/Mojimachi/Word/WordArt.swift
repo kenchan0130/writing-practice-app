@@ -32,6 +32,11 @@ enum WordArt {
     "からす": "karasu", "さくら": "sakura", "ひまわり": "himawari", "たんぽぽ": "tanpopo",
     "りんご": "ringo", "みかん": "mikan", "いちご": "ichigo", "にんじん": "ninjin",
     "だいこん": "daikon", "かぼちゃ": "kabocha",
+    "ちょう": "chou", "とんぼ": "tonbo", "はち": "hachi", "ほたる": "hotaru", "せみ": "semi",
+    "かぶとむし": "kabutomushi", "てんとうむし": "tentoumushi", "かたつむり": "katatsumuri",
+    "もも": "momo", "ぶどう": "budou", "すいか": "suika", "くり": "kuri", "だんご": "dango",
+    "せんべい": "senbei", "わたあめ": "wataame", "おにぎり": "onigiri", "すし": "sushi",
+    "うどん": "udon",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in

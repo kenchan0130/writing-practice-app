@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <path d="M256 44.6 C299.2 44.6 323.3 85.4 383.3 181.5 C443.4 277.6 467.4 352.1 460.2 407.3 C453 453 419.3 467.4 380.9 467.4 L131.1 467.4 C92.7 467.4 59 453 51.8 407.3 C44.6 352.1 68.6 277.6 128.7 181.5 C188.7 85.4 212.8 44.6 256 44.6 Z" fill="#fffdf6" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M216.4 177.9 L233.2 165.9" fill="none" stroke="#e4ddca" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M281.2 194.7 L298 206.8" fill="none" stroke="#e4ddca" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M187.5 252.4 L204.4 264.4" fill="none" stroke="#e4ddca" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M300.4 278.8 L317.3 266.8" fill="none" stroke="#e4ddca" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M247.6 145.5 L264.4 145.5" fill="none" stroke="#e4ddca" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M383.3 181.5 C443.4 277.6 467.4 352.1 460.2 407.3 C453 453 419.3 467.4 380.9 467.4 L308.8 467.4 C380.9 400.1 380.9 280 344.9 123.9 Z" fill="#efe9d6"/>
+  <path d="M73.4 342.5 C128.7 325.7 383.3 325.7 438.6 342.5 C455.4 383.3 462.6 416.9 457.8 429 C450.6 457.8 419.3 467.4 380.9 467.4 L131.1 467.4 C92.7 467.4 61.4 457.8 54.2 429 C49.4 416.9 56.6 383.3 73.4 342.5 Z" fill="#2f4a3a"/>
+  <path d="M104.7 390.5 L407.3 390.5" fill="none" stroke="#4a6a56" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M256 44.6 C299.2 44.6 323.3 85.4 383.3 181.5 C443.4 277.6 467.4 352.1 460.2 407.3 C453 453 419.3 467.4 380.9 467.4 L131.1 467.4 C92.7 467.4 59 453 51.8 407.3 C44.6 352.1 68.6 277.6 128.7 181.5 C188.7 85.4 212.8 44.6 256 44.6 Z" fill="none" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M150.3 227.2 C179.1 171.9 205.6 123.9 239.2 85.4" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>
