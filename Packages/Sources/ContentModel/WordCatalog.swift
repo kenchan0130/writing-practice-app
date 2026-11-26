@@ -23,7 +23,7 @@ public struct WordEntry: Sendable, Hashable {
   }
 }
 
-/// M0 後半の約20語（D78）に、D167 で14語、D168 で14語を足した。
+/// M0 後半の約20語（D78）に、D167 で14語、D168 で14語、D169 で18語を足した。
 public enum WordCatalog {
   public static let all: [WordEntry] =
     ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ", "しょうぼうしゃ", "きゅうきゅうしゃ"].map {
@@ -31,13 +31,21 @@ public enum WordCatalog {
     }
     + [
       "うし", "いぬ", "ねこ", "うま", "くま", "しか", "りす", "さる", "ぞう", "とら", "かば", "きりん", "らくだ", "ぶた", "ひつじ",
-      "たぬき", "きつね", "うさぎ",
+      "たぬき", "きつね", "うさぎ", "かぶとむし", "てんとうむし", "かたつむり",
     ].map { WordEntry($0, .animal) }
     + ["ふく", "くつ", "ぼうし", "ゆかた", "くつした", "きもの"].map { WordEntry($0, .clothes) }
-    + ["ひこうき", "ききゅう", "はと", "すずめ", "からす"].map { WordEntry($0, .flyer) }
+    + [
+      "ひこうき", "ききゅう", "はと", "すずめ", "からす", "ちょう", "とんぼ", "はち", "ほたる", "せみ",
+    ].map { WordEntry($0, .flyer) }
     + [
       "さくら", "ひまわり", "たんぽぽ", "りんご", "みかん", "いちご", "にんじん", "だいこん", "かぼちゃ",
+      "もも", "ぶどう", "すいか", "くり", "だんご", "せんべい", "わたあめ", "おにぎり", "すし", "うどん",
     ].map { WordEntry($0, .scenery) }
+
+  /// はねずに、ゆっくり はう物（D169）。まちでは はずまず ゆっくり歩き、変身のあとも ゆっくり進む。
+  public static let crawlers: Set<String> = ["かぶとむし", "てんとうむし", "かたつむり"]
+
+  public static func crawls(_ text: String) -> Bool { crawlers.contains(text) }
 
   public static func entry(for text: String) -> WordEntry? {
     all.first { $0.text == text }

@@ -116,6 +116,10 @@ final class TransformScene: SKScene {
 
   /// 四つ足の動物の型: ぴょんぴょんはずんで歩き、たちどまって、向きを変えて戻る。
   private func walk(_ object: SKNode) {
+    if WordCatalog.crawls(word) {
+      crawl(object)
+      return
+    }
     let hop = SKAction.group([
       .sequence([.moveBy(x: 0, y: 26, duration: 0.14), .moveBy(x: 0, y: -26, duration: 0.14)]),
       .sequence([.rotate(toAngle: 0.08, duration: 0.14), .rotate(toAngle: -0.05, duration: 0.14)]),
@@ -134,6 +138,23 @@ final class TransformScene: SKScene {
     object.run(
       .sequence([trot(1), stop, trot(1), stop, turn, trot(-1), stop, turnBack, trot(-1)])
     ) { [weak self] in
+      object.zRotation = 0
+      self?.onFinished?()
+    }
+  }
+
+  /// はう物（かたつむり・てんとうむし・かぶとむし）: はずまず、ゆらゆら ゆっくり進む（D169）。
+  private func crawl(_ object: SKNode) {
+    let sway = SKAction.sequence([.rotate(toAngle: 0.04, duration: 0.4), .rotate(toAngle: -0.04, duration: 0.4)])
+    let step = size.width * 0.05
+    func go(_ direction: CGFloat) -> SKAction {
+      .group([.repeat(sway, count: 2), .moveBy(x: direction * step, y: 0, duration: 1.6)])
+    }
+    let stop = SKAction.group([.rotate(toAngle: 0, duration: 0.1), .wait(forDuration: 0.4)])
+    let turn = SKAction.sequence([.scaleX(to: -1, duration: 0.12)])
+    let turnBack = SKAction.sequence([.scaleX(to: 1, duration: 0.12)])
+    object.run(.sequence([go(1), stop, go(1), stop, turn, go(-1), stop, turnBack, go(-1)])) {
+      [weak self] in
       object.zRotation = 0
       self?.onFinished?()
     }

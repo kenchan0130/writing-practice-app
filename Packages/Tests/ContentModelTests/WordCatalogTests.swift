@@ -4,15 +4,15 @@ import Testing
 
 @Suite("ことばの一覧（D78）")
 struct WordCatalogTests {
-  @Test("47語で、種類ごとの数が合う")
+  @Test("65語で、種類ごとの数が合う")
   func counts() {
-    #expect(WordCatalog.all.count == 47)
-    #expect(Set(WordCatalog.all.map(\.text)).count == 47)
+    #expect(WordCatalog.all.count == 65)
+    #expect(Set(WordCatalog.all.map(\.text)).count == 65)
     #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 9)
-    #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 18)
+    #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 21)
     #expect(WordCatalog.all.filter { $0.kind == .clothes }.count == 6)
-    #expect(WordCatalog.all.filter { $0.kind == .flyer }.count == 5)
-    #expect(WordCatalog.all.filter { $0.kind == .scenery }.count == 9)
+    #expect(WordCatalog.all.filter { $0.kind == .flyer }.count == 10)
+    #expect(WordCatalog.all.filter { $0.kind == .scenery }.count == 19)
   }
 
   @Test("種類が正しい")
@@ -31,6 +31,23 @@ struct WordCatalogTests {
     #expect(WordCatalog.entry(for: "さくら")?.kind == .scenery)
     #expect(WordCatalog.entry(for: "だいこん")?.kind == .scenery)
     #expect(WordCatalog.entry(for: "かぼちゃ")?.kind == .scenery)
+    #expect(WordCatalog.entry(for: "ちょう")?.kind == .flyer)
+    #expect(WordCatalog.entry(for: "ほたる")?.kind == .flyer)
+    #expect(WordCatalog.entry(for: "かたつむり")?.kind == .animal)
+    #expect(WordCatalog.entry(for: "てんとうむし")?.kind == .animal)
+    #expect(WordCatalog.entry(for: "すし")?.kind == .scenery)
+    #expect(WordCatalog.entry(for: "わたあめ")?.kind == .scenery)
+  }
+
+  @Test("はう物は、むしの動物だけ（D169）。はねる動物や空の虫は はわない")
+  func crawlers() {
+    #expect(WordCatalog.crawlers == ["かぶとむし", "てんとうむし", "かたつむり"])
+    for text in WordCatalog.crawlers {
+      #expect(WordCatalog.entry(for: text)?.kind == .animal, "\(text)")
+    }
+    #expect(WordCatalog.crawls("かたつむり"))
+    #expect(!WordCatalog.crawls("うさぎ"))
+    #expect(!WordCatalog.crawls("ちょう"))
   }
 
   @Test("すべてのことばの字が、ひらがなのパックにある")

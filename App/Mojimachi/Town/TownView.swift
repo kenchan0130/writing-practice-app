@@ -43,6 +43,7 @@ struct TownView: View {
   @MainActor func debugSeedTown(_ store: ProgressStore) {
     guard UserDefaults.standard.bool(forKey: "seedTown"), store.placed.isEmpty else { return }
     let seeds = [
+      "かたつむり", "てんとうむし", "ちょう", "ほたる", "もも", "すいか", "だんご", "おにぎり",
       "くるま", "いぬ", "ひこうき", "ねこ", "ききゅう", "でんしゃ", "はと", "うま", "すずめ", "ふく", "ぼうし", "ゆかた",
       "さくら", "ひまわり", "たんぽぽ", "りんご", "みかん", "いちご", "にんじん", "だいこん", "かぼちゃ",
     ]

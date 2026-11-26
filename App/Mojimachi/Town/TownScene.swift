@@ -362,7 +362,12 @@ final class TownScene: SKScene {
     let range = CGFloat(slot.minX)...CGFloat(slot.maxX)
     switch slot.role {
     case .vehicle: driveVehicle(node, range: range, index: slot.index)
-    case .animal: trotAnimal(node, range: range, index: slot.index)
+    case .animal:
+      if WordCatalog.crawls(object.word) {
+        crawlAnimal(node, range: range, index: slot.index)
+      } else {
+        trotAnimal(node, range: range, index: slot.index)
+      }
     case .flyer: glide(node, word: object.word, range: range, index: slot.index)
     }
     return node
@@ -450,6 +455,12 @@ final class TownScene: SKScene {
           .wait(forDuration: Double(index % 4) * 0.4), .repeatForever(bob),
         ]))
     }
+    if word == "ほたる", !reduceMotion {
+      // ほたるは、おしりが ぽわっと光るように、すこし明るさが変わる。
+      node.run(
+        .repeatForever(
+          .sequence([.fadeAlpha(to: 0.7, duration: 1.1), .fadeAlpha(to: 1, duration: 1.1)])))
+    }
     if style == .bird, !reduceMotion {
       // はばたき: すこし縦につぶれて、すこし かたむく。
       let flap = SKAction.sequence([
@@ -481,6 +492,34 @@ final class TownScene: SKScene {
         .repeatForever(
           .sequence([.moveTo(y: baseY + 5, duration: 0.22), .moveTo(y: baseY, duration: 0.22)])))
     }
+  }
+
+  /// はう物（かたつむり・てんとうむし・かぶとむし。D169）: はずまず、ゆっくり進み、ときどき止まって向きを変える。
+  private func crawlAnimal(_ node: SKSpriteNode, range: ClosedRange<CGFloat>, index: Int) {
+    let speed: CGFloat = reduceMotion ? 8 : 18
+    let sway = SKAction.sequence([
+      .rotate(toAngle: 0.03, duration: 0.6), .rotate(toAngle: -0.03, duration: 0.6),
+    ])
+    func crawl(to x: CGFloat, from start: CGFloat) -> SKAction {
+      let duration = Double(max(abs(x - start), 1) / speed)
+      let move = SKAction.moveTo(x: x, duration: duration)
+      guard !reduceMotion else { return move }
+      return .group([.repeat(sway, count: Int(duration / 1.2) + 1), move])
+    }
+    let pause = SKAction.wait(forDuration: 1.5 + Double(index % 3) * 0.5)
+    let face = abs(node.xScale)
+    node.run(
+      .sequence([
+        .wait(forDuration: Double(index % 4) * 0.3),
+        crawl(to: range.upperBound, from: node.position.x), pause,
+        .repeatForever(
+          .sequence([
+            .scaleX(to: -face, duration: 0.2),
+            crawl(to: range.lowerBound, from: range.upperBound), pause,
+            .scaleX(to: face, duration: 0.2),
+            crawl(to: range.upperBound, from: range.lowerBound), pause,
+          ])),
+      ]))
   }
 
   /// 四つ足の動物: 草の上をぴょんぴょん歩き、ときどきたちどまって、向きを変える。
