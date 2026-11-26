@@ -72,13 +72,16 @@ public enum WordMap {
   public static let themes: [WordTheme] = [
     WordTheme(
       "norimono", "のりもの", in: "eki",
-      words: ["でんしゃ", "しんかんせん", "ふね", "くるま", "じてんしゃ", "そり"]),
-    WordTheme("hataraku-kuruma", "はたらく くるま", in: "michi"),
+      words: ["でんしゃ", "しんかんせん", "ふね", "くるま", "じてんしゃ", "そり", "いかだ"]),
+    WordTheme(
+      "hataraku-kuruma", "はたらく くるま", in: "michi", words: ["しょうぼうしゃ", "きゅうきゅうしゃ"]),
     WordTheme("sora-tobu-mono", "そらを とぶ もの", in: "sora"),
-    WordTheme("dobutsuen-dobutsu", "どうぶつえんの どうぶつ", in: "dobutsuen"),
-    WordTheme("makiba-dobutsu", "まきばの どうぶつ", in: "makiba", words: ["うし", "うま"]),
-    WordTheme("mori-dobutsu", "もりの どうぶつ", in: "mori", words: ["くま", "しか", "りす"]),
-    WordTheme("ie-ikimono", "いえで かう いきもの", in: "ie", row: .inside, words: ["いぬ", "ねこ"]),
+    WordTheme(
+      "dobutsuen-dobutsu", "どうぶつえんの どうぶつ", in: "dobutsuen",
+      words: ["さる", "ぞう", "とら", "かば", "きりん", "らくだ"]),
+    WordTheme("makiba-dobutsu", "まきばの どうぶつ", in: "makiba", words: ["うし", "うま", "ぶた", "ひつじ"]),
+    WordTheme("mori-dobutsu", "もりの どうぶつ", in: "mori", words: ["くま", "しか", "りす", "たぬき", "きつね"]),
+    WordTheme("ie-ikimono", "いえで かう いきもの", in: "ie", row: .inside, words: ["いぬ", "ねこ", "うさぎ"]),
     WordTheme("tori", "とり", in: "sora"),
     WordTheme("mushi", "むし", in: "mori"),
     WordTheme("umi-ikimono", "うみの いきもの", in: "umi"),

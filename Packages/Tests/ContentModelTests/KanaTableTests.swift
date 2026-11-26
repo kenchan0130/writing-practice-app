@@ -134,7 +134,9 @@ struct KanaTableTests {
   func wordsContaining() {
     #expect(WordCatalog.words(containing: "そ").map(\.text) == ["そり"])
     #expect(
-      Set(WordCatalog.words(containing: "く").map(\.text)) == ["くるま", "くま", "くつ", "くつした", "ふく"])
+      Set(WordCatalog.words(containing: "く").map(\.text)) == [
+        "くるま", "くま", "くつ", "くつした", "ふく", "らくだ",
+      ])
     #expect(WordCatalog.words(containing: "あ").isEmpty)
   }
 }

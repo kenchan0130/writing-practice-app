@@ -4,12 +4,12 @@ import Testing
 
 @Suite("ことばの一覧（D78）")
 struct WordCatalogTests {
-  @Test("19語で、種類ごとの数が合う")
+  @Test("33語で、種類ごとの数が合う")
   func counts() {
-    #expect(WordCatalog.all.count == 19)
-    #expect(Set(WordCatalog.all.map(\.text)).count == 19)
-    #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 6)
-    #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 7)
+    #expect(WordCatalog.all.count == 33)
+    #expect(Set(WordCatalog.all.map(\.text)).count == 33)
+    #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 9)
+    #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 18)
     #expect(WordCatalog.all.filter { $0.kind == .clothes }.count == 6)
   }
 
@@ -21,6 +21,8 @@ struct WordCatalogTests {
     #expect(WordCatalog.entry(for: "うま")?.kind == .animal)
     #expect(WordCatalog.entry(for: "くつした")?.kind == .clothes)
     #expect(WordCatalog.entry(for: "きもの")?.kind == .clothes)
+    #expect(WordCatalog.entry(for: "しょうぼうしゃ")?.kind == .vehicle)
+    #expect(WordCatalog.entry(for: "ぞう")?.kind == .animal)
     #expect(WordCatalog.entry(for: "ひこうき") == nil)
   }
 

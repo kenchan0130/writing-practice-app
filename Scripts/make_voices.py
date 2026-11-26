@@ -111,6 +111,11 @@ def main():
   with open(os.path.join(out_dir, "voices.json"), "w", encoding="utf-8") as f:
     json.dump({"engine": version, "files": manifest}, f, ensure_ascii=False, indent=1, sort_keys=True)
     f.write("\n")
+  # 前からある声は、作った日を前のまま残す（同じ文・同じ声なら作り直しても同じ声のため）。
+  if os.path.exists(prov_path):
+    with open(prov_path, newline="", encoding="utf-8") as f:
+      old = {r[0]: r for r in csv.reader(f)}
+    prov = [old[p[0]] if p[0] in old and old[p[0]][:6] == p[:6] else p for p in prov]
   with open(prov_path, "w", newline="", encoding="utf-8") as f:
     w = csv.writer(f, lineterminator="\n")
     w.writerow(["file", "text", "reading override", "speaker", "style id", "engine version", "date"])

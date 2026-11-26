@@ -22,6 +22,10 @@ enum WordArt {
     "ねこ": "neko", "うま": "uma", "くま": "kuma", "しか": "shika", "りす": "risu",
     "ふく": "fuku", "くつ": "kutsu", "ぼうし": "boushi", "ゆかた": "yukata",
     "くつした": "kutsushita", "きもの": "kimono",
+    "いかだ": "ikada", "しょうぼうしゃ": "shoubousha", "きゅうきゅうしゃ": "kyuukyuusha",
+    "さる": "saru", "ぞう": "zou", "とら": "tora", "かば": "kaba", "きりん": "kirin",
+    "らくだ": "rakuda", "ぶた": "buta", "ひつじ": "hitsuji", "たぬき": "tanuki",
+    "きつね": "kitsune", "うさぎ": "usagi",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
