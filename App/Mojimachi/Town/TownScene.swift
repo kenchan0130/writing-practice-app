@@ -1,9 +1,11 @@
+import ContentModel
 import PracticeKit
 import SpriteKit
 import UIKit
 
 /// まちの場面（SpriteKit）。D165: 画面の1.5〜3枚分の横長のまちを、指1本のドラッグで見て回る。
-/// 乗り物は道、動物は草の上を、物ごとの持ち場の中で動きまわる（持ち場の計算は `TownLayout`）。
+/// 乗り物は道、動物は草の上、飛ぶ物は空を、物ごとの持ち場の中で動きまわる（持ち場の計算は `TownLayout`）。
+/// 景色（花・くだもの・やさい）は、丘の手前の草に立つ（D168）。
 /// 服は横木にかかる（クローゼット。D53）。
 final class TownScene: SKScene {
   /// まち（乗り物と動物）か、クローゼット（服）か。
@@ -15,6 +17,8 @@ final class TownScene: SKScene {
 
   /// まちに出している物（古い順。上限は `TownLayout.maxRoaming`）。
   private var townObjects: [PlacedObject] = []
+  /// まちに出している景色（古い順。上限は `TownLayout.maxScenery`）。
+  private var sceneryObjects: [PlacedObject] = []
   private var worldWidth: CGFloat = 0
   private let cameraNode = SKCameraNode()
   private var panStartX: CGFloat = 0
@@ -57,9 +61,12 @@ final class TownScene: SKScene {
   /// 置いた物の一覧に合わせて、足したり消したりする（子どもを切り替えたときなど）。
   func show(_ all: [PlacedObject]) {
     if layer == .town {
-      let roaming = TownLayout.shown(all.filter { $0.kind != .clothes })
-      guard roaming.map(\.id) != townObjects.map(\.id) else { return }
+      let roaming = TownLayout.shown(all.filter { $0.kind != .clothes && $0.kind != .scenery })
+      let scenery = TownLayout.shownScenery(all.filter { $0.kind == .scenery })
+      guard roaming.map(\.id) != townObjects.map(\.id) || scenery.map(\.id) != sceneryObjects.map(\.id)
+      else { return }
       townObjects = roaming
+      sceneryObjects = scenery
       rebuildTown()
       return
     }
@@ -98,7 +105,7 @@ final class TownScene: SKScene {
     let h = size.height
     let objectSize = unit * 0.23
     let plan = TownLayout.make(
-      roles: townObjects.map { $0.kind == .vehicle ? .vehicle : .animal },
+      roles: townObjects.map { Self.role(of: $0.kind) }, scenery: sceneryObjects.count,
       screenWidth: Double(size.width), objectWidth: Double(objectSize))
     worldWidth = CGFloat(plan.worldWidth)
     #if DEBUG
@@ -115,8 +122,19 @@ final class TownScene: SKScene {
     world.name = "world"
     addChild(world)
     addScenery(to: world)
+    for (object, place) in zip(sceneryObjects, plan.scenery) {
+      world.addChild(makeScenery(object, place: place, objectSize: objectSize))
+    }
     for (object, slot) in zip(townObjects, plan.slots) {
       world.addChild(makeObject(object, slot: slot, objectSize: objectSize))
+    }
+  }
+
+  private static func role(of kind: WordKind) -> TownRole {
+    switch kind {
+    case .vehicle: .vehicle
+    case .flyer: .flyer
+    case .animal, .clothes, .scenery: .animal
     }
   }
 
@@ -337,15 +355,109 @@ final class TownScene: SKScene {
     node.name = object.id.uuidString
     let side = objectSize * CGFloat(slot.scale)
     node.size = CGSize(width: side, height: side)
-    node.anchorPoint = CGPoint(x: 0.5, y: 0.08)
+    node.anchorPoint = slot.role == .flyer ? CGPoint(x: 0.5, y: 0.5) : CGPoint(x: 0.5, y: 0.08)
     node.position = CGPoint(x: slot.startX, y: size.height * CGFloat(slot.yFraction))
-    node.zPosition = 20 - CGFloat(slot.yFraction) * 20
+    // 空の物は、雲（-85）と太陽より手前、丘より手前。地面の物は、足もとが低いほど手前。
+    node.zPosition = slot.role == .flyer ? 30 - CGFloat(slot.lane) : 20 - CGFloat(slot.yFraction) * 20
     let range = CGFloat(slot.minX)...CGFloat(slot.maxX)
     switch slot.role {
     case .vehicle: driveVehicle(node, range: range, index: slot.index)
     case .animal: trotAnimal(node, range: range, index: slot.index)
+    case .flyer: glide(node, word: object.word, range: range, index: slot.index)
     }
     return node
+  }
+
+  /// 景色になる物ひとつ。丘の手前の草に立つ。動物より奥（zPosition が小さい）に描く（D168）。
+  private func makeScenery(_ object: PlacedObject, place: SceneryPlace, objectSize: CGFloat)
+    -> SKSpriteNode
+  {
+    let image = WordArt.image(word: object.word, size: 320)
+    let node = SKSpriteNode(texture: SKTexture(image: image))
+    node.name = object.id.uuidString
+    let side = objectSize * CGFloat(place.scale)
+    node.size = CGSize(width: side, height: side)
+    node.anchorPoint = CGPoint(x: 0.5, y: 0.05)
+    node.position = CGPoint(x: place.x, y: size.height * CGFloat(place.yFraction))
+    // 動物の最も奥の段（z=13.6）より奥。手前の列ほど手前。
+    node.zPosition = 2 + CGFloat(1 - place.row) * 2
+    if WordArt.isFlower(object.word) {
+      // 花: ほんのすこし、根もとからゆれる（動きを減らすときは止める）。
+      guard !reduceMotion else { return node }
+      let angle: CGFloat = 0.04
+      let sway = SKAction.sequence([
+        .rotate(toAngle: angle, duration: 1.8), .rotate(toAngle: -angle, duration: 3.6),
+        .rotate(toAngle: 0, duration: 1.8),
+      ])
+      sway.timingMode = .easeInEaseOut
+      node.run(
+        .sequence([
+          .wait(forDuration: Double(place.index % 5) * 0.5), .repeatForever(sway),
+        ]))
+    } else if !reduceMotion {
+      // くだもの・やさい: 出てくるときにひとはずみして、止まる。
+      let target = node.size
+      node.size = CGSize(width: target.width * 0.5, height: target.height * 0.5)
+      node.run(
+        .sequence([
+          .wait(forDuration: Double(place.index % 6) * 0.12),
+          .group([
+            .resize(toWidth: target.width, height: target.height, duration: 0.3),
+            .sequence([.moveBy(x: 0, y: 22, duration: 0.15), .moveBy(x: 0, y: -22, duration: 0.15)]),
+          ]),
+        ]))
+    }
+    return node
+  }
+
+  /// 空を飛ぶ物: 空の段をゆったり行き来して、ふわふわ上下する。鳥ははばたき、ききゅうはゆっくり上がり下がりする（D168）。
+  private func glide(_ node: SKSpriteNode, word: String, range: ClosedRange<CGFloat>, index: Int) {
+    let style = WordArt.flyerStyle(word)
+    let speed: CGFloat
+    switch style {
+    case .plane: speed = reduceMotion ? 30 : 110
+    case .bird: speed = reduceMotion ? 25 : 70
+    case .balloon: speed = reduceMotion ? 12 : 28
+    }
+    let time = Double(max(range.upperBound - range.lowerBound, 1) / speed)
+    let first = Double(max(range.upperBound - node.position.x, 1) / speed)
+    let face = abs(node.xScale)
+    node.run(
+      .sequence([
+        .moveTo(x: range.upperBound, duration: first),
+        .repeatForever(
+          .sequence([
+            .scaleX(to: -face, duration: 0.2), .moveTo(x: range.lowerBound, duration: time),
+            .scaleX(to: face, duration: 0.2), .moveTo(x: range.upperBound, duration: time),
+          ])),
+      ]))
+    let baseY = node.position.y
+    let bobHeight: CGFloat
+    switch style {
+    case .balloon: bobHeight = size.height * 0.035
+    case .bird: bobHeight = size.height * 0.02
+    case .plane: bobHeight = size.height * 0.008
+    }
+    let period = style == .balloon ? 3.5 : (style == .bird ? 1.6 : 2.4)
+    if !reduceMotion {
+      let bob = SKAction.sequence([
+        .moveTo(y: baseY + bobHeight, duration: period / 2),
+        .moveTo(y: baseY - bobHeight, duration: period / 2),
+      ])
+      bob.timingMode = .easeInEaseOut
+      node.run(
+        .sequence([
+          .wait(forDuration: Double(index % 4) * 0.4), .repeatForever(bob),
+        ]))
+    }
+    if style == .bird, !reduceMotion {
+      // はばたき: すこし縦につぶれて、すこし かたむく。
+      let flap = SKAction.sequence([
+        .group([.scaleY(to: 0.9, duration: 0.18), .rotate(toAngle: 0.08, duration: 0.18)]),
+        .group([.scaleY(to: 1, duration: 0.18), .rotate(toAngle: -0.08, duration: 0.18)]),
+      ])
+      node.run(.repeatForever(flap))
+    }
   }
 
   /// 乗り物: 道をはずみながら行ったり来たりする。

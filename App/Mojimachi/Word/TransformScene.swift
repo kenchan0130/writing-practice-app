@@ -95,6 +95,8 @@ final class TransformScene: SKScene {
     case .vehicle: drive(object)
     case .animal: walk(object)
     case .clothes: sway(object)
+    case .flyer: fly(object)
+    case .scenery: settle(object)
     }
   }
 
@@ -167,6 +169,88 @@ final class TransformScene: SKScene {
     // 揺れは続けるが、ボタンは3秒ほどで出す。
     sprite.run(.repeatForever(swing))
     run(.wait(forDuration: 3)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 空を飛ぶ物の型: はばたき（またはすべり）ながら上へ飛んでいき、また横から すーっと戻ってきて、ふわふわ浮かぶ（D168）。
+  private func fly(_ object: SKNode) {
+    let home = object.position
+    let style = WordArt.flyerStyle(word)
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    if reduce {
+      let bob = SKAction.sequence([.moveBy(x: 0, y: 6, duration: 1.2), .moveBy(x: 0, y: -6, duration: 1.2)])
+      object.run(.repeatForever(bob))
+      run(.wait(forDuration: 2)) { [weak self] in self?.onFinished?() }
+      return
+    }
+    let flap: SKAction
+    switch style {
+    case .bird:
+      flap = .repeatForever(
+        .sequence([
+          .group([.scaleY(to: 0.86, duration: 0.14), .rotate(toAngle: 0.1, duration: 0.14)]),
+          .group([.scaleY(to: 1.0, duration: 0.14), .rotate(toAngle: -0.1, duration: 0.14)]),
+        ]))
+    case .plane:
+      flap = .rotate(toAngle: 0.18, duration: 0.4)
+    case .balloon:
+      flap = .repeatForever(
+        .sequence([.rotate(toAngle: 0.05, duration: 0.8), .rotate(toAngle: -0.05, duration: 0.8)]))
+    }
+    object.run(flap, withKey: "flap")
+    let away = CGPoint(x: size.width * 1.2, y: size.height * 1.15)
+    let out = SKAction.group([
+      .move(to: away, duration: style == .balloon ? 2.0 : 1.2), .scale(to: 0.5, duration: 1.2),
+    ])
+    out.timingMode = .easeIn
+    let back = SKAction.group([
+      .move(to: home, duration: style == .balloon ? 2.0 : 1.4), .scale(to: 1, duration: 1.4),
+    ])
+    back.timingMode = .easeOut
+    let hover = SKAction.sequence([
+      .moveBy(x: 0, y: 14, duration: 0.9), .moveBy(x: 0, y: -14, duration: 0.9),
+    ])
+    object.run(
+      .sequence([
+        .wait(forDuration: 0.2), out,
+        .move(to: CGPoint(x: -size.width * 0.2, y: size.height * 0.8), duration: 0),
+        back, .repeatForever(hover),
+      ]), withKey: "fly")
+    run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 景色になる物の型: 花はそよかぜでゆれる。くだもの・やさいは ぽんと出て、ひとはずみして止まる（D168）。
+  private func settle(_ object: SKNode) {
+    guard let sprite = object as? SKSpriteNode else { return }
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    // 足もとを支点にする。
+    let base = sprite.position.y - sprite.size.height / 2
+    sprite.anchorPoint = CGPoint(x: 0.5, y: 0)
+    sprite.position = CGPoint(x: sprite.position.x, y: base)
+    if WordArt.isFlower(word) {
+      let sway = SKAction.sequence([
+        .rotate(toAngle: reduce ? 0.02 : 0.07, duration: 1.0),
+        .rotate(toAngle: reduce ? -0.02 : -0.07, duration: 2.0),
+        .rotate(toAngle: 0, duration: 1.0),
+      ])
+      sway.timingMode = .easeInEaseOut
+      if !reduce {
+        sprite.setScale(0.6)
+        sprite.run(.scale(to: 1, duration: 0.35))
+      }
+      sprite.run(.repeatForever(sway))
+    } else if !reduce {
+      sprite.setScale(0.5)
+      let pop = SKAction.sequence([
+        .scale(to: 1.2, duration: 0.2), .scale(to: 0.94, duration: 0.12),
+        .scale(to: 1.0, duration: 0.1),
+      ])
+      let hop = SKAction.sequence([
+        .moveBy(x: 0, y: 40, duration: 0.22), .moveBy(x: 0, y: -40, duration: 0.22),
+        .moveBy(x: 0, y: 14, duration: 0.12), .moveBy(x: 0, y: -14, duration: 0.12),
+      ])
+      sprite.run(.group([pop, hop]))
+    }
+    run(.wait(forDuration: 2.5)) { [weak self] in self?.onFinished?() }
   }
 
   /// 子どもの線から、粒の出発点を同じ間かくで取る。

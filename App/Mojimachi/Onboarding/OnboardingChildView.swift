@@ -162,6 +162,8 @@ struct OnboardingChildView: View {
     case .vehicle: "のりもの"
     case .animal: "どうぶつ"
     case .clothes: "ふく"
+    case .flyer: "そら"
+    case .scenery: "はな"
     }
   }
 
@@ -170,6 +172,8 @@ struct OnboardingChildView: View {
     case .vehicle: "car.side.fill"
     case .animal: "pawprint.fill"
     case .clothes: "tshirt.fill"
+    case .flyer: "bird.fill"
+    case .scenery: "leaf.fill"
     }
   }
 
@@ -178,6 +182,8 @@ struct OnboardingChildView: View {
     case .vehicle: Color(red: 0.85, green: 0.3, blue: 0.25)
     case .animal: Color(red: 0.62, green: 0.4, blue: 0.2)
     case .clothes: Color(red: 0.25, green: 0.45, blue: 0.85)
+    case .flyer: Color(red: 0.3, green: 0.62, blue: 0.9)
+    case .scenery: Color(red: 0.4, green: 0.7, blue: 0.32)
     }
   }
 

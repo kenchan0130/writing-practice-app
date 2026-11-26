@@ -1,6 +1,6 @@
 import AppKit
-let names = ["sori","kuruma","fune","densha","jitensha","shinkansen","ushi","inu","neko","kuma","uma","shika","risu","fuku","kutsu","boushi","yukata","kutsushita","kimono","saru","zou","tora","kaba","kirin","rakuda","buta","hitsuji","tanuki","kitsune","usagi","ikada","shoubousha","kyuukyuusha"]
-let labels = ["そり","くるま","ふね","でんしゃ","じてんしゃ","しんかんせん","うし","いぬ","ねこ","くま","うま","しか","りす","ふく","くつ","ぼうし","ゆかた","くつした","きもの","さる","ぞう","とら","かば","きりん","らくだ","ぶた","ひつじ","たぬき","きつね","うさぎ","いかだ","しょうぼうしゃ","きゅうきゅうしゃ"]
+let names = ["sori","kuruma","fune","densha","jitensha","shinkansen","ushi","inu","neko","kuma","uma","shika","risu","fuku","kutsu","boushi","yukata","kutsushita","kimono","saru","zou","tora","kaba","kirin","rakuda","buta","hitsuji","tanuki","kitsune","usagi","ikada","shoubousha","kyuukyuusha","hikouki","kikyuu","hato","suzume","karasu","sakura","himawari","tanpopo","ringo","mikan","ichigo","ninjin","daikon","kabocha"]
+let labels = ["そり","くるま","ふね","でんしゃ","じてんしゃ","しんかんせん","うし","いぬ","ねこ","くま","うま","しか","りす","ふく","くつ","ぼうし","ゆかた","くつした","きもの","さる","ぞう","とら","かば","きりん","らくだ","ぶた","ひつじ","たぬき","きつね","うさぎ","いかだ","しょうぼうしゃ","きゅうきゅうしゃ","ひこうき","ききゅう","はと","すずめ","からす","さくら","ひまわり","たんぽぽ","りんご","みかん","いちご","にんじん","だいこん","かぼちゃ"]
 let cols = 5, cell = 220, lab = 44, gap = 16
 let rows = (names.count + cols - 1) / cols
 let gridH = rows * (cell + lab + gap)
