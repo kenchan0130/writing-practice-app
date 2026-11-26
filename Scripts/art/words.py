@@ -437,7 +437,7 @@ def boushi():
     return a
 
 
-def sakura(a, cx, cy, r=9, col="#ffd1dc"):
+def sakura_dot(a, cx, cy, r=9, col="#ffd1dc"):
     import math
     for i in range(5):
         t = -math.pi / 2 + i * 2 * math.pi / 5
@@ -485,7 +485,7 @@ def kimono():
     for x, y, r in ((86, 170, 10), (118, 250, 11), (80, 330, 10), (122, 380, 8), (426, 170, 10), (394, 250, 11),
                     (432, 330, 10), (390, 380, 8), (186, 360, 11), (322, 380, 12), (250, 430, 11), (196, 444, 8),
                     (322, 446, 9), (184, 150, 8), (330, 150, 8)):
-        sakura(a, x, y, r)
+        sakura_dot(a, x, y, r)
     for x, y in ((104, 292), (408, 292), (282, 352), (214, 404)):
         a.circle(x, y, 9, YEL2, sw=0, stroke="none")
     a.tube("M219 104 L268 214", WHITE, 34, 18)
@@ -894,6 +894,355 @@ def kyuukyuusha():
     for x in (126, 380):
         a.circle(x, 376, 40, GREY)
         a.circle(x, 376, 15, HUB, sw=8)
+    return a
+
+
+# ------------------------------------------------------------ flyers (D168) --
+def bird_face(a, cx=256, cy=190, gap=56, blush_dx=92, blush=True):
+    for s in (-1, 1):
+        x = cx + s * gap
+        a.ellipse(x, cy, 14, 17, EYE, sw=0, stroke="none")
+        a.dot(x + 5, cy - 7, 5.5, "#ffffff")
+        if blush:
+            a.ellipse(cx + s * blush_dx, cy + 36, 16, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
+
+
+def bird_feet(a, col="#f29a76"):
+    for x in (216, 296):
+        a.path(f"M{x} 408 L{x} 436 M{x} 436 L{x-18} 442 M{x} 436 L{x} 446 M{x} 436 L{x+18} 442", stroke=col, sw=16)
+        a.path(f"M{x} 408 L{x} 436 M{x} 436 L{x-18} 442 M{x} 436 L{x} 446 M{x} 436 L{x+18} 442", stroke=O, sw=0)
+    return a
+
+
+def bird_base(a, body, belly, wing, tail):
+    # tail behind, feet, body, belly, wings, head
+    a.path("M300 360 C350 372 392 392 408 430 C360 430 320 412 288 392 Z", fill=tail)
+    for x in (214, 298):
+        a.path(f"M{x} 400 L{x} 440 M{x} 440 L{x-20} 448 M{x} 440 L{x} 452 M{x} 440 L{x+20} 448", sw=22)
+        a.path(f"M{x} 400 L{x} 440 M{x} 440 L{x-20} 448 M{x} 440 L{x} 452 M{x} 440 L{x+20} 448", stroke="#f4a37f", sw=10)
+    a.ellipse(256, 322, 112, 100, body)
+    a.ellipse(256, 350, 62, 56, belly, sw=0, stroke="none")
+    for s in (-1, 1):
+        d = "M156 300 C120 306 104 346 128 382 C152 392 176 372 184 340 Z"
+        a.path(d if s < 0 else mirror(d), fill=wing)
+
+
+@word
+def hato():
+    a = Art()
+    GR, GRD, LG = "#b9c0c9", "#8b95a2", "#dde2e8"
+    bird_base(a, GR, LG, GRD, "#7d8794")
+    # iridescent neck collar (green and purple), under the head
+    a.ellipse(256, 236, 84, 50, "#4fb59b", sw=0, stroke="none")
+    a.ellipse(256, 246, 66, 32, "#a56fc4", sw=0, stroke="none")
+    a.path("M256 82 C310 82 338 120 338 160 C338 204 300 238 256 238 C212 238 174 204 174 160 C174 120 202 82 256 82 Z", fill=GR)
+    bird_face(a, cy=150, gap=44, blush_dx=72)
+    a.path("M234 170 L278 170 C278 188 268 200 256 200 C244 200 234 188 234 170 Z", fill="#f4b086", sw=9)
+    a.ellipse(256, 168, 14, 8, "#f6efe8", sw=0, stroke="none")
+    a.shine("M196 120 C204 104 216 94 232 88")
+    return a
+
+
+@word
+def suzume():
+    a = Art()
+    BR, BRD, CAP = "#c98f55", "#8f5a30", "#b5683a"
+    bird_base(a, BR, "#f6e8d2", BRD, "#8f5a30")
+    a.path("M130 340 L172 330 M126 360 L170 352", stroke="#f6e8d2", sw=7)
+    a.path("M256 82 C310 82 338 120 338 160 C338 204 300 238 256 238 C212 238 174 204 174 160 C174 120 202 82 256 82 Z", fill="#f6e8d2")
+    # chestnut cap and nape
+    a.path("M256 82 C306 82 336 116 338 150 C316 128 290 122 256 122 C222 122 196 128 174 150 C176 116 206 82 256 82 Z", fill=CAP, sw=0, stroke="none")
+    a.path("M256 82 C310 82 338 120 338 160 C338 204 300 238 256 238 C212 238 174 204 174 160 C174 120 202 82 256 82 Z")
+    # black bib and cheek spots
+    a.path("M232 198 C232 222 280 222 280 198 C268 206 244 206 232 198 Z", fill=EYE, sw=0, stroke="none")
+    for s in (-1, 1):
+        a.dot(256 + s * 74, 186, 11)
+    bird_face(a, cy=150, gap=44, blush=False)
+    a.path("M240 168 L272 168 C272 182 266 190 256 190 C246 190 240 182 240 168 Z", fill="#f2b788", sw=8)
+    a.shine("M196 118 C204 102 216 92 232 86")
+    return a
+
+
+@word
+def karasu():
+    a = Art()
+    BK, BKD, BKL = "#46424f", "#34303c", "#5d5868"
+    bird_base(a, BK, BKL, BKD, "#34303c")
+    a.path("M256 80 C312 80 344 120 344 164 C344 208 304 240 256 240 C208 240 168 208 168 164 C168 120 200 80 256 80 Z", fill=BK)
+    a.ellipse(206, 126, 8, 5, BKL, sw=0, stroke="none")
+    for s in (-1, 1):
+        x = 256 + s * 46
+        a.ellipse(x, 154, 20, 24, "#ffffff", sw=0, stroke="none")
+        a.ellipse(x + s * 1, 156, 13, 17, EYE, sw=0, stroke="none")
+        a.dot(x + 5, 148, 5.5, "#ffffff")
+        a.ellipse(256 + s * 86, 190, 15, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.8"})
+    a.path("M222 176 C222 164 290 164 290 176 C290 206 270 218 256 218 C242 218 222 206 222 176 Z", fill="#ffb347", sw=9)
+    a.path("M234 190 C246 200 266 200 278 190", sw=7)
+    a.shine("M196 112 C206 98 218 90 234 84")
+    return a
+
+
+@word
+def hikouki():
+    a = Art()
+    WG, WG2 = "#8fb4dc", "#b3cdea"
+    # far wing and tail plane (behind)
+    a.path("M300 226 L262 150 L312 150 L372 224 Z", fill=WG2)
+    # tail fin
+    a.path("M70 236 L44 124 L102 124 L178 216 Z", fill=BLUE)
+    # body
+    a.path("M64 252 C64 224 88 212 122 212 L396 212 C444 212 478 236 478 260 C478 284 444 300 396 300 L116 300 C84 300 64 282 64 252 Z", fill=WHITE)
+    a.path("M80 280 C90 292 104 294 120 294 L396 294 C426 294 452 284 466 270 L80 270 Z", fill=BLUE, sw=0, stroke="none")
+    a.path("M64 252 C64 224 88 212 122 212 L396 212 C444 212 478 236 478 260 C478 284 444 300 396 300 L116 300 C84 300 64 282 64 252 Z")
+    # cockpit and windows
+    a.path("M404 232 C426 232 442 242 452 256 L404 256 Z", fill=SKY, sw=9)
+    for x in range(140, 360, 44):
+        a.circle(x, 246, 13, SKY, sw=8)
+    # near wing and engine
+    a.path("M286 284 L190 410 L248 410 L372 288 Z", fill=WG)
+    a.rect(232, 338, 64, 42, "#e6e0da", rx=18)
+    a.path("M246 346 L246 372", stroke="#ffffff", sw=6, **{"stroke-opacity": "0.6"})
+    a.shine("M120 226 L300 226")
+    return a
+
+
+def lens(w, y0=40, y1=316):
+    return (f"M256 {y0} C{256+w} {y0+20} {256+w} {y1-70} 256 {y1} "
+            f"C{256-w} {y1-70} {256-w} {y0+20} 256 {y0} Z")
+
+
+@word
+def kikyuu():
+    a = Art()
+    ENV = ("M256 40 C402 40 444 150 404 232 C382 272 322 300 298 316 L214 316 C190 300 130 272 108 232 "
+           "C68 150 110 40 256 40 Z")
+    # ropes and basket (behind the envelope)
+    a.path("M222 312 L204 392 M290 312 L308 392 M256 316 L256 392", sw=8)
+    a.path("M184 388 L328 388 L316 462 C314 470 308 474 300 474 L212 474 C204 474 198 470 196 462 Z", fill=WOOD)
+    a.path("M190 416 L322 416 M194 444 L318 444", sw=7)
+    for x in (230, 256, 282):
+        a.path(f"M{x} 388 L{x} 474", sw=6)
+    a.rect(176, 378, 160, 24, WOOD_D, rx=10, sw=9)
+    a.path(ENV, fill=RED)
+    a.path(lens(165), fill=WHITE, sw=0, stroke="none")
+    a.path(lens(112), fill=YEL2, sw=0, stroke="none")
+    a.path(lens(60), fill=BLUE, sw=0, stroke="none")
+    a.path(ENV)
+    a.path("M214 316 L298 316", sw=11)
+    a.shine("M150 150 C152 112 176 82 212 66")
+    return a
+
+
+# --------------------------------------------------------- scenery (D168) --
+def petal(cx, cy, L, ang, w=1.0, notch=True):
+    """A rounded petal pointing outward from (cx, cy) at angle `ang` (0 = up)."""
+    import math
+    c, s = math.cos(ang), math.sin(ang)
+
+    def P(x, y):
+        return f"{cx + x * c - y * s:.1f} {cy + x * s + y * c:.1f}"
+    k = w * L
+    if notch:
+        return (f"M{P(0, 0)} C{P(-0.62*k, -0.1*L)} {P(-0.7*k, -0.9*L)} {P(-0.16*k, -L)} "
+                f"L{P(0, -0.86*L)} L{P(0.16*k, -L)} C{P(0.7*k, -0.9*L)} {P(0.62*k, -0.1*L)} {P(0, 0)} Z")
+    return (f"M{P(0, 0)} C{P(-0.7*k, -0.15*L)} {P(-0.6*k, -L)} {P(0, -L)} "
+            f"C{P(0.6*k, -L)} {P(0.7*k, -0.15*L)} {P(0, 0)} Z")
+
+
+def blossom(a, cx, cy, R, rot=0.0, col="#f9c3d0", vein="#ee8fa8"):
+    import math
+    for i in range(5):
+        ang = rot + i * 2 * math.pi / 5
+        a.path(petal(cx, cy, R, ang, w=0.78, notch=False), fill=col)
+    for i in range(5):
+        ang = rot + i * 2 * math.pi / 5
+        a.path(f"M{cx + 0.2*R*math.sin(ang):.1f} {cy - 0.2*R*math.cos(ang):.1f} "
+               f"L{cx + 0.55*R*math.sin(ang):.1f} {cy - 0.55*R*math.cos(ang):.1f}", stroke=vein, sw=6)
+    a.circle(cx, cy, R * 0.2, "#f7d36b", sw=8)
+
+
+@word
+def sakura():
+    a = Art()
+    a.path("M440 470 C380 420 320 380 250 310 C200 260 170 220 160 170", sw=34)
+    a.path("M440 470 C380 420 320 380 250 310 C200 260 170 220 160 170", stroke="#9a6b4a", sw=16)
+    a.path("M250 310 C230 320 210 326 196 330", sw=26)
+    a.path("M250 310 C230 320 210 326 196 330", stroke="#9a6b4a", sw=11)
+    blossom(a, 168, 150, 88, 0.2)
+    blossom(a, 340, 230, 100, 0.55)
+    blossom(a, 392, 408, 66, 0.0)
+    blossom(a, 196, 330, 70, 0.4)
+    return a
+
+
+@word
+def himawari():
+    import math
+    a = Art()
+    LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
+    a.path("M256 300 C256 340 252 380 256 420", sw=40)
+    a.path("M256 300 C256 340 252 380 256 420", stroke=LEAF, sw=18)
+    for s in (-1, 1):
+        d = "M256 372 C300 346 352 342 390 366 C354 402 298 408 256 386 Z"
+        a.path(d if s > 0 else mirror(d), fill=LEAF)
+        v = "M270 376 C310 366 340 366 366 370"
+        a.path(v if s > 0 else mirror(v), stroke=LEAF_D, sw=6)
+    n = 12
+    for i in range(n):
+        a.path(petal(256, 190, 150, i * 2 * math.pi / n, w=0.46, notch=False), fill="#f4c23a")
+    for i in range(n):
+        a.path(petal(256, 190, 136, (i + 0.5) * 2 * math.pi / n, w=0.46, notch=False), fill=YEL2)
+    a.circle(256, 190, 74, "#8a5530")
+    a.circle(256, 190, 50, "#6e4224", sw=0, stroke="none")
+    for r, cnt in ((20, 6), (36, 12)):
+        for j in range(cnt):
+            t = j * 2 * math.pi / cnt + r
+            a.dot(256 + r * math.cos(t), 190 + r * math.sin(t), 5.5, "#b98255")
+    a.dot(256, 190, 5.5, "#b98255")
+    a.shine("M204 156 C210 134 226 118 246 112")
+    return a
+
+
+@word
+def tanpopo():
+    import math
+    a = Art()
+    LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
+    # toothed leaves at the base
+    leaf = ("M250 462 L196 452 L206 426 L160 424 L170 396 L124 388 L146 364 L96 346 L150 338 "
+            "L186 372 L226 392 L252 420 Z")
+    a.path(leaf, fill=LEAF)
+    a.path(mirror(leaf), fill=LEAF)
+    a.path("M256 462 L256 300", sw=34)
+    a.path("M256 462 L256 300", stroke="#8fd07a", sw=14)
+    n = 22
+    pts = []
+    for i in range(n * 2):
+        r = 116 if i % 2 == 0 else 92
+        t = i * math.pi / n
+        pts.append(f"{256 + r * math.sin(t):.1f} {180 - r * math.cos(t):.1f}")
+    a.path("M" + " L".join(pts) + " Z", fill="#f7c948")
+    for i in range(n):
+        t = i * 2 * math.pi / n
+        a.path(f"M{256 + 40 * math.sin(t):.1f} {180 - 40 * math.cos(t):.1f} "
+               f"L{256 + 84 * math.sin(t):.1f} {180 - 84 * math.cos(t):.1f}", stroke="#fbe07a", sw=9)
+    a.circle(256, 180, 30, "#f0b429", sw=0, stroke="none")
+    a.shine("M206 140 C214 120 228 106 246 100")
+    return a
+
+
+@word
+def ringo():
+    a = Art()
+    a.path("M260 140 C262 110 268 86 282 60", sw=30)
+    a.path("M260 140 C262 110 268 86 282 60", stroke="#8a5530", sw=12)
+    a.path("M282 96 C312 46 372 40 404 62 C386 116 326 132 282 96 Z", fill=GREEN)
+    a.path("M296 92 C328 78 360 72 386 70", stroke="#58a24a", sw=6)
+    a.path("M256 142 C296 98 404 104 412 224 C418 342 344 436 292 436 C272 436 264 428 256 428 "
+           "C248 428 240 436 220 436 C168 436 94 342 100 224 C108 104 216 98 256 142 Z", fill=RED)
+    a.path("M326 392 C366 368 392 316 398 258 C384 330 350 372 306 398 Z", fill=RED_D, sw=0, stroke="none")
+    a.shine("M152 214 C148 178 164 150 192 138")
+    return a
+
+
+@word
+def mikan():
+    a = Art()
+    OR, OR_D = "#f7931e", "#e57d12"
+    a.path("M96 290 C96 190 170 140 256 140 C342 140 416 190 416 290 C416 380 346 436 256 436 C166 436 96 380 96 290 Z", fill=OR)
+    a.path("M330 408 C376 380 408 330 410 280 C404 350 372 394 316 420 Z", fill=OR_D, sw=0, stroke="none")
+    for dx, dy in ((-70, 250), (-30, 350), (60, 290), (30, 380), (-90, 330), (100, 350)):
+        a.dot(256 + dx, dy - 20, 3.5, "#f9b24f")
+    a.path("M256 144 L256 112", sw=26)
+    a.path("M256 144 L256 112", stroke="#6aa84f", sw=10)
+    star = "M256 150 C236 148 214 136 198 120 C226 112 244 124 256 150 C268 124 286 112 314 120 C298 136 276 148 256 150 Z"
+    a.path(star, fill=GREEN)
+    a.path("M262 112 C290 76 340 62 372 74 C356 112 306 126 262 112 Z", fill=GREEN)
+    a.path("M278 106 C308 94 336 88 360 82", stroke="#58a24a", sw=6)
+    a.shine("M140 262 C140 224 164 190 200 172")
+    return a
+
+
+@word
+def ichigo():
+    a = Art()
+    a.path("M256 456 C176 420 98 340 98 250 C98 186 150 150 256 162 C362 150 414 186 414 250 C414 340 336 420 256 456 Z", fill=RED)
+    a.path("M330 410 C376 372 406 316 406 262 C396 330 360 380 312 420 Z", fill=RED_D, sw=0, stroke="none")
+    seeds = [(176, 238), (256, 226), (336, 238), (136, 282), (216, 286), (296, 286), (376, 282),
+             (176, 334), (256, 338), (336, 334), (216, 386), (296, 386), (256, 424)]
+    for x, y in seeds:
+        a.ellipse(x, y, 8, 12, "#ffe18a", sw=0, stroke="none")
+    # green top
+    a.path("M256 170 L256 116", sw=26)
+    a.path("M256 170 L256 116", stroke="#6aa84f", sw=10)
+    top = ("M256 190 C230 196 196 186 150 160 C176 152 206 154 232 168 C214 148 204 128 200 104 "
+           "C228 118 244 142 256 164 C268 142 284 118 312 104 C308 128 298 148 280 168 "
+           "C306 154 336 152 362 160 C316 186 282 196 256 190 Z")
+    a.path(top, fill=GREEN)
+    a.shine("M138 250 C136 220 156 192 186 182")
+    return a
+
+
+@word
+def ninjin():
+    a = Art()
+    LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
+    for d in ("M250 160 C214 140 168 110 160 56 C206 62 248 96 266 156 Z",
+              "M240 160 C230 110 238 60 262 22 C292 62 296 118 280 160 Z",
+              "M262 162 C300 124 352 98 396 100 C382 148 330 176 270 172 Z"):
+        a.path(d, fill=LEAF)
+    a.path("M256 150 C340 140 370 170 352 210 C320 310 290 400 264 462 C258 474 250 474 246 462 "
+           "C220 400 188 310 160 210 C142 170 172 140 256 150 Z", fill="#f78d2e")
+    a.path("M318 240 C298 332 280 398 264 444 C294 394 312 326 322 252 Z", fill="#e07a1e", sw=0, stroke="none")
+    for y, x0, x1 in ((222, 190, 236), (292, 212, 252), (360, 232, 262)):
+        a.path(f"M{x0} {y} L{x1} {y}", stroke="#e07a1e", sw=8)
+    a.shine("M192 188 C190 172 202 162 220 160")
+    return a
+
+
+@word
+def daikon():
+    a = Art()
+    LEAF, LEAF_D = "#6fbd5c", "#4f9e48"
+    for d, v in (("M246 196 C190 170 134 120 126 48 C196 58 246 108 262 190 Z", "M236 180 C202 144 170 108 144 66"),
+                 ("M246 196 C232 140 238 80 262 20 C296 82 298 144 272 196 Z", "M258 180 C252 130 254 84 262 44"),
+                 ("M266 196 C316 164 372 128 422 116 C410 176 340 212 270 206 Z", "M278 190 C320 168 366 146 404 132")):
+        a.path(d, fill=LEAF)
+        a.path(v, stroke=LEAF_D, sw=6)
+    a.path("M256 186 C310 182 330 214 324 262 C318 354 288 434 264 474 C260 482 252 482 248 474 "
+           "C224 434 194 354 188 262 C182 214 202 182 256 186 Z", fill="#f8f5ec")
+    a.path("M190 270 C186 218 202 186 256 190 C310 186 326 218 322 270 C296 242 216 242 190 270 Z",
+           fill="#cfe8b0", sw=0, stroke="none")
+    a.path("M302 270 C296 350 282 410 262 462 C292 420 316 350 320 280 Z", fill="#e9e3d2", sw=0, stroke="none")
+    for y, x0, x1 in ((300, 214, 238), (352, 226, 248), (404, 240, 256)):
+        a.path(f"M{x0} {y} L{x1} {y}", stroke="#d8d0bb", sw=7)
+    a.path("M256 186 C310 182 330 214 324 262 C318 354 288 434 264 474 C260 482 252 482 248 474 "
+           "C224 434 194 354 188 262 C182 214 202 182 256 186 Z")
+    a.shine("M210 236 C208 216 208 202 226 196")
+    return a
+
+
+@word
+def kabocha():
+    a = Art()
+    GRN, GRN_D, ORG = "#4f9a4a", "#3b7f3b", "#f0a030"
+    a.path("M262 150 C264 118 276 94 298 74", sw=32)
+    a.path("M262 150 C264 118 276 94 298 74", stroke="#8a6a3a", sw=14)
+    body = ("M256 152 C330 130 430 150 440 250 C448 340 380 420 256 420 C132 420 64 340 72 250 "
+            "C82 150 182 130 256 152 Z")
+    a.path(body, fill=GRN)
+    # lobes: lighter segments with ribs
+    a.path("M256 152 C214 190 204 360 256 420 C308 360 298 190 256 152 Z", fill="#f4a93c", sw=0, stroke="none")
+    a.path("M256 152 C214 190 204 360 256 420", sw=8)
+    a.path("M256 152 C298 190 308 360 256 420", sw=8)
+    a.path("M170 148 C122 200 118 320 160 392", sw=7)
+    a.path("M342 148 C390 200 394 320 352 392", sw=7)
+    # orange lower part (ripe kabocha)
+    for x, y in ((112, 330), (404, 336), (150, 270), (368, 264), (150, 366), (362, 372)):
+        a.ellipse(x, y, 10, 7, "#f4a93c", sw=0, stroke="none")
+    a.path(body)
+    a.path("M254 150 L264 150", sw=10)
+    a.shine("M118 230 C118 196 142 170 176 160")
     return a
 
 

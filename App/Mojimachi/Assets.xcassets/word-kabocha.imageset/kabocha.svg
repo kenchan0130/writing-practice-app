@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <path d="M262.6 154.7 C264.8 119.4 278.1 92.9 302.4 70.8" fill="none" stroke="#4a3428" stroke-width="32" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M262.6 154.7 C264.8 119.4 278.1 92.9 302.4 70.8" fill="none" stroke="#8a6a3a" stroke-width="14" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M256 156.9 C337.7 132.7 448.1 154.7 459.1 265.1 C467.9 364.4 392.9 452.8 256 452.8 C119.1 452.8 44.1 364.4 52.9 265.1 C63.9 154.7 174.3 132.7 256 156.9 Z" fill="#4f9a4a" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M256 156.9 C209.6 198.9 198.6 386.5 256 452.8 C313.4 386.5 302.4 198.9 256 156.9 Z" fill="#f4a93c"/>
+  <path d="M256 156.9 C209.6 198.9 198.6 386.5 256 452.8" fill="none" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M256 156.9 C302.4 198.9 313.4 386.5 256 452.8" fill="none" stroke="#4a3428" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M161.1 152.5 C108.1 209.9 103.7 342.4 150 421.8" fill="none" stroke="#4a3428" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M350.9 152.5 C403.9 209.9 408.3 342.4 362 421.8" fill="none" stroke="#4a3428" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <ellipse cx="97.1" cy="353.4" rx="11" ry="7.7" fill="#f4a93c"/>
+  <ellipse cx="419.4" cy="360" rx="11" ry="7.7" fill="#f4a93c"/>
+  <ellipse cx="139" cy="287.2" rx="11" ry="7.7" fill="#f4a93c"/>
+  <ellipse cx="379.6" cy="280.6" rx="11" ry="7.7" fill="#f4a93c"/>
+  <ellipse cx="139" cy="393.1" rx="11" ry="7.7" fill="#f4a93c"/>
+  <ellipse cx="373" cy="399.8" rx="11" ry="7.7" fill="#f4a93c"/>
+  <path d="M256 156.9 C337.7 132.7 448.1 154.7 459.1 265.1 C467.9 364.4 392.9 452.8 256 452.8 C119.1 452.8 44.1 364.4 52.9 265.1 C63.9 154.7 174.3 132.7 256 156.9 Z" fill="none" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M253.8 154.7 L264.8 154.7" fill="none" stroke="#4a3428" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M103.7 243 C103.7 205.5 130.2 176.8 167.7 165.8" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>

@@ -15,6 +15,8 @@ enum WordArt {
   private static let vehicleColor = UIColor(red: 0.85, green: 0.3, blue: 0.25, alpha: 1)
   private static let animalColor = UIColor(red: 0.62, green: 0.4, blue: 0.2, alpha: 1)
   private static let clothesColor = UIColor(red: 0.25, green: 0.45, blue: 0.85, alpha: 1)
+  private static let flyerColor = UIColor(red: 0.3, green: 0.62, blue: 0.9, alpha: 1)
+  private static let sceneryColor = UIColor(red: 0.4, green: 0.7, blue: 0.32, alpha: 1)
 
   private static let assets: [String: String] = [
     "そり": "sori", "くるま": "kuruma", "ふね": "fune", "でんしゃ": "densha",
@@ -26,6 +28,10 @@ enum WordArt {
     "さる": "saru", "ぞう": "zou", "とら": "tora", "かば": "kaba", "きりん": "kirin",
     "らくだ": "rakuda", "ぶた": "buta", "ひつじ": "hitsuji", "たぬき": "tanuki",
     "きつね": "kitsune", "うさぎ": "usagi",
+    "ひこうき": "hikouki", "ききゅう": "kikyuu", "はと": "hato", "すずめ": "suzume",
+    "からす": "karasu", "さくら": "sakura", "ひまわり": "himawari", "たんぽぽ": "tanpopo",
+    "りんご": "ringo", "みかん": "mikan", "いちご": "ichigo", "にんじん": "ninjin",
+    "だいこん": "daikon", "かぼちゃ": "kabocha",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
@@ -34,6 +40,8 @@ enum WordArt {
       case .vehicle: vehicleColor
       case .animal: animalColor
       case .clothes: clothesColor
+      case .flyer: flyerColor
+      case .scenery: sceneryColor
       }
     return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }
@@ -47,6 +55,22 @@ enum WordArt {
     let known = wordsWithArt
     return WordMapIndex { known.contains($0) }
   }()
+
+  /// 空を飛ぶ物の動き方（D168）。鳥ははばたき、ひこうきはすべり、ききゅうはゆっくり上下する。
+  enum FlyerStyle { case bird, plane, balloon }
+
+  static func flyerStyle(_ word: String) -> FlyerStyle {
+    switch word {
+    case "ひこうき": .plane
+    case "ききゅう": .balloon
+    default: .bird
+    }
+  }
+
+  /// 景色になる物のうち、花（ゆれる）。ほかの くだもの・やさいは、ぽんと出て ひとはずみする。
+  static func isFlower(_ word: String) -> Bool {
+    ["さくら", "ひまわり", "たんぽぽ"].contains(word)
+  }
 
   /// ことばの絵のアセットの名前（SwiftUI の `Image(...)` に渡す）。
   static func assetName(for word: String) -> String {

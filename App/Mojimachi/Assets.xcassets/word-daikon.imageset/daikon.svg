@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <path d="M230.2 205.3 C178.6 181.3 127 135.2 119.6 68.9 C184.1 78.1 230.2 124.2 244.9 199.8 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M221 190.6 C189.6 157.4 160.1 124.2 136.2 85.5" fill="none" stroke="#4f9e48" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M230.2 205.3 C217.3 153.7 222.8 98.4 244.9 43.1 C276.3 100.2 278.1 157.4 254.2 205.3 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M241.3 190.6 C235.7 144.5 237.6 102.1 244.9 65.2" fill="none" stroke="#4f9e48" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M248.6 205.3 C294.7 175.8 346.3 142.6 392.4 131.6 C381.4 186.9 316.8 220.1 252.3 214.5 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M259.7 199.8 C298.4 179.5 340.8 159.2 375.8 146.3" fill="none" stroke="#4f9e48" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M239.4 196.1 C289.2 192.4 307.6 221.9 302.1 266.1 C296.6 350.9 268.9 424.7 246.8 461.6 C243.1 468.9 235.7 468.9 232 461.6 C209.9 424.7 182.3 350.9 176.7 266.1 C171.2 221.9 189.6 192.4 239.4 196.1 Z" fill="#f8f5ec" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M178.6 273.5 C174.9 225.6 189.6 196.1 239.4 199.8 C289.2 196.1 303.9 225.6 300.2 273.5 C276.3 247.7 202.5 247.7 178.6 273.5 Z" fill="#cfe8b0"/>
+  <path d="M281.8 273.5 C276.3 347.3 263.4 402.6 244.9 450.5 C272.6 411.8 294.7 347.3 298.4 282.7 Z" fill="#e9e3d2"/>
+  <path d="M200.7 301.2 L222.8 301.2" fill="none" stroke="#d8d0bb" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M211.8 349.1 L232 349.1" fill="none" stroke="#d8d0bb" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M224.7 397 L239.4 397" fill="none" stroke="#d8d0bb" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M239.4 196.1 C289.2 192.4 307.6 221.9 302.1 266.1 C296.6 350.9 268.9 424.7 246.8 461.6 C243.1 468.9 235.7 468.9 232 461.6 C209.9 424.7 182.3 350.9 176.7 266.1 C171.2 221.9 189.6 192.4 239.4 196.1 Z" fill="none" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M197 242.2 C195.2 223.7 195.2 210.8 211.8 205.3" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>

@@ -93,7 +93,7 @@ public enum Onboarding {
     KanaTable.main(.hiragana).characters + KanaTable.dakuon(.hiragana).characters)
 
   /// 「なにが すき？」で選べるテーマ（M0 は3つ。D53・D78）。
-  public static let themes: [WordKind] = WordKind.allCases
+  public static let themes: [WordKind] = [.vehicle, .animal, .clothes]
 
   /// テーマごとの最初のことば。ひらがな2文字で、書きやすい字だけ（D78）。
   public static func starterWord(for kind: WordKind) -> String {
@@ -101,6 +101,9 @@ public enum Onboarding {
     case .vehicle: "そり"
     case .animal: "うし"
     case .clothes: "くつ"
+    // 「なにが すき？」には出さない（D168）。
+    case .flyer: "はと"
+    case .scenery: "さくら"
     }
   }
 }
