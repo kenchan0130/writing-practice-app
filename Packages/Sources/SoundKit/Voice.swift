@@ -11,6 +11,20 @@ public enum VoiceLine: String, CaseIterable, Sendable {
   case locked
   /// 鍵の画面で「おねがい」を押したあと。
   case lockThanks
+  /// しりとりを始めるとき（キャラクター。D57）。
+  case shiritoriStart
+  /// キャラクターがことばを出すとき。続けて案内役がことばを読む（D57）。
+  case shiritoriKore
+  /// 子どもの番になったとき。
+  case shiritoriYourTurn
+  /// キャラクターが続けられなかったとき（子どもの勝ち。D70）。
+  case shiritoriGiveUp
+  /// 子どもが勝ったとき。
+  case shiritoriWin
+  /// 1回が終わったとき（D70）。
+  case shiritoriEnd
+  /// ホームで、きょうのことばを見せるとき（D35）。
+  case todayWord
 
   public var text: String {
     switch self {
@@ -20,6 +34,13 @@ public enum VoiceLine: String, CaseIterable, Sendable {
     case .onboardingHello: "こんにちは！ いっしょに かこうね"
     case .locked: "この もじで あそびたいときは、おとなのひとに おねがいしてね"
     case .lockThanks: "おねがい できたよ"
+    case .shiritoriStart: "しりとり しよう！"
+    case .shiritoriKore: "これ！"
+    case .shiritoriYourTurn: "つぎは どれに する？"
+    case .shiritoriGiveUp: "うーん……まいった！"
+    case .shiritoriWin: "すごい！ かったね！"
+    case .shiritoriEnd: "きょうは ここまで！ たのしかったね"
+    case .todayWord: "きょうの ことばは これ！"
     }
   }
 }

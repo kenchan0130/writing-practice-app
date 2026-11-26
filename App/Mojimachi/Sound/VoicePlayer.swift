@@ -73,6 +73,17 @@ final class VoicePlayer {
     #endif
   }
 
+  /// 順に言う（しりとり: 「これ！」→ことば、など。D57）。1つ言い終わってから次を言う。
+  /// 呼んだ `Task` が取り消されたら、そこで止める。
+  func speak(sequence texts: [String]) async {
+    for text in texts {
+      guard !Task.isCancelled else { return }
+      speak(text)
+      let duration = url(for: text).flatMap { try? AVAudioPlayer(contentsOf: $0) }?.duration ?? 0.8
+      try? await Task.sleep(for: .seconds(duration + 0.2))
+    }
+  }
+
   private func showCaption(_ text: String, seconds: Double) {
     caption = text
     captionTask?.cancel()

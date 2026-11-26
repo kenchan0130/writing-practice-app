@@ -4,6 +4,7 @@ import EntitlementKit
 import ParentGateKit
 import PracticeKit
 import RecordKit
+import SoundKit
 import SwiftUI
 
 /// 仮のホームと、画面の行き来（D101）。ホームのボタン3つから入り、「←」でホームへ戻る。
@@ -13,6 +14,8 @@ struct ContentView: View {
     case card = "字のカード"
     case letter = "かく"
     case word = "ことば"
+    case shiritori = "しりとり"
+    case shiritoriWord = "しりとりの ことば"
     case places = "まちの地図"
     case themes = "テーマ"
     case wordCards = "ことばのカード"
@@ -93,6 +96,12 @@ struct ContentView: View {
       return nil
     #endif
   }()
+  /// ことば画面を、ホームの「きょうの ことば」から開いたか（「←」の戻り先）。
+  @State private var wordFromToday = false
+  /// しりとりの流れ（D35・D45・D70）。書く画面へ行って戻っても、同じ回を続けるため、ここで持つ。
+  @State private var shiritoriStore = Store(initialState: ShiritoriFeature.State()) {
+    ShiritoriFeature()
+  }
   @State private var activity = WritingActivity()
   @State private var gateStore = Store(initialState: ParentGateFeature.State()) {
     ParentGateFeature()
@@ -247,6 +256,7 @@ struct ContentView: View {
             wordStart = text
             wordFromCard = true
             wordFromCards = false
+            wordFromToday = false
             self.screen = .word
           })
       }
@@ -259,21 +269,43 @@ struct ContentView: View {
       ) { kind in
         wordFromCard = false
         wordFromCards = false
+        wordFromToday = false
         self.screen = kind == .clothes ? .closet : .town
       }
-    case .places:
-      PlacesView { place in
-        selectedPlace = place
-        switch WordArt.index.entrance(of: place) {
-        case .words(let theme):
-          selectedTheme = theme
-          self.screen = .wordCards
-        case .themes:
-          self.screen = .themes
-        case nil:
-          break
-        }
+    case .shiritori:
+      ShiritoriView(
+        store: shiritoriStore, character: store.mainCharacter,
+        pool: ShiritoriWords.pool(entitlements: PurchaseStore.shared.entitlements),
+        onWrite: { word in
+          wordStart = word
+          self.screen = .shiritoriWord
+        },
+        onLocked: { lockedScript = $0 })
+    case .shiritoriWord:
+      // しりとりで選んだことばだけを書く。書き終えたら「つぎへ」で しりとりの画面へ戻る（D182）。
+      WordWritingView(
+        activity: activity, start: wordStart, locksWord: true, choices: wordStart.map { [$0] },
+        finishButton: .init(title: "つぎへ", systemImage: "arrow.right.circle.fill")
+      ) { _ in
+        wordStart = nil
+        shiritoriStore.send(.wordWritten)
+        self.screen = .shiritori
       }
+    case .places:
+      PlacesView(
+        onSelect: { place in
+          selectedPlace = place
+          switch WordArt.index.entrance(of: place) {
+          case .words(let theme):
+            selectedTheme = theme
+            self.screen = .wordCards
+          case .themes:
+            self.screen = .themes
+          case nil:
+            break
+          }
+        },
+        onShiritori: { self.screen = .shiritori })
     case .themes:
       if let selectedPlace {
         ThemesView(place: selectedPlace) { theme in
@@ -287,6 +319,7 @@ struct ContentView: View {
           wordStart = text
           wordFromCard = false
           wordFromCards = true
+          wordFromToday = false
           self.screen = .word
         }
       }
@@ -296,6 +329,7 @@ struct ContentView: View {
   }
 
   /// 「←」で一つ前へ（D101）。書く画面は字のカード、字のカードは文字の地図、地図はホーム。
+  /// しりとりは、書く画面 → しりとり → まちの地図（D182）。
   /// ことばは、書く画面 → ことばのカード → テーマ（場所に2つ以上あるとき）→ まちの地図 → ホーム（D166）。
   private func goBack() {
     switch screen {
@@ -309,6 +343,18 @@ struct ContentView: View {
       wordFromCards = false
       wordStart = nil
       screen = .wordCards
+    case .word where wordFromToday:
+      wordFromToday = false
+      wordStart = nil
+      screen = nil
+    case .shiritoriWord:
+      // 書き終えていないので、選び直せる。
+      wordStart = nil
+      shiritoriStore.send(.pickCancelled)
+      screen = .shiritori
+    case .shiritori:
+      shiritoriStore.send(.left)
+      screen = .places
     case .wordCards:
       if let selectedPlace, case .themes = WordArt.index.entrance(of: selectedPlace) {
         screen = .themes
@@ -358,7 +404,16 @@ struct ContentView: View {
       .padding(.top, 12)
       Spacer()
       HStack(alignment: .top, spacing: 32) {
-        HomeCharacter(reachedGoal: goalReached)
+        HomeCharacter(reachedGoal: goalReached, todayWord: todayWord) { word in
+          wordStart = word
+          wordFromCard = false
+          wordFromCards = false
+          wordFromToday = true
+          screen = .word
+          Task {
+            await VoicePlayer.shared.speak(sequence: [VoiceLine.todayWord.text, word])
+          }
+        }
         VStack(spacing: 20) {
           TodayGoalCard(goal: goal, done: todayCount)
           // 文字の種類ごとの育ちの名前（D151）。
@@ -393,6 +448,8 @@ struct ContentView: View {
     }
   }
 
+  /// きょうの ことば（D35）。
+  private var todayWord: String? { TodayWord.word() }
   /// きょうの もくひょう（D17）。いまの子の字の数。
   private var goal: Int { store.currentProfile?.dailyGoal ?? 5 }
   /// きょう練習した字の数（同じ字は1つ。§3.8）。
@@ -457,30 +514,45 @@ private struct HomeButton: View {
 }
 
 /// ホームのキャラクター。目標に届いたら よろこぶ絵にする（D164）。
+/// ことばを1つ持っていて、押すと そのことばを書く画面へ（きょうの ことば。D35）。
 private struct HomeCharacter: View {
   var reachedGoal: Bool
+  var todayWord: String?
+  var onTodayWord: (String) -> Void
   /// はじめての流れで選んだキャラクター（D39）。
   private var character: MainCharacter { ProgressStore.shared.mainCharacter }
 
   var body: some View {
     VStack(spacing: 12) {
-      Text(reachedGoal ? "すごい！\nできたね！" : "たのしく\nかこうね！")
-        .font(.ui(30, bold: true))
-        .foregroundStyle(Theme.ink)
-        .multilineTextAlignment(.center)
-        .padding(20)
-        .background(.white, in: .rect(cornerRadius: Theme.Radius.card))
-        .overlay(alignment: .bottom) {
-          Image(systemName: "arrowtriangle.down.fill")
-            .foregroundStyle(.white)
-            .offset(y: 14)
+      VStack(spacing: 12) {
+        Text(reachedGoal ? "すごい！\nできたね！" : "たのしく\nかこうね！")
+          .font(.ui(30, bold: true))
+          .foregroundStyle(Theme.ink)
+          .multilineTextAlignment(.center)
+          .padding(20)
+          .background(.white, in: .rect(cornerRadius: Theme.Radius.card))
+          .overlay(alignment: .bottom) {
+            Image(systemName: "arrowtriangle.down.fill")
+              .foregroundStyle(.white)
+              .offset(y: 14)
+          }
+          .softShadow()
+        // キャラクターを押しても、きょうの ことばへ（D35）。
+        Button {
+          if let todayWord { onTodayWord(todayWord) }
+        } label: {
+          MainCharacterArt(character: character, size: 220, pose: reachedGoal ? .happy : .normal)
         }
-        .softShadow()
-      MainCharacterArt(character: character, size: 220, pose: reachedGoal ? .happy : .normal)
+        .buttonStyle(.plain)
+        .disabled(todayWord == nil)
         .padding(.top, 12)
+      }
+      .accessibilityElement(children: .combine)
+      if let todayWord {
+        TodayWordCard(word: todayWord) { onTodayWord(todayWord) }
+      }
     }
     .frame(width: 300)
-    .accessibilityElement(children: .combine)
   }
 }
 

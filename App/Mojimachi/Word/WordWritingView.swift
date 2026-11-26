@@ -13,16 +13,26 @@ struct WordWritingView: View {
   var onShowPlaced: (WordKind) -> Void = { _ in }
   /// ことばを選ばせず、決めたことばだけを書く（はじめての流れ。D23）。
   private let locksWord: Bool
+  /// 書き終えたあとの「まちを みる」の代わりのボタン（しりとりでは「つぎへ」。D182）。
+  /// あれば、変身の終わりを待たずに出す。押すと、物はまちに置いてから `onShowPlaced` を呼ぶ。
+  private let finishButton: FinishButton?
+
+  struct FinishButton {
+    var title: String
+    var systemImage: String
+  }
 
   init(
     activity: WritingActivity = WritingActivity(),
     start: String? = nil,
     locksWord: Bool = false,
     choices: [String]? = nil,
+    finishButton: FinishButton? = nil,
     onShowPlaced: @escaping (WordKind) -> Void = { _ in }
   ) {
     _model = State(initialValue: WordModel(activity: activity, start: start, choices: choices))
     self.locksWord = locksWord
+    self.finishButton = finishButton
     self.onShowPlaced = onShowPlaced
   }
 
@@ -221,10 +231,12 @@ struct WordWritingView: View {
   private var buttons: some View {
     HStack(spacing: 32) {
       if model.wordDone {
-        if transformFinished {
+        if transformFinished || finishButton != nil {
           ChildToolButton(
-            title: model.kind == .clothes ? "クローゼットを みる" : "まちを みる",
-            systemImage: model.kind == .clothes ? "hanger" : "house.fill", color: Theme.green
+            title: finishButton?.title ?? (model.kind == .clothes ? "クローゼットを みる" : "まちを みる"),
+            systemImage: finishButton?.systemImage
+              ?? (model.kind == .clothes ? "hanger" : "house.fill"),
+            color: Theme.green
           ) {
             let kind = model.kind
             model.placeInTown()

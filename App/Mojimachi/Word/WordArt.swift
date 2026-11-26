@@ -83,6 +83,9 @@ enum WordArt {
   private static let wordsWithArt: Set<String> = Set(
     assets.filter { UIImage(named: "word-" + $0.value) != nil }.keys)
 
+  /// そのことばに絵があるか（しりとりに出すことばを決める。D182）。
+  static func hasArt(_ word: String) -> Bool { wordsWithArt.contains(word) }
+
   /// まちの地図・テーマ・ことばの出し分け（D166）。絵のあることばだけが出る。
   static let index: WordMapIndex = {
     let known = wordsWithArt

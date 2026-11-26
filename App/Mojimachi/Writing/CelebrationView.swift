@@ -124,7 +124,7 @@ private struct HanamaruMark: View {
 }
 
 /// 紙ふぶき（SwiftUI の Canvas。1秒ちょっとで落ちる）。決まった式で動かすので、同じ時刻なら同じ絵になる。
-private struct Confetti: View {
+struct Confetti: View {
   var time: Double
   private static let count = 70
   private static let lifetime = 1.6
