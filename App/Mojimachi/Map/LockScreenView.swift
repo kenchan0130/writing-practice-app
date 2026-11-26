@@ -25,7 +25,7 @@ struct LockScreenView: View {
   var onWish: (Script) -> Void = { ProgressStore.shared.makeWish(item: $0.rawValue) }
 
   /// おねがいを押したあと、「おねがい できたよ」を見せてから戻るまでの秒数。
-  static let thanksSeconds = 1.8
+  static let thanksSeconds = UITesting.seconds(1.8, uiTesting: 0.3)
 
   static let title = "この もじは まだ ねむっているよ"
   static let voiceLine = VoiceLine.locked.text

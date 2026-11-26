@@ -19,8 +19,16 @@ final class PurchaseStore {
   /// 確かめ用に、持っていることにしているか。
   private var isFake = false
 
+  /// 商品を買う処理。既定は本物の `Product.purchase()`。試験では、購入の画面を出さない処理に差し替える。
+  typealias PurchaseAction = @MainActor (Product) async throws -> Product.PurchaseResult
+  private let purchaseAction: PurchaseAction
+
   /// `observesStore: false` は試験用。自動の読み込みと更新の見張りをしない。
-  init(observesStore: Bool = true) {
+  init(
+    observesStore: Bool = true,
+    purchase: @escaping PurchaseAction = { try await $0.purchase() }
+  ) {
+    purchaseAction = purchase
     #if DEBUG
       // 確かめ用: `-fakePurchases katakana,abc,all` で、持っていることにする。
       if let fake = UserDefaults.standard.string(forKey: "fakePurchases") {
@@ -29,11 +37,18 @@ final class PurchaseStore {
         return
       }
     #endif
-    guard observesStore else { return }
+    // テストの土台のアプリ（`XCTestConfigurationFilePath` がある）は、本物の App Store に触れない。
+    // StoreKit の試し用の設定がないと、「Apple Account にサインイン」の画面が出て止まるため。
+    guard observesStore, !Self.isTestHost else { return }
     updates = Task { [weak self] in
       for await _ in Transaction.updates { await self?.refresh() }
     }
     Task { await refresh() }
+  }
+
+  /// 単体テストの土台として起動したか。
+  private static var isTestHost: Bool {
+    ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
   }
 
   /// 商品と購入記録を読み直す。
@@ -64,7 +79,7 @@ final class PurchaseStore {
     defer { isWorking = false }
     var bought: Purchase?
     do {
-      switch try await product.purchase() {
+      switch try await purchaseAction(product) {
       case .success(.verified(let transaction)):
         await transaction.finish()
         bought = Purchase(

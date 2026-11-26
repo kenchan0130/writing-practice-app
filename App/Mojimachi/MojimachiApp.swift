@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct MojimachiApp: App {
   init() {
+    UITesting.configure()
     SoundPlayer.shared.preload()
   }
 

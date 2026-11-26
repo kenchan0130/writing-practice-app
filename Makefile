@@ -17,9 +17,28 @@ build: ## 部品をビルドする
 app-build: ## アプリを iPad のシミュレータ向けにビルドする（署名なし）
 	xcodebuild build -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO -skipMacroValidation -quiet
 
+# アプリのテストの共通の設定。`SIM=<udid>` で別のシミュレータを使える（既定は名前で選ぶ）。
+comma := ,
+SIM ?=
+APP_DESTINATION := $(if $(SIM),platform=iOS Simulator$(comma)id=$(SIM),platform=iOS Simulator$(comma)name=iPad Pro 11-inch (M5))
+APP_DERIVED := build/DerivedData
+APP_TEST_FLAGS := -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination '$(APP_DESTINATION)' -derivedDataPath $(APP_DERIVED) CODE_SIGNING_ALLOWED=NO -skipMacroValidation
+APP_TEST_WORKERS ?= 2
+APP_TEST_TIMEOUT ?= 900
+# 固まったら止める（秒）。
+TIMEOUT := python3 -I Scripts/run_with_timeout.py $(APP_TEST_TIMEOUT)
+
+.PHONY: app-build-for-testing
+app-build-for-testing: ## アプリのテストをビルドだけする（build/DerivedData に置く。署名なし）
+	$(TIMEOUT) xcodebuild build-for-testing $(APP_TEST_FLAGS) -quiet
+
 .PHONY: app-test
-app-test: ## アプリの購入の流れを、iPad のシミュレータで確かめる（StoreKit の試し用の設定。署名なし）
-	xcodebuild test -project App/Mojimachi.xcodeproj -scheme Mojimachi -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M5)' CODE_SIGNING_ALLOWED=NO -skipMacroValidation -quiet
+app-test: app-build-for-testing ## アプリの単体テストと UI テストを、iPad のシミュレータで確かめる（並列。約2〜3分。15分で打ち切る）
+	$(TIMEOUT) xcodebuild test-without-building $(APP_TEST_FLAGS) -parallel-testing-enabled YES -parallel-testing-worker-count $(APP_TEST_WORKERS)
+
+.PHONY: app-test-ui
+app-test-ui: app-build-for-testing ## UI テストの一部だけ動かす（例: make app-test-ui ONLY=FlowWordUITests）
+	$(TIMEOUT) xcodebuild test-without-building $(APP_TEST_FLAGS) -parallel-testing-enabled YES -parallel-testing-worker-count $(APP_TEST_WORKERS) $(if $(ONLY),-only-testing:MojimachiUITests/$(ONLY),-only-testing:MojimachiUITests)
 
 .PHONY: format
 format: ## swift-format で書式を整える
