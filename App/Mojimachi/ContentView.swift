@@ -116,6 +116,7 @@ struct ContentView: View {
   @State private var lockedScript: Script?
   @State private var showsGate = false
   @State private var showsParentArea = false
+  @Environment(\.scenePhase) private var scenePhase
   /// はじめての流れ（D23）。出していないときは nil。
   @State private var onboarding: OnboardingStage?
   @State private var showsProfilePicker = false
@@ -209,10 +210,29 @@ struct ContentView: View {
     .animation(.easeOut(duration: 0.2), value: lockedScript)
     .overlay { PopHost() }
     .fullScreenCover(isPresented: $showsParentArea) {
-      ParentAreaView {
-        gateStore.send(.close)
-        showsParentArea = false
+      ParentAreaView(
+        onClose: {
+          gateStore.send(.close)
+          showsParentArea = false
+        },
+        onActivity: { gateStore.send(.touched) })
+    }
+    // 保護者用の画面は、5分操作がなければ閉じる（D49）。開いているあいだ1秒ごとと、アプリに戻ったときに確かめる。
+    .onChange(of: showsParentArea) { _, shows in
+      if shows { gateStore.send(.parentAreaOpened) }
+    }
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active, showsParentArea { gateStore.send(.checkExpiry) }
+    }
+    .task(id: showsParentArea) {
+      guard showsParentArea else { return }
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(1))
+        gateStore.send(.checkExpiry)
       }
+    }
+    .onChange(of: gateStore.parentAreaExpired) { _, expired in
+      if expired { showsParentArea = false }
     }
     #if DEBUG
       .onAppear {

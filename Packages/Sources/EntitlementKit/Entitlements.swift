@@ -7,7 +7,7 @@ import Foundation
 public enum Script: String, Sendable, Hashable, Codable, CaseIterable {
   case hiragana
   case katakana
-  /// アルファベットと数字（ABC・すうじ パック）。
+  /// アルファベットと数字（商品名は「アルファベットと数字」。D98）。
   case abc
 
   /// 有料のパック（ひらがな以外）。
@@ -18,9 +18,9 @@ public enum Script: String, Sendable, Hashable, Codable, CaseIterable {
 public enum ProductID: String, Sendable, Hashable, Codable, CaseIterable {
   case katakanaPack = "io.github.kenchan0130.mojimachi.pack.katakana"
   case abcPack = "io.github.kenchan0130.mojimachi.pack.abc"
-  /// ぜんぶ ひらく（これからの もじも）。
+  /// すべての文字（D98）。
   case allOpen = "io.github.kenchan0130.mojimachi.all"
-  /// ぜんぶ ひらく（パックを 1つ もっている ひと）。
+  /// すべての文字（1つ購入済みの方。D98）。
   case allOpenForOneOwner = "io.github.kenchan0130.mojimachi.all.owner1"
 
   /// パックの商品が開く文字。「ぜんぶ」は nil。

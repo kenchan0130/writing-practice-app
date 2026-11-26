@@ -6,23 +6,35 @@
 
 ## 見つかった問題
 
-コードと設計を照らして見つけたもの。**このチェックリストの作成では、コードを直していない。** 「止まる」は、このままだと審査か提出で止まるもの。
+コードと設計を照らして見つけたもの。**P2〜P8・P10 は、2026-11-27 のブランチ `fix/release-blockers` で直した（D183）。直したものは、問題の頭に「【済】」と付け、直し方を書き足した。** 「止まる」は、このままだと審査か提出で止まるもの。
 
 | # | 重さ | 問題 | どこ | なぜ問題か | 直し方の案 | 担当 |
 |---|---|---|---|---|---|---|
-| P1 | 止まる | **アプリのアイコンの画像がない** | `App/Mojimachi/Assets.xcassets/AppIcon.appiconset/`（`Contents.json` だけで画像ファイルがない） | App Store Connect へのアップロードで失敗する。D76 のアイコン3案もまだない | 1024×1024 の画像を作って置く（3案は D76。1案を先に決めて出す） | AI（作る）・人（選ぶ） |
-| P2 | 止まる | **プライバシーマニフェスト（`PrivacyInfo.xcprivacy`）がない** | アプリ本体（`App/`・`Packages/` を探してもない） | アプリは `UserDefaults` を使っている（`ProgressStore.swift` ほか）。「理由の申告が必要な API」を使うアプリは、マニフェストが要る。ないと提出のときに警告か却下になる | `NSPrivacyAccessedAPITypes` に `UserDefaults`（理由 `CA92.1`）などを書く。`NSPrivacyTracking` は false、`NSPrivacyCollectedDataTypes` は `app-store-metadata.md` §6 の答えと合わせる。使っている API（ファイルの日時・起動時間・空き容量など）を数え直す | AI |
-| P3 | 止まる | **保護者用の画面が、5分たっても自動で閉じない** | `ContentView.swift`（`showsParentArea`・`fullScreenCover`）、`ParentAreaView.swift` | 設計は「5分間操作がなければ確認からやり直し」（§5.3・D49）。実際は `gate.isOpen` を、画面を開くときにしか見ていない。保護者が開いたままにすると、子どもが購入画面・外部リンク・全記録のリセットに触れる（赤いボタンは3秒長押しだが、購入やリンクは1回で動く）。Kids の 1.3 の「保護者用の確認のうしろ」に反しかねない | 操作があるたびに有効時間を延ばし、切れたら画面を閉じる（`ParentGate` に時間はある）。UI テストに足す | AI |
-| P4 | 止まる | **「不具合の情報を送る」のスイッチはあるが、Sentry が入っていない** | `ParentAreaView.swift`（`safetySettings`）、`ProgressStore.sendsCrashReports`。`Package.resolved` に Sentry なし | 画面は「アプリが落ちたときの情報だけを送ります」と言うが、実際は何も送らない。プライバシー表示（「診断・クラッシュデータ」）と、プライバシーポリシーの「クラッシュ報告」が、実装と食い違う。D123 は「最初の提出から Sentry を入れる」「M1 の前に Sentry の既定の動きを実物で確かめ、オフにできない送信があればやめる」 | 判断: ①Sentry を入れる（承認 → `docs/dependencies.md` に書く → 送る内容をテストで固定 → 既定の動きの確認 → 栄養成分表示とポリシーに載せる）。②入れない（スイッチと説明を外す。ポリシーと栄養成分表示から診断を外す。「データの収集なし」で申告できるか確かめる） | 人（決める）・AI |
-| P5 | 止まる | **課金の説明が、まだない機能を約束している** | `App/Mojimachi.storekit`（「カタカナと カタカナの ことばが かけます」「アルファベット・すうじ・えいごの ことばが かけます」）。`docs/screens.md` は、カタカナ・ABC のことば、すうじ あそび、ずかんは「まだ」 | ストアと商品の説明が、中身より大きい。ガイドライン 2.3・3.1.1 の「説明と中身を合わせる」に反し、D72 の「まだ無いものを予告しない」にも反する。**ABC パックを買っても、えいごの ことばは入っていない**（D45 が約100語と書いたもの） | 説明を中身に合わせる（D98 の名前・説明に変える）か、機能を作ってから出す。購入画面（`PurchaseView.swift`）の表示と、設計 §5.2 の表も合わせる | 人（決める）・AI |
-| P6 | 直す | **商品名がコードと設計で食い違う** | `Mojimachi.storekit`（「ぜんぶ ひらく（…）」「カタカナ パック」「ABC・すうじ パック」）、`PurchaseView.swift`（「すべての文字（…）」「カタカナパック」「ABC・数字パック」）、D98（「カタカナ」「アルファベットと数字」「すべての文字」「すべての文字（1つ購入済みの方）」） | ASC の名前、StoreKit の試し用の設定、アプリ内の名前がそろっていない。D89 は、名前と説明は StoreKit から受け取って表示する（アプリに書き込まない）と決めた | 名前を1つに決め、3か所をそろえる。ASC には英語の名前も要る（D89） | 人（決める）・AI |
-| P7 | 直す | **Face ID を使う確認があるが、`NSFaceIDUsageDescription` がない** | `Parent/DeviceAuth.swift`（`LAContext`・`deviceOwnerAuthentication`）、`Info-extra.plist` | 「iPad のパスコードも求める」をオンにしたとき、Face ID の iPad で意図どおりに動かないおそれがある。審査で指摘されうる | `INFOPLIST_KEY_NSFaceIDUsageDescription` を日本語で足す。Face ID の iPad で、実機で確かめる | AI（足す）・人（実機） |
-| P8 | 直す | **お問い合わせのフォームの URL に、端末の情報が入る** | `Packages/Sources/SupportKit/FeedbackForm.swift`（アプリの版・iPadOS の版・判定の設定名を、フォームの欄に前もって入れる） | Kids の 1.3 は「端末の情報を第三者に送らない」。保護者が確認の先で開き、中身は消せるが、開いた時点で Google にその URL が届く。D124 の決めごとだが、審査で聞かれる | 審査用のメモで説明する（`app-store-metadata.md` §9）。却下されたら、前もって入れるのをやめる（欄は空で開く） | 人（決める） |
+| P1 | 止まる | **【済】アプリのアイコンの画像がない（D184 で足した）** | `App/Mojimachi/Assets.xcassets/AppIcon.appiconset/`（`Contents.json` だけで画像ファイルがない） | App Store Connect へのアップロードで失敗する。D76 のアイコン3案もまだない | 1024×1024 の画像を作って置く（3案は D76。1案を先に決めて出す） | AI（作る）・人（選ぶ） |
+| P2 | 止まる | **【済】プライバシーマニフェスト（`PrivacyInfo.xcprivacy`）がない** | アプリ本体（`App/`・`Packages/` を探してもない） | アプリは `UserDefaults` を使っている（`ProgressStore.swift` ほか）。「理由の申告が必要な API」を使うアプリは、マニフェストが要る。ないと提出のときに警告か却下になる | `NSPrivacyAccessedAPITypes` に `UserDefaults`（理由 `CA92.1`）などを書く。`NSPrivacyTracking` は false、`NSPrivacyCollectedDataTypes` は `app-store-metadata.md` §6 の答えと合わせる。使っている API（ファイルの日時・起動時間・空き容量など）を数え直す | AI。**直し方（D183）**: `App/Mojimachi/PrivacyInfo.xcprivacy` を足した。`UserDefaults`（`CA92.1`）だけ（ファイルの日時・空き容量・起動時間の API は、コードを検索して使っていないことを確かめた）。クラッシュデータ（ユーザに関連付けない・追跡しない・アプリの機能）を、Sentry の申告と合わせて書いた。Sentry の部品は自分のマニフェストを持つ |
+| P3 | 止まる | **【済】保護者用の画面が、5分たっても自動で閉じない** | `ContentView.swift`（`showsParentArea`・`fullScreenCover`）、`ParentAreaView.swift` | 設計は「5分間操作がなければ確認からやり直し」（§5.3・D49）。実際は `gate.isOpen` を、画面を開くときにしか見ていない。保護者が開いたままにすると、子どもが購入画面・外部リンク・全記録のリセットに触れる（赤いボタンは3秒長押しだが、購入やリンクは1回で動く）。Kids の 1.3 の「保護者用の確認のうしろ」に反しかねない | 操作があるたびに有効時間を延ばし、切れたら画面を閉じる（`ParentGate` に時間はある）。UI テストに足す | AI。**直し方（D183）**: `ParentGateFeature` に `touched`・`checkExpiry` を足し、操作のたびに延ばし、1秒ごとと、アプリに戻ったときに確かめて閉じる。`ParentGateFeatureTests` と UI テスト `ParentAreaTimeoutUITests`（`-parentValiditySeconds` で縮める）で確かめた |
+| P4 | 止まる | **【済】「不具合の情報を送る」のスイッチはあるが、Sentry が入っていない** | `ParentAreaView.swift`（`safetySettings`）、`ProgressStore.sendsCrashReports`。`Package.resolved` に Sentry なし | 画面は「アプリが落ちたときの情報だけを送ります」と言うが、実際は何も送らない。プライバシー表示（「診断・クラッシュデータ」）と、プライバシーポリシーの「クラッシュ報告」が、実装と食い違う。D123 は「最初の提出から Sentry を入れる」「M1 の前に Sentry の既定の動きを実物で確かめ、オフにできない送信があればやめる」 | 判断: ①Sentry を入れる（承認 → `docs/dependencies.md` に書く → 送る内容をテストで固定 → 既定の動きの確認 → 栄養成分表示とポリシーに載せる）。②入れない（スイッチと説明を外す。ポリシーと栄養成分表示から診断を外す。「データの収集なし」で申告できるか確かめる） | 人（決める）・AI。**直し方（D183）**: Sentry 9.36.0 を入れ、スイッチを外した（D183）。DSN が空のビルドでは動かない。ポリシー・栄養成分表示・マニフェストを合わせた。**残りは人の作業 S1** |
+| P5 | 止まる | **【済】課金の説明が、まだない機能を約束している** | `App/Mojimachi.storekit`（「カタカナと カタカナの ことばが かけます」「アルファベット・すうじ・えいごの ことばが かけます」）。`docs/screens.md` は、カタカナ・ABC のことば、すうじ あそび、ずかんは「まだ」 | ストアと商品の説明が、中身より大きい。ガイドライン 2.3・3.1.1 の「説明と中身を合わせる」に反し、D72 の「まだ無いものを予告しない」にも反する。**ABC パックを買っても、えいごの ことばは入っていない**（D45 が約100語と書いたもの） | 説明を中身に合わせる（D98 の名前・説明に変える）か、機能を作ってから出す。購入画面（`PurchaseView.swift`）の表示と、設計 §5.2 の表も合わせる | 人（決める）・AI。**直し方（D183）**: `Mojimachi.storekit` と購入画面の説明を、あるものだけにした（D98 の言い方） |
+| P6 | 直す | **【済】商品名がコードと設計で食い違う** | `Mojimachi.storekit`（「ぜんぶ ひらく（…）」「カタカナ パック」「ABC・すうじ パック」）、`PurchaseView.swift`（「すべての文字（…）」「カタカナパック」「ABC・数字パック」）、D98（「カタカナ」「アルファベットと数字」「すべての文字」「すべての文字（1つ購入済みの方）」） | ASC の名前、StoreKit の試し用の設定、アプリ内の名前がそろっていない。D89 は、名前と説明は StoreKit から受け取って表示する（アプリに書き込まない）と決めた | 名前を1つに決め、3か所をそろえる。ASC には英語の名前も要る（D89） | 人（決める）・AI。**直し方（D183）**: D98 の名前にそろえた（ストアキット・購入画面・設計。D183）。ASC の名前と英語の名前は人が入れる |
+| P7 | 直す | **【済】Face ID を使う確認があるが、`NSFaceIDUsageDescription` がない** | `Parent/DeviceAuth.swift`（`LAContext`・`deviceOwnerAuthentication`）、`Info-extra.plist` | 「iPad のパスコードも求める」をオンにしたとき、Face ID の iPad で意図どおりに動かないおそれがある。審査で指摘されうる | `INFOPLIST_KEY_NSFaceIDUsageDescription` を日本語で足す。Face ID の iPad で、実機で確かめる | AI（足す）・人（実機）。**直し方（D183）**: `INFOPLIST_KEY_NSFaceIDUsageDescription` を日本語で足した。Face ID の iPad の実機の確認は人 |
+| P8 | 直す | **【済】お問い合わせのフォームの URL に、端末の情報が入る** | `Packages/Sources/SupportKit/FeedbackForm.swift`（アプリの版・iPadOS の版・判定の設定名を、フォームの欄に前もって入れる） | Kids の 1.3 は「端末の情報を第三者に送らない」。保護者が確認の先で開き、中身は消せるが、開いた時点で Google にその URL が届く。D124 の決めごとだが、審査で聞かれる | 審査用のメモで説明する（`app-store-metadata.md` §9）。却下されたら、前もって入れるのをやめる（欄は空で開く） | 人（決める）。**直し方（D183）**: フォームの URL から、アプリの版・iPadOS の版を外した。版は画面に出して、保護者が自分で書き足せる |
 | P9 | 直す | **英語に対応していない** | プロジェクト全体（`.lproj`・`.xcstrings` なし。`developmentRegion = ja`） | D30・D116・D118 は、保護者用の画面・ストア・ポリシーを英語でも出すとしている。アプリの画面は日本語だけ。英語の説明を出すなら、日本語を学ぶアプリだと説明の最初に書く（D118。下書きに書いてある） | ストアの英語は説明文だけにするか、保護者用の画面を英語にするか決める | 人（決める）・AI |
-| P10 | 確認 | **輸出コンプライアンスの印がない** | `Info-extra.plist` | 毎回の提出で質問が出る | `ITSAppUsesNonExemptEncryption = NO` を足す（標準の暗号だけなので。ASC の質問で最新の内容を確かめる） | AI |
+| P10 | 確認 | **【済】輸出コンプライアンスの印がない** | `Info-extra.plist` | 毎回の提出で質問が出る | `ITSAppUsesNonExemptEncryption = NO` を足す（標準の暗号だけなので。ASC の質問で最新の内容を確かめる） | AI。**直し方（D183）**: ビルド設定に `ITSAppUsesNonExemptEncryption = NO` があったが、`INFOPLIST_KEY_` の接頭辞がなく、Info.plist に入っていなかった。`INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` に直し、Release のビルドの Info.plist で `false` を確かめた |
 | P11 | 確認 | **`aps-environment` が `development`** | `Mojimachi.entitlements` | 配布用の署名では、Xcode が `production` に直す。アーカイブの権利を確かめる | アーカイブしたあと `codesign -d --entitlements :-` で見る。`UIBackgroundModes: remote-notification` は iCloud 同期のため（審査用のメモに書いた） | 人 |
 | P12 | 確認 | 公開ページが未公開 | `docs/operations.md` の「公開ページ」2つ | アプリの中のリンクと、ASC の提出に URL が要る。404 だと審査で止まる | `kenchan0130.github.io` のリポジトリに、サポートとポリシー（日英）を置く | 人（置く）・AI（下書き: `privacy-policy.*.md`） |
 | P13 | 確認 | ポリシーの `TODO`（運営者名・連絡先・施行日・Sentry の保管地域） | `privacy-policy.ja.md`・`.en.md` | 人にしか決められない。連絡先は作っていない | 人が決めて埋める | 人 |
+
+### 【TODO 人】S1: Sentry を動かすための作業
+
+Sentry のコードとライブラリは入った（D183）。**DSN を入れないと、リリースのビルドでも何も送らない**。人が次をする。
+
+1. Sentry のプロジェクトを作る（プラットフォームは Apple・iOS）。
+2. **データの保管地域を選ぶ**（米国か EU）。選んだら、`privacy-policy.ja.md`・`.en.md` の「Sentry のデータの保管場所: TODO」を埋める。
+3. サーバー側の設定: IP アドレスを保存しない、個人情報の自動の削除をオン（D103）。
+4. DSN を、リリースのビルドのビルド設定 `SENTRY_DSN` に入れる（Xcode Cloud の環境変数。`App/Config/Version.xcconfig` の `SENTRY_DSN =` が空の既定。**DSN に `//` があるので、xcconfig に書くときは `https:/$()/…` にする**。環境変数で上書きするなら、ワークフローの設定で）。DSN はリポジトリにコミットしない。
+5. https://github.com/getsentry/sentry-cocoa を開いて、本物の公式か確かめる（`docs/dependencies.md`）。
+6. TestFlight のビルドで、わざと落として Sentry に着くこと、着いたものに端末の名前・ID・ユーザーが入っていないことを見る。
+7. ASC の「App のプライバシー」に、診断 > クラッシュデータ（ユーザに関連付けない・追跡に使わない・アプリの機能）を入れる（`app-store-metadata.md` §6）。
 
 ### 子どもの画面の確認（Kids カテゴリ）で問題がなかったもの
 
@@ -46,11 +58,11 @@
 | メールを任意のフィードバックとして申告の対象外にできるか（D73） | 人 | 判断待ち | D124 でフォームに変わった。フォームも同じ見方で、申告するか決める（`app-store-metadata.md` §6） |
 | 米国の州の年齢確認（D65） | 人 | 未 | Apple の最新の案内で、テキサス州・ユタ州などの扱いを確かめる。判断できなければ相談 |
 | 国ごとの必要事項（D65） | 人 | 未 | 配信する国ごとに必要な手続きを確かめ、対応できない国は外す |
-| 名前の最終決定（D136 の「公開前に §10.2 の案に変えるか」） | 人 | 判断待ち | いまの ASC の名前は「もじまち」。案は「もじまち：ひらがな・カタカナ書き順練習」 |
+| 名前の最終決定（D136 の「公開前に §10.2 の案に変えるか」） | 人 | 決定（D183） | 「もじまち：ひらがな・カタカナ書き順練習」に決めた。ASC の名前を、この名前に変える【人】。ホームの名前は「もじまち」のまま |
 | 商標・キャラクター名・絵の確認（§10.1） | 人 | 未 | J-PlatPat と画像検索。「ひら」の見た目の見直し（D137）、「とん」が豚に見えないか（D61 ③） |
 | iCloud のデータの形を本番に反映する | 人 | 未 | CloudKit Console の「Deploy Schema Changes」（`docs/operations.md`）。署名ありで一度動かして、開発環境に形ができてから。AI はできない |
 | プライバシーレポートの前回との違い、実機の「App プライバシーレポート」で Apple と Sentry 以外への通信がないこと | 人 | 未 | `docs/dependencies.md` の「公開ごとの確認」 |
-| 「このアプリについて」のライセンスの表示の見直し | AI | 確認中 | いまは `SupportView.swift` の `AboutView` で、文字のデータ・書体・効果音・声。Sentry を入れたら足す。`Package.resolved` から作る作業（LicensePlist）は未 |
+| 「このアプリについて」のライセンスの表示の見直し | AI | 確認中 | いまは `SupportView.swift` の `AboutView` で、文字のデータ・書体・効果音・声。Sentry を入れたので足す（D183。MIT）。`Package.resolved` から作る作業（LicensePlist）は未 |
 | ライセンスの義務の確認 | 人 | 未 | Klee One・Zen Maru Gothic（OFL）、strokesvg、OtoLogic（CC BY 4.0。D158）、VOICEVOX:猫使ビィ（表示）、KanjiVG の座標を使った字があれば CC BY-SA の公開（D128） |
 | Xcode Cloud のワークフローを作る | 人 | 未 | `docs/operations.md`: まだ作っていない。マクロの確認を省く設定も未（`docs/dependencies.md`） |
 | TestFlight（内部 → 外部）で実機の確認 | 人 | 未 | 下の §4 |
@@ -119,7 +131,7 @@ M0 の基準は、M1 に進む条件だった。D179 は「約300語で出す」
 | Kids カテゴリと年齢帯「5歳以下」を選ぶ（変えられない） | 人 | 未 | D51・D86 |
 | 年齢制限の質問票 | 人 | 未 | `app-store-metadata.md` §7 |
 | App のプライバシー（栄養成分表示） | 人 | 未 | `app-store-metadata.md` §6。P4 の判断のあとで |
-| 輸出コンプライアンス | 人 | 未 | P10 |
+| 輸出コンプライアンス | 人 | 未 | P10（コードは済。ASC の質問に答える） |
 | コンテンツの権利（第三者のコンテンツ） | 人 | 未 | §1 のライセンスの義務 |
 | アプリ内課金の登録（4商品、ja・en、ファミリー共有、審査用のスクリーンショット） | 人 | 未 | `app-store-metadata.md` §4。P5・P6 のあとで |
 | プライバシーポリシーとサポートページの公開（日英） | 人 | 未 | P12 |
@@ -137,11 +149,11 @@ M0 の基準は、M1 に進む条件だった。D179 は「約300語で出す」
 | `make test`・`make lint`・`make content-check` が通る | AI | 確認中 | プルリクエストの前に必ず（D129・D130） |
 | `make app-test`（購入と画面の行き来。シミュレータ） | AI | 確認中 | 約2分。CI では動かさない |
 | アイコンの画像を入れる | AI | 未 | P1 |
-| `PrivacyInfo.xcprivacy` を入れる | AI | 未 | P2 |
-| 保護者用の画面の有効時間（5分） | AI | 未 | P3 |
-| Sentry の判断と実装、またはスイッチを外す | 人・AI | 判断待ち | P4 |
-| 商品の説明・名前をそろえる | 人・AI | 判断待ち | P5・P6 |
-| `NSFaceIDUsageDescription`・`ITSAppUsesNonExemptEncryption` | AI | 未 | P7・P10 |
+| `PrivacyInfo.xcprivacy` を入れる | AI | 済（D183） | P2 |
+| 保護者用の画面の有効時間（5分） | AI | 済（D183） | P3 |
+| Sentry の判断と実装、またはスイッチを外す | 人・AI | コードは済（D183）。DSN などは人（S1） | P4 |
+| 商品の説明・名前をそろえる | 人・AI | コードと設計は済（D183）。ASC に入れるのは人 | P5・P6 |
+| `NSFaceIDUsageDescription`・`ITSAppUsesNonExemptEncryption` | AI | 済（D183） | P7・P10 |
 | バージョン: tagpr の最初のリリース（1.0.0） | 人 | 未 | `docs/operations.md`。リリースの PR をマージするとタグが打たれる |
 | Xcode Cloud でビルド → TestFlight（内部） | 人 | 未 | ワークフローをまず作る |
 | TestFlight（外部テスト）→ 審査 → 手動で公開 | 人 | 未 | |

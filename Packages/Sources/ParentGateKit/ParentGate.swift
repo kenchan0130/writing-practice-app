@@ -80,10 +80,14 @@ public struct ParentGate: Sendable {
   /// 確認を通った最後の操作の時刻。nil は通っていない。
   public private(set) var lastActivity: Double?
 
+  /// 確認が有効な秒数。ふつうは `validSeconds`（5分）。テストだけ短くする。
+  public let validity: Double
+
   private var random: @Sendable () -> Double
 
-  public init(random: @escaping @Sendable () -> Double) {
+  public init(random: @escaping @Sendable () -> Double, validity: Double = Self.validSeconds) {
     self.random = random
+    self.validity = validity
     self.question = GateQuestion.make(random: random)
   }
 
@@ -117,7 +121,7 @@ public struct ParentGate: Sendable {
   /// いま確認が有効か（5分間操作がなければ切れる）。
   public func isOpen(at now: Double) -> Bool {
     guard let lastActivity else { return false }
-    return now - lastActivity < Self.validSeconds
+    return now - lastActivity < validity
   }
 
   /// 保護者用の画面で操作したとき（有効な時間を延ばす）。

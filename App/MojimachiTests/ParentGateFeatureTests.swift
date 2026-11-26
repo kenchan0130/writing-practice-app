@@ -108,4 +108,59 @@ struct ParentGateFeatureTests {
     await store.send(.cancelTapped) { $0.outcome = .cancelled }
     await store.send(.opened) { $0.outcome = nil }
   }
+
+  /// 時計を手で進められる確認。通った時刻は 1000 秒。
+  private static func clockStore(_ now: LockIsolated<Double>) -> TestStore<
+    ParentGateFeature.State, ParentGateFeature.Action
+  > {
+    var gate = ParentGate(random: { 0 })
+    _ = gate.answer(36, at: 1000)
+    return TestStore(initialState: ParentGateFeature.State(gate: gate)) {
+      ParentGateFeature()
+    } withDependencies: {
+      $0.date = DateGenerator { Date(timeIntervalSince1970: now.value) }
+    }
+  }
+
+  @Test("保護者用の画面は、5分操作がなければ切れる（D49）")
+  func expiresAfterFiveMinutes() async {
+    let now = LockIsolated(1000.0)
+    let store = Self.clockStore(now)
+    now.setValue(1000 + 299)
+    await store.send(.checkExpiry)
+    #expect(!store.state.parentAreaExpired)
+    now.setValue(1000 + 300)
+    await store.send(.checkExpiry) {
+      $0.gate.close()
+      $0.parentAreaExpired = true
+    }
+    #expect(!store.state.gate.isOpen(at: 1000 + 300))
+    // 開き直すと、切れた印は消える。
+    await store.send(.parentAreaOpened) { $0.parentAreaExpired = false }
+  }
+
+  @Test("操作すると、切れるまでの時間が5分先へ延びる")
+  func touchExtends() async {
+    let now = LockIsolated(1000.0)
+    let store = Self.clockStore(now)
+    now.setValue(1000 + 250)
+    await store.send(.touched) { $0.gate.touch(at: 1250) }
+    now.setValue(1250 + 299)
+    await store.send(.checkExpiry)
+    #expect(!store.state.parentAreaExpired)
+    now.setValue(1250 + 300)
+    await store.send(.checkExpiry) {
+      $0.gate.close()
+      $0.parentAreaExpired = true
+    }
+  }
+
+  @Test("切れたあとの操作では、延びない")
+  func touchAfterExpiryDoesNothing() async {
+    let now = LockIsolated(1000.0)
+    let store = Self.clockStore(now)
+    now.setValue(1000 + 400)
+    await store.send(.touched)
+    #expect(!store.state.gate.isOpen(at: 1400))
+  }
 }

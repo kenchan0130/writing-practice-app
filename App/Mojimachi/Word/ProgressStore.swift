@@ -68,10 +68,6 @@ final class ProgressStore {
   var requiresDeviceAuth: Bool {
     didSet { defaults.set(requiresDeviceAuth, forKey: "requiresDeviceAuth") }
   }
-  /// 不具合の情報を送る（D123）。
-  var sendsCrashReports: Bool {
-    didSet { defaults.set(sendsCrashReports, forKey: "sendsCrashReports") }
-  }
 
   // MARK: - 音と表示（§5.3）
 
@@ -402,7 +398,6 @@ final class ProgressStore {
     preset = defaults.string(forKey: "preset").flatMap(JudgePreset.init(rawValue:)) ?? .hajimete
     showsEndingHints = defaults.object(forKey: "showsEndingHints") as? Bool ?? true
     requiresDeviceAuth = defaults.bool(forKey: "requiresDeviceAuth")
-    sendsCrashReports = defaults.object(forKey: "sendsCrashReports") as? Bool ?? true
     records.onSyncEvent = { [weak self] in self?.handle($0) }
   }
 
