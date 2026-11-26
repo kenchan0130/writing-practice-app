@@ -465,7 +465,7 @@ final class TransformScene: SKScene {
     run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
   }
 
-  /// 景色になる物の型: 花はそよかぜでゆれる。くだもの・やさいは ぽんと出て、ひとはずみして止まる（D168）。
+  /// 景色になる物の型: 花・草・木はそよかぜでゆれる。くだもの・やさい・たてもの などは ぽんと出て、ひとはずみして止まる（D168）。
   private func settle(_ object: SKNode) {
     guard let sprite = object as? SKSpriteNode else { return }
     let reduce = UIAccessibility.isReduceMotionEnabled
@@ -473,7 +473,10 @@ final class TransformScene: SKScene {
     let base = sprite.position.y - sprite.size.height / 2
     sprite.anchorPoint = CGPoint(x: 0.5, y: 0)
     sprite.position = CGPoint(x: sprite.position.x, y: base)
-    if WordArt.isFlower(word) {
+    addSceneryBackground(groundY: base, side: sprite.size.height, reduceMotion: reduce)
+    // しんごう・ふみきりは、あかりが かわる（D174）。大きさが縮む前（scale 1）に付ける。
+    LampMotion.attach(to: sprite, word: word, reduceMotion: reduce)
+    if WordArt.sways(word) {
       let sway = SKAction.sequence([
         .rotate(toAngle: reduce ? 0.02 : 0.07, duration: 1.0),
         .rotate(toAngle: reduce ? -0.02 : -0.07, duration: 2.0),
@@ -498,6 +501,56 @@ final class TransformScene: SKScene {
       sprite.run(.group([pop, hop]))
     }
     run(.wait(forDuration: 2.5)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 景色の変身の背景（D174）。空のグラデーション・丘・草。全体をおおうので、下の書く場所の枠が すけない。
+  /// `groundY` は物の足もと。草は、足もとが少し草に入る高さにする。絵と粒より奥。
+  private func addSceneryBackground(groundY: CGFloat, side: CGFloat, reduceMotion: Bool) {
+    let w = size.width
+    let background = SKNode()
+    background.zPosition = -50
+    background.alpha = 0
+    let sky = SKSpriteNode(texture: SKTexture(image: skyGradient()))
+    sky.size = size
+    sky.position = CGPoint(x: w / 2, y: size.height / 2)
+    sky.zPosition = -1
+    background.addChild(sky)
+    let horizon = groundY + side * 0.1
+    let far = SKShapeNode(ellipseOf: CGSize(width: w * 1.5, height: (horizon + side * 0.5) * 2))
+    far.fillColor = UIColor(red: 0.74, green: 0.89, blue: 0.72, alpha: 1)
+    far.strokeColor = .clear
+    far.position = CGPoint(x: w * 0.3, y: 0)
+    background.addChild(far)
+    let near = SKShapeNode(ellipseOf: CGSize(width: w * 1.3, height: (horizon + side * 0.25) * 2))
+    near.fillColor = UIColor(red: 0.62, green: 0.83, blue: 0.58, alpha: 1)
+    near.strokeColor = .clear
+    near.position = CGPoint(x: w * 0.8, y: 0)
+    near.zPosition = 0.5
+    background.addChild(near)
+    let lawn = SKShapeNode(ellipseOf: CGSize(width: w * 1.9, height: horizon * 2))
+    lawn.fillColor = UIColor(red: 0.62, green: 0.82, blue: 0.46, alpha: 1)
+    lawn.strokeColor = .clear
+    lawn.position = CGPoint(x: w / 2, y: 0)
+    lawn.zPosition = 1
+    background.addChild(lawn)
+    addChild(background)
+    background.run(.fadeIn(withDuration: reduceMotion ? 0.3 : 0.6))
+  }
+
+  private func skyGradient() -> UIImage {
+    let renderer = UIGraphicsImageRenderer(size: CGSize(width: 8, height: 256))
+    return renderer.image { context in
+      let colors = [
+        UIColor(red: 0.74, green: 0.9, blue: 1, alpha: 1).cgColor,
+        UIColor(red: 0.96, green: 0.96, blue: 0.9, alpha: 1).cgColor,
+      ]
+      guard
+        let gradient = CGGradient(
+          colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors as CFArray, locations: [0, 1])
+      else { return }
+      context.cgContext.drawLinearGradient(
+        gradient, start: .zero, end: CGPoint(x: 0, y: 256), options: [])
+    }
   }
 
   /// 子どもの線から、粒の出発点を同じ間かくで取る。

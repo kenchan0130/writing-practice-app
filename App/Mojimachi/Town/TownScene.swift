@@ -159,7 +159,16 @@ final class TownScene: SKScene {
     let world = SKNode()
     world.name = "world"
     addChild(world)
-    addScenery(to: world, landWidth: CGFloat(plan.landWidth), originX: CGFloat(plan.landMinX))
+    // 大きな景色が立つはばには、背景の木と家を出さない（D174）。
+    let landmarkSpans = zip(sceneryObjects, plan.scenery).compactMap { object, place in
+      WordArt.landmarkFactor(object.word).map {
+        TownLayout.landmarkSpan(
+          TownLayout.landmarkPlace(place, factor: $0), objectWidth: Double(objectSize))
+      }
+    }
+    addScenery(
+      to: world, landWidth: CGFloat(plan.landWidth), originX: CGFloat(plan.landMinX),
+      avoiding: landmarkSpans)
     if let water = plan.water { addWater(to: world, water: water) }
     if let park = plan.park {
       addPark(to: world, park: park)
@@ -287,7 +296,10 @@ final class TownScene: SKScene {
   }
 
   /// 丘・地面・道・木・家・雲。ノードは数十個で、毎フレームの計算はしない。
-  private func addScenery(to world: SKNode, landWidth width: CGFloat, originX: CGFloat) {
+  private func addScenery(
+    to world: SKNode, landWidth width: CGFloat, originX: CGFloat,
+    avoiding landmarkSpans: [ClosedRange<Double>] = []
+  ) {
     let h = size.height
     let horizon = h * 0.36
 
@@ -336,18 +348,16 @@ final class TownScene: SKScene {
     dashLine.zPosition = -44
     world.addChild(dashLine)
 
-    // 木と家（草の向こう側。物の動く範囲より奥）。
-    var index = 0
-    var decorationX: CGFloat = originX + 140
-    while decorationX < originX + width {
-      if index % 3 == 1 {
-        addHouse(world, x: decorationX, base: horizon + h * 0.015, index: index)
-        decorationX += 380
+    // 木と家（草の向こう側。物の動く範囲より奥）。大きな景色のはばは あける。
+    let spots = TownLayout.backdrop(
+      TownLayout.backdropSpots(minX: Double(originX), width: Double(width), unit: Double(unit)),
+      avoiding: landmarkSpans)
+    for spot in spots {
+      if spot.isHouse {
+        addHouse(world, x: CGFloat(spot.x), base: horizon + h * 0.015, index: spot.index)
       } else {
-        addTree(world, x: decorationX, base: horizon + h * 0.01, index: index)
-        decorationX += 300 + CGFloat(index % 2) * 70
+        addTree(world, x: CGFloat(spot.x), base: horizon + h * 0.01, index: spot.index)
       }
-      index += 1
     }
 
     // 雲（ゆっくり左右にゆれる）。水べの上にも出る。
@@ -482,17 +492,22 @@ final class TownScene: SKScene {
   private func makeScenery(_ object: PlacedObject, place: SceneryPlace, objectSize: CGFloat)
     -> SKSpriteNode
   {
+    // 大きな景色（やま・たき・たてもの）は、奥の列に立って大きくなり、ほかの景色より奥に描く（D174）。
+    let landmarkFactor = WordArt.landmarkFactor(object.word)
+    let landmark = landmarkFactor != nil
+    let place = landmarkFactor.map { TownLayout.landmarkPlace(place, factor: $0) } ?? place
     let image = WordArt.image(word: object.word, size: 320)
     let node = SKSpriteNode(texture: SKTexture(image: image))
     node.name = object.id.uuidString
-    let side = objectSize * CGFloat(place.scale)
+    let side = objectSize * CGFloat(place.scale) * CGFloat(WordArt.scenerySizeFactor(object.word))
     node.size = CGSize(width: side, height: side)
-    node.anchorPoint = CGPoint(x: 0.5, y: 0.05)
+    node.anchorPoint = CGPoint(x: 0.5, y: landmark ? 0 : 0.05)
     node.position = CGPoint(x: place.x, y: size.height * CGFloat(place.yFraction))
-    // 動物の最も奥の段（z=13.6）より奥。手前の列ほど手前。
-    node.zPosition = 2 + CGFloat(1 - place.row) * 2
-    if WordArt.isFlower(object.word) {
-      // 花: ほんのすこし、根もとからゆれる（動きを減らすときは止める）。
+    // 動物の最も奥の段（z=13.6）より奥。手前の列ほど手前。大きな景色は、背景の木・家と同じ奥（丘の手前、草の向こう）。
+    // 大きい物ほど奥。
+    node.zPosition = landmark ? -60 - min(CGFloat(landmarkFactor ?? 0), 10) / 10 : 2 + CGFloat(1 - place.row) * 2
+    if WordArt.sways(object.word) {
+      // 花・草・木: ほんのすこし、根もとからゆれる（動きを減らすときは止める）。
       guard !reduceMotion else { return node }
       let angle: CGFloat = 0.04
       let sway = SKAction.sequence([
@@ -505,7 +520,7 @@ final class TownScene: SKScene {
           .wait(forDuration: Double(place.index % 5) * 0.5), .repeatForever(sway),
         ]))
     } else if !reduceMotion {
-      // くだもの・やさい: 出てくるときにひとはずみして、止まる。
+      // くだもの・やさい・たてもの など: 出てくるときにひとはずみして、止まる。
       let target = node.size
       node.size = CGSize(width: target.width * 0.5, height: target.height * 0.5)
       node.run(
@@ -516,6 +531,8 @@ final class TownScene: SKScene {
             .sequence([.moveBy(x: 0, y: 22, duration: 0.15), .moveBy(x: 0, y: -22, duration: 0.15)]
             ),
           ]),
+          // しんごう・ふみきりは、出てきたあとに あかりが かわる（D174）。
+          .run { LampMotion.attach(to: node, word: object.word, reduceMotion: false) },
         ]))
     }
     return node

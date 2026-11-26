@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <path d="M43.4 126.1 L187.1 126.1 L187.1 397.7 L43.4 397.7 Z" fill="#b69a7e" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M324.9 126.1 L468.6 126.1 L468.6 397.7 L324.9 397.7 Z" fill="#b69a7e" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M187.1 126.1 L324.9 126.1 L324.9 411.5 L187.1 411.5 Z" fill="#9fdcf7"/>
+  <path d="M222.5 155.6 L222.5 382" fill="none" stroke="#ffffff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.85"/>
+  <path d="M256 155.6 L256 382" fill="none" stroke="#ffffff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.85"/>
+  <path d="M289.5 155.6 L289.5 382" fill="none" stroke="#ffffff" stroke-width="9" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.85"/>
+  <path d="M187.1 126.1 L187.1 397.7 M324.9 126.1 L324.9 397.7" fill="none" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M43.4 126.1 C43.4 98.5 63.1 90.7 92.6 90.7 L187.1 90.7 L187.1 126.1 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M324.9 90.7 L417.4 90.7 C448.9 90.7 468.6 98.5 468.6 126.1 L324.9 126.1 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="102.5" cy="84.7" r="33.5" fill="#4f9e48" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="427.3" cy="84.7" r="33.5" fill="#4f9e48" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M187.1 118.2 C220.6 135.9 291.4 135.9 324.9 118.2" fill="none" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <ellipse cx="256" cy="411.5" rx="187" ry="49.2" fill="#6cc0ec" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M98.5 411.5 C151.7 425.3 210.7 429.2 256 427.3" fill="none" stroke="#ffffff" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.8"/>
+  <circle cx="226.5" cy="399.7" r="23.6" fill="#ffffff" fill-opacity="0.9"/>
+  <circle cx="267.8" cy="393.8" r="29.5" fill="#ffffff" fill-opacity="0.9"/>
+  <circle cx="305.2" cy="405.6" r="19.7" fill="#ffffff" fill-opacity="0.9"/>
+  <path d="M72.9 165.5 L72.9 332.8" fill="none" stroke="#ffffff" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" stroke-opacity="0.6"/>
+</svg>

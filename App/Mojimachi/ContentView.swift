@@ -82,7 +82,14 @@ struct ContentView: View {
   }()
   /// ことば画面をテーマのことばのカードから開いたか（「←」の戻り先）。
   @State private var wordFromCards = false
-  @State private var wordStart: String?
+  @State private var wordStart: String? = {
+    #if DEBUG
+      // 確かめ用: `-screen word -startWord やま` でそのことばの書く画面を開く（`-simulateWord YES` と一緒に）。
+      return UserDefaults.standard.string(forKey: "startWord")
+    #else
+      return nil
+    #endif
+  }()
   @State private var activity = WritingActivity()
   @State private var gateStore = Store(initialState: ParentGateFeature.State()) {
     ParentGateFeature()

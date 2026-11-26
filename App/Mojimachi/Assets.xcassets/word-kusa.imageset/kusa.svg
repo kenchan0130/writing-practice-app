@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <path d="M79 422.3 C83 349.1 61.7 316.5 52.5 275.8 C56.6 336.9 106.4 349.1 105.4 422.3 Z" fill="#8fd070" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M125.8 422.3 C129.8 343 169.5 304.3 178.7 263.6 C183.8 324.7 153.2 343 152.2 422.3 Z" fill="#8fd070" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M102.4 422.3 C106.4 320.6 99.3 259.6 90.2 218.9 C94.2 279.9 129.8 320.6 128.8 422.3 Z" fill="#8fd070" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M355.7 422.3 C359.8 353.2 338.4 321.6 329.3 283 C333.3 341 383.2 353.2 382.2 422.3 Z" fill="#8fd070" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M402.5 422.3 C406.6 347.1 446.3 310.4 455.4 271.8 C460.5 329.8 430 347.1 429 422.3 Z" fill="#8fd070" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M379.1 422.3 C383.2 325.7 408.6 267.7 417.8 229 C422.9 287 406.6 325.7 405.6 422.3 Z" fill="#8fd070" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M205.1 422.3 C210.2 301.3 181.7 247.4 168.5 180.2 C174.6 280.9 241.8 301.3 239.7 422.3 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M268.2 422.3 C273.3 291.1 326.2 228 339.4 160.9 C345.5 261.6 304.8 291.1 302.8 422.3 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M236.7 422.3 C241.8 254.5 254 153.7 254 86.6 C260.1 187.3 273.3 254.5 271.3 422.3 Z" fill="#6fbd5c" stroke="#4a3428" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="64.7" cy="252.4" r="12.2" fill="#ffffff"/>
+  <circle cx="79.2" cy="263" r="12.2" fill="#ffffff"/>
+  <circle cx="73.7" cy="280" r="12.2" fill="#ffffff"/>
+  <circle cx="55.8" cy="280" r="12.2" fill="#ffffff"/>
+  <circle cx="50.2" cy="263" r="12.2" fill="#ffffff"/>
+  <circle cx="64.7" cy="267.7" r="9.2" fill="#f7c948"/>
+  <circle cx="447.3" cy="283" r="12.2" fill="#ffffff"/>
+  <circle cx="461.8" cy="293.5" r="12.2" fill="#ffffff"/>
+  <circle cx="456.2" cy="310.6" r="12.2" fill="#ffffff"/>
+  <circle cx="438.3" cy="310.6" r="12.2" fill="#ffffff"/>
+  <circle cx="432.8" cy="293.5" r="12.2" fill="#ffffff"/>
+  <circle cx="447.3" cy="298.2" r="9.2" fill="#f7c948"/>
+  <circle cx="329.3" cy="99.8" r="12.2" fill="#ffffff"/>
+  <circle cx="343.8" cy="110.4" r="12.2" fill="#ffffff"/>
+  <circle cx="338.2" cy="127.4" r="12.2" fill="#ffffff"/>
+  <circle cx="320.3" cy="127.4" r="12.2" fill="#ffffff"/>
+  <circle cx="314.7" cy="110.4" r="12.2" fill="#ffffff"/>
+  <circle cx="329.3" cy="115.1" r="9.2" fill="#f7c948"/>
+  <path d="M54.5 424.4 L453.4 424.4" fill="none" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

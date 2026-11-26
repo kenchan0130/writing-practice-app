@@ -105,9 +105,10 @@ public enum WordMap {
     WordTheme(
       "sora-tenki", "そら・てんき", in: "sora",
       words: ["くも", "にじ", "あめ", "ゆき", "かみなり", "かぜ", "ほし", "つき"]),
-    WordTheme("shizen", "しぜん", in: "kawa"),
-    WordTheme("hana", "はな", in: "mori", words: ["さくら", "ひまわり", "たんぽぽ"]),
-    WordTheme("ki-kusa-kinoko", "き・くさ・きのこ", in: "mori"),
+    WordTheme("shizen", "しぜん", in: "kawa", words: ["やま", "たき", "いし", "いけ"]),
+    WordTheme("hana", "はな", in: "mori", words: ["さくら", "ひまわり", "たんぽぽ", "あさがお", "ばら"]),
+    WordTheme(
+      "ki-kusa-kinoko", "き・くさ・きのこ", in: "mori", words: ["くさ", "まつ", "どんぐり", "はっぱ", "きのこ"]),
     WordTheme(
       "omocha", "おもちゃ", in: "koen", words: ["つみき", "こま", "けんだま", "ふうせん", "にんぎょう"]),
     WordTheme("gakki", "がっき", in: "koen", words: ["たいこ", "ふえ", "すず", "もっきん"]),
@@ -118,8 +119,8 @@ public enum WordMap {
     WordTheme("ie-no-mono", "いえの もの", in: "ie", row: .inside),
     WordTheme("ofuro-mijitaku", "おふろ・みじたく", in: "ie", row: .inside),
     WordTheme("bunbogu", "ぶんぼうぐ", in: "omise"),
-    WordTheme("tatemono", "たてもの", in: "eki"),
-    WordTheme("machi-no-mono", "まちの もの", in: "michi"),
+    WordTheme("tatemono", "たてもの", in: "eki", words: ["いえ", "がっこう", "びょういん", "おしろ"]),
+    WordTheme("machi-no-mono", "まちの もの", in: "michi", words: ["しんごう", "ふみきり", "がいとう"]),
     WordTheme("uchu", "うちゅう", in: "uchu", words: ["たいよう", "ほし", "つき", "うちゅうじん"]),
     WordTheme("haru-natsu-gyoji", "はる・なつの ぎょうじ", in: "kisetsu"),
     WordTheme("aki-fuyu-gyoji", "あき・ふゆの ぎょうじ", in: "kisetsu"),

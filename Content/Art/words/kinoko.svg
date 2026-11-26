@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <path d="M318.2 443.9 C321.9 371.2 310.7 329.7 303.2 308.9 L415.3 308.9 C407.9 329.7 396.7 371.2 400.4 443.9 Z" fill="#fff4e2" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M265.9 319.3 C262.1 225.9 303.2 215.5 359.3 215.5 C415.3 215.5 456.5 225.9 452.7 319.3 C415.3 340.1 303.2 340.1 265.9 319.3 Z" fill="#d9a05b" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="310.7" cy="293.4" r="16.8" fill="#fff4e2"/>
+  <circle cx="366.8" cy="270.5" r="18.7" fill="#fff4e2"/>
+  <circle cx="411.6" cy="297.5" r="14.9" fill="#fff4e2"/>
+  <circle cx="348.1" cy="324.5" r="13.1" fill="#fff4e2"/>
+  <path d="M137.1 443.9 C143.4 324 124.7 255.5 112.2 221.2 L299.1 221.2 C286.6 255.5 267.9 324 274.2 443.9 Z" fill="#fff4e2" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M49.9 238.4 C43.7 84.2 112.2 67.1 205.7 67.1 C299.1 67.1 367.6 84.2 361.4 238.4 C299.1 272.6 112.2 272.6 49.9 238.4 Z" fill="#e5534b" stroke="#4a3428" stroke-width="11" stroke-linejoin="round" stroke-linecap="round"/>
+  <circle cx="124.7" cy="195.5" r="28" fill="#ffffff"/>
+  <circle cx="218.1" cy="157.8" r="31.1" fill="#ffffff"/>
+  <circle cx="292.9" cy="202.4" r="24.9" fill="#ffffff"/>
+  <circle cx="187" cy="246.9" r="21.8" fill="#ffffff"/>
+  <ellipse cx="174.5" cy="368.5" rx="8.3" ry="10.4" fill="#3b2f2a"/>
+  <ellipse cx="146.5" cy="387.2" rx="10.4" ry="6.2" fill="#ff9aa8" fill-opacity="0.7"/>
+  <ellipse cx="236.8" cy="368.5" rx="8.3" ry="10.4" fill="#3b2f2a"/>
+  <ellipse cx="264.8" cy="387.2" rx="10.4" ry="6.2" fill="#ff9aa8" fill-opacity="0.7"/>
+  <path d="M196.3 383.1 C201.5 391.4 209.8 391.4 215 383.1" fill="none" stroke="#4a3428" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M54.1 446 C74.9 423.1 95.6 433.5 112.2 446 M417.4 446 C434 429.4 454.8 433.5 469.3 446" fill="none" stroke="#4f9e48" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

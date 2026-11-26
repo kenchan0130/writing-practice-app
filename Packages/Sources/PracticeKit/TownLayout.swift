@@ -97,6 +97,10 @@ public struct TownLayout: Equatable, Sendable {
   public static let sceneryRowY: [Double] = [0.30, 0.345]
   /// 景色の倍率（動物より小さい）。
   public static let sceneryScale = 0.7
+  /// 大きな景色（やま・たき・たてもの。D174）の足もとの高さ。丘と草の境目（まちの高さの0.36）に立つ。
+  public static let landmarkBaseY = 0.355
+  /// 大きな景色の絵の、横はば（絵の四角に対する割合の半分）。背景と重ならないよう はかる。
+  public static let landmarkHalfWidth = 0.45
   /// 水の中に出す生きものの上限（D170）。動きまわる物の8つとは別に数える。
   public static let maxSwimmers = 6
   /// 水の中の段の数。絵の真ん中の高さ。奥ほど小さい。
@@ -279,6 +283,61 @@ public struct TownLayout: Equatable, Sendable {
           startX: center, yFraction: swimLaneY[lane], scale: swimLaneScale[lane]))
     }
     return slots
+  }
+
+  /// 大きな景色の置き場所（D174）。同じ x のまま、丘と草の境目に立ち、`factor` 倍になる。
+  /// やまは、とても大きく（背景の家の2.5倍ほど）。たてものは すこし大きく。
+  /// 描くのは背景の木・家と同じ奥（ほかの景色・動物より奥）。
+  public static func landmarkPlace(_ place: SceneryPlace, factor: Double) -> SceneryPlace {
+    SceneryPlace(
+      index: place.index, x: place.x, yFraction: landmarkBaseY, row: 1,
+      scale: place.scale * factor)
+  }
+
+  /// 大きな景色が まちの横で ふさぐはば。
+  public static func landmarkSpan(_ place: SceneryPlace, objectWidth: Double) -> ClosedRange<Double>
+  {
+    let half = objectWidth * place.scale * landmarkHalfWidth
+    return (place.x - half)...(place.x + half)
+  }
+
+  /// 背景の木と家ひとつ分（丘の向こう側。D165）。
+  public struct BackdropSpot: Equatable, Sendable {
+    public let index: Int
+    public let x: Double
+    /// 絵のはばの半分。
+    public let halfWidth: Double
+    public let isHouse: Bool
+  }
+
+  /// 背景の木と家の並べ方。家は3つに1つで、そのあいだに木。`unit` はまちの高さの基準（`TownScene.unit`）。
+  public static func backdropSpots(minX: Double, width: Double, unit: Double) -> [BackdropSpot] {
+    var spots: [BackdropSpot] = []
+    var x = minX + 140
+    var index = 0
+    while x < minX + width {
+      if index % 3 == 1 {
+        spots.append(BackdropSpot(index: index, x: x, halfWidth: unit * 0.14, isHouse: true))
+        x += 380
+      } else {
+        let s = 0.9 + Double(index % 3) * 0.15
+        spots.append(BackdropSpot(index: index, x: x, halfWidth: unit * 0.075 * s, isHouse: false))
+        x += 300 + Double(index % 2) * 70
+      }
+      index += 1
+    }
+    return spots
+  }
+
+  /// 大きな景色が立つはばに かかる背景の木・家は、出さない（大きな景色が背景と重ならない。D174）。
+  public static func backdrop(_ spots: [BackdropSpot], avoiding spans: [ClosedRange<Double>])
+    -> [BackdropSpot]
+  {
+    spots.filter { spot in
+      !spans.contains {
+        ($0.lowerBound - spot.halfWidth)...($0.upperBound + spot.halfWidth) ~= spot.x
+      }
+    }
   }
 
   /// 景色は、まちの幅いっぱいに同じ間をあけて並べ、2つの列に交互に置く。
