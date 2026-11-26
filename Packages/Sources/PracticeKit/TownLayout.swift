@@ -59,6 +59,25 @@ public struct WaterArea: Equatable, Sendable {
   public let swimMinX: Double
 }
 
+/// こうえんの物ひとつ分の置き場所（D173）。置き場所は8つで、場所ごとに決まっている（D82）。
+public struct ParkSlot: Equatable, Sendable {
+  public let index: Int
+  /// 物の中心の x。
+  public let x: Double
+  /// 足もとの高さ（画面の高さに対する割合）。
+  public let yFraction: Double
+  /// 手前の列は 0、奥の列は 1。
+  public let row: Int
+  public let scale: Double
+}
+
+/// まちの左はしにあるこうえんの広がり（D173）。
+public struct ParkArea: Equatable, Sendable {
+  /// こうえんの左はし（まちのはし）と、右はし（陸のまちのはじまり）。
+  public let minX: Double
+  public let maxX: Double
+}
+
 /// まちの広さと、物の持ち場を決める計算（D8・D74・D165）。
 public struct TownLayout: Equatable, Sendable {
   /// 1か所に出して動きまわる物の上限（D74）。
@@ -86,6 +105,13 @@ public struct TownLayout: Equatable, Sendable {
   /// 水べの幅（画面の何枚分か）と、そのうち砂浜の幅（画面に対する割合）。
   public static let waterScreens = 0.9
   public static let shoreScreens = 0.1
+  /// こうえんに出す物の上限と、置き場所の数（D74・D82・D173）。動きまわる物の8つとは別に数える。
+  public static let maxPlaythings = 8
+  /// こうえんの置き場所の足もとの高さと倍率。手前の列・奥の列。
+  public static let parkRowY: [Double] = [0.10, 0.21]
+  public static let parkRowScale: [Double] = [1.05, 0.92]
+  /// こうえんの幅（画面の何枚分か）。
+  public static let parkScreens = 0.9
   /// 持ち場が隣へはみ出してよい割合（持ち場の幅に対して。段がちがう物どうしだけがすれちがう）。
   public static let overlap = 0.25
 
@@ -96,8 +122,14 @@ public struct TownLayout: Equatable, Sendable {
   public let swimSlots: [SwimSlot]
   /// 水べ。生きものがいないときは nil（まちは今までどおり）。
   public let water: WaterArea?
-  /// 水べをのぞいた、陸のまちの幅。
+  /// 水べとこうえんをのぞいた、陸のまちの幅。
   public let landWidth: Double
+  /// こうえんの置き場所（8つ。こうえんがあるときだけ。D173）。
+  public let parkSlots: [ParkSlot]
+  /// こうえん。物がないときは nil（まちは今までどおり）。
+  public let park: ParkArea?
+  /// 陸のまちのはじまりの x（こうえんがあれば、その右はし。なければ 0）。
+  public let landMinX: Double
 
   /// 古い順の一覧から、出す物（新しい8つ。並びは古い順のまま）を選ぶ。
   public static func shown<T>(_ items: [T]) -> [T] {
@@ -112,6 +144,17 @@ public struct TownLayout: Equatable, Sendable {
   /// 水の中の生きものは、新しい6つまで（D170）。
   public static func shownSwimmers<T>(_ items: [T]) -> [T] {
     Array(items.suffix(maxSwimmers))
+  }
+
+  /// こうえんの物は、新しい8つまで（D173）。
+  public static func shownPlaythings<T>(_ items: [T]) -> [T] {
+    Array(items.suffix(maxPlaythings))
+  }
+
+  /// 何番目に置いたこうえんの物か（0 から）から、置き場所の番号を決める。
+  /// 8つを超えたら、いちばん古い物の場所に、新しい物が入る（D82）。
+  public static func parkSlotIndex(ordinal: Int) -> Int {
+    ((ordinal % maxPlaythings) + maxPlaythings) % maxPlaythings
   }
 
   /// まちの幅は画面の何枚分か。物が少なくてもすこし広く、多いときは3枚分。
@@ -133,24 +176,29 @@ public struct TownLayout: Equatable, Sendable {
   /// 景色は別に12個まで。景色が多いときは、まちを少し広げる。
   public static func make(
     roles: [TownRole], scenery sceneryCount: Int = 0, swimmers swimmerCount: Int = 0,
-    screenWidth: Double, objectWidth: Double
+    playthings playCount: Int = 0, screenWidth: Double, objectWidth: Double
   ) -> TownLayout {
     let roles = Array(roles.prefix(maxRoaming))
     let sceneryCount = min(max(sceneryCount, 0), maxScenery)
     let swimmerCount = min(max(swimmerCount, 0), maxSwimmers)
     let landWidth = screenWidth * screens(count: roles.count + sceneryCount / 2)
+    let parkWidth = playCount > 0 ? screenWidth * parkScreens : 0
+    let landMinX = parkWidth
     let waterWidth = swimmerCount > 0 ? screenWidth * waterScreens : 0
-    let worldWidth = landWidth + waterWidth
-    let places = sceneryPlaces(count: sceneryCount, worldWidth: landWidth)
+    let worldWidth = parkWidth + landWidth + waterWidth
+    let park: ParkArea? = playCount > 0 ? ParkArea(minX: 0, maxX: parkWidth) : nil
+    let parkSlots = parkSlots(area: park, objectWidth: objectWidth)
+    let places = sceneryPlaces(count: sceneryCount, worldWidth: landWidth, originX: landMinX)
+    let landMaxX = landMinX + landWidth
     let water: WaterArea? =
       swimmerCount > 0
       ? WaterArea(
-        minX: landWidth, maxX: worldWidth, swimMinX: landWidth + screenWidth * shoreScreens) : nil
+        minX: landMaxX, maxX: worldWidth, swimMinX: landMaxX + screenWidth * shoreScreens) : nil
     let swim = swimSlots(count: swimmerCount, water: water, objectWidth: objectWidth)
     guard !roles.isEmpty else {
       return TownLayout(
         worldWidth: worldWidth, slots: [], scenery: places, swimSlots: swim, water: water,
-        landWidth: landWidth)
+        landWidth: landWidth, parkSlots: parkSlots, park: park, landMinX: landMinX)
     }
     let slotWidth = landWidth / Double(roles.count)
     var counters: [TownRole: Int] = [:]
@@ -172,10 +220,10 @@ public struct TownLayout: Equatable, Sendable {
         y = skyLaneY[lane]
         scale = skyLaneScale[lane]
       }
-      let start = Double(index) * slotWidth
+      let start = landMinX + Double(index) * slotWidth
       let margin = max(objectWidth / 2, 0)
-      let lower = max(start - slotWidth * overlap, 0) + margin
-      let upper = min(start + slotWidth * (1 + overlap), landWidth) - margin
+      let lower = max(start - slotWidth * overlap, landMinX) + margin
+      let upper = min(start + slotWidth * (1 + overlap), landMaxX) - margin
       let center = start + slotWidth / 2
       slots.append(
         TownSlot(
@@ -185,7 +233,22 @@ public struct TownLayout: Equatable, Sendable {
     }
     return TownLayout(
       worldWidth: worldWidth, slots: slots, scenery: places, swimSlots: swim, water: water,
-      landWidth: landWidth)
+      landWidth: landWidth, parkSlots: parkSlots, park: park, landMinX: landMinX)
+  }
+
+  /// こうえんの置き場所は、右（まちに近い方）から左へ8つ。手前の列と奥の列を交互にする。
+  /// 同じ列の物は、まちに近い方から1つおきに並ぶので、重ならない。
+  /// 両はしの物も、絵（`objectWidth`）がこうえんの中に収まる。
+  static func parkSlots(area: ParkArea?, objectWidth: Double) -> [ParkSlot] {
+    guard let area else { return [] }
+    let margin = max(objectWidth / 2, 0)
+    let part = max(area.maxX - area.minX - margin * 2, 0) / Double(maxPlaythings - 1)
+    return (0..<maxPlaythings).map { index in
+      let row = index % 2
+      return ParkSlot(
+        index: index, x: area.maxX - margin - part * Double(index), yFraction: parkRowY[row],
+        row: row, scale: parkRowScale[row])
+    }
   }
 
   /// 水の中の生きものは、3つの段を順に回し、同じ段の物は水を等しく分けて持ち場にする。
@@ -219,13 +282,16 @@ public struct TownLayout: Equatable, Sendable {
   }
 
   /// 景色は、まちの幅いっぱいに同じ間をあけて並べ、2つの列に交互に置く。
-  static func sceneryPlaces(count: Int, worldWidth: Double) -> [SceneryPlace] {
+  static func sceneryPlaces(count: Int, worldWidth: Double, originX: Double = 0)
+    -> [SceneryPlace]
+  {
     guard count > 0 else { return [] }
     let gap = worldWidth / Double(count)
     return (0..<count).map { index in
       let row = index % 2
       return SceneryPlace(
-        index: index, x: gap * (Double(index) + 0.5), yFraction: sceneryRowY[row], row: row,
+        index: index, x: originX + gap * (Double(index) + 0.5), yFraction: sceneryRowY[row],
+        row: row,
         scale: sceneryScale)
     }
   }

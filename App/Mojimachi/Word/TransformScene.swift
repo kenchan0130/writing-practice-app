@@ -11,13 +11,16 @@ final class TransformScene: SKScene {
   private let colors: [UIColor]
   private let kind: WordKind
   private let word: String
+  /// こうえんの物を使って遊ぶキャラクター（D173）。
+  private let character: MainCharacter
   var onFinished: (() -> Void)?
 
   /// - Parameter lines: 子どもが書いた線（このシーンの座標。左上が原点）。`colors` は線ごとの書いたときの色（D88）。
   init(
     size: CGSize, lines: [[CGPoint]], colors: [UIColor], objectImage: UIImage, kind: WordKind,
-    word: String
+    word: String, character: MainCharacter = .ton
   ) {
+    self.character = character
     self.kind = kind
     self.word = word
     self.lines = lines
@@ -100,6 +103,7 @@ final class TransformScene: SKScene {
     case .scenery: settle(object)
     case .swimmer: swim(object)
     case .sky: rise(object)
+    case .plaything: play(object)
     }
   }
 
@@ -272,6 +276,88 @@ final class TransformScene: SKScene {
       ])
       bob.timingMode = .easeInEaseOut
       object.run(.sequence([rise, .repeatForever(bob)]))
+    }
+    run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// こうえんの物の型: 芝生のこうえんで、物が その物らしく使われ、主人公が よろこんで そばで はずむ（D173）。
+  private func play(_ object: SKNode) {
+    guard let sprite = object as? SKSpriteNode else { return }
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    let h = size.height
+    let w = size.width
+    // 背景: 芝生の丘・小道・花・さく。絵と粒より奥。
+    let park = SKNode()
+    park.zPosition = -50
+    park.alpha = 0
+    // 空: 全体をおおう（下の書く場所の枠が すけて見えないように）。
+    let sky = SKShapeNode(rect: CGRect(origin: .zero, size: size))
+    sky.fillColor = UIColor(red: 0.8, green: 0.92, blue: 1, alpha: 1)
+    sky.strokeColor = .clear
+    sky.zPosition = -1
+    park.addChild(sky)
+    let far = SKShapeNode(ellipseOf: CGSize(width: w * 1.5, height: h * 0.8))
+    far.fillColor = UIColor(red: 0.74, green: 0.89, blue: 0.72, alpha: 1)
+    far.strokeColor = .clear
+    far.position = CGPoint(x: w * 0.3, y: -h * 0.02)
+    park.addChild(far)
+    let lawn = SKShapeNode(ellipseOf: CGSize(width: w * 1.6, height: h * 0.74))
+    lawn.fillColor = UIColor(red: 0.6, green: 0.85, blue: 0.42, alpha: 1)
+    lawn.strokeColor = .clear
+    lawn.position = CGPoint(x: w * 0.55, y: -h * 0.16)
+    lawn.zPosition = 1
+    park.addChild(lawn)
+    let walk = SKShapeNode(ellipseOf: CGSize(width: w * 1.3, height: h * 0.2))
+    walk.fillColor = UIColor(red: 0.89, green: 0.8, blue: 0.64, alpha: 1)
+    walk.strokeColor = .clear
+    walk.position = CGPoint(x: w * 0.5, y: h * 0.04)
+    walk.zPosition = 2
+    park.addChild(walk)
+    let flowerColors = [
+      UIColor(red: 1, green: 0.62, blue: 0.7, alpha: 1), UIColor(red: 1, green: 0.88, blue: 0.4, alpha: 1),
+      UIColor.white,
+    ]
+    for index in 0..<9 {
+      let flower = SKShapeNode(circleOfRadius: 7)
+      flower.fillColor = flowerColors[index % 3]
+      flower.strokeColor = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)
+      flower.lineWidth = 2.5
+      flower.position = CGPoint(
+        x: w * (0.08 + CGFloat((index * 37) % 84) / 100), y: h * (0.2 + CGFloat((index * 29) % 18) / 100))
+      flower.zPosition = 3
+      park.addChild(flower)
+    }
+    addChild(park)
+    park.run(.fadeIn(withDuration: reduce ? 0.3 : 0.6))
+    // 物: 足もとを支点にして、すこし左へ。
+    let side = sprite.size.height
+    let feet = sprite.position.y - side / 2 + side * 0.05
+    sprite.anchorPoint = CGPoint(x: 0.5, y: 0.05)
+    sprite.position = CGPoint(x: w / 2 - side * 0.2, y: feet)
+    sprite.zPosition = 10
+    PlayMotion.start(sprite, word: word, phase: 0, reduceMotion: reduce)
+    // 主人公: 物の右がわで、よろこんで はずむ。
+    if let image = WordArt.image(asset: character.assetName(.happy), size: 320) {
+      let hero = SKSpriteNode(texture: SKTexture(image: image))
+      hero.size = CGSize(width: side * 0.5, height: side * 0.5)
+      hero.anchorPoint = CGPoint(x: 0.5, y: 0.04)
+      hero.position = CGPoint(x: sprite.position.x + side * 0.52, y: feet - h * 0.02)
+      hero.xScale = -1
+      hero.zPosition = 11
+      hero.alpha = 0
+      addChild(hero)
+      hero.run(.sequence([.wait(forDuration: 0.2), .fadeIn(withDuration: 0.2)]))
+      if !reduce {
+        let up = SKAction.moveBy(x: 0, y: h * 0.07, duration: 0.2)
+        up.timingMode = .easeOut
+        let down = SKAction.moveBy(x: 0, y: -h * 0.07, duration: 0.22)
+        down.timingMode = .easeIn
+        hero.run(
+          .sequence([
+            .wait(forDuration: 0.4), .repeatForever(.sequence([up, down, up, down, .wait(forDuration: 0.8)])),
+          ]))
+        PlayMotion.react(sprite)
+      }
     }
     run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
   }
