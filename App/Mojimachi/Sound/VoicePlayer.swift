@@ -13,7 +13,7 @@ final class VoicePlayer {
   /// 画面に出す字幕。nil なら出さない。
   private(set) var caption: String?
   /// 字幕を出す最も短い時間（秒）。
-  static let captionSeconds = 2.0
+  static let captionSeconds = UITesting.seconds(2.0, uiTesting: 0.3)
 
   /// 声の表。読めなければ空（声は出ないが、画面は止めない。D117）。
   let manifest: VoiceManifest

@@ -24,7 +24,7 @@ struct PurchaseFlowTests {
     return session
   }
 
-  @Test("何も持っていなければ、4つの商品が読めて「ぜんぶ」とパック2つを出す")
+  @Test("何も持っていなければ、4つの商品が読めて「ぜんぶ」とパック2つを出す", .timeLimit(.minutes(1)))
   func products() async throws {
     let session = try Self.session()
     defer { withExtendedLifetime(session) {} }
@@ -35,7 +35,7 @@ struct PurchaseFlowTests {
     #expect(store.price(.allOpen).contains("500"))
   }
 
-  @Test("カタカナを買うとカタカナが開き、持っている人向けの「ぜんぶ」だけ出す。返金すると戻る")
+  @Test("カタカナを買うとカタカナが開き、持っている人向けの「ぜんぶ」だけ出す。返金すると戻る", .timeLimit(.minutes(1)))
   func buyAndRefund() async throws {
     let session = try Self.session()
     defer { withExtendedLifetime(session) {} }
@@ -54,17 +54,48 @@ struct PurchaseFlowTests {
     #expect(!store.entitlements.isUnlocked(.katakana))
   }
 
-  @Test("アプリの購入の処理で「ぜんぶ」を買うと、全部開いて商品が出なくなる")
+  /// 購入の画面（Apple Account のサインイン）を出さずに、試験用の接続で買う処理。
+  /// 買ったあとの取引を、`Product.purchase()` の結果と同じ形で返す。
+  private static func sessionPurchase(_ session: SKTestSession) -> PurchaseStore.PurchaseAction {
+    { product in
+      _ = try await session.buyProduct(identifier: product.id)
+      // 取引が StoreKit に届くまで、少し待ちながら探す。
+      for _ in 0..<40 {
+        if let latest = await Transaction.latest(for: product.id) { return .success(latest) }
+        try await Task.sleep(for: .milliseconds(250))
+      }
+      throw CocoaError(.fileNoSuchFile)
+    }
+  }
+
+  @Test("アプリの購入の処理で「ぜんぶ」を買うと、全部開いて商品が出なくなる", .timeLimit(.minutes(1)))
   func buyAllInApp() async throws {
     let session = try Self.session()
     defer { withExtendedLifetime(session) {} }
-    let store = PurchaseStore(observesStore: false)
+    let store = PurchaseStore(observesStore: false, purchase: Self.sessionPurchase(session))
     await store.refresh()
     // 商品が読めていなければ、買う前に分かるようにする（買うのが黙って何もしないのを防ぐ）。
     #expect(store.products[.allOpen] != nil)
     await store.buy(.allOpen)
     #expect(store.entitlements.allOpen)
     #expect(store.entitlements.offers.isEmpty)
+    #expect(store.message == "購入しました")
+  }
+
+  /// 本物の `Product.purchase()`（購入の画面つき）で買う。シミュレータの状態によっては
+  /// サインインの画面で止まるので、`MOJIMACHI_STOREKIT_PURCHASE_UI=1` のときだけ動かす。
+  @Test(
+    "本物の購入の処理でも「ぜんぶ」が買える（手動）",
+    .enabled(if: ProcessInfo.processInfo.environment["MOJIMACHI_STOREKIT_PURCHASE_UI"] == "1"),
+    .timeLimit(.minutes(1)))
+  func buyAllWithRealPurchase() async throws {
+    let session = try Self.session()
+    defer { withExtendedLifetime(session) {} }
+    let store = PurchaseStore(observesStore: false)
+    await store.refresh()
+    #expect(store.products[.allOpen] != nil)
+    await store.buy(.allOpen)
+    #expect(store.entitlements.allOpen)
     #expect(store.message == "購入しました")
   }
 }

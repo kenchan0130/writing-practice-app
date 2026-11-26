@@ -10,7 +10,7 @@ final class OnboardingUITests: XCTestCase {
     // `-resetOnboarding YES`: 前に動かした分の「終わった」印を消して、最初の起動にする。
     app.launchArguments = [
       "-inMemoryStore", "YES", "-localOnlyStore", "YES", "-penColor", "blue", "-fakePurchases",
-      "none", "-resetOnboarding", "YES",
+      "none", "-resetOnboarding", "YES", "-uiTesting", "YES",
     ]
     app.launch()
   }
