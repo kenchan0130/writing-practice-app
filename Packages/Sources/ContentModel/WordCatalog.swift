@@ -10,6 +10,8 @@ public enum WordKind: String, Sendable, CaseIterable, Codable {
   case flyer
   /// 景色になる物: 草の上に立って、ゆれる（D168）。
   case scenery
+  /// 水の中の生きもの: まちの水べで泳ぐ・ういている（D170）。
+  case swimmer
 }
 
 /// ことば 1つ（絵は持たない。絵はアプリ側）。
@@ -23,7 +25,7 @@ public struct WordEntry: Sendable, Hashable {
   }
 }
 
-/// M0 後半の約20語（D78）に、D167 で14語、D168 で14語、D169 で18語を足した。
+/// M0 後半の約20語（D78）に、D167 で14語、D168 で14語、D169 で18語、D170 で13語を足した。
 public enum WordCatalog {
   public static let all: [WordEntry] =
     ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ", "しょうぼうしゃ", "きゅうきゅうしゃ"].map {
@@ -41,6 +43,10 @@ public enum WordCatalog {
       "さくら", "ひまわり", "たんぽぽ", "りんご", "みかん", "いちご", "にんじん", "だいこん", "かぼちゃ",
       "もも", "ぶどう", "すいか", "くり", "だんご", "せんべい", "わたあめ", "おにぎり", "すし", "うどん",
     ].map { WordEntry($0, .scenery) }
+    + [
+      "たこ", "いか", "かに", "かめ", "くじら", "くらげ", "いるか", "さかな", "ひとで",
+      "かえる", "めだか", "ざりがに", "おたまじゃくし",
+    ].map { WordEntry($0, .swimmer) }
 
   /// はねずに、ゆっくり はう物（D169）。まちでは はずまず ゆっくり歩き、変身のあとも ゆっくり進む。
   public static let crawlers: Set<String> = ["かぶとむし", "てんとうむし", "かたつむり"]

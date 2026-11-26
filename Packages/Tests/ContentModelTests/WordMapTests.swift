@@ -48,14 +48,14 @@ struct WordMapTests {
     }
   }
 
-  @Test("65語は、すべてどれかのテーマに入っている")
+  @Test("78語は、すべてどれかのテーマに入っている")
   func everyWordHasATheme() {
     for entry in WordCatalog.all {
       #expect(WordMap.themes.contains { $0.words.contains(entry.text) }, "\(entry.text)")
     }
   }
 
-  @Test("65語の割りふり")
+  @Test("78語の割りふり")
   func assignment() {
     func theme(_ id: String) -> [String] { WordMap.theme(id: id)?.words ?? [] }
     #expect(Set(theme("norimono")) == ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ"])
@@ -74,16 +74,20 @@ struct WordMapTests {
     #expect(Set(theme("okashi")) == ["だんご", "せんべい", "わたあめ"])
     #expect(Set(theme("gohan-nomimono")) == ["おにぎり", "すし", "うどん"])
     #expect(Set(theme("yasai")) == ["にんじん", "だいこん", "かぼちゃ"])
+    #expect(
+      Set(theme("umi-ikimono"))
+        == ["たこ", "いか", "かに", "かめ", "くじら", "くらげ", "いるか", "さかな", "ひとで"])
+    #expect(Set(theme("kawa-ikimono")) == ["かえる", "めだか", "ざりがに", "おたまじゃくし"])
   }
 
   // MARK: - 出し分け
 
-  @Test("今の65語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・おみせが出る")
+  @Test("今の78語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・うみ・かわ・おみせが出る")
   func todayPlaces() {
     let index = WordMapIndex { WordCatalog.entry(for: $0) != nil }
     #expect(
       index.places.map(\.id) == [
-        "eki", "michi", "sora", "dobutsuen", "makiba", "mori", "ie", "omise",
+        "eki", "michi", "sora", "dobutsuen", "makiba", "mori", "ie", "umi", "kawa", "omise",
       ])
     #expect(
       index.themes(in: WordMap.place(id: "ie")!).map(\.id) == [
@@ -106,7 +110,11 @@ struct WordMapTests {
     } else {
       Issue.record("おうちはテーマへ行くはず")
     }
-    #expect(index.entrance(of: WordMap.place(id: "umi")!) == nil)
+    // うみは、テーマが1つだけなので、すぐことばのカード（D67）。
+    #expect(
+      index.entrance(of: WordMap.place(id: "umi")!)
+        == .words(WordMap.theme(id: "umi-ikimono")!))
+    #expect(index.entrance(of: WordMap.place(id: "uchu")!) == nil)
   }
 
   @Test("絵のないことばは数えない。テーマも場所も、絵のあることばが1つあれば出る")

@@ -16,6 +16,7 @@ enum WordArt {
   private static let animalColor = UIColor(red: 0.62, green: 0.4, blue: 0.2, alpha: 1)
   private static let clothesColor = UIColor(red: 0.25, green: 0.45, blue: 0.85, alpha: 1)
   private static let flyerColor = UIColor(red: 0.3, green: 0.62, blue: 0.9, alpha: 1)
+  private static let swimmerColor = UIColor(red: 0.2, green: 0.6, blue: 0.85, alpha: 1)
   private static let sceneryColor = UIColor(red: 0.4, green: 0.7, blue: 0.32, alpha: 1)
 
   private static let assets: [String: String] = [
@@ -37,6 +38,9 @@ enum WordArt {
     "もも": "momo", "ぶどう": "budou", "すいか": "suika", "くり": "kuri", "だんご": "dango",
     "せんべい": "senbei", "わたあめ": "wataame", "おにぎり": "onigiri", "すし": "sushi",
     "うどん": "udon",
+    "たこ": "tako", "いか": "ika", "かに": "kani", "かめ": "kame", "くじら": "kujira",
+    "くらげ": "kurage", "いるか": "iruka", "さかな": "sakana", "ひとで": "hitode",
+    "かえる": "kaeru", "めだか": "medaka", "ざりがに": "zarigani", "おたまじゃくし": "otamajakushi",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
@@ -47,6 +51,7 @@ enum WordArt {
       case .clothes: clothesColor
       case .flyer: flyerColor
       case .scenery: sceneryColor
+      case .swimmer: swimmerColor
       }
     return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }
@@ -69,6 +74,25 @@ enum WordArt {
     case "ひこうき": .plane
     case "ききゅう": .balloon
     default: .bird
+    }
+  }
+
+  /// 水の生きものの動き方（D170）。fish=横にゆれて泳ぐ、dolphin=なみのようにはねる、bob=その場でゆれる、
+  /// jelly=ふわっと上下、crab=横に歩く、turtle=ゆっくりかく、star=ほとんど動かない、frog=はねる、tadpole=ぴくぴく。
+  enum SwimStyle { case fish, dolphin, whale, bob, jelly, crab, turtle, star, frog, tadpole }
+
+  static func swimStyle(_ word: String) -> SwimStyle {
+    switch word {
+    case "いるか": .dolphin
+    case "くじら": .whale
+    case "たこ": .bob
+    case "くらげ": .jelly
+    case "かに", "ざりがに": .crab
+    case "かめ": .turtle
+    case "ひとで": .star
+    case "かえる": .frog
+    case "おたまじゃくし": .tadpole
+    default: .fish
     }
   }
 

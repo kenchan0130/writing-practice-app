@@ -1615,6 +1615,336 @@ def udon():
     return a
 
 
+# ------------------------------------------------------------- water life --
+def sea_face(a, cx, cy, gap=44, r=14, mouth=True, blush_dx=None):
+    """Dot eyes, smile and cheeks for the sea creatures."""
+    for s in (-1, 1):
+        x = cx + s * gap
+        a.ellipse(x, cy, r, r * 1.2, EYE, sw=0, stroke="none")
+        a.dot(x + 4, cy - 6, r * 0.38, "#ffffff")
+        a.ellipse(cx + s * (blush_dx or gap + 38), cy + 30, 14, 9, CHEEK, sw=0, stroke="none",
+                  **{"fill-opacity": "0.7"})
+    if mouth:
+        a.path(f"M{cx-12} {cy+22} C{cx-5} {cy+32} {cx+5} {cy+32} {cx+12} {cy+22}", sw=7)
+
+
+@word
+def tako():
+    a = Art()
+    R, RD = "#ee5b52", "#d9443f"
+    # 8 legs fanning out under the head, tips curled
+    legs = [(-200, 0, -1), (-146, 40, -1), (-92, 60, -1), (-36, 64, -1),
+            (36, 64, 1), (92, 60, 1), (146, 40, 1), (200, 0, 1)]
+    for dx, dy, s in legs:
+        x0 = 256 + dx * 0.55
+        x1 = 256 + dx
+        yb = 360 + dy
+        a.path(f"M{x0} 330 C{x0} 390 {x1} {yb-10} {x1} {yb+54} C{x1} {yb+94} {x1+s*22} {yb+90} {x1+s*30} {yb+66}",
+               fill="none", sw=52)
+        a.path(f"M{x0} 330 C{x0} 390 {x1} {yb-10} {x1} {yb+54} C{x1} {yb+94} {x1+s*22} {yb+90} {x1+s*30} {yb+66}",
+               stroke=R, sw=30)
+    # head
+    a.path("M256 56 C376 56 410 150 396 238 C386 306 330 340 256 340 C182 340 126 306 116 238 C102 150 136 56 256 56 Z", fill=R)
+    for x, y in ((190, 118), (320, 106), (356, 176)):
+        a.circle(x, y, 9, RD, sw=0, stroke="none")
+    sea_face(a, 256, 224, gap=54, r=16, blush_dx=96)
+    a.shine("M164 150 C166 112 188 88 220 78")
+    return a
+
+
+@word
+def ika():
+    a = Art()
+    BODYC, TOPC = "#fdf1ee", "#f6a9b4"
+    # tentacles
+    for i, dx in enumerate((-70, -36, 0, 36, 70)):
+        x = 256 + dx
+        a.path(f"M{x} 330 C{x+dx*0.2} 380 {x+dx*0.4} 400 {x+dx*0.5} 440", fill="none", sw=40)
+        a.path(f"M{x} 330 C{x+dx*0.2} 380 {x+dx*0.4} 400 {x+dx*0.5} 440", stroke=BODYC, sw=18)
+    # triangle fins on a pointed head
+    a.path("M256 20 L386 150 L322 170 Z", fill=TOPC)
+    a.path("M256 20 L126 150 L190 170 Z", fill=TOPC)
+    a.path("M256 40 C318 40 344 150 340 250 C338 310 300 346 256 346 C212 346 174 310 172 250 C168 150 194 40 256 40 Z",
+           fill=BODYC)
+    a.path("M256 60 C256 130 256 210 256 280", stroke=TOPC, sw=7, **{"stroke-opacity": "0.8"})
+    sea_face(a, 256, 252, gap=46, r=15, blush_dx=80)
+    a.shine("M200 110 C196 150 196 190 200 220")
+    return a
+
+
+@word
+def kani():
+    a = Art()
+    R, RD = "#ee5b52", "#d9443f"
+    # legs (3 each side): out, then down
+    for s in (-1, 1):
+        for i, (y, ex, ey) in enumerate(((330, 200, 388), (352, 214, 418), (372, 222, 448))):
+            d = f"M{256+s*120} {y} L{256+s*ex} {y+8} L{256+s*(ex+4)} {ey}"
+            a.tube(d, R, 30, 12)
+    # arms with claws
+    for s in (-1, 1):
+        a.path(f"M{256+s*96} 250 C{256+s*150} 220 {256+s*170} 190 {256+s*168} 156", sw=38)
+        a.path(f"M{256+s*96} 250 C{256+s*150} 220 {256+s*170} 190 {256+s*168} 156", stroke=R, sw=18)
+        cx = 256 + s * 168
+        d = (f"M{cx} 160 C{cx-s*58} 160 {cx-s*74} 90 {cx-s*36} 56 C{cx-s*20} 44 {cx} 70 {cx} 92 "
+             f"C{cx} 70 {cx+s*24} 40 {cx+s*44} 58 C{cx+s*78} 92 {cx+s*54} 160 {cx} 160 Z")
+        a.path(d, fill=R)
+    # shell
+    a.path("M256 170 C376 170 430 240 430 310 C430 380 350 410 256 410 C162 410 82 380 82 310 C82 240 136 170 256 170 Z", fill=R)
+    for x, y in ((170, 360), (256, 380), (342, 360)):
+        a.circle(x, y, 9, RD, sw=0, stroke="none")
+    sea_face(a, 256, 270, gap=62, r=17, blush_dx=112)
+    a.shine("M130 280 C134 250 156 222 188 208")
+    return a
+
+
+@word
+def kame():
+    a = Art()
+    G, GD, SH, SHL = "#8fcf6d", "#6fb552", "#4fa85a", "#7ccb6a"
+    # flippers and tail
+    a.path("M120 330 C70 330 56 390 106 408 C140 418 170 392 176 360 Z", fill=G)
+    a.path("M392 330 C442 330 456 390 406 408 C372 418 342 392 336 360 Z", fill=G)
+    a.path("M146 420 C120 430 118 470 156 472 C186 472 196 440 190 420 Z", fill=G)
+    a.path("M366 420 C392 430 394 470 356 472 C326 472 316 440 322 420 Z", fill=G)
+    a.path("M250 400 C256 430 266 440 276 446 C262 446 248 436 244 412 Z", fill=G, sw=8)
+    # head
+    a.path("M256 56 C320 56 346 108 340 156 C334 196 300 214 256 214 C212 214 178 196 172 156 C166 108 192 56 256 56 Z", fill=G)
+    sea_face(a, 256, 128, gap=36, r=13, blush_dx=66)
+    # shell
+    a.path("M96 340 C96 244 164 190 256 190 C348 190 416 244 416 340 C416 392 350 420 256 420 C162 420 96 392 96 340 Z", fill=SH)
+    # shell pattern: hexagon plates
+    a.path("M256 232 L306 262 L306 322 L256 352 L206 322 L206 262 Z", fill=SHL, sw=9)
+    a.path("M256 232 L256 200 M306 262 L350 240 M306 322 L352 346 M256 352 L256 400 M206 322 L160 346 M206 262 L162 240", sw=9)
+    a.shine("M130 320 C130 278 152 244 186 224")
+    return a
+
+
+@word
+def kujira():
+    a = Art()
+    B, BD, BELLY = "#5ab0e8", "#3f97d0", "#e8f6ff"
+    # water spout
+    for dx, dy in ((-34, 0), (0, -26), (34, 0)):
+        a.path(f"M{200+dx*0.2} 140 C{200+dx*0.6} {100+dy} {200+dx*1.4} {80+dy} {200+dx*1.8} {96+dy}", stroke="#9bd6f6", sw=26)
+    # tail
+    a.path("M400 300 C440 290 456 250 450 214 C478 224 496 252 480 290 C470 316 440 330 410 334 Z", fill=B)
+    a.path("M400 300 C398 270 430 238 450 214 C428 230 408 236 396 232 Z", fill=B, sw=0, stroke="none")
+    # body
+    a.path("M60 300 C60 200 140 140 256 140 C372 140 430 220 424 310 C418 380 340 410 240 410 C140 410 60 376 60 300 Z", fill=B)
+    # belly
+    a.path("M74 340 C130 392 330 408 414 350 C400 388 330 412 240 412 C150 412 92 386 74 340 Z", fill=BELLY, sw=0, stroke="none")
+    a.path("M60 300 C60 200 140 140 256 140 C372 140 430 220 424 310 C418 380 340 410 240 410 C140 410 60 376 60 300 Z", "none")
+    # fin
+    a.path("M200 330 C214 366 250 380 276 366 C264 342 236 326 200 330 Z", fill=BD)
+    sea_face(a, 160, 270, gap=34, r=14, blush_dx=70)
+    a.shine("M128 214 C150 188 186 172 224 168")
+    return a
+
+
+@word
+def kurage():
+    a = Art()
+    P, PL = "#f9b6d2", "#fde0ec"
+    # wavy tentacles
+    for dx in (-84, -42, 0, 42, 84):
+        x = 256 + dx
+        d = f"M{x} 300 C{x-18} 340 {x+18} 372 {x} 410 C{x-14} 440 {x+10} 452 {x} 470"
+        a.path(d, sw=26)
+        a.path(d, stroke=PL, sw=9)
+    # frilly oral arms
+    a.path("M170 292 C190 332 222 332 232 296 C242 336 270 336 280 296 C290 332 322 332 342 292 Z", fill=PL, sw=9)
+    # dome
+    a.path("M80 292 C80 160 160 70 256 70 C352 70 432 160 432 292 C400 316 372 300 344 316 C316 332 292 304 256 316 C220 304 196 332 168 316 C140 300 112 316 80 292 Z", fill=P)
+    a.path("M164 120 C188 90 224 78 256 78", stroke="#ffffff", sw=7, **{"stroke-opacity": "0.6"})
+    for x, y in ((330, 150), (370, 220), (300, 110)):
+        a.circle(x, y, 9, "#f58fb4", sw=0, stroke="none", **{"fill-opacity": "0.8"})
+    sea_face(a, 256, 214, gap=56, r=16, blush_dx=100)
+    return a
+
+
+@word
+def iruka():
+    a = Art()
+    B, BD, BELLY = "#7fa9d6", "#6a93c2", "#eef6ff"
+    BODYD = ("M74 164 C130 236 230 206 312 174 C362 154 412 150 438 180 C454 186 488 200 494 220 "
+             "C488 238 458 244 438 244 C412 322 322 352 240 330 C150 306 100 236 74 194 Z")
+    # tail flukes (the tail is lifted, like a jump)
+    a.path("M78 164 C50 154 26 124 34 92 C64 98 92 128 104 168 Z", fill=BD)
+    a.path("M78 194 C48 208 26 238 36 270 C66 258 94 232 104 196 Z", fill=BD)
+    a.path(BODYD, fill=B)
+    # light belly
+    a.path("M126 244 C170 290 262 314 340 296 C390 284 420 266 440 246 C414 322 322 352 240 330 C186 314 150 280 126 244 Z",
+           fill=BELLY, sw=0, stroke="none")
+    a.path(BODYD, "none")
+    # dorsal fin and flipper
+    a.path("M240 196 C250 150 290 126 330 128 C320 152 326 168 342 180 Z", fill=BD)
+    a.path("M286 326 C274 360 294 388 334 392 C338 362 328 338 310 326 Z", fill=BD)
+    # face
+    a.ellipse(394, 198, 14, 17, EYE, sw=0, stroke="none")
+    a.dot(398, 191, 5, "#ffffff")
+    a.ellipse(404, 244, 15, 9, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
+    a.path("M430 228 C448 242 474 238 486 222", sw=7)
+    a.shine("M196 250 C226 232 262 222 298 212")
+    return a
+
+
+@word
+def sakana():
+    a = Art()
+    OR, ORD, BELLY = "#f7a23b", "#ee8727", "#ffe3a8"
+    # tail
+    a.path("M120 256 C80 214 50 190 36 150 C34 212 34 300 36 362 C50 322 80 298 120 256 Z", fill=ORD)
+    # body (faces right)
+    a.path("M96 256 C112 176 200 132 292 132 C376 132 440 190 456 256 C440 322 376 380 292 380 C200 380 112 336 96 256 Z", fill=OR)
+    # belly
+    a.path("M130 300 C190 352 330 372 440 296 C400 360 340 382 290 382 C220 382 160 350 130 300 Z", fill=BELLY, sw=0, stroke="none")
+    a.path("M96 256 C112 176 200 132 292 132 C376 132 440 190 456 256 C440 322 376 380 292 380 C200 380 112 336 96 256 Z", "none")
+    # fins
+    a.path("M230 140 C238 96 280 70 330 84 C318 104 322 124 336 140 Z", fill=ORD)
+    a.path("M250 300 C250 346 218 376 186 372 C198 344 208 322 220 300 Z", fill=ORD)
+    # gill + scales
+    a.path("M214 196 C196 228 196 284 214 316", sw=8)
+    for x, y in ((266, 220), (310, 256), (266, 290), (346, 212)):
+        a.path(f"M{x-14} {y} C{x-8} {y-12} {x+8} {y-12} {x+14} {y}", stroke=ORD, sw=7)
+    # face
+    a.ellipse(380, 232, 15, 18, EYE, sw=0, stroke="none")
+    a.dot(384, 225, 5.5, "#ffffff")
+    a.ellipse(386, 286, 15, 9, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
+    a.path("M426 262 C438 274 454 270 460 258", sw=7)
+    a.shine("M150 214 C166 184 204 162 252 158")
+    return a
+
+
+@word
+def hitode():
+    a = Art()
+    OR, ORD = "#f58f4a", "#e8793a"
+    import math
+    pts = []
+    for k in range(10):
+        ang = -math.pi / 2 + k * math.pi / 5
+        r = 230 if k % 2 == 0 else 112
+        pts.append((256 + r * math.cos(ang), 280 + r * math.sin(ang)))
+    d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts) + " Z"
+    a.path(d, fill=OR, sw=40)  # rounded corners via a thick outline
+    a.path(d, fill=OR, sw=0, stroke="none")
+    a.path(d, stroke=OR, sw=22)
+    # bumps
+    for k in range(5):
+        ang = -math.pi / 2 + k * 2 * math.pi / 5
+        for t in (0.42, 0.62, 0.8):
+            a.circle(256 + 230 * t * math.cos(ang), 280 + 230 * t * math.sin(ang), 8, ORD, sw=0, stroke="none")
+    sea_face(a, 256, 270, gap=40, r=14, blush_dx=76)
+    a.shine("M214 150 C226 120 246 100 262 88")
+    return a
+
+
+@word
+def kaeru():
+    a = Art()
+    G, GD, BELLY = "#7cc96a", "#5fb257", "#e6f6c8"
+    # back legs
+    a.path("M112 330 C60 330 48 410 110 430 L196 430 C196 380 170 330 112 330 Z", fill=G)
+    a.path("M400 330 C452 330 464 410 402 430 L316 430 C316 380 342 330 400 330 Z", fill=G)
+    for s in (-1, 1):
+        for dx in (0, 22, 44):
+            a.circle(256 + s * (190 - dx * 0.2) - s * 0, 440, 0.01, G, sw=0, stroke="none")
+    # body
+    a.path("M256 150 C372 150 420 240 410 330 C402 400 330 440 256 440 C182 440 110 400 102 330 C92 240 140 150 256 150 Z", fill=G)
+    a.path("M170 340 C200 420 312 420 342 340 C330 380 290 396 256 396 C222 396 182 380 170 340 Z", fill=BELLY, sw=0, stroke="none")
+    # front feet
+    for s in (-1, 1):
+        a.path(f"M{256+s*92} 418 C{256+s*130} 420 {256+s*140} 456 {256+s*108} 460 C{256+s*84} 462 {256+s*70} 442 {256+s*72} 418 Z", fill=G)
+    # big eyes on top
+    for s in (-1, 1):
+        a.circle(256 + s * 86, 128, 62, G)
+    for s in (-1, 1):
+        a.circle(256 + s * 86, 128, 40, "#ffffff", sw=8)
+        a.ellipse(256 + s * 86 + s * 4, 132, 18, 22, EYE, sw=0, stroke="none")
+        a.dot(256 + s * 86 + s * 4 + 6, 122, 7, "#ffffff")
+    for s in (-1, 1):
+        a.ellipse(256 + s * 120, 280, 18, 11, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
+    a.path("M196 262 C226 306 286 306 316 262", sw=9)
+    a.shine("M130 260 C128 226 146 196 176 182")
+    return a
+
+
+@word
+def medaka():
+    a = Art()
+    BODYC, BELLY, FIN = "#f3d98a", "#fff6d6", "#f9e8ae"
+    # tail (small)
+    a.path("M120 256 C96 226 74 212 56 196 C58 236 58 276 56 316 C74 300 96 286 120 256 Z", fill=FIN)
+    # slim body
+    a.path("M92 256 C112 190 200 160 290 160 C372 160 436 208 450 256 C436 304 372 352 290 352 C200 352 112 322 92 256 Z", fill=BODYC)
+    a.path("M130 296 C190 332 330 346 440 280 C402 340 340 354 290 354 C220 354 160 332 130 296 Z", fill=BELLY, sw=0, stroke="none")
+    a.path("M92 256 C112 190 200 160 290 160 C372 160 436 208 450 256 C436 304 372 352 290 352 C200 352 112 322 92 256 Z", "none")
+    # little fins
+    a.path("M260 166 C268 138 296 124 322 130 C314 144 318 158 326 168 Z", fill=FIN)
+    a.path("M252 316 C250 346 226 366 204 360 C214 342 222 326 232 314 Z", fill=FIN)
+    # large eye (medaka = big eyes)
+    a.circle(384, 236, 28, "#ffffff", sw=8)
+    a.ellipse(390, 238, 15, 18, EYE, sw=0, stroke="none")
+    a.dot(396, 230, 6, "#ffffff")
+    a.ellipse(380, 296, 15, 9, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.7"})
+    a.path("M414 274 C424 286 438 284 442 272", sw=7)
+    a.shine("M150 214 C170 192 204 180 244 178")
+    return a
+
+
+@word
+def zarigani():
+    a = Art()
+    R, RD = "#e8493f", "#cf3a35"
+    # tail fan at the bottom
+    a.path("M214 380 L190 460 C216 476 296 476 322 460 L298 380 Z", fill=R)
+    a.path("M214 380 C200 430 196 450 190 460 M256 384 L256 470 M298 380 C312 430 316 450 322 460", sw=7)
+    # segmented abdomen
+    a.path("M196 270 C190 330 200 360 214 384 L298 384 C312 360 322 330 316 270 Z", fill=R)
+    for y in (312, 346):
+        a.path(f"M200 {y} C240 {y+14} 272 {y+14} 312 {y}", sw=7)
+    # legs
+    for s in (-1, 1):
+        for y in (286, 318, 350):
+            a.tube(f"M{256+s*56} {y} L{256+s*104} {y+18}", R, 22, 8)
+    # big claws
+    for s in (-1, 1):
+        a.path(f"M{256+s*56} 200 C{256+s*110} 190 {256+s*130} 160 {256+s*132} 126", sw=32)
+        a.path(f"M{256+s*56} 200 C{256+s*110} 190 {256+s*130} 160 {256+s*132} 126", stroke=R, sw=14)
+        cx = 256 + s * 132
+        d = (f"M{cx} 130 C{cx-s*50} 130 {cx-s*60} 70 {cx-s*28} 36 C{cx-s*14} 26 {cx} 50 {cx} 70 "
+             f"C{cx} 48 {cx+s*18} 26 {cx+s*36} 42 C{cx+s*64} 74 {cx+s*46} 130 {cx} 130 Z")
+        a.path(d, fill=R)
+    # head / carapace
+    a.path("M256 124 C328 124 352 176 346 236 C342 276 304 296 256 296 C208 296 170 276 166 236 C160 176 184 124 256 124 Z", fill=R)
+    # antennae
+    for s in (-1, 1):
+        a.path(f"M{256+s*22} 128 C{256+s*30} 100 {256+s*50} 80 {256+s*74} 70", sw=7)
+    sea_face(a, 256, 206, gap=36, r=13, blush_dx=66)
+    a.shine("M196 168 C200 150 214 138 232 134")
+    return a
+
+
+@word
+def otamajakushi():
+    a = Art()
+    BK, BKL = "#3b3a45", "#55546a"
+    # wavy tail
+    a.path("M300 300 C360 260 400 340 450 300 C470 284 480 296 482 316 C470 350 420 396 366 366 C340 352 320 350 296 346 Z", fill=BK)
+    # round head/body
+    a.path("M256 100 C350 100 398 176 392 252 C388 320 330 356 256 356 C182 356 124 320 120 252 C114 176 162 100 256 100 Z", fill=BK)
+    # face: white eyes (so they show on black), smile and cheeks
+    for s in (-1, 1):
+        a.ellipse(256 + s * 62, 220, 24, 28, "#ffffff", sw=0, stroke="none")
+        a.ellipse(256 + s * 62 + s * 2, 224, 13, 16, EYE, sw=0, stroke="none")
+        a.dot(256 + s * 62 + 5, 214, 6, "#ffffff")
+        a.ellipse(256 + s * 106, 282, 17, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.8"})
+    a.path("M226 276 C240 296 272 296 286 276", stroke="#ffffff", sw=8)
+    a.shine("M168 170 C184 138 216 118 252 114")
+    return a
+
+
 if __name__ == "__main__":
     names = sys.argv[1:] or list(W)
     for n in names:

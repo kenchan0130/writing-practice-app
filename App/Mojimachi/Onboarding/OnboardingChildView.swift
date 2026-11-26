@@ -164,6 +164,7 @@ struct OnboardingChildView: View {
     case .clothes: "ふく"
     case .flyer: "そら"
     case .scenery: "はな"
+    case .swimmer: "うみ"
     }
   }
 
@@ -174,6 +175,7 @@ struct OnboardingChildView: View {
     case .clothes: "tshirt.fill"
     case .flyer: "bird.fill"
     case .scenery: "leaf.fill"
+    case .swimmer: "fish.fill"
     }
   }
 
@@ -184,6 +186,7 @@ struct OnboardingChildView: View {
     case .clothes: Color(red: 0.25, green: 0.45, blue: 0.85)
     case .flyer: Color(red: 0.3, green: 0.62, blue: 0.9)
     case .scenery: Color(red: 0.4, green: 0.7, blue: 0.32)
+    case .swimmer: Color(red: 0.2, green: 0.6, blue: 0.85)
     }
   }
 

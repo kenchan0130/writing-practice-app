@@ -19,6 +19,8 @@ final class TownScene: SKScene {
   private var townObjects: [PlacedObject] = []
   /// まちに出している景色（古い順。上限は `TownLayout.maxScenery`）。
   private var sceneryObjects: [PlacedObject] = []
+  /// 水べの生きもの（古い順。上限は `TownLayout.maxSwimmers`。D170）。
+  private var swimObjects: [PlacedObject] = []
   private var worldWidth: CGFloat = 0
   private let cameraNode = SKCameraNode()
   private var panStartX: CGFloat = 0
@@ -61,12 +63,18 @@ final class TownScene: SKScene {
   /// 置いた物の一覧に合わせて、足したり消したりする（子どもを切り替えたときなど）。
   func show(_ all: [PlacedObject]) {
     if layer == .town {
-      let roaming = TownLayout.shown(all.filter { $0.kind != .clothes && $0.kind != .scenery })
+      let roaming = TownLayout.shown(
+        all.filter { $0.kind != .clothes && $0.kind != .scenery && $0.kind != .swimmer })
       let scenery = TownLayout.shownScenery(all.filter { $0.kind == .scenery })
-      guard roaming.map(\.id) != townObjects.map(\.id) || scenery.map(\.id) != sceneryObjects.map(\.id)
+      let swimmers = TownLayout.shownSwimmers(all.filter { $0.kind == .swimmer })
+      guard
+        roaming.map(\.id) != townObjects.map(\.id)
+          || scenery.map(\.id) != sceneryObjects.map(\.id)
+          || swimmers.map(\.id) != swimObjects.map(\.id)
       else { return }
       townObjects = roaming
       sceneryObjects = scenery
+      swimObjects = swimmers
       rebuildTown()
       return
     }
@@ -106,7 +114,7 @@ final class TownScene: SKScene {
     let objectSize = unit * 0.23
     let plan = TownLayout.make(
       roles: townObjects.map { Self.role(of: $0.kind) }, scenery: sceneryObjects.count,
-      screenWidth: Double(size.width), objectWidth: Double(objectSize))
+      swimmers: swimObjects.count, screenWidth: Double(size.width), objectWidth: Double(objectSize))
     worldWidth = CGFloat(plan.worldWidth)
     #if DEBUG
       // 確かめ用: `-townScroll 0.5` で、まちの途中（0〜1）から見る。
@@ -121,7 +129,11 @@ final class TownScene: SKScene {
     let world = SKNode()
     world.name = "world"
     addChild(world)
-    addScenery(to: world)
+    addScenery(to: world, landWidth: CGFloat(plan.landWidth))
+    if let water = plan.water { addWater(to: world, water: water) }
+    for (object, slot) in zip(swimObjects, plan.swimSlots) {
+      world.addChild(makeSwimmer(object, slot: slot, objectSize: objectSize))
+    }
     for (object, place) in zip(sceneryObjects, plan.scenery) {
       world.addChild(makeScenery(object, place: place, objectSize: objectSize))
     }
@@ -134,7 +146,7 @@ final class TownScene: SKScene {
     switch kind {
     case .vehicle: .vehicle
     case .flyer: .flyer
-    case .animal, .clothes, .scenery: .animal
+    case .animal, .clothes, .scenery, .swimmer: .animal
     }
   }
 
@@ -184,15 +196,14 @@ final class TownScene: SKScene {
   }
 
   /// 丘・地面・道・木・家・雲。ノードは数十個で、毎フレームの計算はしない。
-  private func addScenery(to world: SKNode) {
+  private func addScenery(to world: SKNode, landWidth width: CGFloat) {
     let h = size.height
-    let width = worldWidth
     let horizon = h * 0.36
 
     // 奥の丘（2段）。
     var x: CGFloat = 0
     var i = 0
-    while x < width + 400 {
+    while x < worldWidth + 400 {
       let far = shape(
         SKShapeNode(ellipseOf: CGSize(width: 760, height: h * 0.34)),
         fill: UIColor(red: 0.74, green: 0.89, blue: 0.72, alpha: 1), z: -80)
@@ -246,10 +257,10 @@ final class TownScene: SKScene {
       index += 1
     }
 
-    // 雲（ゆっくり左右にゆれる）。
+    // 雲（ゆっくり左右にゆれる）。水べの上にも出る。
     var cloudX: CGFloat = 200
     var cloudIndex = 0
-    while cloudX < width {
+    while cloudX < worldWidth {
       let cloud = makeCloud(scale: 0.8 + CGFloat(cloudIndex % 3) * 0.25)
       cloud.position = CGPoint(x: cloudX, y: h * (0.76 + CGFloat((cloudIndex * 5) % 3) * 0.07))
       cloud.zPosition = -85
@@ -358,7 +369,8 @@ final class TownScene: SKScene {
     node.anchorPoint = slot.role == .flyer ? CGPoint(x: 0.5, y: 0.5) : CGPoint(x: 0.5, y: 0.08)
     node.position = CGPoint(x: slot.startX, y: size.height * CGFloat(slot.yFraction))
     // 空の物は、雲（-85）と太陽より手前、丘より手前。地面の物は、足もとが低いほど手前。
-    node.zPosition = slot.role == .flyer ? 30 - CGFloat(slot.lane) : 20 - CGFloat(slot.yFraction) * 20
+    node.zPosition =
+      slot.role == .flyer ? 30 - CGFloat(slot.lane) : 20 - CGFloat(slot.yFraction) * 20
     let range = CGFloat(slot.minX)...CGFloat(slot.maxX)
     switch slot.role {
     case .vehicle: driveVehicle(node, range: range, index: slot.index)
@@ -408,7 +420,8 @@ final class TownScene: SKScene {
           .wait(forDuration: Double(place.index % 6) * 0.12),
           .group([
             .resize(toWidth: target.width, height: target.height, duration: 0.3),
-            .sequence([.moveBy(x: 0, y: 22, duration: 0.15), .moveBy(x: 0, y: -22, duration: 0.15)]),
+            .sequence([.moveBy(x: 0, y: 22, duration: 0.15), .moveBy(x: 0, y: -22, duration: 0.15)]
+            ),
           ]),
         ]))
     }
@@ -551,6 +564,276 @@ final class TownScene: SKScene {
             trot(to: range.upperBound, from: range.lowerBound), pause,
           ])),
       ]))
+  }
+
+  // MARK: 水べ（D170）
+
+  /// 右はしの水べ。砂浜・なみの線・ゆれるなみのきらめき。生きものがいるときだけ出る。
+  private func addWater(to world: SKNode, water: WaterArea) {
+    let h = size.height
+    let horizon = h * 0.36
+    let left = CGFloat(water.minX)
+    let right = CGFloat(water.maxX)
+    // 水: 地平線まで。上のふちはゆるいなみ。
+    let body = CGMutablePath()
+    body.move(to: CGPoint(x: left, y: 0))
+    body.addLine(to: CGPoint(x: left, y: horizon))
+    var x = left
+    while x < right + 60 {
+      body.addQuadCurve(
+        to: CGPoint(x: x + 60, y: horizon),
+        control: CGPoint(x: x + 30, y: horizon + (Int((x - left) / 60) % 2 == 0 ? 8 : -8)))
+      x += 60
+    }
+    body.addLine(to: CGPoint(x: x, y: 0))
+    body.closeSubpath()
+    let sea = SKShapeNode(path: body)
+    sea.fillColor = UIColor(red: 0.45, green: 0.77, blue: 0.95, alpha: 1)
+    sea.strokeColor = .clear
+    sea.zPosition = -46
+    world.addChild(sea)
+    // 手前ほど深い色（1つの帯）。
+    let deep = SKShapeNode(rect: CGRect(x: left, y: 0, width: right - left + 60, height: h * 0.1))
+    deep.fillColor = UIColor(red: 0.36, green: 0.68, blue: 0.9, alpha: 1)
+    deep.strokeColor = .clear
+    deep.zPosition = -45.5
+    world.addChild(deep)
+    // 水面のうすい線（なみの線）。
+    let surface = CGMutablePath()
+    surface.move(to: CGPoint(x: left, y: horizon - 7))
+    x = left
+    while x < right + 60 {
+      surface.addQuadCurve(
+        to: CGPoint(x: x + 60, y: horizon - 7),
+        control: CGPoint(x: x + 30, y: horizon - 7 + (Int((x - left) / 60) % 2 == 0 ? 8 : -8)))
+      x += 60
+    }
+    let surfaceLine = SKShapeNode(path: surface)
+    surfaceLine.strokeColor = UIColor(white: 1, alpha: 0.75)
+    surfaceLine.lineWidth = 5
+    surfaceLine.lineCap = .round
+    surfaceLine.zPosition = -45
+    world.addChild(surfaceLine)
+    // 砂浜: 左がまっすぐ（草の下）、右がなみ打ちぎわ。白い あわのふち。
+    let sandEnd = CGFloat(water.swimMinX) - 36
+    let sand = CGMutablePath()
+    sand.move(to: CGPoint(x: left - 24, y: 0))
+    sand.addLine(to: CGPoint(x: left - 24, y: horizon))
+    sand.addLine(to: CGPoint(x: sandEnd, y: horizon))
+    var y = horizon
+    while y > 0 {
+      let next = max(y - h * 0.09, 0)
+      let bulge: CGFloat = Int(y / (h * 0.09)) % 2 == 0 ? 16 : -10
+      sand.addQuadCurve(
+        to: CGPoint(x: sandEnd, y: next), control: CGPoint(x: sandEnd + bulge, y: (y + next) / 2))
+      y = next
+    }
+    sand.closeSubpath()
+    let beach = SKShapeNode(path: sand)
+    beach.fillColor = UIColor(red: 0.98, green: 0.91, blue: 0.7, alpha: 1)
+    beach.strokeColor = .clear
+    beach.zPosition = -43
+    world.addChild(beach)
+    // 打ちぎわの白い あわ（右のふちだけ）。
+    let foam = CGMutablePath()
+    foam.move(to: CGPoint(x: sandEnd, y: horizon))
+    y = horizon
+    while y > 0 {
+      let next = max(y - h * 0.09, 0)
+      let bulge: CGFloat = Int(y / (h * 0.09)) % 2 == 0 ? 16 : -10
+      foam.addQuadCurve(
+        to: CGPoint(x: sandEnd, y: next), control: CGPoint(x: sandEnd + bulge, y: (y + next) / 2))
+      y = next
+    }
+    let foamLine = SKShapeNode(path: foam)
+    foamLine.strokeColor = UIColor(white: 1, alpha: 0.85)
+    foamLine.lineWidth = 6
+    foamLine.lineCap = .round
+    foamLine.zPosition = -42.5
+    world.addChild(foamLine)
+    // なみのきらめき: 小さな白いなみの線。ゆっくり横にゆれる。
+    let glintCount = max(Int((right - left) / 150), 4)
+    for index in 0..<glintCount {
+      let glint = SKShapeNode(path: Self.glintPath(width: 38 + CGFloat(index % 3) * 10))
+      glint.strokeColor = UIColor(white: 1, alpha: 0.7)
+      glint.lineWidth = 4
+      glint.lineCap = .round
+      glint.position = CGPoint(
+        x: left + 110 + CGFloat(index) * (right - left - 140) / CGFloat(glintCount),
+        y: h * (0.05 + CGFloat((index * 5) % 6) * 0.05))
+      glint.zPosition = -44
+      if !reduceMotion {
+        let drift = 14 + CGFloat(index % 3) * 6
+        glint.run(
+          .sequence([
+            .wait(forDuration: Double(index % 4) * 0.5),
+            .repeatForever(
+              .sequence([
+                .moveBy(x: drift, y: 0, duration: 2.4), .moveBy(x: -drift, y: 0, duration: 2.4),
+              ])),
+          ]))
+      }
+      world.addChild(glint)
+    }
+  }
+
+  private static func glintPath(width: CGFloat) -> CGPath {
+    let path = CGMutablePath()
+    path.move(to: CGPoint(x: 0, y: 0))
+    path.addQuadCurve(to: CGPoint(x: width / 2, y: 0), control: CGPoint(x: width / 4, y: 9))
+    path.addQuadCurve(to: CGPoint(x: width, y: 0), control: CGPoint(x: width * 0.75, y: -9))
+    return path
+  }
+
+  /// 水の生きもの。水の中の持ち場だけを動く（D170）。
+  private func makeSwimmer(_ object: PlacedObject, slot: SwimSlot, objectSize: CGFloat)
+    -> SKSpriteNode
+  {
+    let image = WordArt.image(word: object.word, size: 320)
+    let node = SKSpriteNode(texture: SKTexture(image: image))
+    node.name = object.id.uuidString
+    let side = objectSize * CGFloat(slot.scale)
+    node.size = CGSize(width: side, height: side)
+    node.position = CGPoint(x: slot.startX, y: size.height * CGFloat(slot.yFraction))
+    node.zPosition = 20 - CGFloat(slot.yFraction) * 20
+    let range = CGFloat(slot.minX)...CGFloat(slot.maxX)
+    let style = WordArt.swimStyle(object.word)
+    if style == .frog { addLilyPad(to: node) }
+    swim(node, style: style, range: range, index: slot.index)
+    return node
+  }
+
+  /// かえるが のる はっぱ（かえるといっしょに動く）。
+  private func addLilyPad(to node: SKSpriteNode) {
+    let pad = SKShapeNode(
+      ellipseOf: CGSize(width: node.size.width * 0.95, height: node.size.height * 0.22))
+    pad.fillColor = UIColor(red: 0.42, green: 0.75, blue: 0.4, alpha: 1)
+    pad.strokeColor = Self.outline
+    pad.lineWidth = 4
+    pad.position = CGPoint(x: 0, y: -node.size.height * 0.4)
+    pad.zPosition = -1
+    node.addChild(pad)
+  }
+
+  /// 泳ぎ方（`WordArt.SwimStyle`）。横にゆく物は、はしで向きを変える。
+  private func swim(
+    _ node: SKSpriteNode, style: WordArt.SwimStyle, range: ClosedRange<CGFloat>, index: Int
+  ) {
+    let baseY = node.position.y
+    let reduce = reduceMotion
+    let speed: CGFloat
+    switch style {
+    case .fish: speed = reduce ? 20 : 55
+    case .dolphin: speed = reduce ? 25 : 70
+    case .whale: speed = reduce ? 8 : 22
+    case .bob: speed = reduce ? 4 : 10
+    case .jelly: speed = reduce ? 4 : 12
+    case .crab: speed = reduce ? 15 : 45
+    case .turtle: speed = reduce ? 6 : 18
+    case .star: speed = reduce ? 2 : 5
+    case .frog: speed = reduce ? 10 : 30
+    case .tadpole: speed = reduce ? 15 : 50
+    }
+    let flips = style != .crab && style != .jelly && style != .bob
+    let face = abs(node.xScale)
+    func leg(to x: CGFloat, from start: CGFloat) -> SKAction {
+      .moveTo(x: x, duration: Double(max(abs(x - start), 1) / speed))
+    }
+    let pause = SKAction.wait(forDuration: style == .crab ? 0.7 : 0.1)
+    var turnLeft = SKAction.wait(forDuration: 0)
+    var turnRight = SKAction.wait(forDuration: 0)
+    if flips {
+      turnLeft = .scaleX(to: -face, duration: 0.2)
+      turnRight = .scaleX(to: face, duration: 0.2)
+    }
+    node.run(
+      .sequence([
+        .wait(forDuration: Double(index % 4) * 0.3),
+        leg(to: range.upperBound, from: node.position.x), pause,
+        .repeatForever(
+          .sequence([
+            turnLeft, leg(to: range.lowerBound, from: range.upperBound), pause,
+            turnRight, leg(to: range.upperBound, from: range.lowerBound), pause,
+          ])),
+      ]))
+    guard !reduce else { return }
+    let phase = Double(index % 4) * 0.4
+    func repeatBob(_ amplitude: CGFloat, _ period: Double) {
+      let bob = SKAction.sequence([
+        .moveTo(y: baseY + amplitude, duration: period / 2),
+        .moveTo(y: baseY - amplitude, duration: period / 2),
+      ])
+      bob.timingMode = .easeInEaseOut
+      node.run(.sequence([.wait(forDuration: phase), .repeatForever(bob)]), withKey: "bob")
+    }
+    let h = size.height
+    switch style {
+    case .fish:
+      // 横にゆれながら、すこし上下に波うつ。
+      repeatBob(h * 0.012, 1.4)
+      let wag = SKAction.sequence([
+        .rotate(toAngle: 0.07, duration: 0.35), .rotate(toAngle: -0.07, duration: 0.35),
+      ])
+      node.run(.repeatForever(wag))
+    case .dolphin:
+      repeatBob(h * 0.028, 1.8)
+      let arc = SKAction.sequence([
+        .rotate(toAngle: 0.22, duration: 0.9), .rotate(toAngle: -0.22, duration: 0.9),
+      ])
+      arc.timingMode = .easeInEaseOut
+      node.run(.repeatForever(arc))
+    case .whale:
+      repeatBob(h * 0.012, 3.6)
+      let breathe = SKAction.sequence([
+        .scaleY(to: 0.95, duration: 1.8), .scaleY(to: 1.0, duration: 1.8),
+      ])
+      node.run(.repeatForever(breathe))
+    case .bob:
+      repeatBob(h * 0.022, 2.2)
+      let squash = SKAction.sequence([
+        .group([.scaleY(to: 0.93, duration: 1.1), .scaleX(to: face * 1.05, duration: 1.1)]),
+        .group([.scaleY(to: 1.0, duration: 1.1), .scaleX(to: face, duration: 1.1)]),
+      ])
+      node.run(.repeatForever(squash))
+    case .jelly:
+      repeatBob(h * 0.04, 2.6)
+      let pulse = SKAction.sequence([
+        .group([.scaleY(to: 0.88, duration: 0.7), .scaleX(to: face * 1.08, duration: 0.7)]),
+        .group([.scaleY(to: 1.06, duration: 0.9), .scaleX(to: face * 0.96, duration: 0.9)]),
+      ])
+      pulse.timingMode = .easeInEaseOut
+      node.run(.repeatForever(pulse))
+    case .crab:
+      let scuttle = SKAction.sequence([
+        .moveBy(x: 0, y: h * 0.008, duration: 0.12), .moveBy(x: 0, y: -h * 0.008, duration: 0.12),
+      ])
+      node.run(.repeatForever(scuttle))
+    case .turtle:
+      repeatBob(h * 0.014, 3.0)
+      let paddle = SKAction.sequence([
+        .rotate(toAngle: 0.06, duration: 0.9), .rotate(toAngle: -0.06, duration: 0.9),
+      ])
+      node.run(.repeatForever(paddle))
+    case .star:
+      repeatBob(h * 0.008, 3.2)
+      let sway = SKAction.sequence([
+        .rotate(toAngle: 0.14, duration: 1.6), .rotate(toAngle: -0.14, duration: 1.6),
+      ])
+      sway.timingMode = .easeInEaseOut
+      node.run(.repeatForever(sway))
+    case .frog:
+      let hop = SKAction.sequence([
+        .moveBy(x: 0, y: h * 0.03, duration: 0.2), .moveBy(x: 0, y: -h * 0.03, duration: 0.2),
+        .wait(forDuration: 0.9),
+      ])
+      node.run(.repeatForever(hop))
+    case .tadpole:
+      let wiggle = SKAction.sequence([
+        .rotate(toAngle: 0.18, duration: 0.15), .rotate(toAngle: -0.18, duration: 0.15),
+      ])
+      node.run(.repeatForever(wiggle))
+      repeatBob(h * 0.01, 1.2)
+    }
   }
 
   // MARK: クローゼット

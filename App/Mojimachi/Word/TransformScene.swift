@@ -97,6 +97,7 @@ final class TransformScene: SKScene {
     case .clothes: sway(object)
     case .flyer: fly(object)
     case .scenery: settle(object)
+    case .swimmer: swim(object)
     }
   }
 
@@ -145,7 +146,9 @@ final class TransformScene: SKScene {
 
   /// はう物（かたつむり・てんとうむし・かぶとむし）: はずまず、ゆらゆら ゆっくり進む（D169）。
   private func crawl(_ object: SKNode) {
-    let sway = SKAction.sequence([.rotate(toAngle: 0.04, duration: 0.4), .rotate(toAngle: -0.04, duration: 0.4)])
+    let sway = SKAction.sequence([
+      .rotate(toAngle: 0.04, duration: 0.4), .rotate(toAngle: -0.04, duration: 0.4),
+    ])
     let step = size.width * 0.05
     func go(_ direction: CGFloat) -> SKAction {
       .group([.repeat(sway, count: 2), .moveBy(x: direction * step, y: 0, duration: 1.6)])
@@ -198,7 +201,9 @@ final class TransformScene: SKScene {
     let style = WordArt.flyerStyle(word)
     let reduce = UIAccessibility.isReduceMotionEnabled
     if reduce {
-      let bob = SKAction.sequence([.moveBy(x: 0, y: 6, duration: 1.2), .moveBy(x: 0, y: -6, duration: 1.2)])
+      let bob = SKAction.sequence([
+        .moveBy(x: 0, y: 6, duration: 1.2), .moveBy(x: 0, y: -6, duration: 1.2),
+      ])
       object.run(.repeatForever(bob))
       run(.wait(forDuration: 2)) { [weak self] in self?.onFinished?() }
       return
@@ -236,6 +241,109 @@ final class TransformScene: SKScene {
         .move(to: CGPoint(x: -size.width * 0.2, y: size.height * 0.8), duration: 0),
         back, .repeatForever(hover),
       ]), withKey: "fly")
+    run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 水の生きものの型: 水のなみの上で、その子らしく泳ぐ・ういている（D170）。
+  private func swim(_ object: SKNode) {
+    guard let sprite = object as? SKSpriteNode else { return }
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    let style = WordArt.swimStyle(word)
+    // 足もとに、うすい水の まるいなみ。
+    let pool = SKShapeNode(
+      ellipseOf: CGSize(width: sprite.size.width * 1.3, height: sprite.size.height * 0.28))
+    pool.fillColor = UIColor(red: 0.45, green: 0.77, blue: 0.95, alpha: 0.55)
+    pool.strokeColor = UIColor(white: 1, alpha: 0.8)
+    pool.lineWidth = 4
+    pool.position = CGPoint(x: sprite.position.x, y: sprite.position.y - sprite.size.height * 0.42)
+    pool.zPosition = sprite.zPosition - 1
+    pool.alpha = 0
+    addChild(pool)
+    pool.run(.fadeIn(withDuration: 0.25))
+    if !reduce {
+      pool.run(
+        .repeatForever(
+          .sequence([.scaleX(to: 1.08, duration: 1.0), .scaleX(to: 0.94, duration: 1.0)])))
+    }
+    let h = size.height
+    let step = size.width * 0.1
+    func bob(_ amplitude: CGFloat, _ period: Double) -> SKAction {
+      let up = SKAction.moveBy(x: 0, y: amplitude, duration: period / 2)
+      up.timingMode = .easeInEaseOut
+      return .repeatForever(.sequence([up, up.reversed()]))
+    }
+    func sail(_ speed: Double) -> SKAction {
+      .sequence([
+        .moveBy(x: step, y: 0, duration: speed), .scaleX(to: -1, duration: 0.15),
+        .moveBy(x: -step * 2, y: 0, duration: speed * 2), .scaleX(to: 1, duration: 0.15),
+        .moveBy(x: step, y: 0, duration: speed),
+      ])
+    }
+    if reduce {
+      sprite.run(bob(h * 0.01, 2.4))
+    } else {
+      switch style {
+      case .fish, .dolphin, .whale, .turtle, .tadpole:
+        sprite.run(bob(h * (style == .dolphin ? 0.04 : 0.02), style == .whale ? 2.6 : 1.4))
+        sprite.run(sail(style == .whale || style == .turtle ? 1.4 : 0.9))
+        let wag = SKAction.sequence([
+          .rotate(toAngle: style == .dolphin ? 0.25 : 0.08, duration: 0.4),
+          .rotate(toAngle: style == .dolphin ? -0.25 : -0.08, duration: 0.4),
+        ])
+        sprite.run(.repeatForever(wag))
+      case .jelly:
+        sprite.run(bob(h * 0.05, 2.2))
+        sprite.run(
+          .repeatForever(
+            .sequence([
+              .group([.scaleY(to: 0.86, duration: 0.5), .scaleX(to: 1.08, duration: 0.5)]),
+              .group([.scaleY(to: 1.06, duration: 0.7), .scaleX(to: 0.96, duration: 0.7)]),
+            ])))
+      case .bob:
+        sprite.run(bob(h * 0.035, 1.8))
+        sprite.run(
+          .repeatForever(
+            .sequence([
+              .group([.scaleY(to: 0.92, duration: 0.9), .scaleX(to: 1.05, duration: 0.9)]),
+              .group([.scaleY(to: 1.0, duration: 0.9), .scaleX(to: 1.0, duration: 0.9)]),
+            ])))
+      case .crab:
+        let scuttle = SKAction.repeat(
+          .sequence([.moveBy(x: 0, y: 8, duration: 0.1), .moveBy(x: 0, y: -8, duration: 0.1)]),
+          count: 12)
+        sprite.run(
+          .group([
+            scuttle,
+            .sequence([
+              .moveBy(x: step, y: 0, duration: 1.2), .moveBy(x: -step * 2, y: 0, duration: 2.4),
+              .moveBy(x: step, y: 0, duration: 1.2),
+            ]),
+          ]))
+      case .star:
+        sprite.run(
+          .repeatForever(
+            .sequence([
+              .rotate(toAngle: 0.2, duration: 1.2), .rotate(toAngle: -0.2, duration: 2.4),
+              .rotate(toAngle: 0, duration: 1.2),
+            ])))
+        sprite.run(bob(h * 0.012, 2.4))
+      case .frog:
+        let hop = SKAction.sequence([
+          .moveBy(x: step * 0.3, y: h * 0.06, duration: 0.25),
+          .moveBy(x: step * 0.3, y: -h * 0.06, duration: 0.25), .wait(forDuration: 0.5),
+        ])
+        sprite.run(
+          .sequence([
+            .repeat(hop, count: 3), .scaleX(to: -1, duration: 0.15),
+            .repeat(
+              .sequence([
+                .moveBy(x: -step * 0.6, y: h * 0.06, duration: 0.25),
+                .moveBy(x: -step * 0.6, y: -h * 0.06, duration: 0.25),
+                .wait(forDuration: 0.5),
+              ]), count: 3),
+          ]))
+      }
+    }
     run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
   }
 

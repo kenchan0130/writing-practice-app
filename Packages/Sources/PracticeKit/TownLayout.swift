@@ -36,6 +36,29 @@ public struct SceneryPlace: Equatable, Sendable {
   public let scale: Double
 }
 
+/// 水の中の生きもの ひとつ分の持ち場（D170）。水の中だけを動く。
+public struct SwimSlot: Equatable, Sendable {
+  public let index: Int
+  /// 水の中の段（0 がいちばん手前）。
+  public let lane: Int
+  /// 動きまわれる左端・右端（物の中心の x）。
+  public let minX: Double
+  public let maxX: Double
+  public let startX: Double
+  /// 絵の真ん中の高さ（画面の高さに対する割合）。
+  public let yFraction: Double
+  public let scale: Double
+}
+
+/// まちの右はしにある水べ（海・いけ）の広がり（D170）。
+public struct WaterArea: Equatable, Sendable {
+  /// 水べの左はし（砂浜のはじまり）と、右はし（まちのはし）。
+  public let minX: Double
+  public let maxX: Double
+  /// 水の中の生きものが動ける左はし（砂浜より右）。
+  public let swimMinX: Double
+}
+
 /// まちの広さと、物の持ち場を決める計算（D8・D74・D165）。
 public struct TownLayout: Equatable, Sendable {
   /// 1か所に出して動きまわる物の上限（D74）。
@@ -55,12 +78,26 @@ public struct TownLayout: Equatable, Sendable {
   public static let sceneryRowY: [Double] = [0.30, 0.345]
   /// 景色の倍率（動物より小さい）。
   public static let sceneryScale = 0.7
+  /// 水の中に出す生きものの上限（D170）。動きまわる物の8つとは別に数える。
+  public static let maxSwimmers = 6
+  /// 水の中の段の数。絵の真ん中の高さ。奥ほど小さい。
+  public static let swimLaneY: [Double] = [0.12, 0.20, 0.28]
+  public static let swimLaneScale: [Double] = [1.0, 0.9, 0.8]
+  /// 水べの幅（画面の何枚分か）と、そのうち砂浜の幅（画面に対する割合）。
+  public static let waterScreens = 0.9
+  public static let shoreScreens = 0.1
   /// 持ち場が隣へはみ出してよい割合（持ち場の幅に対して。段がちがう物どうしだけがすれちがう）。
   public static let overlap = 0.25
 
   public let worldWidth: Double
   public let slots: [TownSlot]
   public let scenery: [SceneryPlace]
+  /// 水の中の生きものの持ち場（D170）。
+  public let swimSlots: [SwimSlot]
+  /// 水べ。生きものがいないときは nil（まちは今までどおり）。
+  public let water: WaterArea?
+  /// 水べをのぞいた、陸のまちの幅。
+  public let landWidth: Double
 
   /// 古い順の一覧から、出す物（新しい8つ。並びは古い順のまま）を選ぶ。
   public static func shown<T>(_ items: [T]) -> [T] {
@@ -70,6 +107,11 @@ public struct TownLayout: Equatable, Sendable {
   /// 景色になる物は、新しい12個まで（D74・D168）。
   public static func shownScenery<T>(_ items: [T]) -> [T] {
     Array(items.suffix(maxScenery))
+  }
+
+  /// 水の中の生きものは、新しい6つまで（D170）。
+  public static func shownSwimmers<T>(_ items: [T]) -> [T] {
+    Array(items.suffix(maxSwimmers))
   }
 
   /// まちの幅は画面の何枚分か。物が少なくてもすこし広く、多いときは3枚分。
@@ -90,16 +132,27 @@ public struct TownLayout: Equatable, Sendable {
   /// 飛ぶ物も「動きまわる物」として、上限の8つに数える（D74・D168）。
   /// 景色は別に12個まで。景色が多いときは、まちを少し広げる。
   public static func make(
-    roles: [TownRole], scenery sceneryCount: Int = 0, screenWidth: Double, objectWidth: Double
+    roles: [TownRole], scenery sceneryCount: Int = 0, swimmers swimmerCount: Int = 0,
+    screenWidth: Double, objectWidth: Double
   ) -> TownLayout {
     let roles = Array(roles.prefix(maxRoaming))
     let sceneryCount = min(max(sceneryCount, 0), maxScenery)
-    let worldWidth = screenWidth * screens(count: roles.count + sceneryCount / 2)
-    let places = sceneryPlaces(count: sceneryCount, worldWidth: worldWidth)
+    let swimmerCount = min(max(swimmerCount, 0), maxSwimmers)
+    let landWidth = screenWidth * screens(count: roles.count + sceneryCount / 2)
+    let waterWidth = swimmerCount > 0 ? screenWidth * waterScreens : 0
+    let worldWidth = landWidth + waterWidth
+    let places = sceneryPlaces(count: sceneryCount, worldWidth: landWidth)
+    let water: WaterArea? =
+      swimmerCount > 0
+      ? WaterArea(
+        minX: landWidth, maxX: worldWidth, swimMinX: landWidth + screenWidth * shoreScreens) : nil
+    let swim = swimSlots(count: swimmerCount, water: water, objectWidth: objectWidth)
     guard !roles.isEmpty else {
-      return TownLayout(worldWidth: worldWidth, slots: [], scenery: places)
+      return TownLayout(
+        worldWidth: worldWidth, slots: [], scenery: places, swimSlots: swim, water: water,
+        landWidth: landWidth)
     }
-    let slotWidth = worldWidth / Double(roles.count)
+    let slotWidth = landWidth / Double(roles.count)
     var counters: [TownRole: Int] = [:]
     var slots: [TownSlot] = []
     for (index, role) in roles.enumerated() {
@@ -122,7 +175,7 @@ public struct TownLayout: Equatable, Sendable {
       let start = Double(index) * slotWidth
       let margin = max(objectWidth / 2, 0)
       let lower = max(start - slotWidth * overlap, 0) + margin
-      let upper = min(start + slotWidth * (1 + overlap), worldWidth) - margin
+      let upper = min(start + slotWidth * (1 + overlap), landWidth) - margin
       let center = start + slotWidth / 2
       slots.append(
         TownSlot(
@@ -130,7 +183,39 @@ public struct TownLayout: Equatable, Sendable {
           minX: min(lower, center), maxX: max(upper, center), startX: center,
           yFraction: y, scale: scale))
     }
-    return TownLayout(worldWidth: worldWidth, slots: slots, scenery: places)
+    return TownLayout(
+      worldWidth: worldWidth, slots: slots, scenery: places, swimSlots: swim, water: water,
+      landWidth: landWidth)
+  }
+
+  /// 水の中の生きものは、3つの段を順に回し、同じ段の物は水を等しく分けて持ち場にする。
+  /// 同じ段の持ち場は重ならず、水の外へは出ない。
+  static func swimSlots(count: Int, water: WaterArea?, objectWidth: Double) -> [SwimSlot] {
+    guard count > 0, let water else { return [] }
+    let margin = max(objectWidth / 2, 0)
+    let perLane = (0..<laneCount).map { lane in
+      (0..<count).filter { $0 % laneCount == lane }.count
+    }
+    var taken = [Int](repeating: 0, count: laneCount)
+    var slots: [SwimSlot] = []
+    for index in 0..<count {
+      let lane = index % laneCount
+      let column = taken[lane]
+      taken[lane] += 1
+      let part = (water.maxX - water.swimMinX) / Double(perLane[lane])
+      let from = water.swimMinX + part * Double(column)
+      let lower = from + margin
+      let upper = from + part - margin
+      // 出発は、水の幅を物の数で分けた位置にばらして、段がちがう物が重ならないようにする。
+      let spread =
+        water.swimMinX + (water.maxX - water.swimMinX) * (Double(index) + 0.5) / Double(count)
+      let center = min(max(spread, min(lower, from + part / 2)), max(upper, from + part / 2))
+      slots.append(
+        SwimSlot(
+          index: index, lane: lane, minX: min(lower, center), maxX: max(upper, center),
+          startX: center, yFraction: swimLaneY[lane], scale: swimLaneScale[lane]))
+    }
+    return slots
   }
 
   /// 景色は、まちの幅いっぱいに同じ間をあけて並べ、2つの列に交互に置く。

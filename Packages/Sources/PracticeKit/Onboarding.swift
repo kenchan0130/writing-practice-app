@@ -104,6 +104,7 @@ public enum Onboarding {
     // 「なにが すき？」には出さない（D168）。
     case .flyer: "はと"
     case .scenery: "さくら"
+    case .swimmer: "たこ"
     }
   }
 }
