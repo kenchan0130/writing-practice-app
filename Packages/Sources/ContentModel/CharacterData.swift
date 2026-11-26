@@ -12,6 +12,9 @@ public struct CharacterData: Sendable, Hashable, Codable {
   public var orders: [[Int]]
   /// 鏡に映した字を見るか（左右対称に近い字は false。D107）。nil は見る。
   public var mirrorCheck: Bool?
+  /// 画数や画の分け方がちがう、正解にする書き方（D66・D106。アルファベットと数字で使う。D180）。
+  /// それぞれが、その書き方の画を書く順に並べたもの（中心線だけ。お手本には見せない）。
+  public var alternates: [[Stroke]]?
 
   public struct Source: Sendable, Hashable, Codable {
     public var name: String
@@ -66,6 +69,18 @@ extension CharacterData {
       result.append("\(char): 書き順 \(order) が画の数と合わない")
     }
     if orders.isEmpty { result.append("\(char): 書き順がない") }
+    if let first = orders.first, first != Array(strokes.indices) {
+      result.append("\(char): 先頭の書き順がお手本の順でない")
+    }
+    for (number, alternate) in (alternates ?? []).enumerated() {
+      if alternate.isEmpty { result.append("\(char): 別の書き方 \(number + 1) に画がない") }
+      for stroke in alternate
+      where stroke.start.count != 2 || stroke.segments.isEmpty
+        || stroke.segments.contains(where: { $0.count != 6 })
+      {
+        result.append("\(char): 別の書き方 \(number + 1) の画の形が違う")
+      }
+    }
     return result
   }
 }

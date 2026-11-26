@@ -81,6 +81,21 @@ struct EntitlementsTests {
     #expect(Trial.word(for: .katakana) == "バス")
   }
 
+  @Test("ABC のパックの情報（pack.json）のおためし・商品が、権利の決まりと同じ（D94・D180）")
+  func abcPackInfoMatches() throws {
+    let url = URL(fileURLWithPath: #filePath)
+      .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+      .deletingLastPathComponent().appendingPathComponent("Content/Packs/abc/pack.json")
+    let object = try #require(
+      try JSONSerialization.jsonObject(with: Data(contentsOf: url)) as? [String: Any])
+    let trial = try #require(object["trial"] as? [String: Any])
+    #expect(
+      trial["characters"] as? [String] == Trial.characters(for: .abc).map { String($0) })
+    #expect(trial["word"] as? String == Trial.word(for: .abc))
+    #expect(object["product"] as? String == ProductID.abcPack.rawValue)
+    #expect(object["script"] as? String == Script.abc.rawValue)
+  }
+
   @Test("どの順で買っても合計は同じ（D91）")
   func samePriceAnyOrder() {
     #expect(ProductID.allOpen.yen == ProductID.katakanaPack.yen + ProductID.allOpenForOneOwner.yen)

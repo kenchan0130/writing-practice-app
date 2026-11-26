@@ -8,21 +8,39 @@ enum CanvasDrawing {
   static var inkColor: Color { ProgressStore.shared.penColor.color }
 
   /// マスと十字の補助線（十字だけ。罫線は引かない。D152）。
-  static func guide(in context: inout GraphicsContext, size: CGSize) {
-    var cross = Path()
-    cross.move(to: CGPoint(x: size.width / 2, y: 0))
-    cross.addLine(to: CGPoint(x: size.width / 2, y: size.height))
-    cross.move(to: CGPoint(x: 0, y: size.height / 2))
-    cross.addLine(to: CGPoint(x: size.width, y: size.height / 2))
-    context.stroke(
-      cross, with: .color(Theme.accent.opacity(0.4)),
-      style: StrokeStyle(lineWidth: 2, dash: [10, 8]))
+  /// `letterLines`（マス 0〜1000 の高さ4つ）を渡すと、十字の代わりに英語の4本の線を引く（D180）。
+  /// 基本の線（下から2本目）だけ、濃い実線にする。
+  static func guide(
+    in context: inout GraphicsContext, size: CGSize, letterLines: [Double]? = nil
+  ) {
+    if let letterLines {
+      let scale = size.height / 1000
+      for (index, y) in letterLines.enumerated() {
+        var line = Path()
+        line.move(to: CGPoint(x: 0, y: y * scale))
+        line.addLine(to: CGPoint(x: size.width, y: y * scale))
+        let isBase = index == 2
+        context.stroke(
+          line, with: .color(isBase ? Theme.pink.opacity(0.6) : Theme.accent.opacity(0.4)),
+          style: isBase
+            ? StrokeStyle(lineWidth: 3) : StrokeStyle(lineWidth: 2, dash: [10, 8]))
+      }
+    } else {
+      var cross = Path()
+      cross.move(to: CGPoint(x: size.width / 2, y: 0))
+      cross.addLine(to: CGPoint(x: size.width / 2, y: size.height))
+      cross.move(to: CGPoint(x: 0, y: size.height / 2))
+      cross.addLine(to: CGPoint(x: size.width, y: size.height / 2))
+      context.stroke(
+        cross, with: .color(Theme.accent.opacity(0.4)),
+        style: StrokeStyle(lineWidth: 2, dash: [10, 8]))
+    }
     context.stroke(
       Path(CGRect(origin: .zero, size: size)), with: .color(Theme.accent.opacity(0.7)),
       lineWidth: 4)
   }
 
-  /// お手本の字（Klee One の形の輪郭。D55・D106）。
+  /// お手本の字（かなは Klee One の形の輪郭、アルファベットと数字は中心線を太らせた輪郭。D55・D106・D180）。
   static func outline(_ strokes: [CharacterData.Stroke], scale: Double) -> Path {
     var path = Path()
     for stroke in strokes {

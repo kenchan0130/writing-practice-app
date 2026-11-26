@@ -69,9 +69,7 @@ import Testing
   @Test func everyPracticableKanaHasAVoice() throws {
     let manifest = try Self.manifest()
     for script in KanaScript.allCases {
-      let chars =
-        KanaTable.main(script).characters + KanaTable.dakuon(script).characters
-        + KanaTable.small(script).characters
+      let chars = KanaTable.all(script)
       #expect(!chars.isEmpty)
       for char in chars {
         #expect(manifest.fileName(for: String(char)) != nil, "声がない字: \(char)")
@@ -82,10 +80,10 @@ import Testing
   @Test func everyPackCharacterHasAVoice() throws {
     let manifest = try Self.manifest()
     var count = 0
-    for pack in ["hira", "kata"] {
+    for pack in ["hira", "kata", "abc"] {
       let dir = Self.root.appendingPathComponent("Content/Packs/\(pack)")
       let files = try FileManager.default.contentsOfDirectory(atPath: dir.path)
-        .filter { $0.hasSuffix(".json") }
+        .filter { $0.hasSuffix(".json") && $0.hasPrefix("\(pack).") }
       for file in files {
         let data = try Data(contentsOf: dir.appendingPathComponent(file))
         let object = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])

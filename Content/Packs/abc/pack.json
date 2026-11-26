@@ -1,0 +1,50 @@
+{
+ "schema": 1,
+ "id": "abc",
+ "version": 1,
+ "script": "abc",
+ "product": "io.github.kenchan0130.mojimachi.pack.abc",
+ "trial": {
+  "characters": ["L", "T", "I", "E", "F", "1", "7", "4"],
+  "word": "cat"
+ },
+ "voice": "prebuilt",
+ "order": [
+  "LTIEFH",
+  "ANMK",
+  "VWXYZ",
+  "OCGQ",
+  "DPBR",
+  "UJS",
+  "lit",
+  "oce",
+  "ads",
+  "nmr",
+  "hb",
+  "uvwxz",
+  "fkp",
+  "gjy",
+  "q",
+  "1740",
+  "235",
+  "68",
+  "9"
+ ],
+ "similar": [
+  ["b", "d"],
+  ["p", "q"],
+  ["b", "p"],
+  ["d", "q"],
+  ["6", "9"],
+  ["l", "I", "1"],
+  ["O", "0"],
+  ["n", "h"],
+  ["n", "u"],
+  ["m", "w"],
+  ["M", "W"],
+  ["a", "g", "q"],
+  ["i", "j"],
+  ["S", "5"],
+  ["Z", "2"]
+ ]
+}

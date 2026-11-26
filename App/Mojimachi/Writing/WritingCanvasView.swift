@@ -209,7 +209,7 @@ struct WritingCanvasView: View {
   private var canvas: some View {
     TimelineView(.animation(paused: model.step != .miru && model.hintStroke == nil)) { timeline in
       Canvas { context, size in
-        CanvasDrawing.guide(in: &context, size: size)
+        CanvasDrawing.guide(in: &context, size: size, letterLines: model.letterLines)
         if let character = model.character {
           drawStep(character, in: &context, size: size, now: timeline.date)
         }

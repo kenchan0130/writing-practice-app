@@ -42,15 +42,18 @@ struct ContentView: View {
   @State private var mapSelection: MapSelection = {
     var selection = MapSelection()
     #if DEBUG
-      // 確かめ用: `-mapChar ニ` でその字の文字、`-mapScript katakana`、`-mapPage extra`、`-mapHalf 1`。
+      // 確かめ用: `-mapChar ニ` でその字の文字、`-mapScript katakana|abc`、`-mapPage extra`（ABC は `lower`・`digits`）、`-mapHalf 1`。
       let defaults = UserDefaults.standard
-      if let char = defaults.string(forKey: "mapChar")?.first,
-        let script = KanaTable.script(of: char)
-      {
+      if let char = defaults.string(forKey: "mapChar")?.first, KanaTable.script(of: char) != nil {
+        selection = MapSelection(showing: char)
+      }
+      if let script = defaults.string(forKey: "mapScript").flatMap(KanaScript.init(rawValue:)) {
         selection.script = script
       }
-      if defaults.string(forKey: "mapScript") == "katakana" { selection.script = .katakana }
       if defaults.string(forKey: "mapPage") == "extra" { selection.page = .extra }
+      if let page = defaults.string(forKey: "mapPage").flatMap(AbcTable.Page.init(rawValue:)) {
+        selection.abcPage = page
+      }
       selection.half = defaults.integer(forKey: "mapHalf")
     #endif
     return selection

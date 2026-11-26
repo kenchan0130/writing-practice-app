@@ -2,15 +2,21 @@
 /// 壁に貼る50音表と同じ向き。表は行が「あいうえお」の段（上から下）。
 /// 列は「あ行」が一番右で、右から左へ「あかさたなはまやらわ」。つまり `cells[行][0]` が見た目の一番左（わ行）。
 /// 字のない所は nil。
+/// `abc` は、アルファベットと数字（D180）。かなではないが、地図・書く画面・記録で同じ扱いにするため、ここに入れる。
 public enum KanaScript: String, Sendable, Hashable, CaseIterable {
   case hiragana
   case katakana
+  case abc
+
+  /// かな（50音表で並べる文字）。
+  public static let kana: [KanaScript] = [.hiragana, .katakana]
 
   /// 文字のデータの ID の頭（例: `hira`）。
   public var packPrefix: String {
     switch self {
     case .hiragana: "hira"
     case .katakana: "kata"
+    case .abc: "abc"
     }
   }
 }
@@ -63,6 +69,7 @@ public enum KanaTable {
           ["マ", "ミ", "ム", "メ", "モ"], ["ヤ", nil, "ユ", nil, "ヨ"], ["ラ", "リ", "ル", "レ", "ロ"],
           ["ワ", nil, "ン", nil, "ヲ"],
         ]
+      case .abc: []
       }
     return transposed(columns)
   }
@@ -88,6 +95,7 @@ public enum KanaTable {
           ["ガ", "ギ", "グ", "ゲ", "ゴ"], ["ザ", "ジ", "ズ", "ゼ", "ゾ"], ["ダ", "ヂ", "ヅ", "デ", "ド"],
           ["バ", "ビ", "ブ", "ベ", "ボ"], ["パ", "ピ", "プ", "ペ", "ポ"],
         ]
+      case .abc: []
       }
     return transposed(columns)
   }
@@ -99,12 +107,15 @@ public enum KanaTable {
       KanaGrid(cells: [["ぁ", "ぃ", "ぅ", "ぇ", "ぉ", "っ", "ゃ", "ゅ", "ょ"].reversed()])
     case .katakana:
       KanaGrid(cells: [["ァ", "ィ", "ゥ", "ェ", "ォ", "ッ", "ャ", "ュ", "ョ", "ヴ", "ー"].reversed()])
+    case .abc:
+      KanaGrid(cells: [])
     }
   }
 
   /// 地図にのせる字ぜんぶ（50音表 → 濁音 → 小さい字の順）。
   public static func all(_ script: KanaScript) -> [Character] {
-    main(script).characters + dakuon(script).characters + small(script).characters
+    if script == .abc { return AbcTable.all }
+    return main(script).characters + dakuon(script).characters + small(script).characters
   }
 
   /// 文字のデータの ID（例: そ → `hira.305d`）。
@@ -136,6 +147,7 @@ public struct KanaRow: Sendable, Hashable {
 extension KanaTable {
   /// 行ごとの字。50音（あ行 → わ行）→ 濁音・半濁音（が行 → ぱ行）→ 小さい字（1つの行）の順。
   public static func rows(_ script: KanaScript) -> [KanaRow] {
+    if script == .abc { return AbcTable.rows }
     // 表は列が行（あ行が右端）。右から左へ読んで あ行 → わ行 の順にする。
     func columnRows(_ grid: KanaGrid) -> [KanaRow] {
       (0..<grid.columnCount).reversed().compactMap { column in
@@ -183,4 +195,64 @@ public enum MapLayout {
   private static func fitted(width: Double, columns: Int) -> Double {
     (width - 2 * edge - gap * Double(columns - 1)) / Double(columns)
   }
+}
+
+/// アルファベットと数字の地図の並べ方（D180）。左から右、上から下に読む（英語の向き）。
+public enum AbcTable {
+  /// 地図のページ。
+  public enum Page: String, Sendable, Hashable, CaseIterable {
+    case upper
+    case lower
+    case digits
+  }
+
+  /// 1段の字の数（アルファベット）。A〜G、H〜N、O〜U、V〜Z の4段になる。
+  public static let lettersPerRow = 7
+
+  public static let upper: [Character] = Array("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  public static let lower: [Character] = Array("abcdefghijklmnopqrstuvwxyz")
+  public static let digits: [Character] = Array("0123456789")
+
+  /// 地図にのせる字ぜんぶ（大文字 → 小文字 → 数字）。
+  public static let all: [Character] = upper + lower + digits
+
+  public static func characters(_ page: Page) -> [Character] {
+    switch page {
+    case .upper: upper
+    case .lower: lower
+    case .digits: digits
+    }
+  }
+
+  /// その字があるページ。
+  public static func page(of char: Character) -> Page? {
+    Page.allCases.first { characters($0).contains(char) }
+  }
+
+  /// ページの表。足りない所は右側が nil。数字は 0〜4、5〜9 の2段。
+  public static func grid(_ page: Page) -> KanaGrid {
+    let chars = characters(page)
+    let perRow = page == .digits ? 5 : lettersPerRow
+    let rows: [[Character?]] = stride(from: 0, to: chars.count, by: perRow).map { start in
+      let chunk = Array(chars[start..<min(start + perRow, chars.count)])
+      return chunk + Array(repeating: nil, count: perRow - chunk.count)
+    }
+    return KanaGrid(cells: rows)
+  }
+
+  /// 地図の段が、そのまま「行」（はなばたけの単位。D151）。
+  public static var rows: [KanaRow] {
+    Page.allCases.flatMap { page in
+      grid(page).cells.compactMap { row in
+        let chars = row.compactMap { $0 }
+        return chars.first.map { KanaRow(head: $0, characters: chars) }
+      }
+    }
+  }
+
+  /// 4本の線の高さ（マス 0〜1000。上の線・中の線・基本の線・下の線。およそ 5:6:5）。
+  /// 大文字は上の線〜基本の線、小文字の丸は中の線〜基本の線、g・j・p・q・y は下の線まで。
+  public static let guideLines: [Double] = [70, 340, 660, 930]
+  /// 数字の高さ（上と下）。数字はマスのまん中に書く。
+  public static let digitRange: ClosedRange<Double> = 140...860
 }
