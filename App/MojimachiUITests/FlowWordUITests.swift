@@ -15,7 +15,7 @@ final class FlowWordUITests: MojimachiUITestCase {
     XCTAssertTrue(button("かわ").exists)
     // こうえんは、こうえんの物（D173）のことばがあるので出る。
     XCTAssertTrue(button("こうえん").exists)
-    // おうち → テーマが3つ。
+    // おうち → テーマが5つ（へんしん が足された。D178）。
     tap(button("おうち"), "おうち")
     XCTAssertTrue(button("ふく").waitForExistence(timeout: 10), "テーマが出ない")
     XCTAssertTrue(button("おしゃれ こもの").exists)

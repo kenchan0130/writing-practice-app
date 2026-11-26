@@ -7,6 +7,8 @@
 lines.csv の列: id, text, style(normal|ochitsuki), reading, aliases
   text      アプリが `VoicePlayer` に渡す文字。字幕にも出る。
   reading   空でなければ、これを読ませる（は→ハ、ちいさい つ など）。
+            `kana:` で始めると、カタカナとアクセントの印で読ませる（例: `kana:オイシャサン'`。
+            「'」の前の音のあとで声が下がる。最後に置くと下がらない。漢字にしても直らないとき用。D178）。
   aliases   同じ声を使う別の文字（カタカナなど。空白なしで1字ずつ）。
   1字のことば（て・め。D175）は、ことば用の行を足さない。字の声（kana_…）と text が同じで、
   どちらも おちつき・読みの変更なしなので、同じ音になる。同じ文字は1つの声にしか割りふれない。
@@ -35,6 +37,7 @@ STYLE_NAMES = {"normal": "ノーマル", "ochitsuki": "おちつき"}
 SPEAKER = "猫使ビィ"
 BITRATE = "24000"
 FADE = 0.03
+KANA = "kana:"
 
 sys.dont_write_bytecode = True
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -53,7 +56,15 @@ def post(path, params, body=None):
 
 
 def synthesize(text, speaker, dest):
-  query = json.loads(post("/audio_query", {"speaker": speaker, "text": text}))
+  if text.startswith(KANA):
+    # アクセントを自分で決める（D178）。「'」の前の音のあとで下がる。最後に置くと、下がらない読み方。
+    marked = text[len(KANA):]
+    query = json.loads(post("/audio_query", {"speaker": speaker, "text": marked.replace("'", "")}))
+    query["accent_phrases"] = json.loads(
+      post("/accent_phrases", {"speaker": speaker, "text": marked, "is_kana": "true"}))
+    query["kana"] = marked
+  else:
+    query = json.loads(post("/audio_query", {"speaker": speaker, "text": text}))
   wav = post("/synthesis", {"speaker": speaker}, query)
   with open(dest, "wb") as f:
     f.write(wav)

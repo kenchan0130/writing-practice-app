@@ -57,6 +57,10 @@ enum WordArt {
     "おしろ": "oshiro", "しんごう": "shingou", "ふみきり": "fumikiri", "がいとう": "gaitou",
     "て": "te", "あし": "ashi", "め": "me", "みみ": "mimi", "くち": "kuchi", "あたま": "atama",
     "おなか": "onaka", "ほっぺ": "hoppe",
+    "にんじゃ": "ninja", "おひめさま": "ohimesama", "おうさま": "ousama",
+    "まほうつかい": "mahoutsukai", "かいぞく": "kaizoku",
+    "だいく": "daiku", "せんせい": "sensei", "おいしゃさん": "oishasan",
+    "おまわりさん": "omawarisan", "しょうぼうし": "shouboushi",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
