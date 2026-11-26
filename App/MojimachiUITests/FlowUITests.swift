@@ -87,7 +87,10 @@ final class FlowUITests: XCTestCase {
     XCTAssertTrue(button("えき").waitForExistence(timeout: 10), "まちの地図が出ない")
     XCTAssertTrue(button("まきば").exists)
     XCTAssertTrue(button("もり").exists)
-    XCTAssertFalse(button("うみ").exists, "ことばのない場所が出ている")
+    // うみ・かわは、水の生きもの（D170）のことばがあるので出る。
+    XCTAssertTrue(button("うみ").exists)
+    XCTAssertTrue(button("かわ").exists)
+    XCTAssertFalse(button("こうえん").exists, "ことばのない場所が出ている")
     // おうち → テーマが3つ。
     tap(button("おうち"), "おうち")
     XCTAssertTrue(button("ふく").waitForExistence(timeout: 10), "テーマが出ない")

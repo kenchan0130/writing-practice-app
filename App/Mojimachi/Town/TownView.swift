@@ -39,13 +39,14 @@ struct TownView: View {
 }
 
 #if DEBUG
-  /// 確かめ用: `-seedTown YES` で、5つの型（のりもの・どうぶつ・服・空を飛ぶ物・景色）を置く（D168）。
+  /// 確かめ用: `-seedTown YES` で、6つの型（のりもの・どうぶつ・服・空を飛ぶ物・景色・水の生きもの）を置く（D168・D170）。
   @MainActor func debugSeedTown(_ store: ProgressStore) {
     guard UserDefaults.standard.bool(forKey: "seedTown"), store.placed.isEmpty else { return }
     let seeds = [
       "かたつむり", "てんとうむし", "ちょう", "ほたる", "もも", "すいか", "だんご", "おにぎり",
       "くるま", "いぬ", "ひこうき", "ねこ", "ききゅう", "でんしゃ", "はと", "うま", "すずめ", "ふく", "ぼうし", "ゆかた",
       "さくら", "ひまわり", "たんぽぽ", "りんご", "みかん", "いちご", "にんじん", "だいこん", "かぼちゃ",
+      "たこ", "さかな", "くじら", "かめ", "くらげ", "かえる",
     ]
     for text in seeds {
       guard let item = WordArt.words.first(where: { $0.entry.text == text }) else {

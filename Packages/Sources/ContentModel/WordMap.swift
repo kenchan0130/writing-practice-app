@@ -87,8 +87,11 @@ public enum WordMap {
     WordTheme(
       "mushi", "むし", in: "mori",
       words: ["ちょう", "とんぼ", "はち", "ほたる", "せみ", "かぶとむし", "てんとうむし", "かたつむり"]),
-    WordTheme("umi-ikimono", "うみの いきもの", in: "umi"),
-    WordTheme("kawa-ikimono", "かわ・いけの いきもの", in: "kawa"),
+    WordTheme(
+      "umi-ikimono", "うみの いきもの", in: "umi",
+      words: ["たこ", "いか", "かに", "かめ", "くじら", "くらげ", "いるか", "さかな", "ひとで"]),
+    WordTheme(
+      "kawa-ikimono", "かわ・いけの いきもの", in: "kawa", words: ["かえる", "めだか", "ざりがに", "おたまじゃくし"]),
     WordTheme("kyoryu", "きょうりゅう", in: "dobutsuen"),
     WordTheme(
       "kudamono", "くだもの", in: "omise", words: ["りんご", "みかん", "いちご", "もも", "ぶどう", "すいか", "くり"]),

@@ -164,4 +164,72 @@ struct TownLayoutTests {
       roles: Array(repeating: .animal, count: 8), scenery: 12, screenWidth: 1000, objectWidth: 160)
     #expect(full.worldWidth == 3000)
   }
+
+  // MARK: 水べ（D170）
+
+  @Test("水の生きものがいなければ、水べはなく、まちの幅は今までどおり")
+  func noWaterWithoutSwimmers() {
+    let layout = TownLayout.make(roles: [], screenWidth: 1000, objectWidth: 160)
+    #expect(layout.water == nil)
+    #expect(layout.swimSlots.isEmpty)
+    #expect(layout.worldWidth == layout.landWidth)
+  }
+
+  @Test("水の生きものがいれば、右はしに水べが広がり、陸の幅は変わらない")
+  func waterAtTheEnd() throws {
+    let plain = TownLayout.make(roles: Self.mixed, screenWidth: 1000, objectWidth: 160)
+    let layout = TownLayout.make(
+      roles: Self.mixed, swimmers: 3, screenWidth: 1000, objectWidth: 160)
+    let water = try #require(layout.water)
+    #expect(layout.landWidth == plain.worldWidth)
+    #expect(water.minX == layout.landWidth)
+    #expect(water.maxX == layout.worldWidth)
+    #expect(water.swimMinX > water.minX)
+    #expect(layout.slots == plain.slots)
+    // 陸の物は水べに入らない。
+    for slot in layout.slots { #expect(slot.maxX + 80 <= layout.landWidth) }
+  }
+
+  @Test("水の生きものは新しい6つまで（別の上限）")
+  func swimmerCap() {
+    #expect(TownLayout.maxSwimmers == 6)
+    #expect(TownLayout.shownSwimmers(Array(0..<10)) == Array(4..<10))
+    let layout = TownLayout.make(
+      roles: Array(repeating: .animal, count: 8), swimmers: 20, screenWidth: 1000,
+      objectWidth: 160)
+    #expect(layout.slots.count == 8)
+    #expect(layout.swimSlots.count == 6)
+  }
+
+  @Test("水の生きものは3つの段を順に回り、同じ段の持ち場は重ならない")
+  func swimLanes() {
+    for count in 1...6 {
+      let layout = TownLayout.make(roles: [], swimmers: count, screenWidth: 1100, objectWidth: 160)
+      #expect(layout.swimSlots.map(\.lane) == (0..<count).map { $0 % 3 })
+      for a in layout.swimSlots {
+        #expect(a.yFraction == TownLayout.swimLaneY[a.lane])
+        for b in layout.swimSlots where a.index < b.index && a.lane == b.lane {
+          // 中心の動く範囲が重ならず、絵（160）も重ならない。
+          #expect(b.minX - a.maxX >= 160)
+        }
+      }
+    }
+  }
+
+  @Test("水の生きものは、水の中だけを動く")
+  func swimmersStayInWater() throws {
+    for count in 1...6 {
+      let layout = TownLayout.make(
+        roles: Self.mixed, swimmers: count, screenWidth: 1100, objectWidth: 160)
+      let water = try #require(layout.water)
+      for slot in layout.swimSlots {
+        #expect(slot.minX - 80 >= water.swimMinX)
+        #expect(slot.maxX + 80 <= water.maxX)
+        #expect(slot.minX <= slot.startX && slot.startX <= slot.maxX)
+        // 水面（地平線の0.36）より下に、絵がほぼ収まる。
+        #expect(slot.yFraction + 0.09 <= 0.38)
+        #expect(slot.yFraction - 0.09 >= 0)
+      }
+    }
+  }
 }
