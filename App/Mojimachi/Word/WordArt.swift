@@ -17,6 +17,7 @@ enum WordArt {
   private static let clothesColor = UIColor(red: 0.25, green: 0.45, blue: 0.85, alpha: 1)
   private static let flyerColor = UIColor(red: 0.3, green: 0.62, blue: 0.9, alpha: 1)
   private static let swimmerColor = UIColor(red: 0.2, green: 0.6, blue: 0.85, alpha: 1)
+  private static let playColor = UIColor(red: 0.95, green: 0.6, blue: 0.25, alpha: 1)
   private static let skyColor = UIColor(red: 0.35, green: 0.55, blue: 0.9, alpha: 1)
   private static let sceneryColor = UIColor(red: 0.4, green: 0.7, blue: 0.32, alpha: 1)
 
@@ -45,6 +46,10 @@ enum WordArt {
     "くも": "kumo", "にじ": "niji", "あめ": "ame", "ゆき": "yuki", "かみなり": "kaminari",
     "かぜ": "kaze", "たいよう": "taiyou", "ほし": "hoshi", "つき": "tsuki",
     "うちゅうじん": "uchuujin",
+    "つみき": "tsumiki", "こま": "koma", "けんだま": "kendama", "ふうせん": "fuusen",
+    "にんぎょう": "ningyou", "たいこ": "taiko", "ふえ": "fue", "すず": "suzu",
+    "もっきん": "mokkin", "なわとび": "nawatobi", "てつぼう": "tetsubou", "とびばこ": "tobibako",
+    "ぶらんこ": "burango", "すべりだい": "suberidai", "すなば": "sunaba",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
@@ -57,6 +62,7 @@ enum WordArt {
       case .scenery: sceneryColor
       case .swimmer: swimmerColor
       case .sky: skyColor
+      case .plaything: playColor
       }
     return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }
@@ -101,6 +107,36 @@ enum WordArt {
     }
   }
 
+  /// こうえんの物の使われ方（D173）。まちでも変身のあとでも、その物らしく小さく動く。
+  /// swing=座るところが ゆれる、slide=ボールが すべりおりる、top=回る、kendama=玉が はねる、
+  /// balloon=ふわふわ、doll=ゆれて おどる、blocks=ぐらっとして、もどる、
+  /// drum=はずんで音符、flute=かたむいて音符、bell=ゆれて音符、xylophone=はずんで音符、
+  /// rope=とぶ、bar=ほんの少し ゆれる、box=ぴょんと とびこえられる、sandbox=バケツが うなずく。
+  enum PlayStyle {
+    case swing, slide, top, kendama, balloon, doll, blocks
+    case drum, flute, bell, xylophone, rope, bar, box, sandbox
+  }
+
+  static func playStyle(_ word: String) -> PlayStyle {
+    switch word {
+    case "ぶらんこ": .swing
+    case "すべりだい": .slide
+    case "こま": .top
+    case "けんだま": .kendama
+    case "ふうせん": .balloon
+    case "にんぎょう": .doll
+    case "つみき": .blocks
+    case "たいこ": .drum
+    case "ふえ": .flute
+    case "すず": .bell
+    case "もっきん": .xylophone
+    case "なわとび": .rope
+    case "てつぼう": .bar
+    case "とびばこ": .box
+    default: .sandbox
+    }
+  }
+
   /// 景色になる物のうち、花（ゆれる）。ほかの くだもの・やさいは、ぽんと出て ひとはずみする。
   static func isFlower(_ word: String) -> Bool {
     ["さくら", "ひまわり", "たんぽぽ"].contains(word)
@@ -124,6 +160,18 @@ enum WordArt {
     let renderer = UIGraphicsImageRenderer(size: CGSize(width: size, height: size))
     return renderer.image { _ in
       guard let art = uiImage(for: word) else { return }
+      let s = art.size
+      let scale = min(size / max(s.width, 1), size / max(s.height, 1))
+      let w = s.width * scale
+      let h = s.height * scale
+      art.draw(in: CGRect(x: (size - w) / 2, y: (size - h) / 2, width: w, height: h))
+    }
+  }
+
+  /// 絵のアセット（キャラクターなど）を、`size` 四方の透明な画像にする。無ければ nil。
+  static func image(asset: String, size: CGFloat) -> UIImage? {
+    guard let art = UIImage(named: asset) else { return nil }
+    return UIGraphicsImageRenderer(size: CGSize(width: size, height: size)).image { _ in
       let s = art.size
       let scale = min(size / max(s.width, 1), size / max(s.height, 1))
       let w = s.width * scale

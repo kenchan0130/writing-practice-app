@@ -232,4 +232,95 @@ struct TownLayoutTests {
       }
     }
   }
+
+  // MARK: こうえん（D173）
+
+  @Test("こうえんの物がなければ、こうえんはなく、まちの幅は今までどおり")
+  func noParkWithoutPlaythings() {
+    let layout = TownLayout.make(roles: Self.mixed, screenWidth: 1000, objectWidth: 160)
+    #expect(layout.park == nil)
+    #expect(layout.parkSlots.isEmpty)
+    #expect(layout.landMinX == 0)
+    #expect(layout.worldWidth == layout.landWidth)
+  }
+
+  @Test("こうえんの物があれば、左はしにこうえんが広がり、陸のまちはその分だけ右へ動く")
+  func parkAtTheStart() throws {
+    let plain = TownLayout.make(roles: Self.mixed, screenWidth: 1000, objectWidth: 160)
+    let layout = TownLayout.make(
+      roles: Self.mixed, playthings: 3, screenWidth: 1000, objectWidth: 160)
+    let park = try #require(layout.park)
+    #expect(park.minX == 0)
+    #expect(park.maxX == 900)
+    #expect(layout.landMinX == park.maxX)
+    #expect(layout.landWidth == plain.landWidth)
+    #expect(layout.worldWidth == plain.worldWidth + park.maxX)
+    // 陸の物は、こうえんに入らず、陸の中にいる。
+    for (a, b) in zip(layout.slots, plain.slots) {
+      #expect(a.minX == b.minX + park.maxX)
+      #expect(a.maxX == b.maxX + park.maxX)
+      #expect(a.startX == b.startX + park.maxX)
+      #expect(a.minX - 80 >= park.maxX)
+      #expect(a.maxX + 80 <= layout.worldWidth)
+    }
+    for (a, b) in zip(layout.scenery, plain.scenery) { #expect(a.x == b.x + park.maxX) }
+  }
+
+  @Test("こうえんと水べが両方あると、まちは両はしに広がる")
+  func parkAndWater() throws {
+    let layout = TownLayout.make(
+      roles: Self.mixed, swimmers: 2, playthings: 2, screenWidth: 1000, objectWidth: 160)
+    let park = try #require(layout.park)
+    let water = try #require(layout.water)
+    #expect(water.minX == park.maxX + layout.landWidth)
+    #expect(layout.worldWidth == water.maxX)
+    for slot in layout.slots { #expect(slot.maxX + 80 <= water.minX) }
+  }
+
+  @Test("こうえんの置き場所は8つで、同じ列の物は重ならず、こうえんの中に収まる")
+  func parkSlotsFit() throws {
+    #expect(TownLayout.maxPlaythings == 8)
+    for count in 1...8 {
+      let layout = TownLayout.make(
+        roles: [], playthings: count, screenWidth: 1100, objectWidth: 160)
+      let park = try #require(layout.park)
+      // 物の数によらず、置き場所はいつも8つ（場所ごとに決まっている）。
+      #expect(layout.parkSlots.count == 8)
+      #expect(layout.parkSlots.map(\.index) == Array(0..<8))
+      for a in layout.parkSlots {
+        #expect(a.x - 80 >= park.minX)
+        #expect(a.x + 80 <= park.maxX)
+        #expect(a.yFraction == TownLayout.parkRowY[a.row])
+        // 草の上（地平線 0.36）に、物の足もとがある。
+        #expect(a.yFraction > 0 && a.yFraction < 0.36)
+        for b in layout.parkSlots where a.index < b.index {
+          if a.row == b.row {
+            #expect(abs(a.x - b.x) >= 160 * a.scale)
+          } else {
+            // 列がちがう物は、足もとの高さがちがう。
+            #expect(a.yFraction != b.yFraction)
+            #expect(a.x != b.x)
+          }
+        }
+      }
+    }
+  }
+
+  @Test("こうえんの物は新しい8つまで（別の上限）。置き場所は置いた順で決まる")
+  func playthingCap() {
+    #expect(TownLayout.shownPlaythings(Array(0..<12)) == Array(4..<12))
+    #expect(TownLayout.shownPlaythings([1, 2]) == [1, 2])
+    #expect(
+      (0..<10).map { TownLayout.parkSlotIndex(ordinal: $0) } == [0, 1, 2, 3, 4, 5, 6, 7, 0, 1])
+    // 見えている8つは、いつも8つの別々の置き場所に入る。
+    let slots = Set((5..<13).map { TownLayout.parkSlotIndex(ordinal: $0) })
+    #expect(slots.count == 8)
+    let layout = TownLayout.make(
+      roles: Array(repeating: .animal, count: 8), scenery: 12, swimmers: 6, playthings: 20,
+      screenWidth: 1000, objectWidth: 160)
+    #expect(layout.slots.count == 8)
+    #expect(layout.scenery.count == 12)
+    #expect(layout.swimSlots.count == 6)
+    #expect(layout.parkSlots.count == 8)
+  }
 }

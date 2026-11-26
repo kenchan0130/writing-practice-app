@@ -3,7 +3,7 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "..", "Content", "Art", "words")
 sys.path.insert(0, HERE)
-from lib import Art, mirror, shift, place, O, EYE
+from lib import Art, mirror, shift, place, fit_params, O, EYE
 
 RED, RED_D = "#e5534b", "#c9403a"
 YEL, YEL2 = "#f6d36b", "#f7c948"
@@ -2172,8 +2172,375 @@ def uchuujin():
     a.shine("M138 190 C150 160 180 138 218 130")
     return a
 
+# -------------------------------------------------------------- plaything --
+# こうえんで キャラクターが つかう もの（D173）。顔はつけない（にんぎょうだけ）。
+WOOD_L = "#f7c98d"
+SAND, SAND_D = "#f9e3a5", "#efcf7a"
+STEEL, STEEL_D = "#dfe6ec", "#b9c4cf"
+ORANGE, PURPLE = "#f7a94b", "#9b7fd1"
+
+
+@word
+def tsumiki():
+    a = Art()
+    # bottom: red and blue cubes; then a yellow cube; a green roof on top
+    a.rect(84, 330, 160, 140, RED, rx=16)
+    a.rect(268, 330, 160, 140, BLUE, rx=16)
+    a.rect(176, 190, 160, 140, YEL, rx=16)
+    a.path("M170 196 L256 84 L342 196 Z", fill="#7cc36a")
+    # marks on the blocks
+    a.circle(164, 400, 34, WHITE, sw=7)
+    a.rect(318, 372, 60, 56, WHITE, rx=10, sw=7)
+    a.path("M214 316 C214 276 298 276 298 316", stroke=O, sw=8, fill="#ffffff")
+    a.shine("M104 360 C104 348 112 344 124 344", sw=8)
+    a.shine("M288 350 C288 342 294 338 304 338", sw=8)
+    return a
+
+
+@word
+def koma():
+    a = Art()
+    # handle, body, stripe, spike
+    a.rect(232, 92, 48, 96, WOOD, rx=14)
+    a.path("M242 120 L270 120", stroke=WOOD_D, sw=7)
+    a.path("M240 392 L256 466 L272 392 Z", fill="#9aa5b1", sw=10)
+    a.path("M120 262 C120 206 192 184 256 184 C320 184 392 206 392 262 L392 300 "
+           "C392 356 328 396 256 396 C184 396 120 356 120 300 Z", fill=RED)
+    a.path("M122 278 C170 316 342 316 390 278 L392 316 C342 354 170 354 120 316 Z", fill=YEL, sw=8)
+    a.path("M120 262 C120 206 192 184 256 184 C320 184 392 206 392 262 C392 296 328 316 256 316 "
+           "C184 316 120 296 120 262 Z", fill="#ee6a62", sw=0, stroke="none")
+    a.path("M120 262 C120 206 192 184 256 184 C320 184 392 206 392 262 L392 300 "
+           "C392 356 328 396 256 396 C184 396 120 356 120 300 Z")
+    a.shine("M162 238 C176 218 206 206 240 202")
+    return a
+
+
+@word
+def kendama():
+    a = Art()
+    # string from the handle to the ball
+    a.path("M320 236 C430 270 410 380 292 408", stroke="#8a6a50", sw=7)
+    # handle (ken): a stick with a spike on the top and a cup at each side
+    a.tube("M256 480 L256 330", WOOD, 64, 40)
+    for s in (-1, 1):
+        x = 256 + s * 78
+        a.path(f"M{x-46} 318 C{x-46} 372 {x+46} 372 {x+46} 318 Z", fill=WOOD_L)
+        a.ellipse(x, 318, 46, 15, "#a9672f")
+    a.tube("M200 336 L312 336", WOOD, 44, 24)
+    a.path("M246 330 L256 236 L266 330 Z", fill=WOOD, sw=10)
+    # ball skewered on the spike, with a hole at the bottom
+    a.circle(256, 170, 84, RED)
+    a.ellipse(256, 244, 20, 11, "#a9362f", sw=7)
+    a.shine("M204 130 C212 106 236 90 260 88")
+    return a
+
+
+@word
+def fuusen():
+    a = Art()
+    def balloon(cx, cy, col, dark, s=1.0, tilt=0):
+        w, h = 120 * s, 150 * s
+        d = (f"M{cx} {cy-h} C{cx+w*0.9} {cy-h} {cx+w} {cy-h*0.2} {cx+w*0.62} {cy+h*0.42} "
+             f"C{cx+w*0.4} {cy+h*0.76} {cx+w*0.12} {cy+h*0.9} {cx+10*s} {cy+h*0.98} "
+             f"L{cx+22*s} {cy+h*1.1} L{cx-22*s} {cy+h*1.1} L{cx-10*s} {cy+h*0.98} "
+             f"C{cx-w*0.12} {cy+h*0.9} {cx-w*0.4} {cy+h*0.76} {cx-w*0.62} {cy+h*0.42} "
+             f"C{cx-w} {cy-h*0.2} {cx-w*0.9} {cy-h} {cx} {cy-h} Z")
+        return d
+    # blue balloon behind
+    a.path("M350 470 C320 430 372 410 340 372", sw=7)
+    a.path(balloon(344, 188, BLUE, BLUE_D, 0.74), fill=BLUE)
+    a.shine("M296 124 C306 106 324 96 344 94", sw=7)
+    # red balloon in front
+    a.path("M196 486 C160 452 224 436 190 396", sw=7)
+    a.path(balloon(190, 214, RED, RED_D, 1.0), fill=RED)
+    a.shine("M120 150 C132 118 160 100 194 96")
+    return a
+
+
+@word
+def ningyou():
+    a = Art()
+    HAIR, SKIN = "#3b3a45", "#ffe3c9"
+    # back hair (bob)
+    a.path("M148 190 C140 96 196 66 256 66 C316 66 372 96 364 190 C362 236 350 262 342 270 "
+           "L170 270 C162 262 150 236 148 190 Z", fill=HAIR)
+    # kimono
+    a.path("M172 282 C172 270 204 264 256 264 C308 264 340 270 340 282 L378 448 C380 462 368 470 354 470 "
+           "L158 470 C144 470 132 462 134 448 Z", fill=RED)
+    for x, y in ((196, 410), (256, 440), (316, 410), (176, 340), (336, 340)):
+        a.circle(x, y, 11, "#ffd1d6", sw=0, stroke="none")
+    # collar and obi
+    a.path("M222 266 L256 332 L290 266", stroke=WHITE, sw=20)
+    a.path("M222 266 L256 332 L290 266", sw=7)
+    a.rect(152, 352, 208, 44, YEL, rx=8)
+    a.path("M256 352 L256 396", sw=6)
+    # face
+    a.ellipse(256, 188, 98, 92, SKIN)
+    a.path("M158 188 C152 118 204 88 256 88 C308 88 360 118 354 188 C324 160 292 146 256 150 "
+           "C220 146 188 160 158 188 Z", fill=HAIR)
+    for s in (-1, 1):
+        a.ellipse(256 + s * 42, 204, 11, 14, EYE, sw=0, stroke="none")
+        a.dot(256 + s * 42 + 4, 198, 4, WHITE)
+        a.ellipse(256 + s * 68, 232, 17, 10, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
+    a.path("M244 238 C250 246 262 246 268 238", sw=7)
+    # a hair clip
+    a.circle(330, 112, 15, "#ffd84d", sw=7)
+    a.shine("M196 112 C214 100 236 96 258 96", sw=7)
+    return a
+
+
+@word
+def taiko():
+    a = Art()
+    # legs
+    for x in (116, 340):
+        a.rect(x, 410, 56, 64, WOOD, rx=12)
+    # body (barrel)
+    a.path("M108 190 C84 250 84 330 112 410 C150 432 362 432 400 410 C428 330 428 250 404 190 Z", fill=RED)
+    for y in (232, 352):
+        a.path(f"M96 {y} C150 {y+22} 362 {y+22} 416 {y}", stroke=RED_D, sw=7)
+    for i in range(9):
+        t = i / 8
+        x = 128 + 256 * t
+        a.circle(x, 222 + 16 * (1 - (2 * t - 1) ** 2) + 6, 8, YEL, sw=6)
+        a.circle(x, 372 + 16 * (1 - (2 * t - 1) ** 2) + 6, 8, YEL, sw=6)
+    a.path("M108 190 C84 250 84 330 112 410 C150 432 362 432 400 410 C428 330 428 250 404 190")
+    # drumhead
+    a.ellipse(256, 190, 148, 52, CREAM)
+    a.ellipse(256, 190, 100, 32, "#f3dcbb", sw=6)
+    a.circle(256, 190, 12, RED, sw=0, stroke="none")
+    # sticks
+    a.tube("M150 70 L232 172", WOOD, 40, 22)
+    a.tube("M362 70 L280 172", WOOD, 40, 22)
+    a.circle(150, 70, 14, WOOD_L, sw=8)
+    a.circle(362, 70, 14, WOOD_L, sw=8)
+    return a
+
+
+@word
+def fue():
+    a = Art()
+    def P(t):
+        return 100 + 312 * t, 424 - 312 * t
+    x0, y0 = P(0.0)
+    x1, y1 = P(1.0)
+    # body
+    a.tube(f"M{x0:.0f} {y0:.0f} L{x1:.0f} {y1:.0f}", "#fff4e2", 76, 54)
+    # mouthpiece and bell end
+    ax, ay = P(0.80)
+    a.tube(f"M{ax:.0f} {ay:.0f} L{x1:.0f} {y1:.0f}", BLUE, 76, 54)
+    bx, by = P(0.2)
+    a.tube(f"M{x0:.0f} {y0:.0f} L{bx:.0f} {by:.0f}", BLUE, 76, 54)
+    # holes
+    for t in (0.32, 0.41, 0.50, 0.60, 0.69):
+        x, y = P(t)
+        a.circle(x, y, 11, EYE, sw=0, stroke="none")
+    # ring bands
+    for t in (0.20, 0.80):
+        x, y = P(t)
+        a.line(x - 22, y - 22, x + 22, y + 22, sw=9)
+    a.shine("M150 330 L300 180", sw=7)
+    # a little note
+    a.circle(120, 200, 20, "#ee6a62", sw=8)
+    a.path("M138 196 L138 96 C158 112 178 112 188 140", sw=10)
+    return a
+
+
+@word
+def suzu():
+    a = Art()
+    GOLD, GOLD_D = "#f7c948", "#e5a92d"
+    # ribbon and ring
+    a.path("M256 140 C204 70 150 90 170 140 C184 170 236 150 256 140 Z", fill=RED)
+    a.path("M256 140 C308 70 362 90 342 140 C328 170 276 150 256 140 Z", fill=RED)
+    a.circle(256, 144, 20, RED_D, sw=8)
+    a.circle(256, 196, 30, "none", sw=9)
+    # bell body
+    a.circle(256, 330, 134, GOLD)
+    a.circle(256, 330, 122, GOLD, sw=0, stroke="none")
+    a.path("M126 360 C170 392 342 392 386 360", stroke=GOLD_D, sw=8)
+    a.ellipse(256, 392, 26, 14, EYE, sw=8)
+    a.line(256, 406, 256, 462, sw=9)
+    a.shine("M164 290 C174 262 198 242 226 236")
+    return a
+
+
+@word
+def mokkin():
+    a = Art()
+    cols = [RED, ORANGE, YEL, GREEN, BLUE, PURPLE]
+    # rails
+    a.tube("M64 252 L448 252", WOOD, 40, 20)
+    a.tube("M64 380 L448 380", WOOD, 40, 20)
+    for i, c in enumerate(cols):
+        x = 84 + i * 62
+        top = 150 + i * 16
+        bot = 440 - i * 16
+        a.path(f"M{x} {top+14} C{x} {top} {x+52} {top} {x+52} {top+14} L{x+52} {bot-14} "
+               f"C{x+52} {bot} {x} {bot} {x} {bot-14} Z", fill=c)
+        a.circle(x + 26, 252, 7, WHITE, sw=0, stroke="none")
+        a.circle(x + 26, 380, 7, WHITE, sw=0, stroke="none")
+    # mallets
+    a.tube("M424 56 L330 182", WOOD, 30, 14)
+    a.tube("M474 112 L344 206", WOOD, 30, 14)
+    a.circle(424, 56, 28, "#ee6a62", sw=9)
+    a.circle(474, 112, 28, "#4fa8e0", sw=9)
+    return a
+
+
+@word
+def nawatobi():
+    a = Art()
+    # rope
+    d = "M160 150 C60 470 452 470 352 150"
+    a.path(d, sw=30)
+    a.path(d, stroke=RED, sw=14)
+    a.path(d, stroke=WHITE, sw=5, stroke_dasharray="18 18", **{"stroke-opacity": "0.9"})
+    # handles
+    for x in (150, 362):
+        a.rect(x - 22, 56, 44, 130, BLUE, rx=20)
+        a.rect(x - 22, 56, 44, 34, YEL, rx=16)
+        a.path(f"M{x-22} 122 L{x+22} 122", stroke=BLUE_D, sw=6)
+    a.shine("M138 110 L138 168", sw=7)
+    a.shine("M350 110 L350 168", sw=7)
+    return a
+
+
+@word
+def tetsubou():
+    a = Art()
+    # posts
+    for x in (140, 372):
+        a.tube(f"M{x} 130 L{x} 440", BLUE, 52, 30)
+        a.ellipse(x, 448, 52, 18, "#8a8f98")
+    # bar with end caps
+    a.tube("M72 130 L440 130", STEEL, 50, 28)
+    for x in (72, 440):
+        a.circle(x, 130, 20, STEEL_D, sw=8)
+    a.path("M96 124 L416 124", stroke=WHITE, sw=7, **{"stroke-opacity": "0.8"})
+    # braces
+    a.path("M140 360 L100 440 M372 360 L412 440", sw=10)
+    return a
+
+
+@word
+def tobibako():
+    a = Art()
+    # cushion on the top
+    a.path("M84 150 C84 100 128 82 256 82 C384 82 428 100 428 150 L428 190 L84 190 Z", fill="#b9754a")
+    a.path("M100 140 C150 120 362 120 412 140", stroke="#d99c70", sw=7)
+    for x in (140, 256, 372):
+        a.circle(x, 164, 6, "#8a5530", sw=0, stroke="none")
+    # tiers
+    for i in range(4):
+        y = 190 + i * 70
+        fill = WOOD if i % 2 == 0 else WOOD_L
+        a.rect(76 - i * 4, y, 360 + i * 8, 70, fill, rx=10)
+        a.rect(214, y + 18, 84, 34, "#c97f3e", rx=16, sw=8)
+    return a
+
+
+@word
+def burango():
+    full, frame, seat = swing_parts()
+    return full
+
+
+def swing_parts():
+    """The whole swing, and the frame and the seat on their own (same fit, so they line up)."""
+    def frame_part(a):
+        a.tube("M70 100 L442 100", RED, 50, 30)
+        for ax, bx0, bx1 in ((132, 60, 204), (380, 308, 452)):
+            a.tube(f"M{ax} 100 L{bx0} 450", RED, 44, 24)
+            a.tube(f"M{ax} 100 L{bx1} 450", RED, 44, 24)
+            a.path(f"M{bx0+6} 450 L{bx0-14} 450 M{bx1+14} 450 L{bx1-6} 450", sw=10)
+        a.tube("M70 100 L442 100", RED, 50, 30)
+
+    def seat_part(a):
+        for x, bx in ((218, 214), (294, 298)):
+            a.path(f"M{x} 100 L{bx} 354", stroke="#8a6a50", sw=11)
+        a.rect(196, 350, 120, 36, YEL, rx=14)
+        a.circle(218, 104, 11, STEEL, sw=7)
+        a.circle(294, 104, 11, STEEL, sw=7)
+
+    full = Art(); frame_part(full); seat_part(full)
+    frame = Art(); frame_part(frame)
+    seat = Art(); seat_part(seat)
+    return full, frame, seat
+
+
+
+def slide_art(chute_only=False):
+    a = Art()
+    if not chute_only:
+        # posts and ladder
+        for x in (92, 188):
+            a.tube(f"M{x} 150 L{x} 452", YEL, 40, 20)
+        for y in (220, 290, 360, 430):
+            a.line(92, y, 188, y, sw=12)
+        # platform and rail
+        a.rect(70, 130, 160, 32, RED, rx=10)
+        a.path("M74 130 L74 70 M74 74 L196 74 M196 74 L196 130", sw=11)
+    return a
+
+
+# the slide chute: cubic from the platform to the ground
+SLIDE_CURVE = ((214, 170), (314, 200), (386, 330), (446, 404))
+
+
+@word
+def suberidai():
+    a = slide_art()
+    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = SLIDE_CURVE
+    d = f"M{x0} {y0} C{x1} {y1} {x2} {y2} {x3} {y3} L474 {y3}"
+    a.path(d, sw=60)
+    a.path(d, stroke=BLUE, sw=36)
+    a.path(d, stroke=SKY, sw=10, **{"stroke-opacity": "0.9"})
+    # redraw the ladder over the chute start
+    a.rect(70, 130, 160, 32, RED, rx=10)
+    return a
+
+
+@word
+def sunaba():
+    a = Art()
+    # outer frame (back), sand, front board
+    a.path("M104 196 L408 196 L452 332 L60 332 Z", fill=WOOD_D)
+    a.path("M126 216 L386 216 L424 318 L88 318 Z", fill=SAND)
+    a.path("M164 318 C178 258 246 238 292 318 Z", fill=SAND_D, sw=0, stroke="none")
+    # bucket (on the sand)
+    a.path("M332 190 C346 150 396 150 410 190", sw=8)
+    a.path("M326 206 L416 206 L402 308 L340 308 Z", fill=RED)
+    a.ellipse(371, 206, 45, 12, RED_D)
+    a.path("M336 250 L408 250", stroke=YEL, sw=14)
+    # shovel
+    a.tube("M214 318 L170 134", WOOD, 30, 14)
+    a.circle(166, 118, 15, WOOD, sw=8)
+    a.path("M196 286 L246 296 L252 346 L206 340 Z", fill=YEL)
+    # front board
+    a.path("M60 332 L452 332 L452 420 C452 434 442 442 428 442 L84 442 C70 442 60 434 60 420 Z", fill=WOOD)
+    for x in (150, 256, 362):
+        a.path(f"M{x} 350 L{x} 424", stroke=WOOD_D, sw=7)
+    return a
+
+
+def write_swing_parts():
+    """The frame and the seat of the swing go to Content/Art/parts/ (D173). Same fit as burango.svg."""
+    full, frame, seat = swing_parts()
+    params = fit_params([full])
+    out = os.path.join(HERE, "..", "..", "Content", "Art", "parts")
+    os.makedirs(out, exist_ok=True)
+    open(os.path.join(out, "burango-frame.svg"), "w").write(frame.svg(params=params))
+    open(os.path.join(out, "burango-seat.svg"), "w").write(seat.svg(params=params))
+    s, tx, ty = params
+    print("swing pivot (fraction of the image):", round((s * 256 + tx) / 512, 4), round((s * 100 + ty) / 512, 4))
+    s2, tx2, ty2 = fit_params([W["suberidai"]()])
+    print("slide curve:", [(round((s2 * x + tx2) / 512, 4), round((s2 * y + ty2) / 512, 4)) for x, y in SLIDE_CURVE])
+
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(W)
     for n in names:
         open(os.path.join(OUT, f"{n}.svg"), "w").write(W[n]().svg())
+    if not sys.argv[1:] or "burango" in names:
+        write_swing_parts()

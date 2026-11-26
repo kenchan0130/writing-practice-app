@@ -189,7 +189,7 @@ struct WordWritingView: View {
     let image = WordArt.image(word: model.word, size: 600)
     let scene = TransformScene(
       size: size, lines: lines, colors: colors, objectImage: image, kind: model.kind,
-      word: model.word)
+      word: model.word, character: ProgressStore.shared.mainCharacter)
     scene.onFinished = { transformFinished = true }
     DispatchQueue.main.async { transform = scene }
     return scene

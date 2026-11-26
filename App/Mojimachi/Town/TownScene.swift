@@ -21,6 +21,10 @@ final class TownScene: SKScene {
   private var sceneryObjects: [PlacedObject] = []
   /// 水べの生きもの（古い順。上限は `TownLayout.maxSwimmers`。D170）。
   private var swimObjects: [PlacedObject] = []
+  /// こうえんの物（古い順。上限は `TownLayout.maxPlaythings`）と、置き場所の番号に使う「何番目に置いたか」（D173）。
+  private var playObjects: [(object: PlacedObject, ordinal: Int)] = []
+  /// こうえんで遊ぶキャラクター（「なにが すき？」の前に選んだ主人公。D164）。
+  private var mainCharacter: MainCharacter = .ton
   /// 空のことばを書いた記録と、いま出している空（D172）。
   private var skyRecords: [SkyRecord] = []
   private var skyStart: Date?
@@ -71,21 +75,37 @@ final class TownScene: SKScene {
       let roaming = TownLayout.shown(
         all.filter {
           $0.kind != .clothes && $0.kind != .scenery && $0.kind != .swimmer && $0.kind != .sky
+            && $0.kind != .plaything
         })
       let scenery = TownLayout.shownScenery(all.filter { $0.kind == .scenery })
       let swimmers = TownLayout.shownSwimmers(all.filter { $0.kind == .swimmer })
+      // こうえんの物は、置いた順に8つの置き場所を回る（D82）。見える8つは、新しい8つ。
+      let plays = all.filter { $0.kind == .plaything }
+      let shownPlays = TownLayout.shownPlaythings(plays)
+      let firstOrdinal = plays.count - shownPlays.count
+      let playing = shownPlays.enumerated().map { (object: $0.element, ordinal: firstOrdinal + $0.offset) }
       guard
         roaming.map(\.id) != townObjects.map(\.id)
           || scenery.map(\.id) != sceneryObjects.map(\.id)
           || swimmers.map(\.id) != swimObjects.map(\.id)
+          || playing.map(\.object.id) != playObjects.map(\.object.id)
       else { return }
       townObjects = roaming
       sceneryObjects = scenery
       swimObjects = swimmers
+      playObjects = playing
       rebuildTown()
       return
     }
     showCloset(all)
+  }
+
+  /// こうえんで遊ぶキャラクターを知らせる（D173）。かわったら、まちを作り直す。
+  func setCharacter(_ character: MainCharacter) {
+    guard character != mainCharacter else { return }
+    mainCharacter = character
+    guard layer == .town, !playObjects.isEmpty else { return }
+    rebuildTown()
   }
 
   // MARK: まち
@@ -123,7 +143,8 @@ final class TownScene: SKScene {
     let objectSize = unit * 0.23
     let plan = TownLayout.make(
       roles: townObjects.map { Self.role(of: $0.kind) }, scenery: sceneryObjects.count,
-      swimmers: swimObjects.count, screenWidth: Double(size.width), objectWidth: Double(objectSize))
+      swimmers: swimObjects.count, playthings: playObjects.count, screenWidth: Double(size.width),
+      objectWidth: Double(objectSize))
     worldWidth = CGFloat(plan.worldWidth)
     #if DEBUG
       // 確かめ用: `-townScroll 0.5` で、まちの途中（0〜1）から見る。
@@ -138,8 +159,12 @@ final class TownScene: SKScene {
     let world = SKNode()
     world.name = "world"
     addChild(world)
-    addScenery(to: world, landWidth: CGFloat(plan.landWidth))
+    addScenery(to: world, landWidth: CGFloat(plan.landWidth), originX: CGFloat(plan.landMinX))
     if let water = plan.water { addWater(to: world, water: water) }
+    if let park = plan.park {
+      addPark(to: world, park: park)
+      addPlayEquipment(to: world, plan: plan, objectSize: objectSize)
+    }
     for (object, slot) in zip(swimObjects, plan.swimSlots) {
       world.addChild(makeSwimmer(object, slot: slot, objectSize: objectSize))
     }
@@ -212,7 +237,7 @@ final class TownScene: SKScene {
     switch kind {
     case .vehicle: .vehicle
     case .flyer: .flyer
-    case .animal, .clothes, .scenery, .swimmer, .sky: .animal
+    case .animal, .clothes, .scenery, .swimmer, .sky, .plaything: .animal
     }
   }
 
@@ -262,7 +287,7 @@ final class TownScene: SKScene {
   }
 
   /// 丘・地面・道・木・家・雲。ノードは数十個で、毎フレームの計算はしない。
-  private func addScenery(to world: SKNode, landWidth width: CGFloat) {
+  private func addScenery(to world: SKNode, landWidth width: CGFloat, originX: CGFloat) {
     let h = size.height
     let horizon = h * 0.36
 
@@ -287,20 +312,22 @@ final class TownScene: SKScene {
     // 草と道。
     world.addChild(
       shape(
-        SKShapeNode(rect: CGRect(x: 0, y: 0, width: width, height: horizon)),
+        SKShapeNode(rect: CGRect(x: originX, y: 0, width: width, height: horizon)),
         fill: UIColor(red: 0.62, green: 0.82, blue: 0.46, alpha: 1), z: -50))
     world.addChild(
       shape(
-        SKShapeNode(rect: CGRect(x: 0, y: horizon - h * 0.012, width: width, height: h * 0.012)),
+        SKShapeNode(
+          rect: CGRect(x: originX, y: horizon - h * 0.012, width: width, height: h * 0.012)),
         fill: UIColor(red: 0.52, green: 0.75, blue: 0.38, alpha: 1), z: -49))
     world.addChild(
       shape(
-        SKShapeNode(rect: CGRect(x: -20, y: h * 0.02, width: width + 40, height: h * 0.17)),
+        SKShapeNode(
+          rect: CGRect(x: originX - 20, y: h * 0.02, width: width + 40, height: h * 0.17)),
         fill: UIColor(red: 0.83, green: 0.76, blue: 0.68, alpha: 1), z: -45))
     // 道の真ん中の点線（1つのノード）。
     let center = CGMutablePath()
-    center.move(to: CGPoint(x: 0, y: h * 0.105))
-    center.addLine(to: CGPoint(x: width, y: h * 0.105))
+    center.move(to: CGPoint(x: originX, y: h * 0.105))
+    center.addLine(to: CGPoint(x: originX + width, y: h * 0.105))
     let dashes = center.copy(dashingWithPhase: 0, lengths: [34, 26])
     let dashLine = SKShapeNode(path: dashes)
     dashLine.strokeColor = UIColor(white: 1, alpha: 0.9)
@@ -311,8 +338,8 @@ final class TownScene: SKScene {
 
     // 木と家（草の向こう側。物の動く範囲より奥）。
     var index = 0
-    var decorationX: CGFloat = 140
-    while decorationX < width {
+    var decorationX: CGFloat = originX + 140
+    while decorationX < originX + width {
       if index % 3 == 1 {
         addHouse(world, x: decorationX, base: horizon + h * 0.015, index: index)
         decorationX += 380
@@ -900,6 +927,264 @@ final class TownScene: SKScene {
       node.run(.repeatForever(wiggle))
       repeatBob(h * 0.01, 1.2)
     }
+  }
+
+  // MARK: こうえん（D173）
+
+  /// 左はしのこうえん。明るい芝生・小道・さく・ベンチ・木・「こうえん」の看板。物があるときだけ出る。
+  private func addPark(to world: SKNode, park: ParkArea) {
+    let h = size.height
+    let horizon = h * 0.36
+    let left = CGFloat(park.minX)
+    let right = CGFloat(park.maxX)
+    let wood = UIColor(red: 0.95, green: 0.78, blue: 0.5, alpha: 1)
+    // 芝生。まちの草より明るい。刈りあとの しまを うすく重ねる。
+    world.addChild(
+      shape(
+        SKShapeNode(rect: CGRect(x: left - 40, y: 0, width: right - left + 40, height: horizon)),
+        fill: UIColor(red: 0.6, green: 0.85, blue: 0.42, alpha: 1), z: -50))
+    var x = left - 40
+    var stripe = 0
+    while x < right {
+      if stripe % 2 == 0 {
+        world.addChild(
+          shape(
+            SKShapeNode(rect: CGRect(x: x, y: 0, width: 130, height: horizon)),
+            fill: UIColor(red: 0.67, green: 0.89, blue: 0.5, alpha: 0.55), z: -49.5))
+      }
+      x += 130
+      stripe += 1
+    }
+    world.addChild(
+      shape(
+        SKShapeNode(
+          rect: CGRect(x: left - 40, y: horizon - h * 0.012, width: right - left + 40, height: h * 0.012)),
+        fill: UIColor(red: 0.5, green: 0.76, blue: 0.36, alpha: 1), z: -49))
+    // 手前の小道（ゆるやかな なみ）。
+    let path = CGMutablePath()
+    path.move(to: CGPoint(x: left - 40, y: 0))
+    path.addLine(to: CGPoint(x: left - 40, y: h * 0.05))
+    x = left - 40
+    var k = 0
+    while x < right + 40 {
+      path.addQuadCurve(
+        to: CGPoint(x: x + 90, y: h * 0.05),
+        control: CGPoint(x: x + 45, y: h * (k % 2 == 0 ? 0.062 : 0.038)))
+      x += 90
+      k += 1
+    }
+    path.addLine(to: CGPoint(x: x, y: 0))
+    path.closeSubpath()
+    world.addChild(shape(SKShapeNode(path: path), fill: UIColor(red: 0.89, green: 0.8, blue: 0.64, alpha: 1), z: -45))
+    // 小道の石（小さなだ円）。
+    x = left + 30
+    k = 0
+    while x < right {
+      let pebble = shape(
+        SKShapeNode(ellipseOf: CGSize(width: 18 + CGFloat(k % 3) * 6, height: 8)),
+        fill: UIColor(red: 0.97, green: 0.93, blue: 0.84, alpha: 1), z: -44)
+      pebble.position = CGPoint(x: x, y: h * (0.018 + CGFloat(k % 3) * 0.01))
+      world.addChild(pebble)
+      x += 120 + CGFloat(k % 2) * 40
+      k += 1
+    }
+    // 花（小さな丸）。
+    let flowers = [
+      UIColor(red: 1, green: 0.62, blue: 0.7, alpha: 1), UIColor(red: 1, green: 0.88, blue: 0.4, alpha: 1),
+      UIColor(white: 1, alpha: 1),
+    ]
+    for index in 0..<12 {
+      let flower = shape(
+        SKShapeNode(circleOfRadius: 6.5), fill: flowers[index % 3], line: 2.5, z: -48)
+      flower.position = CGPoint(
+        x: left + 60 + CGFloat((index * 97) % 100) / 100 * (right - left - 120),
+        y: h * (0.075 + CGFloat((index * 53) % 100) / 100 * 0.26))
+      world.addChild(flower)
+    }
+    // さく: 草のおくに、はしらを たてて、横木を2本わたす。
+    let postHeight = h * 0.06
+    let base = horizon - h * 0.002
+    let posts = CGMutablePath()
+    var postX = left + 20
+    while postX < right - 10 {
+      posts.addRoundedRect(
+        in: CGRect(x: postX - 8, y: base, width: 16, height: postHeight), cornerWidth: 6, cornerHeight: 6)
+      postX += 76
+    }
+    world.addChild(shape(SKShapeNode(path: posts), fill: wood, line: 4, z: -42))
+    let rails = CGMutablePath()
+    for fraction in [0.32, 0.7] as [CGFloat] {
+      rails.addRoundedRect(
+        in: CGRect(x: left - 20, y: base + postHeight * fraction - 5, width: right - left + 20, height: 10),
+        cornerWidth: 5, cornerHeight: 5)
+    }
+    world.addChild(shape(SKShapeNode(path: rails), fill: wood, line: 3, z: -41.8))
+    // 木。
+    addTree(world, x: left + unit * 0.16, base: horizon + h * 0.01, index: 0)
+    addTree(world, x: right - unit * 0.2, base: horizon + h * 0.01, index: 2)
+    // ベンチ。
+    let bench = SKNode()
+    bench.position = CGPoint(x: left + (right - left) * 0.3, y: horizon + h * 0.004)
+    bench.zPosition = -41
+    let seatWidth = unit * 0.15
+    let back = shape(
+      SKShapeNode(rect: CGRect(x: -seatWidth / 2, y: unit * 0.045, width: seatWidth, height: unit * 0.03), cornerRadius: 5),
+      fill: wood, line: 3.5, z: 0)
+    let seat = shape(
+      SKShapeNode(rect: CGRect(x: -seatWidth / 2 - 6, y: unit * 0.02, width: seatWidth + 12, height: unit * 0.025), cornerRadius: 5),
+      fill: wood, line: 3.5, z: 0.1)
+    bench.addChild(back)
+    bench.addChild(seat)
+    for side in [-1, 1] as [CGFloat] {
+      let leg = shape(
+        SKShapeNode(rect: CGRect(x: side * seatWidth * 0.4 - 5, y: -unit * 0.005, width: 10, height: unit * 0.03), cornerRadius: 3),
+        fill: UIColor(red: 0.74, green: 0.52, blue: 0.34, alpha: 1), line: 3, z: -0.1)
+      bench.addChild(leg)
+    }
+    world.addChild(bench)
+    // 看板「こうえん」。さくの上に立つ。
+    let signCenter = CGPoint(x: left + (right - left) * 0.62, y: h * 0.55)
+    let boardSize = CGSize(width: unit * 0.36, height: unit * 0.1)
+    for side in [-1, 1] as [CGFloat] {
+      let post = shape(
+        SKShapeNode(
+          rect: CGRect(x: signCenter.x + side * boardSize.width * 0.36 - 7, y: horizon, width: 14, height: signCenter.y - horizon),
+          cornerRadius: 5),
+        fill: UIColor(red: 0.74, green: 0.52, blue: 0.34, alpha: 1), line: 4, z: -41.5)
+      world.addChild(post)
+    }
+    let board = shape(
+      SKShapeNode(rect: CGRect(origin: CGPoint(x: -boardSize.width / 2, y: -boardSize.height / 2), size: boardSize), cornerRadius: 16),
+      fill: UIColor(red: 1, green: 0.93, blue: 0.7, alpha: 1), line: 5, z: -41)
+    board.position = signCenter
+    let label = SKLabelNode(text: "こうえん")
+    label.fontName = "HiraMaruProN-W4"
+    label.fontSize = unit * 0.06
+    label.fontColor = Self.outline
+    label.verticalAlignmentMode = .center
+    label.horizontalAlignmentMode = .center
+    label.zPosition = 0.1
+    board.addChild(label)
+    world.addChild(board)
+  }
+
+  /// こうえんの物と、遊ぶキャラクター。置き場所は、置いた順で8つを回る（`TownLayout.parkSlotIndex`）。
+  private func addPlayEquipment(to world: SKNode, plan: TownLayout, objectSize: CGFloat) {
+    let h = size.height
+    var things: [(node: SKSpriteNode, slot: ParkSlot)] = []
+    for (object, ordinal) in playObjects {
+      let slot = plan.parkSlots[TownLayout.parkSlotIndex(ordinal: ordinal)]
+      let image = WordArt.image(word: object.word, size: 320)
+      let node = SKSpriteNode(texture: SKTexture(image: image))
+      node.name = object.id.uuidString
+      let big: CGFloat =
+        switch WordArt.playStyle(object.word) {
+        case .slide: 1.12
+        case .sandbox: 1.05
+        default: 1.0
+        }
+      let side = objectSize * CGFloat(slot.scale) * big
+      node.size = CGSize(width: side, height: side)
+      node.anchorPoint = CGPoint(x: 0.5, y: 0.05)
+      node.position = CGPoint(x: slot.x, y: h * CGFloat(slot.yFraction))
+      node.zPosition = 20 - CGFloat(slot.yFraction) * 20
+      world.addChild(node)
+      PlayMotion.start(
+        node, word: object.word, phase: Double(slot.index) * 0.37, reduceMotion: reduceMotion)
+      things.append((node, slot))
+    }
+    guard let park = plan.park, !things.isEmpty else { return }
+    addPlayer(to: world, things: things.reversed(), park: park, objectSize: objectSize)
+  }
+
+  /// こうえんで遊ぶキャラクター。いちばん新しい物のそばに立ち、数秒ごとに、ほかの物のところへ はねていって使う。
+  private func addPlayer(
+    to world: SKNode, things: [(node: SKSpriteNode, slot: ParkSlot)], park: ParkArea,
+    objectSize: CGFloat
+  ) {
+    let h = size.height
+    guard let normalImage = WordArt.image(asset: mainCharacter.assetName(.normal), size: 320),
+      let happyImage = WordArt.image(asset: mainCharacter.assetName(.happy), size: 320)
+    else { return }
+    let normal = SKTexture(image: normalImage)
+    let happy = SKTexture(image: happyImage)
+    let player = SKSpriteNode(texture: normal)
+    player.size = CGSize(width: objectSize * 0.85, height: objectSize * 0.85)
+    player.anchorPoint = CGPoint(x: 0.5, y: 0.04)
+    player.name = "player"
+    struct Stop {
+      let point: CGPoint
+      let faceLeft: Bool
+      let thing: SKSpriteNode
+    }
+    let stops: [Stop] = things.map { thing in
+      let node = thing.node
+      // 物の右がわに立つ。こうえんの右はしの物は、左がわ。
+      let rightSide = node.position.x + node.size.width * 0.55 < CGFloat(park.maxX) - 20
+      let dx = node.size.width * 0.55 * (rightSide ? 1 : -1)
+      return Stop(
+        point: CGPoint(x: node.position.x + dx, y: node.position.y - h * 0.035),
+        faceLeft: rightSide, thing: node)
+    }
+    player.position = stops[0].point
+    player.xScale = stops[0].faceLeft ? -1 : 1
+    player.zPosition = 20 - (stops[0].point.y / h) * 20 + 0.5
+    world.addChild(player)
+    guard !reduceMotion else { return }
+    func bounce() -> SKAction {
+      let up = SKAction.moveBy(x: 0, y: h * 0.05, duration: 0.16)
+      up.timingMode = .easeOut
+      let down = SKAction.moveBy(x: 0, y: -h * 0.05, duration: 0.18)
+      down.timingMode = .easeIn
+      return .sequence([up, down])
+    }
+    var script: [SKAction] = []
+    var current = stops[0].point
+    for stop in stops {
+      let distance = hypot(stop.point.x - current.x, stop.point.y - current.y)
+      if distance > 1 {
+        let duration = max(0.55, Double(distance) / 380)
+        let arc = SKAction.sequence([
+          .moveBy(x: 0, y: h * 0.1, duration: duration / 2), .moveBy(x: 0, y: -h * 0.1, duration: duration / 2),
+        ])
+        let travel = SKAction.move(to: stop.point, duration: duration)
+        travel.timingMode = .easeInEaseOut
+        // 行く向きを向いてから、はねていく。着いたら、物のほうを向く。
+        let headingLeft = stop.point.x < current.x
+        script.append(.scaleX(to: headingLeft ? -1 : 1, duration: 0.12))
+        script.append(.group([travel, arc]))
+        script.append(.scaleX(to: stop.faceLeft ? -1 : 1, duration: 0.12))
+        script.append(
+          .run { [weak player] in
+            player?.zPosition = 20 - (stop.point.y / h) * 20 + 0.5
+          })
+      }
+      current = stop.point
+      let thing = stop.thing
+      script.append(.run { [weak player] in player?.texture = happy })
+      script.append(.run { [weak thing] in if let thing { PlayMotion.react(thing) } })
+      script.append(bounce())
+      script.append(bounce())
+      script.append(.wait(forDuration: 1.6))
+      script.append(.run { [weak player] in player?.texture = normal })
+      script.append(.wait(forDuration: 2.6))
+    }
+    // 1つしか物がないときは、同じ場所で ときどき使う。最後に、はじめの物へ もどる。
+    if stops.count > 1, let first = stops.first {
+      let distance = hypot(first.point.x - current.x, first.point.y - current.y)
+      let duration = max(0.55, Double(distance) / 380)
+      let arc = SKAction.sequence([
+        .moveBy(x: 0, y: h * 0.1, duration: duration / 2), .moveBy(x: 0, y: -h * 0.1, duration: duration / 2),
+      ])
+      let travel = SKAction.move(to: first.point, duration: duration)
+      travel.timingMode = .easeInEaseOut
+      script.append(.scaleX(to: first.point.x < current.x ? -1 : 1, duration: 0.12))
+      script.append(.group([travel, arc]))
+      script.append(.scaleX(to: first.faceLeft ? -1 : 1, duration: 0.12))
+      script.append(
+        .run { [weak player] in player?.zPosition = 20 - (first.point.y / h) * 20 + 0.5 })
+    }
+    player.run(.repeatForever(.sequence(script)))
   }
 
   // MARK: クローゼット
