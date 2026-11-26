@@ -2,7 +2,7 @@
 
 > [Working note for the developer. Do not publish this block.]
 > - Publish at `https://kenchan0130.github.io/apps/mojimachi/privacy` (English section or `/en`). Fill in every `TODO` first.
-> - The crash-report section follows the design (D103, D123). **As of 2026-11-27 the code does not include Sentry yet** (there is only the parent-area switch "Send bug information"). Add Sentry and lock the sent fields with a test before publishing. If you do not ship Sentry, delete that section and every mention of Sentry.
+> - Sentry is in the app as of 2026-11-27 (D183). It starts only in release builds that have a DSN, and sends crash information only (what is sent is locked by `CrashReportingTests`). There is no switch to turn it off. Before publishing: create the Sentry project, choose the data region, and write it in the `TODO` below (checklist S1).
 > - The menu names in English ("Children", "Manage Records", and so on) are translations. The app's parent area is Japanese only today (no English localization yet, D116). Either add the English parent screens or write the Japanese names next to the English ones.
 > - Translation: the Japanese file is the source (D118). Use the terms in `docs/glossary.md`. Have another model check it.
 
@@ -62,7 +62,9 @@ What is not sent:
 - IP addresses (they are not stored)
 - Logs of taps, screen recordings, or performance measurements
 
-You can stop this by turning off "Send bug information" in the parent area under "Safety Settings". It is on by default.
+There is no setting to turn this off. Nothing is sent unless the app crashes. The parent area (under "Safety Settings") explains this.
+
+The crash information is not linked to a person or a child, and is not used for tracking or advertising.
 
 Where Sentry stores the data: TODO (write the region chosen in Sentry)
 
@@ -71,7 +73,7 @@ Where Sentry stores the data: TODO (write the region chosen in Sentry)
 From the parent area, a parent can open a contact form. It is a Google Form that opens in an in-app browser. A parent decides whether to send it.
 
 - The text you write and an optional email address reach the operator.
-- The form is pre-filled with the app name and version, the iPadOS version, and the type of message. If you open it from "This judgment looks wrong", the name of the judgment setting is also filled in. You can delete these before you send.
+- The form is pre-filled only with the app name and the type of message. If you open it from "This judgment looks wrong", the name of the judgment setting is also filled in. The app does not put the app version, the iPadOS version, or the device model into the link. If you want to add them, the support screen shows them as text you can copy yourself. You can delete anything before you send.
 - Google's privacy policy also applies to the form.
 - We use what you send only to reply. We delete it within 90 days after we finish the matter. We also delete it on request.
 - Please do not write a child's name or send a child's photo.

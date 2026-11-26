@@ -8,11 +8,11 @@
 
 | 項目 | 内容 | 出どころ |
 |---|---|---|
-| アプリ名 | もじまち：ひらがな・カタカナ書き順練習（19文字。上限30） | D40・D136。いま ASC には「もじまち」だけ。公開前にこの案に変えるか決める【TODO】 |
+| アプリ名 | **もじまち：ひらがな・カタカナ書き順練習**（19文字。上限30）。**決定（D183）**。端末のホームに出る名前（`CFBundleDisplayName`）は「もじまち」のまま | D40・D136・D183。いま ASC には「もじまち」だけなので、公開前に ASC の名前をこれに変える【人】 |
 | サブタイトル | 楽しく書いて、きれいな字が身につく知育アプリ（22文字。上限30） | D42 |
 | バンドル ID | `io.github.kenchan0130.mojimachi` | D136 |
 | SKU | `mojimachi` | D136 |
-| プライマリ言語 | 日本語（英語を追加） | D30・D136 |
+| プライマリ言語 | 日本語（英語ほかを追加）。**ストアの文面は多言語で出す**（D183）。ローカライズは別の作業で、この文書の日本語と英語の文面は元になる下書き | D30・D136・D183 |
 | カテゴリ | プライマリ: 教育。**Kids カテゴリ**に入れ、年齢帯は「5歳以下」 | D51・D86（審査後は変えられない）。`INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.education` |
 | 年齢制限（レーティング） | 4+（下の §7） | |
 | 対応端末 | iPad のみ（`TARGETED_DEVICE_FAMILY = 2`）。iPadOS 26 以上。Apple シリコンの Mac には「iPad 版」で出す。Vision Pro には出さない | D13・D14・D100。ASC の「Vision Pro の提供」はオフにする【要確認】 |
@@ -161,12 +161,12 @@ Privacy policy: https://kenchan0130.github.io/apps/mojimachi/privacy
 
 | 商品 | 日本語の表示名（D98） | 英語の表示名（案。用語集: すべての文字＝All Letters） | 説明（D98） |
 |---|---|---|---|
-| katakana | カタカナ | Katakana | カタカナが書けます（【要更新】カタカナのことばを入れるなら足す） |
-| abc | アルファベットと数字 | Alphabet and Numbers | アルファベットと数字が書けます（【要更新】えいごの ことばを入れるなら足す） |
+| katakana | カタカナ | Katakana | カタカナの字が書けます。（ことばを入れたら足す） |
+| abc | アルファベットと数字 | Alphabet and Numbers | アルファベットと数字の字が書けます。（えいごのことばを入れたら足す） |
 | all | すべての文字 | All Letters | いまある文字と、これから追加する文字が、すべて使えます。 |
 | all.owner1 | すべての文字（1つ購入済みの方） | All Letters (One Pack Owned) | 同上 |
 
-- **コードの `Mojimachi.storekit` の表示名・説明は D98 とずれている**（「ぜんぶ ひらく」「かたかな…ことばが かけます」。下のメモ）。ASC に入れる名前を決めて、コードと設計をそろえる（`release-checklist.md` の「見つかった問題」）。
+- **名前と説明は D98 にそろえた（D183）**: `Mojimachi.storekit`・購入画面（`PurchaseView.swift`。StoreKit の名前を優先して出す）・この表。説明は、いまのアプリにある中身（字）だけを書く。カタカナ・ABC のことば、すうじ あそび、ずかんは、作ってから足す（D72）。ASC にも、この名前と説明を入れる【人】。
 - 各商品に、審査用のスクリーンショット（保護者用の購入画面）が要る。
 - 子どもの画面に価格・購入は出ない。購入は保護者用の画面の「購入」だけ（確認済み。§8）。
 
@@ -193,10 +193,10 @@ App Store Connect の「App のプライバシー」。D73・D103・D124・D148 
 |---|---|
 | 外へ通信するコード（`URLSession` など） | アプリ本体にはない。通信は Apple の部品（StoreKit・CloudKit）と、アプリ内ブラウザで開くリンクだけ |
 | 分析・広告・追跡のライブラリ | なし（`docs/dependencies.md` の一覧は TCA と同じ作者のライブラリ、Apple のライブラリだけ） |
-| Sentry | **まだ入っていない**。保護者用の画面のスイッチ（`sendsCrashReports`）はあるが、何も送らない |
+| Sentry | **入れた**（D183。`sentry-cocoa` 9.36.0）。DSN が空のビルドと DEBUG では動かない。動くときも、落ちたときの情報だけ。ID・ユーザー・端末の名前・操作の記録・性能・セッション・録画は送らない（`CrashReportingTests`）。オフにするスイッチはない |
 | MetricKit | 使っていない |
 | 外部リンク | `SupportView.swift` の 5 つだけ（Google フォーム3つ、サポート、プライバシーポリシー）。すべて保護者用の画面の中 |
-| 権限の確認（位置・カメラ・マイク・写真・連絡先） | なし。`NSFaceIDUsageDescription` もない（下の「見つかった問題」） |
+| 権限の確認（位置・カメラ・マイク・写真・連絡先） | なし。`NSFaceIDUsageDescription` は日本語で入れた（D183。保護者用の確認の「iPad のパスコードも求める」用） |
 | iCloud | 自分の非公開データベースだけ（`privateCloudDatabase`）。共有・公開データベースは使わない（D148） |
 
 ### 答え
@@ -208,7 +208,7 @@ App Store Connect の「App のプライバシー」。D73・D103・D124・D148 
 
 | データの種類 | 収集 | ユーザに関連付け | 追跡 | 目的 | 根拠 |
 |---|---|---|---|---|---|
-| 診断 > クラッシュデータ | はい（Sentry を入れたとき） | **いいえ** | いいえ | アプリの機能 | D103・D123。ID・IP・パンくず・性能・セッション・録画は送らない。**Sentry を入れないなら、この行は「収集しない」にする** |
+| 診断 > クラッシュデータ | **はい**（Sentry。D183） | **いいえ**（ユーザに関連付けない） | **いいえ**（追跡に使わない） | アプリの機能 | D103・D123・D183。ID・IP・パンくず・性能・セッション・録画は送らない。`PrivacyInfo.xcprivacy` の `NSPrivacyCollectedDataTypeCrashData`（Linked: false・Tracking: false・AppFunctionality）と同じ答え。**診断のうち「性能データ」「その他の診断データ」は、「いいえ」**（Sentry の部品は自分の申告にこれらを含むが、このアプリは送る設定にしていない） |
 | 連絡先情報 > メールアドレス | はい（任意。フォームに書いたときだけ） | はい | いいえ | アプリの機能（お客様サポート） | D124。既存アプリの申告に合わせる【要確認】 |
 | ユーザコンテンツ > その他のユーザコンテンツ | はい（フォームの本文） | はい | いいえ | アプリの機能（お客様サポート） | D124【要確認】 |
 
@@ -253,20 +253,20 @@ App Store Connect の「App のプライバシー」。D73・D103・D124・D148 
 | 決まり | このアプリ | 確かめた場所 | 状態 |
 |---|---|---|---|
 | 第三者の広告を入れない | 入れていない | 依存の一覧、ソース検索 | OK |
-| 第三者の分析を入れない | 入っていない。ただし **Sentry を入れると、クラッシュの情報を第三者に送る**。1.3 で却下される報告がある（D103） | | 【要確認】却下に備え、外した版をすぐ出せる作りにする（D123） |
-| 個人情報・端末の情報を第三者に送らない | 通信は Apple の部品だけ。例外は Google フォーム（保護者が任意に送る。フォームの URL に、アプリの版と iPadOS の版が入る） | `FeedbackForm.swift` | 【要確認】審査用のメモで説明する |
+| 第三者の分析を入れない | 分析は入っていない。ただし **Sentry が、落ちたときだけクラッシュの情報を第三者（Sentry）に送る**（D183）。1.3 で却下される報告がある（D103） | `CrashReporting.swift` | 【要確認】審査用のメモに書く。却下に備え、外した版をすぐ出せる作りにする（D123。`CrashReporting.start()` を消して依存を外すだけ） |
+| 個人情報・端末の情報を第三者に送らない | 通信は Apple の部品だけ。例外は、クラッシュの情報（Sentry。端末の名前・ID は消す）と、Google フォーム（保護者が任意に送る。**フォームの URL に、アプリの版・iPadOS の版は入れない**。D183 で直した） | `FeedbackForm.swift`・`CrashReporting.swift` | OK。審査用のメモで説明する |
 | 外部リンクの前に保護者用の確認 | 5つのリンクはすべて保護者用の画面の中。入口は歯車の2秒長押し＋かけ算 | `SupportView.swift`・`ContentView.swift` | OK。ただし下の2点に注意 |
 | 購入の前に保護者用の確認 | 購入は保護者用の画面の「購入」だけ。子どもの画面に価格も購入ボタンもない | `PurchaseView.swift`・`LockScreenView` | OK。ただし下の2点に注意 |
 | 保護者用の確認が子どもに解けない | 漢数字の「2桁×1桁」のかけ算。3回まちがえると30秒待つ | `ParentGateKit` | OK |
-| 保護者用の画面の有効時間（5分）が守られる | **守られていない**。画面を開いたあと、5分たっても自動で閉じない | `ContentView.swift`（`showsParentArea`）・`ParentAreaView.swift` | **直す必要あり**（「見つかった問題」） |
+| 保護者用の画面の有効時間（5分）が守られる | 守られる（D183）。操作のたびに5分先へ延び、開いているあいだ1秒ごとと、アプリに戻ったときに確かめて閉じる | `ParentGateFeature.swift`・`ContentView.swift`・`ParentAreaView.swift`。テスト: `ParentGateFeatureTests`・`ParentAreaTimeoutUITests` | OK |
 | 権限（位置・カメラ・マイクなど）を求めない | 求めない | Info.plist | OK |
 | プッシュ通知で子どもを誘導しない | 通知は使わない。`remote-notification` は iCloud 同期の裏の更新のためだけ（許可の確認は出ない） | `Info-extra.plist` | OK。審査用のメモに書く |
 | プライバシーポリシーがある・アプリの中からも行ける | 保護者用の画面の「サポート」にリンク。ページは未公開 | `SupportView.swift` | 【TODO】ページを公開する |
 | 子どもの画面にエラー・価格・「かう」を出さない | 出さない | D3・D117 | OK |
 | 評価のお願いを子どもに出さない | 保護者用の画面の「アプリを評価する」だけ | `SupportView.swift` | OK |
 | 収集を最小にする | 呼び名は任意。年齢・学年・生年月日は聞かない | `Profile.swift` | OK |
-| プライバシーマニフェスト（`PrivacyInfo.xcprivacy`） | **ない** | | **直す必要あり**（「見つかった問題」） |
-| アプリのアイコン | **画像がない**（`AppIcon.appiconset` は設定だけ） | | **直す必要あり** |
+| プライバシーマニフェスト（`PrivacyInfo.xcprivacy`） | 入れた（D183。`App/Mojimachi/PrivacyInfo.xcprivacy`。`UserDefaults`・`CA92.1`、クラッシュデータ） | `PrivacyInfo.xcprivacy` | OK。アーカイブしたあと、Xcode の「プライバシーレポート」で、Sentry の部品の分もまとまって見えることを確かめる【人】 |
+| アプリのアイコン | **画像がない**（別の作業で描く。P1） | | **直す必要あり** |
 
 ## 9. 審査用のメモ（App Review Information の下書き）
 
@@ -288,7 +288,7 @@ EXTERNAL LINKS
 All links are in Parent Area > Support, behind the parental gate: the support page, the privacy policy, and a Google Form for contact. The form opens in an in-app browser. A parent decides whether to send it.
 
 DATA
-No ads. No third-party analytics. [Only if Sentry ships: Crash information only (crash location, app and OS versions, device model family) is sent to Sentry. No user ID, no IP address stored, no breadcrumbs, no sessions, no screen recordings. A parent can turn it off in Parent Area > Safety Settings.]
+No ads. No third-party analytics. Crash information only (crash location, app and OS versions, device model family) is sent to Sentry, only when the app crashes. No user ID, no IP address stored, no breadcrumbs, no sessions, no screen recordings. It is not linked to any user and not used for tracking. The contact form link carries no app version or device information.
 Learning records are stored on the device and, if enabled, in the user's own iCloud private database (CloudKit). The developer cannot read them.
 The app uses the remote-notification background mode only for CloudKit sync. It never asks for notification permission.
 
@@ -300,7 +300,7 @@ All products support Family Sharing and work with Ask to Buy.
 
 | 項目 | 内容 |
 |---|---|
-| 輸出コンプライアンス | 標準の暗号（HTTPS・CloudKit）だけ。免除。`ITSAppUsesNonExemptEncryption = NO` を Info.plist に入れると、毎回の質問が出ない（コードの変更。いまは入っていない） |
+| 輸出コンプライアンス | 標準の暗号（HTTPS・CloudKit）だけ。免除。`ITSAppUsesNonExemptEncryption = NO` を Info.plist に入れた（`INFOPLIST_KEY_ITSAppUsesNonExemptEncryption`。D183）。毎回の質問は出ない |
 | コンテンツの権利 | 第三者のコンテンツを含む → はい。権利は持っている（書体 OFL、文字のデータ OFL/MIT、効果音、声 VOICEVOX:猫使ビィ。出どころは「このアプリについて」と `Content/*/provenance.csv`）。声と効果音の規約（表示の義務）を公開前に読み直す（D81）【人】 |
 | 広告識別子（IDFA） | 使わない |
 | アクセシビリティの表示（Nutrition label） | VoiceOver・文字の大きさ・字幕など、実際に確かめたものだけ申告する（D36）【要確認】 |

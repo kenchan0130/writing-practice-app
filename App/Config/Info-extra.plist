@@ -4,6 +4,8 @@
 <dict>
 	<key>MojimachiCloudKitEnabled</key>
 	<string>$(CODE_SIGNING_ALLOWED)</string>
+	<key>SentryDSN</key>
+	<string>$(SENTRY_DSN)</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>KleeOne-Regular.ttf</string>

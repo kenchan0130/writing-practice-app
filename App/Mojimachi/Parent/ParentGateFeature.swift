@@ -39,9 +39,21 @@ nonisolated struct ParentGateFeature {
     var message: String?
     /// 画面を閉じてよい結果。画面がこれを見て閉じる。
     var outcome: Outcome?
+    /// 保護者用の画面を開いたまま5分たって、確認が切れた（D49）。画面がこれを見て閉じる。
+    var parentAreaExpired = false
 
-    init(gate: ParentGate = ParentGate(random: { Double.random(in: 0..<1) })) {
+    init(gate: ParentGate = Self.makeGate()) {
       self.gate = gate
+    }
+
+    static func makeGate() -> ParentGate {
+      var validity = ParentGate.validSeconds
+      #if DEBUG
+        // UI テスト用: `-parentValiditySeconds 3` で有効な時間を縮める。
+        let override = UserDefaults.standard.double(forKey: "parentValiditySeconds")
+        if override > 0 { validity = override }
+      #endif
+      return ParentGate(random: { Double.random(in: 0..<1) }, validity: validity)
     }
 
     static func == (lhs: State, rhs: State) -> Bool {
@@ -49,6 +61,7 @@ nonisolated struct ParentGateFeature {
         && lhs.gate.question == rhs.gate.question && lhs.gate.mistakes == rhs.gate.mistakes
         && lhs.gate.lockedUntil == rhs.gate.lockedUntil
         && lhs.gate.lastActivity == rhs.gate.lastActivity
+        && lhs.parentAreaExpired == rhs.parentAreaExpired
     }
   }
 
@@ -67,6 +80,12 @@ nonisolated struct ParentGateFeature {
     case passed
     /// 確認の有効を終える（保護者用の画面を閉じたとき）。
     case close
+    /// 保護者用の画面が開いた。
+    case parentAreaOpened
+    /// 保護者用の画面で操作した（有効な時間を5分先へ延ばす。D49）。
+    case touched
+    /// 保護者用の画面を開いているあいだ、時々呼ぶ。切れていたら `parentAreaExpired` にする。
+    case checkExpiry
   }
 
   @Dependency(\.date) var date
@@ -109,6 +128,30 @@ nonisolated struct ParentGateFeature {
 
       case .close:
         state.gate.close()
+        return .none
+
+      case .parentAreaOpened:
+        state.parentAreaExpired = false
+        #if DEBUG
+          // 確かめ用の `-openParent` は確認を通らずに開くので、通ったことにする。
+          let now = date.now.timeIntervalSince1970
+          if UserDefaults.standard.string(forKey: "openParent") != nil,
+            !state.gate.isOpen(at: now)
+          {
+            _ = state.gate.answer(state.gate.question.answer, at: now)
+          }
+        #endif
+        return .none
+
+      case .touched:
+        state.gate.touch(at: date.now.timeIntervalSince1970)
+        return .none
+
+      case .checkExpiry:
+        if !state.gate.isOpen(at: date.now.timeIntervalSince1970) {
+          state.gate.close()
+          state.parentAreaExpired = true
+        }
         return .none
       }
     }

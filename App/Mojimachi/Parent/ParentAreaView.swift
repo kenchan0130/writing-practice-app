@@ -6,6 +6,8 @@ import SwiftUI
 /// 保護者用の画面（D116 の8つの項目の枠。試作）。iPad の設定アプリと同じ一覧の作り。
 struct ParentAreaView: View {
   var onClose: () -> Void
+  /// 操作があったとき（確認の有効な時間を延ばす。D49）。
+  var onActivity: () -> Void = {}
   @Bindable private var store = ProgressStore.shared
   @State private var path: [String] = {
     #if DEBUG
@@ -45,6 +47,9 @@ struct ParentAreaView: View {
         ToolbarItem(placement: .confirmationAction) { Button("閉じる", action: onClose) }
       }
     }
+    // 触れるたびに、有効な時間を延ばす。ほかの操作を邪魔しない形で見るだけ。
+    .simultaneousGesture(
+      DragGesture(minimumDistance: 0).onChanged { _ in onActivity() })
   }
 
   /// 子どもの「おねがい」のお知らせ（D54・D116・D160）。いつ押したか（最新の日）だけ出し、回数は出さない。
@@ -120,9 +125,10 @@ struct ParentAreaView: View {
         )
       }
       Section {
-        Toggle("不具合の情報を送る", isOn: $store.sendsCrashReports)
-      } footer: {
-        Text("アプリが落ちたときの情報だけを送ります。名前や端末の ID は送りません。")
+        Text("アプリが落ちたときだけ、落ちた場所・アプリの版・iPadOS の版・iPad の種類を、品質を直すために送ります。名前・記録・子どもが書いた線・端末の ID は送りません。くわしくはプライバシーポリシーをごらんください。")
+          .font(.footnote)
+      } header: {
+        Text("不具合の情報")
       }
     }
     .navigationTitle("安心のための設定")

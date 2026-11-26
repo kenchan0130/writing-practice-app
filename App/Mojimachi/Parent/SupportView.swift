@@ -14,7 +14,10 @@ struct SupportView: View {
         formLink("ご意見", kind: .opinion)
         formLink("施設でお使いの方へ", kind: .facility)
       } footer: {
-        Text("お問い合わせのフォームを開きます。アプリの版と iPadOS の版は、最初から入っています。")
+        Text("お問い合わせのフォームを開きます。アプリの版や iPad の情報は、こちらからは送りません。必要なときだけ、下の文を長押しでコピーして書き足してください。")
+      }
+      Section {
+        Text(deviceInfo).textSelection(.enabled)
       }
       Section {
         Link("サポートページ", destination: PublicPages.support)
@@ -32,6 +35,13 @@ struct SupportView: View {
     "設定: \(ProgressStore.shared.preset.rawValue)"
   }
 
+  /// 保護者が自分で書き足すための文。フォームの URL には入れない。
+  private var deviceInfo: String {
+    FeedbackForm.deviceInfoText(
+      appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "",
+      osVersion: "iPadOS \(UIDevice.current.systemVersion)")
+  }
+
   private func formLink(_ title: String, kind: FeedbackForm.Kind, detail: String? = nil)
     -> some View
   {
@@ -39,9 +49,7 @@ struct SupportView: View {
       title,
       destination: FeedbackForm.url(
         kind: kind,
-        context: FeedbackForm.Context(
-          appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "",
-          osVersion: "iPadOS \(UIDevice.current.systemVersion)", detail: detail)))
+        context: FeedbackForm.Context(detail: detail)))
   }
 }
 

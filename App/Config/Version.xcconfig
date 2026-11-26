@@ -2,3 +2,8 @@
 // リリースのビルドでは、Xcode Cloud がタグ（v1.2.3）から書き換える（ci_scripts/ci_pre_xcodebuild.sh）。
 // 手元のビルドは 0.0.0 のまま。ビルド番号は Xcode Cloud が付ける。
 MARKETING_VERSION = 0.0.0
+
+// クラッシュの報告（Sentry）の送り先（D183）。空なら Sentry を動かさず、何も送らない。
+// リリースのビルドで、Xcode Cloud の環境変数 SENTRY_DSN で上書きする（人の作業。docs/release/release-checklist.md の S1）。
+// 値に `//` があると、xcconfig ではコメントになる。書くときは `https:/$()/…` のようにする。
+SENTRY_DSN =

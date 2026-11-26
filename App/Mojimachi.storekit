@@ -8,8 +8,8 @@
       "internalID": "b2ee45006a",
       "localizations": [
         {
-          "description": "カタカナ・ABC・すうじと、これから ふえる もじの パックが つかえます",
-          "displayName": "ぜんぶ ひらく（これからの もじも）",
+          "description": "いまある文字と、これから追加する文字が、すべて使えます。",
+          "displayName": "すべての文字",
           "locale": "ja"
         }
       ],
@@ -23,8 +23,8 @@
       "internalID": "8cb79606b8",
       "localizations": [
         {
-          "description": "パックを 1つ もっている ひと むけの「ぜんぶ ひらく」です",
-          "displayName": "ぜんぶ ひらく（パックを 1つ もっている ひと）",
+          "description": "いまある文字と、これから追加する文字が、すべて使えます。",
+          "displayName": "すべての文字（1つ購入済みの方）",
           "locale": "ja"
         }
       ],
@@ -38,8 +38,8 @@
       "internalID": "f19f4937bb",
       "localizations": [
         {
-          "description": "カタカナと カタカナの ことばが かけます",
-          "displayName": "カタカナ パック",
+          "description": "カタカナの字が書けます。",
+          "displayName": "カタカナ",
           "locale": "ja"
         }
       ],
@@ -53,8 +53,8 @@
       "internalID": "4dc00aa698",
       "localizations": [
         {
-          "description": "アルファベット・すうじ・えいごの ことばが かけます",
-          "displayName": "ABC・すうじ パック",
+          "description": "アルファベットと数字の字が書けます。",
+          "displayName": "アルファベットと数字",
           "locale": "ja"
         }
       ],

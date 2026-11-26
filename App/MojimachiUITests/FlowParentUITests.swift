@@ -42,3 +42,36 @@ final class FlowParentUITests: MojimachiUITestCase {
       app.navigationBars["保護者用の画面"].waitForExistence(timeout: 10), "保護者用の画面が開かない")
   }
 }
+
+/// 保護者用の画面は、操作がなければ閉じる（D49）。有効な時間は `-parentValiditySeconds` で縮める。
+final class ParentAreaTimeoutUITests: MojimachiUITestCase {
+  override var extraLaunchArguments: [String] { ["-parentValiditySeconds", "10"] }
+
+  @MainActor func testParentAreaClosesAfterInactivity() {
+    openGate()
+    answerGate()
+    let bar = app.navigationBars["保護者用の画面"]
+    XCTAssertTrue(bar.waitForExistence(timeout: 10), "保護者用の画面が開かない")
+    // 何もしないと、閉じてホームへ戻る。
+    let gone = NSPredicate(format: "exists == false")
+    expectation(for: gone, evaluatedWith: bar)
+    waitForExpectations(timeout: 30)
+    XCTAssertTrue(button("もじ").waitForExistence(timeout: 10), "閉じたあとホームへ戻らない")
+    // 開き直すには、また確認が要る。
+    openGate()
+  }
+
+  @MainActor func testTouchingKeepsParentAreaOpen() {
+    openGate()
+    answerGate()
+    let bar = app.navigationBars["保護者用の画面"]
+    XCTAssertTrue(bar.waitForExistence(timeout: 10), "保護者用の画面が開かない")
+    // 有効な時間（10秒）より長く、2秒おきに触れ続ける。並列で遅くなっても間が10秒を超えないよう、間を短くとる。
+    let start = Date()
+    while Date().timeIntervalSince(start) < 16 {
+      Thread.sleep(forTimeInterval: 2)
+      app.swipeUp(velocity: .fast)
+    }
+    XCTAssertTrue(bar.exists, "操作しているのに閉じた")
+  }
+}

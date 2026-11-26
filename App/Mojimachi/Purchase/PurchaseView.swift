@@ -26,9 +26,9 @@ struct PurchaseView: View {
         ForEach(purchases.entitlements.offers, id: \.self) { id in
           HStack {
             VStack(alignment: .leading, spacing: 4) {
-              Text(Self.title(id)).font(.headline)
+              Text(purchases.products[id]?.displayName ?? Self.title(id)).font(.headline)
               if id.isAllOpen {
-                Text("これから増える文字のパックも、追加の料金なしで使えます（文字以外の機能は含みません）")
+                Text("いまある文字と、これから追加する文字が、すべて使えます。")
                   .font(.caption).foregroundStyle(.secondary)
               }
             }
@@ -74,10 +74,10 @@ struct PurchaseView: View {
 
   static func title(_ id: ProductID) -> String {
     switch id {
-    case .allOpen: "すべての文字（これから追加する文字も）"
-    case .allOpenForOneOwner: "すべての文字（パックを1つ購入済みの方）"
-    case .katakanaPack: "カタカナパック"
-    case .abcPack: "ABC・数字パック"
+    case .allOpen: "すべての文字"
+    case .allOpenForOneOwner: "すべての文字（1つ購入済みの方）"
+    case .katakanaPack: "カタカナ"
+    case .abcPack: "アルファベットと数字"
     }
   }
 }

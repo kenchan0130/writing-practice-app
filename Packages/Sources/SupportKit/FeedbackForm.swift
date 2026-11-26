@@ -39,15 +39,14 @@ public enum FeedbackForm {
     }
   }
 
+  /// フォームの URL に入れるもの。**端末の情報（アプリの版・OS の版・機種）は入れない**
+  /// （Kids の 1.3。URL は開いた時点で Google に届くため）。版は、保護者が自分で書き足せるよう
+  /// 画面に出して、コピーできるようにする（`deviceInfoText`）。
   public struct Context: Sendable {
-    public var appVersion: String
-    public var osVersion: String
     /// 判定の報告のときの、字と判定の設定など（短く）。
     public var detail: String?
 
-    public init(appVersion: String, osVersion: String, detail: String? = nil) {
-      self.appVersion = appVersion
-      self.osVersion = osVersion
+    public init(detail: String? = nil) {
       self.detail = detail
     }
   }
@@ -55,13 +54,17 @@ public enum FeedbackForm {
   /// 「アプリの情報」の欄（1項目1行）。
   public static func appInfo(kind: Kind, context: Context) -> String {
     [
-      "アプリ: もじまち \(context.appVersion)",
+      "アプリ: もじまち",
       "種類: \(kind.label)",
       context.detail,
-      context.osVersion,
     ]
     .compactMap { $0 }
     .joined(separator: "\n")
+  }
+
+  /// 保護者が、よければフォームに書き足すための文。**URL には入れない。**
+  public static func deviceInfoText(appVersion: String, osVersion: String) -> String {
+    "アプリの版: \(appVersion) / \(osVersion)"
   }
 
   /// 値を入れた状態で開くフォームの URL。
