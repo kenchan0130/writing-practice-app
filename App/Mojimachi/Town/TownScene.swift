@@ -30,6 +30,13 @@ final class TownScene: SKScene {
   private var skyStart: Date?
   private var shownSky: SkyForecast?
   private var skyNodes: [SKNode] = []
+  /// 体のことばを書いた記録と、動きを見せた時刻（D175）。こうえんの主人公（いれば）と、その動きの前に流れていた動き。
+  private var bodyRecords: [BodyRecord] = []
+  private var bodyPlayedAt: Date?
+  /// 動きの途中でまちを作り直したら（大きさが決まった直後など）、はじめから見せなおす。
+  private var bodyInProgress = false
+  private var playerNode: SKSpriteNode?
+  private var playerScript: SKAction?
   private var worldWidth: CGFloat = 0
   private let cameraNode = SKCameraNode()
   private var panStartX: CGFloat = 0
@@ -75,7 +82,7 @@ final class TownScene: SKScene {
       let roaming = TownLayout.shown(
         all.filter {
           $0.kind != .clothes && $0.kind != .scenery && $0.kind != .swimmer && $0.kind != .sky
-            && $0.kind != .plaything
+            && $0.kind != .plaything && $0.kind != .bodyAction
         })
       let scenery = TownLayout.shownScenery(all.filter { $0.kind == .scenery })
       let swimmers = TownLayout.shownSwimmers(all.filter { $0.kind == .swimmer })
@@ -139,6 +146,12 @@ final class TownScene: SKScene {
     cameraNode.removeAllChildren()
     skyNodes = []
     shownSky = nil
+    playerNode = nil
+    playerScript = nil
+    if bodyInProgress {
+      bodyPlayedAt = nil
+      bodyInProgress = false
+    }
     let h = size.height
     let objectSize = unit * 0.23
     let plan = TownLayout.make(
@@ -184,6 +197,72 @@ final class TownScene: SKScene {
       world.addChild(makeObject(object, slot: slot, objectSize: objectSize))
     }
     applySky()
+    applyBodyAction(objectSize: objectSize)
+  }
+
+  // MARK: 主人公が動いて見せる（D175）
+
+  /// 体のことばを書いた記録を渡す。10分の間に書いたことばの動きを、まちが開いたとき1回だけ、主人公が見せる（`BodyAction`）。
+  func setBody(_ records: [BodyRecord]) {
+    bodyRecords = records
+    guard layer == .town else { return }
+    applyBodyAction(objectSize: unit * 0.23)
+  }
+
+  /// こうえんの主人公がいれば、その子が。いなければ、まちの左はしに主人公が出てきて、動きを見せて、帰る。
+  private func applyBodyAction(objectSize: CGFloat) {
+    guard layer == .town, size.width > 0, size.height > 0,
+      let world = childNode(withName: "world"),
+      let motion = BodyAction.pending(records: bodyRecords, now: Date(), playedAt: bodyPlayedAt),
+      let poses = BodyMotionFX.poses(for: mainCharacter)
+    else { return }
+    bodyPlayedAt = Date()
+    bodyInProgress = true
+    let reduce = reduceMotion
+    let seconds = BodyMotionFX.duration(of: motion, reduceMotion: reduce)
+    if let player = playerNode {
+      // こうえんの主人公: いつもの動きを止めて、その動きを見せてから、いつもの動きにもどる。
+      let script = playerScript
+      player.removeAllActions()
+      player.texture = poses.normal
+      player.run(
+        .sequence([
+          .wait(forDuration: 0.4),
+          .run { BodyMotionFX.play(motion, hero: player, poses: poses, reduceMotion: reduce) },
+          .wait(forDuration: seconds + 0.6),
+          .run { [weak self] in
+            self?.bodyInProgress = false
+            if let script { player.run(script) }
+          },
+        ]))
+      return
+    }
+    // まちの左はし（はじめに見えるところ）に、立って見せる。
+    let hero = SKSpriteNode(texture: poses.normal)
+    hero.size = CGSize(width: objectSize * 1.1, height: objectSize * 1.1)
+    hero.anchorPoint = CGPoint(x: 0.5, y: 0.04)
+    // 見えているはんいの左がわ（カメラの位置から決める）。
+    let visibleLeft = cameraNode.position.x - size.width / 2
+    hero.position = CGPoint(x: visibleLeft + size.width * 0.22, y: size.height * 0.17)
+    hero.zPosition = 20 - 0.17 * 20 + 0.5
+    hero.alpha = 0
+    hero.setScale(0.6)
+    world.addChild(hero)
+    let enter = SKAction.group([
+      .fadeIn(withDuration: 0.3),
+      {
+        let pop = SKAction.scale(to: 1, duration: reduce ? 0.01 : 0.3)
+        pop.timingMode = .easeOut
+        return pop
+      }(),
+    ])
+    hero.run(
+      .sequence([
+        enter, .wait(forDuration: 0.3),
+        .run { BodyMotionFX.play(motion, hero: hero, poses: poses, reduceMotion: reduce) },
+        .wait(forDuration: seconds + 0.8), .fadeOut(withDuration: 0.5),
+        .run { [weak self] in self?.bodyInProgress = false }, .removeFromParent(),
+      ]))
   }
 
   // MARK: 空が変わる（D172）
@@ -246,7 +325,7 @@ final class TownScene: SKScene {
     switch kind {
     case .vehicle: .vehicle
     case .flyer: .flyer
-    case .animal, .clothes, .scenery, .swimmer, .sky, .plaything: .animal
+    case .animal, .clothes, .scenery, .swimmer, .sky, .plaything, .bodyAction: .animal
     }
   }
 
@@ -1147,6 +1226,7 @@ final class TownScene: SKScene {
     player.xScale = stops[0].faceLeft ? -1 : 1
     player.zPosition = 20 - (stops[0].point.y / h) * 20 + 0.5
     world.addChild(player)
+    playerNode = player
     guard !reduceMotion else { return }
     func bounce() -> SKAction {
       let up = SKAction.moveBy(x: 0, y: h * 0.05, duration: 0.16)
@@ -1201,7 +1281,9 @@ final class TownScene: SKScene {
       script.append(
         .run { [weak player] in player?.zPosition = 20 - (first.point.y / h) * 20 + 0.5 })
     }
-    player.run(.repeatForever(.sequence(script)))
+    let loop = SKAction.repeatForever(.sequence(script))
+    playerScript = loop
+    player.run(loop)
   }
 
   // MARK: クローゼット

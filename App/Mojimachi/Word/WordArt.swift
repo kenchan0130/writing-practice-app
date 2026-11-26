@@ -18,6 +18,7 @@ enum WordArt {
   private static let flyerColor = UIColor(red: 0.3, green: 0.62, blue: 0.9, alpha: 1)
   private static let swimmerColor = UIColor(red: 0.2, green: 0.6, blue: 0.85, alpha: 1)
   private static let playColor = UIColor(red: 0.95, green: 0.6, blue: 0.25, alpha: 1)
+  private static let bodyColor = UIColor(red: 0.93, green: 0.45, blue: 0.5, alpha: 1)
   private static let skyColor = UIColor(red: 0.35, green: 0.55, blue: 0.9, alpha: 1)
   private static let sceneryColor = UIColor(red: 0.4, green: 0.7, blue: 0.32, alpha: 1)
 
@@ -54,6 +55,8 @@ enum WordArt {
     "いけ": "ike", "くさ": "kusa", "まつ": "matsu", "どんぐり": "donguri", "はっぱ": "happa",
     "きのこ": "kinoko", "いえ": "ie", "がっこう": "gakkou", "びょういん": "byouin",
     "おしろ": "oshiro", "しんごう": "shingou", "ふみきり": "fumikiri", "がいとう": "gaitou",
+    "て": "te", "あし": "ashi", "め": "me", "みみ": "mimi", "くち": "kuchi", "あたま": "atama",
+    "おなか": "onaka", "ほっぺ": "hoppe",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
@@ -67,6 +70,7 @@ enum WordArt {
       case .swimmer: swimmerColor
       case .sky: skyColor
       case .plaything: playColor
+      case .bodyAction: bodyColor
       }
     return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }

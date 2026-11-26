@@ -8,6 +8,8 @@ lines.csv の列: id, text, style(normal|ochitsuki), reading, aliases
   text      アプリが `VoicePlayer` に渡す文字。字幕にも出る。
   reading   空でなければ、これを読ませる（は→ハ、ちいさい つ など）。
   aliases   同じ声を使う別の文字（カタカナなど。空白なしで1字ずつ）。
+  1字のことば（て・め。D175）は、ことば用の行を足さない。字の声（kana_…）と text が同じで、
+  どちらも おちつき・読みの変更なしなので、同じ音になる。同じ文字は1つの声にしか割りふれない。
 やること:
   1. 声は 猫使ビィ。ノーマル（speaker 58）かおちつき（59）。速さ・高さ・抑揚はエンジンの初期値のまま。
   2. 前後の無音を切る・最後を 30ms フェードアウト・モノラル 48kHz。
@@ -104,7 +106,8 @@ def main():
       report.append((name, dur, os.path.getsize(dest), peak, active, rms_ok))
       print(f'{name}: {r["text"]} [{kana}] {dur:.2f}s {os.path.getsize(dest)}B ピーク{peak:.1f} アクティブ{active:.1f}dB{"" if rms_ok else "  ← 要確認"}')
       for key in [r["text"]] + list(r["aliases"]):
-        assert key not in manifest, f"文字がかぶっています: {key}"
+        assert key not in manifest, (
+          f"文字がかぶっています: {key}（1字のことばは、字の声をそのまま使うので、行を足さない）")
         manifest[key] = name
       prov.append([name + ".caf", r["text"], said if r["reading"] else "", SPEAKER, f'{speaker}（{STYLE_NAMES[r["style"]]}）', version, today])
 

@@ -29,6 +29,17 @@ struct TownView: View {
     return store.log.currentWords.map { SkyRecord(word: $0.word, date: $0.date) }
   }
 
+  /// 体のことばを書いた記録（まちで主人公が その動きを見せる。D175）。
+  private var bodyRecords: [BodyRecord] {
+    #if DEBUG
+      // 確かめ用: `-bodyWord て` で、そのことばを いま書いたことにする。
+      if let word = UserDefaults.standard.string(forKey: "bodyWord") {
+        return [BodyRecord(word: word, date: Date())]
+      }
+    #endif
+    return store.log.currentWords.map { BodyRecord(word: $0.word, date: $0.date) }
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(title).font(.learning(40)).foregroundStyle(Theme.ink)
@@ -44,10 +55,14 @@ struct TownView: View {
             scene.setCharacter(store.mainCharacter)
             scene.show(store.placed)
             scene.setSky(skyRecords)
+            scene.setBody(bodyRecords)
           }
           .onChange(of: store.placed) { _, placed in scene.show(placed) }
           .onChange(of: store.mainCharacter) { _, character in scene.setCharacter(character) }
-          .onChange(of: store.log.words) { scene.setSky(skyRecords) }
+          .onChange(of: store.log.words) {
+            scene.setSky(skyRecords)
+            scene.setBody(bodyRecords)
+          }
       }
     }
     .padding(32)

@@ -3,7 +3,7 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "..", "Content", "Art", "words")
 sys.path.insert(0, HERE)
-from lib import Art, mirror, shift, place, fit_params, O, EYE
+from lib import Art, mirror, shift, place, fit_params, O, EYE, SW
 
 RED, RED_D = "#e5534b", "#c9403a"
 YEL, YEL2 = "#f6d36b", "#f7c948"
@@ -2997,6 +2997,207 @@ def bara():
         a.path(d, fill=LEAF1, sw=8)
     a.shine("M150 150 C160 112 192 84 232 78")
     return a
+
+
+# ------------------------------------------------------------- からだ (D175) --
+SKIN, SKIN_D = "#ffd9b8", "#f4b48e"
+HAIR = "#6b4430"
+LIPS, MOUTH_IN, TONGUE = "#ee6a7c", "#7d2c3c", "#f78fa5"
+
+
+def blobs(a, parts, fill):
+    """Draw several shapes as one outlined shape (no outline lines where they overlap).
+    parts: ("c", cx, cy, r) | ("e", cx, cy, rx, ry) | ("t", x1, y1, x2, y2, width) | ("p", d)."""
+    ow = SW * 2
+    for pass_ in (0, 1):
+        for part in parts:
+            kind = part[0]
+            col, sw = (O, ow) if pass_ == 0 else (fill, 0)
+            if kind == "c":
+                a.circle(part[1], part[2], part[3], col, sw=sw, stroke=O)
+            elif kind == "e":
+                a.ellipse(part[1], part[2], part[3], part[4], col, sw=sw, stroke=O)
+            elif kind == "p":
+                a.path(part[1], fill=col, sw=sw, stroke=O)
+            elif kind == "t":
+                x1, y1, x2, y2, w = part[1:]
+                if pass_ == 0:
+                    a.path(f"M{x1} {y1} L{x2} {y2}", sw=w + ow)
+                else:
+                    a.path(f"M{x1} {y1} L{x2} {y2}", stroke=fill, sw=w)
+
+
+def cheeks(a, cx, cy, dx, rx=16, ry=10):
+    for s in (-1, 1):
+        a.ellipse(cx + s * dx, cy, rx, ry, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
+
+
+def eyes(a, cx, cy, gap, r=15):
+    for s in (-1, 1):
+        x = cx + s * gap
+        a.ellipse(x, cy, r, r * 1.2, EYE, sw=0, stroke="none")
+        a.dot(x + 5, cy - 7, r * 0.37, "#ffffff")
+
+
+def smile(a, cx, y, w=14):
+    a.path(f"M{cx-w} {y} C{cx-w/2} {y+w*0.75} {cx+w/2} {y+w*0.75} {cx+w} {y}", sw=8)
+
+
+def note(a, x, y, s=1.0, col="#7a6fe0"):
+    """A little music note (head at x, y)."""
+    a.path(f"M{x+16*s} {y} L{x+16*s} {y-70*s}", sw=9 * s)
+    a.path(f"M{x+16*s} {y-70*s} C{x+30*s} {y-62*s} {x+52*s} {y-58*s} {x+50*s} {y-34*s}", sw=9 * s)
+    a.ellipse(x, y, 20 * s, 15 * s, col, sw=8 * s)
+
+
+@word
+def te():
+    a = Art()
+    # palm and four fingers and the thumb, drawn as one hand
+    blobs(a, [
+        ("t", 256, 330, 256, 372, 200),
+        ("t", 178, 300, 168, 168, 46), ("t", 232, 290, 232, 118, 48),
+        ("t", 288, 296, 296, 142, 46), ("t", 336, 316, 352, 214, 40),
+        ("t", 158, 360, 92, 288, 50),
+    ], SKIN)
+    for x1, y1, x2, y2 in ((168, 166, 168, 150), (232, 116, 232, 98), (296, 140, 296, 124)):
+        pass
+    eyes(a, 256, 352, 42)
+    cheeks(a, 256, 384, 70)
+    smile(a, 256, 380)
+    # little shine on the palm
+    a.shine("M196 300 C192 282 196 262 206 248")
+    # waving marks
+    a.path("M404 150 C426 176 428 212 410 240", sw=9)
+    a.path("M436 122 C468 160 470 220 442 262", sw=9)
+    return a
+
+
+@word
+def ashi():
+    a = Art()
+    # the sole of a bare foot: five round toes behind the foot, and a little face
+    for cx, cy, r in ((172, 200, 50), (244, 166, 38), (300, 172, 34), (346, 192, 30), (380, 224, 26)):
+        a.circle(cx, cy, r, SKIN)
+    a.ellipse(256, 346, 118, 140, SKIN)
+    a.ellipse(256, 412, 70, 34, SKIN_D, sw=0, stroke="none", **{"fill-opacity": "0.5"})
+    eyes(a, 256, 330, 42)
+    cheeks(a, 256, 372, 74)
+    smile(a, 256, 368)
+    a.shine("M162 300 C158 340 164 372 178 396")
+    return a
+
+
+@word
+def me():
+    a = Art()
+    # eyebrow, white of the eye, iris, pupil, shine and lashes
+    a.path("M96 150 C150 70 360 66 416 150", sw=18, stroke=HAIR)
+    a.path("M70 270 C130 168 382 168 442 270 C382 372 130 372 70 270 Z", fill=WHITE)
+    a.circle(256, 268, 84, "#8fc9a8")
+    a.circle(256, 268, 58, "#5da98a", sw=0, stroke="none")
+    a.circle(256, 268, 36, EYE, sw=0, stroke="none")
+    a.circle(228, 238, 20, WHITE, sw=0, stroke="none")
+    a.circle(284, 296, 10, WHITE, sw=0, stroke="none")
+    a.path("M70 270 C130 168 382 168 442 270", sw=16)
+    for x1, y1, x2, y2 in ((118, 216, 74, 176), (176, 188, 150, 140), (336, 188, 362, 140), (394, 216, 438, 176)):
+        a.path(f"M{x1} {y1} L{x2} {y2}", sw=12)
+    return a
+
+
+@word
+def mimi():
+    a = Art()
+    # the ear, its curls, and a few music notes
+    blobs(a, [
+        ("p", "M280 90 C380 80 430 170 400 270 C380 340 340 360 330 410 C322 460 262 470 240 430 "
+              "C220 394 210 360 210 300 C210 190 220 100 280 90 Z"),
+    ], SKIN)
+    a.path("M286 138 C340 136 366 190 346 250 C334 288 296 296 292 340", sw=10, stroke=SKIN_D)
+    a.ellipse(284, 330, 30, 20, SKIN_D, sw=0, stroke="none")
+    a.path("M296 186 C316 190 322 214 310 236", sw=8, stroke=SKIN_D)
+    a.ellipse(310, 400, 22, 14, CHEEK, sw=0, stroke="none", **{"fill-opacity": "0.75"})
+    a.shine("M246 150 C236 190 234 226 238 262")
+    note(a, 96, 190, 1.0)
+    note(a, 130, 350, 0.8, "#f0a23c")
+    return a
+
+
+@word
+def kuchi():
+    a = Art()
+    # smiling open mouth: lips, dark inside, teeth, tongue
+    a.path("M66 214 C122 184 196 204 256 238 C316 204 390 184 446 214 C446 346 360 440 256 440 "
+           "C152 440 66 346 66 214 Z", fill=LIPS)
+    a.path("M112 240 C170 224 220 250 256 266 C292 250 342 224 400 240 C392 330 330 396 256 396 "
+           "C182 396 120 330 112 240 Z", fill=MOUTH_IN)
+    a.path("M142 250 C190 242 226 262 256 276 C286 262 322 242 370 250 C368 270 360 290 346 300 "
+           "C316 286 286 312 256 318 C226 312 196 286 166 300 C152 290 144 270 142 250 Z",
+           fill=WHITE, sw=7)
+    a.ellipse(256, 370, 70, 40, TONGUE, sw=0, stroke="none")
+    a.path("M256 334 L256 372", stroke="#e0607a", sw=7)
+    a.shine("M104 222 C140 212 170 216 196 226")
+    return a
+
+
+@word
+def atama():
+    a = Art()
+    # a child's head: ears, round face, hair with a tuft, eyes and a smile
+    blobs(a, [("c", 90, 300, 40), ("c", 422, 300, 40), ("e", 256, 290, 168, 172)], SKIN)
+    a.circle(90, 300, 20, SKIN_D, sw=0, stroke="none")
+    a.circle(422, 300, 20, SKIN_D, sw=0, stroke="none")
+    a.path("M92 262 C70 130 170 100 256 102 C346 100 442 130 420 262 C402 222 350 196 306 210 "
+           "C280 180 224 186 202 212 C160 208 110 226 92 262 Z", fill=HAIR)
+    a.path("M248 108 C226 56 262 14 306 34 C286 46 288 74 280 108 Z", fill=HAIR)
+    a.shine("M150 168 C170 146 196 136 224 134")
+    eyes(a, 256, 300, 60)
+    cheeks(a, 256, 340, 104, rx=20, ry=12)
+    smile(a, 256, 340, 18)
+    return a
+
+
+@word
+def onaka():
+    a = Art()
+    # a round tummy sticking out between a shirt hem and shorts, with a belly button
+    a.ellipse(256, 300, 170, 150, SKIN)
+    a.path("M112 60 C112 44 128 40 148 40 L364 40 C384 40 400 44 400 60 L406 174 "
+           "C350 218 162 218 106 174 Z", fill=YEL)
+    a.path("M106 408 C162 452 350 452 406 408 L400 490 C400 504 384 508 364 508 L148 508 "
+           "C128 508 112 504 112 490 Z", fill=BLUE)
+    a.path("M140 100 L152 100", stroke="#ffffff", sw=10, **{"stroke-opacity": "0.5"})
+    a.path("M140 470 C180 484 210 488 244 488", stroke="#ffffff", sw=9, **{"stroke-opacity": "0.5"})
+    a.path("M234 316 C240 296 272 296 278 316 C272 338 240 338 234 316 Z", fill=SKIN_D, sw=8)
+    cheeks(a, 256, 350, 100, rx=18, ry=12)
+    a.shine("M130 270 C126 310 136 346 156 372")
+    a.circle(462, 270, 14, "#ffffff", sw=7)
+    a.circle(484, 226, 9, "#ffffff", sw=6)
+    return a
+
+
+@word
+def hoppe():
+    a = Art()
+    # a round face with puffed-up cheeks, closed happy eyes, a tiny mouth
+    blobs(a, [
+        ("p", "M256 100 C380 100 446 190 446 290 C446 390 362 450 256 450 C150 450 66 390 66 290 "
+              "C66 190 132 100 256 100 Z"),
+        ("c", 118, 342, 66), ("c", 394, 342, 66),
+    ], SKIN)
+    a.path("M70 262 C60 150 150 96 256 98 C362 96 452 150 442 262 C418 214 372 190 330 206 "
+           "C300 180 212 180 182 206 C140 190 94 214 70 262 Z", fill=HAIR)
+    a.circle(124, 342, 50, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.75"})
+    a.circle(388, 342, 50, "#ff9aa8", sw=0, stroke="none", **{"fill-opacity": "0.75"})
+    for s in (-1, 1):
+        x = 256 + s * 82
+        a.path(f"M{x-24} 296 C{x-14} 268 {x+14} 268 {x+24} 296", sw=9)
+        for k in (-1, 0, 1):
+            a.path(f"M{256 + s*134 + k*18 - 6} 366 L{256 + s*134 + k*18 + 6} 340", stroke="#ffffff", sw=7)
+    a.path("M232 340 C240 356 256 352 256 340 C256 352 272 356 280 340", sw=8)
+    a.shine("M150 150 C176 124 210 112 244 110")
+    return a
+
 
 
 def write_swing_parts():
