@@ -50,6 +50,10 @@ final class ProgressStore {
   private(set) var moves: [ToyBoxMove] = []
   /// まちと いえに出ている物と、おもちゃばこの中身（行から計算する）。
   var board: ToyBoxBoard { ToyBoxBoard(placed: placed, moves: moves) }
+  /// ステッカーの行（手に入れた・貼った・はがした。D190）。
+  private(set) var stickerEvents: [StickerEvent] = []
+  /// 持っているステッカーと、貼ってある場所（行から計算する）。
+  var stickers: [OwnedSticker] { StickerBook.owned(stickerEvents) }
   /// 子どもたちの「おねがい」（D160）。まとめて見せるのは `wishNotices`。
   private(set) var wishes: [Wish] = []
   /// 最後に保存した時刻（保護者用の画面の「学習記録の管理」に出す。D63）。
@@ -334,6 +338,7 @@ final class ProgressStore {
     log = records.loadLog(profile: currentProfileID)
     placed = records.loadPlaced(profile: currentProfileID)
     moves = records.loadMoves(profile: currentProfileID)
+    stickerEvents = records.loadStickerEvents(profile: currentProfileID)
   }
 
   private let defaults: UserDefaults
@@ -390,6 +395,7 @@ final class ProgressStore {
     log = records.loadLog(profile: current)
     placed = records.loadPlaced(profile: current)
     moves = records.loadMoves(profile: current)
+    stickerEvents = records.loadStickerEvents(profile: current)
     wishes = records.loadWishes()
     confirmsProfileSwitch = defaults.bool(forKey: "confirmsProfileSwitch")
     voiceVolume = defaults.object(forKey: "voiceVolume") as? Double ?? 0.8
@@ -465,6 +471,79 @@ final class ProgressStore {
     if !rows.isEmpty { lastSaved = records.lastSaved }
   }
 
+  // MARK: - おたのしみ ボックスとステッカー（§3.3・§3.5・D54・D190）
+
+  /// おたのしみ ボックスの、きょうの状態。目標に届いた日に、1回だけ あけられる。
+  func treatBoxState(now: Date = Date(), calendar: Calendar = .current) -> TreatBoxState {
+    StickerBook.boxState(
+      practiced: log.today(now: now, calendar: calendar).characters,
+      goal: currentProfile?.dailyGoal ?? 5, events: stickerEvents, now: now, calendar: calendar)
+  }
+
+  /// おたのしみ ボックスを あける。出たステッカーを返す。あけられないときは nil（何も足さない）。
+  @discardableResult
+  func openTreatBox(now: Date = Date(), calendar: Calendar = .current) -> OwnedSticker? {
+    guard treatBoxState(now: now, calendar: calendar) == .ready,
+      let name = TreatBox.nextSticker(
+        owned: Set(stickers.map(\.sticker)), day: TodayWord.day(now: now, calendar: calendar),
+        childID: currentProfileID.uuidString)
+    else { return nil }
+    let event = StickerEvent(date: now, action: .earned, sticker: name)
+    append(event)
+    return OwnedSticker(id: event.id, sticker: name, date: now)
+  }
+
+  /// ステッカーを貼る（場所を変えるときも同じ）。行を足すだけ。
+  func placeSticker(
+    _ id: UUID, on surface: StickerEvent.Surface, x: Double, y: Double, date: Date = Date()
+  ) {
+    guard stickers.contains(where: { $0.id == id }) else { return }
+    append(
+      StickerEvent(
+        date: laterThanStickerRows(date), action: .placed, itemID: id, surface: surface, x: x, y: y))
+  }
+
+  /// ステッカーを はがす（入れ物に もどる）。行を足すだけ。
+  func removeSticker(_ id: UUID, date: Date = Date()) {
+    guard stickers.contains(where: { $0.id == id && $0.placement != nil }) else { return }
+    append(StickerEvent(date: laterThanStickerRows(date), action: .removed, itemID: id))
+  }
+
+  /// iPad の時計がずれていても、いちばん新しい行になるようにする。
+  private func laterThanStickerRows(_ date: Date) -> Date {
+    guard let latest = stickerEvents.map(\.date).max() else { return date }
+    return max(date, latest.addingTimeInterval(0.001))
+  }
+
+  private func append(_ event: StickerEvent) {
+    stickerEvents.append(event)
+    records.append(event, profile: currentProfileID)
+    lastSaved = records.lastSaved
+  }
+
+  #if DEBUG
+    /// 確かめ用: ステッカーを `count` 枚、おととい手に入れたことにする（`-seedStickers N`）。
+    /// `placed` なら、はじめの何枚かを まちと ずかんの表紙に貼っておく。
+    func debugSeedStickers(count: Int, placed: Bool = false) {
+      guard stickerEvents.isEmpty else { return }
+      let start = Date().addingTimeInterval(-86_400 * 2)
+      let town: [(Double, Double)] = [(0.25, 0.86), (0.62, 0.70), (1.05, 0.88), (0.42, 0.50)]
+      let cover: [(Double, Double)] = [(0.11, 0.27), (0.87, 0.24), (0.12, 0.74)]
+      for (index, name) in TreatBox.stickers.prefix(count).enumerated() {
+        let earned = StickerEvent(
+          date: start.addingTimeInterval(Double(index)), action: .earned, sticker: name)
+        append(earned)
+        guard placed else { continue }
+        if index < town.count {
+          placeSticker(earned.id, on: .town, x: town[index].0, y: town[index].1)
+        } else if index < town.count + cover.count {
+          let spot = cover[index - town.count]
+          placeSticker(earned.id, on: .zukan, x: spot.0, y: spot.1)
+        }
+      }
+    }
+  #endif
+
   /// 「記録だけリセット」（D19・§6.3）。その子の記録だけ。まちの物と設定は残す。
   func resetRecords(of id: UUID? = nil) {
     let id = id ?? currentProfileID
@@ -488,6 +567,7 @@ final class ProgressStore {
     log = records.loadLog(profile: id)
     placed = records.loadPlaced(profile: id)
     moves = records.loadMoves(profile: id)
+    stickerEvents = records.loadStickerEvents(profile: id)
   }
 
   @discardableResult

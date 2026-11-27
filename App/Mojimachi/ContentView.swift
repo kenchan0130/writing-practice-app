@@ -123,6 +123,10 @@ struct ContentView: View {
   /// はじめての流れ（D23）。出していないときは nil。
   @State private var onboarding: OnboardingStage?
   @State private var showsProfilePicker = false
+  /// おたのしみ ボックスを あける画面を出しているか（§3.3）。
+  @State private var showsTreatBox = false
+  /// まちを、ステッカーの入れ物を開いて始めるか（おたのしみ ボックスの「まちに はる」から）。
+  @State private var townStartsWithStickers = false
   /// 子どもの切り替えのために保護者用の確認を出しているか。
   @State private var gateForSwitch = false
   private let store = ProgressStore.shared
@@ -211,6 +215,20 @@ struct ContentView: View {
       }
     }
     .animation(.easeOut(duration: 0.2), value: lockedScript)
+    .overlay {
+      if showsTreatBox {
+        TreatBoxOpeningView(
+          onTown: {
+            showsTreatBox = false
+            townStartsWithStickers = true
+            screen = .town
+          },
+          onClose: { showsTreatBox = false }
+        )
+        .transition(.opacity)
+      }
+    }
+    .animation(.easeOut(duration: 0.2), value: showsTreatBox)
     .overlay { PopHost() }
     .fullScreenCover(isPresented: $showsParentArea) {
       ParentAreaView(
@@ -258,6 +276,14 @@ struct ContentView: View {
         if UserDefaults.standard.bool(forKey: "seedZukan"), !store.isSyncRunning {
           DebugSeed.zukan()
         }
+        // 確かめ用: `-seedStickers 6` で、ステッカーを6枚持たせる。`-seedStickersPlaced YES` で、まちと ずかんに貼っておく。
+        let stickerCount = UserDefaults.standard.integer(forKey: "seedStickers")
+        if stickerCount > 0, !store.isSyncRunning {
+          store.debugSeedStickers(
+            count: stickerCount, placed: UserDefaults.standard.bool(forKey: "seedStickersPlaced"))
+        }
+        // 確かめ用: `-treatBox open`（あける前）・`-treatBox opened`（あいたところ）で、おたのしみ ボックスを出す。
+        if UserDefaults.standard.string(forKey: "treatBox") != nil { showsTreatBox = true }
         if UserDefaults.standard.string(forKey: "openParent") != nil { showsParentArea = true }
       }
     #endif
@@ -393,7 +419,13 @@ struct ContentView: View {
           self.screen = .word
         }
       }
-    case .town: TownView(onHouse: { self.screen = .house })
+    case .town:
+      TownView(
+        startsWithStickers: townStartsWithStickers,
+        onHouse: {
+          townStartsWithStickers = false
+          self.screen = .house
+        })
     case .house:
       HouseView {
         closetFromHouse = true
@@ -455,6 +487,7 @@ struct ContentView: View {
     default: screen = nil
     }
     if screen == nil {
+      townStartsWithStickers = false
       cardChar = nil
       selectedPlace = nil
       selectedTheme = nil
@@ -478,6 +511,9 @@ struct ContentView: View {
             .frame(minWidth: 104, minHeight: 104)
         }
         .accessibilityLabel("つかう こを かえる")
+        Spacer()
+        // おたのしみ ボックス（§3.3・§3.5）。きょうの もくひょうに届いた日に、1回だけ あけられる。
+        TreatBoxButton(state: treatBoxState) { showsTreatBox = true }
         Spacer()
         // 保護者用の入口（D49）。子どもが押しにくい小さな印を、2秒の長押しで開く（§5.3）。
         Image(systemName: "gearshape")
@@ -532,13 +568,32 @@ struct ContentView: View {
           screen = .places
         }
         HomeButton(title: "まち", systemImage: "house.fill", color: Theme.green) {
+          townStartsWithStickers = false
           screen = .town
         }
       }
       .padding(.horizontal, 32)
       Spacer()
     }
+    // おたのしみ ボックスの声の字幕（§3.9）。上の列の下に出す。
+    .overlay(alignment: .top) {
+      // あける画面には、その画面の字幕がある（2つ出さない）。
+      if !showsTreatBox { CaptionBubble().padding(.top, 128) }
+    }
+    // 目標に届いたら、主人公が おたのしみ ボックスのことを知らせる（その日に1回だけ）。
+    .onChange(of: treatBoxState, initial: true) { _, state in
+      guard state == .ready, !showsTreatBox else { return }
+      let day = Calendar.current.startOfDay(for: Date())
+      guard Self.treatBoxAnnounced != day else { return }
+      Self.treatBoxAnnounced = day
+      VoicePlayer.shared.speak(.treatBoxReady)
+    }
   }
+
+  /// おたのしみ ボックスの、きょうの状態。
+  private var treatBoxState: TreatBoxState { store.treatBoxState() }
+  /// おたのしみ ボックスが あけられると知らせた日。
+  private static var treatBoxAnnounced: Date?
 
   /// きょうの ことば（D35）。
   private var todayWord: String? { TodayWord.word() }
@@ -621,6 +676,8 @@ private struct HomeCharacter: View {
           .font(.ui(30, bold: true))
           .foregroundStyle(Theme.ink)
           .multilineTextAlignment(.center)
+          // 2行とも出す（高さが足りないときに「…」で切れないように）。
+          .fixedSize(horizontal: false, vertical: true)
           .padding(20)
           .background(.white, in: .rect(cornerRadius: Theme.Radius.card))
           .overlay(alignment: .bottom) {
@@ -633,7 +690,16 @@ private struct HomeCharacter: View {
         Button {
           if let todayWord { onTodayWord(todayWord) }
         } label: {
-          MainCharacterArt(character: character, size: 220, pose: reachedGoal ? .happy : .normal)
+          // 夜は、ときどき目をとじて眠そうにする（§3.5。演出だけで、使えなくはしない）。
+          TimelineView(.periodic(from: .now, by: 1)) { timeline in
+            let sleepy =
+              TownClock.phase(now: timeline.date).isSleepy
+              && Int(timeline.date.timeIntervalSinceReferenceDate) % 9 >= 6
+            MainCharacterArt(
+              character: character, size: 220,
+              pose: sleepy ? .sleep : reachedGoal ? .happy : .normal)
+          }
+          .frame(width: 220, height: 220)
         }
         .buttonStyle(.plain)
         .disabled(todayWord == nil)

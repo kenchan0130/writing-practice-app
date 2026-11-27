@@ -26,7 +26,7 @@ final class TownScene: SKScene {
   /// 季節の飾り（置き場所の番号の順。上限は `FestiveLayout.capacity`）と、置き場所の番号（§3.4）。
   private var festiveObjects: [(object: PlacedObject, ordinal: Int)] = []
   /// こうえんで遊ぶキャラクター（「なにが すき？」の前に選んだ主人公。D164）。
-  private var mainCharacter: MainCharacter = .ton
+  private(set) var mainCharacter: MainCharacter = .ton
   /// 空のことばを書いた記録と、いま出している空（D172）。
   private var skyRecords: [SkyRecord] = []
   private var skyStart: Date?
@@ -39,14 +39,42 @@ final class TownScene: SKScene {
   private var bodyInProgress = false
   private var playerNode: SKSpriteNode?
   private var playerScript: SKAction?
-  private var worldWidth: CGFloat = 0
-  private let cameraNode = SKCameraNode()
+  private(set) var worldWidth: CGFloat = 0
+  /// 陸のまちの左はし（こうえんがあると、その右）。ステッカーの位置は、ここから数える。
+  private(set) var landMinX: CGFloat = 0
+  private(set) var landWidth: CGFloat = 0
+  let cameraNode = SKCameraNode()
   private var panStartX: CGFloat = 0
+  /// 子どもが まちを動かしたか。動かすまでは、まちの左はしから見せる（大きさが決まる前の位置を残さない）。
+  private var hasPanned = false
 
-  private static let outline = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)  // #4a3428
+  // 時間帯の景色（§3.4。`TownScene+Time.swift`）。
+  /// いまの時間帯。まちを作り直すときに、端末の時刻から決める。
+  var phase: DayPhase = .day
+  /// まち全体にかける、時間帯の うすい色。空のことばの空が出ているあいだは消す（D172）。
+  var phaseTint: SKNode?
+  /// 夜だけの あかり（窓の光）。空のことばの空が出ているあいだは消す。
+  var nightLights: [SKNode] = []
+  /// 夜、まちで うとうとする主人公（こうえんに主人公がいないとき）。
+  var dozerNode: SKSpriteNode?
+
+  // ステッカー（§3.3・D54。`TownScene+Stickers.swift`）。
+  var townStickers: [TownSticker] = []
+  /// ステッカーを貼る・はがす あいだ。押すと はがれる。
+  var stickerMode = false
+  /// ステッカーを押して はがした。
+  var onStickerPeel: ((UUID) -> Void)?
+
+  // 傾けると転がる（§3.3・D133。`TownScene+Rolling.swift`）。
+  var rollers: [Roller] = []
+  /// いまの傾き（-1〜1。右に傾けると正）。センサーがなければ nil。
+  var tiltProvider: (() -> Double)?
+  var lastUpdateTime: TimeInterval?
+
+  static let outline = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)  // #4a3428
   /// 物や飾りの大きさの元（縦長の画面でも大きくなりすぎない）。
-  private var unit: CGFloat { min(size.height, size.width * 0.75) }
-  private var reduceMotion: Bool { UIAccessibility.isReduceMotionEnabled }
+  var unit: CGFloat { min(size.height, size.width * 0.75) }
+  var reduceMotion: Bool { UIAccessibility.isReduceMotionEnabled }
 
   init(layer: Layer = .town) {
     self.layer = layer
@@ -71,11 +99,24 @@ final class TownScene: SKScene {
     pan.minimumNumberOfTouches = 1
     pan.maximumNumberOfTouches = 1
     view.addGestureRecognizer(pan)
+    watchPhase()
   }
 
   override func didChangeSize(_ oldSize: CGSize) {
     guard layer == .town else { return }
     rebuildTown()
+  }
+
+  /// ステッカーや 転がる物を押した（§3.3・D133）。まちを動かすドラッグは、別に受ける。
+  override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    guard layer == .town, let point = touches.first?.location(in: self) else { return }
+    if tapSticker(at: point) { return }
+    _ = tapRoller(at: point)
+  }
+
+  override func update(_ currentTime: TimeInterval) {
+    guard layer == .town else { return }
+    stepRollers(currentTime)
   }
 
   /// 置いた物の一覧に合わせて、足したり消したりする（子どもを切り替えたときなど）。
@@ -123,6 +164,7 @@ final class TownScene: SKScene {
     switch pan.state {
     case .began:
       cameraNode.removeAllActions()
+      hasPanned = true
       panStartX = cameraNode.position.x
     case .changed:
       cameraNode.position.x = clampedCameraX(panStartX - pan.translation(in: view).x)
@@ -140,6 +182,12 @@ final class TownScene: SKScene {
     return min(max(x, half), max(worldWidth - half, half))
   }
 
+  /// こうえんに、遊ぶ主人公がいるか。
+  var hasPlayer: Bool { playerNode != nil }
+
+  /// 時間帯が変わったので、まちを作り直す。
+  func refreshForPhase() { rebuildTown() }
+
   /// 背景（空・太陽）はカメラについていき、動かない。地面・飾り・物はまちの中に置く。
   private func rebuildTown() {
     guard size.width > 0, size.height > 0 else { return }
@@ -149,6 +197,11 @@ final class TownScene: SKScene {
     shownSky = nil
     playerNode = nil
     playerScript = nil
+    phaseTint = nil
+    nightLights = []
+    dozerNode = nil
+    rollers = []
+    phase = TownClock.phase()
     if bodyInProgress {
       bodyPlayedAt = nil
       bodyInProgress = false
@@ -160,6 +213,9 @@ final class TownScene: SKScene {
       swimmers: swimObjects.count, playthings: playObjects.count, screenWidth: Double(size.width),
       objectWidth: Double(objectSize))
     worldWidth = CGFloat(plan.worldWidth)
+    landMinX = CGFloat(plan.landMinX)
+    landWidth = CGFloat(plan.landWidth)
+    if !hasPanned { cameraNode.position.x = size.width / 2 }
     #if DEBUG
       // 確かめ用: `-townScroll 0.5` で、まちの途中（0〜1）から見る。
       if UserDefaults.standard.object(forKey: "townScroll") != nil {
@@ -169,7 +225,7 @@ final class TownScene: SKScene {
     #endif
     cameraNode.position = CGPoint(x: clampedCameraX(cameraNode.position.x), y: h / 2)
 
-    addSky()
+    addPhaseSky()
     let world = SKNode()
     world.name = "world"
     addChild(world)
@@ -215,6 +271,9 @@ final class TownScene: SKScene {
     for (object, slot) in zip(townObjects, plan.slots) {
       world.addChild(makeObject(object, slot: slot, objectSize: objectSize))
     }
+    addStickers(to: world)
+    addPhaseTint()
+    addDozer(to: world, objectSize: objectSize)
     applySky()
     applyBodyAction(objectSize: objectSize)
   }
@@ -267,6 +326,8 @@ final class TownScene: SKScene {
     hero.alpha = 0
     hero.setScale(0.6)
     world.addChild(hero)
+    // 夜に うとうとしている主人公は、動きを見せるあいだ かくす（同じ子が2人に見えないように）。
+    dozerNode?.run(.sequence([.fadeOut(withDuration: 0.2), .wait(forDuration: seconds + 2.2), .fadeIn(withDuration: 0.4)]))
     let enter = SKAction.group([
       .fadeIn(withDuration: 0.3),
       {
@@ -332,12 +393,21 @@ final class TownScene: SKScene {
           .fadeOut(withDuration: SkyWeather.fade), .removeFromParent(),
         ]))
     }
+    // 空のことばの空が出ているあいだは、時間帯の色と あかりを消す（空のことばが勝つ。D172）。
+    setPhaseLighting(shown: false, duration: fadeIn)
+    layers.back.run(
+      .sequence([
+        .wait(forDuration: fadeIn + hold),
+        .run { [weak self] in self?.setPhaseLighting(shown: true, duration: SkyWeather.fade) },
+      ]))
   }
 
   private func removeSky() {
+    let hadSky = !skyNodes.isEmpty
     for node in skyNodes { node.removeFromParent() }
     skyNodes = []
     shownSky = nil
+    if hadSky { setPhaseLighting(shown: true, duration: 0.3) }
   }
 
   private static func role(of kind: WordKind) -> TownRole {
@@ -350,41 +420,7 @@ final class TownScene: SKScene {
     }
   }
 
-  private func addSky() {
-    let sky = SKSpriteNode(texture: Self.skyTexture)
-    sky.size = size
-    sky.zPosition = -100
-    cameraNode.addChild(sky)
-    let sun = SKNode()
-    sun.position = CGPoint(x: size.width * 0.36, y: size.height * 0.30)
-    sun.zPosition = -90
-    for (radius, alpha) in [(0.10, 0.25), (0.075, 0.4), (0.05, 1.0)] as [(CGFloat, CGFloat)] {
-      let disc = SKShapeNode(circleOfRadius: size.height * radius)
-      disc.fillColor = UIColor(red: 1, green: 0.92, blue: 0.55, alpha: alpha)
-      disc.strokeColor = .clear
-      sun.addChild(disc)
-    }
-    cameraNode.addChild(sun)
-  }
-
-  private static let skyTexture: SKTexture = {
-    let renderer = UIGraphicsImageRenderer(size: CGSize(width: 4, height: 256))
-    let image = renderer.image { context in
-      let colors =
-        [
-          UIColor(red: 1, green: 0.96, blue: 0.86, alpha: 1),
-          UIColor(red: 0.78, green: 0.91, blue: 1, alpha: 1),
-          UIColor(red: 0.50, green: 0.78, blue: 1, alpha: 1),
-        ].map(\.cgColor) as CFArray
-      let gradient = CGGradient(
-        colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 0.4, 1])!
-      context.cgContext.drawLinearGradient(
-        gradient, start: .zero, end: CGPoint(x: 0, y: 256), options: [])
-    }
-    return SKTexture(image: image)
-  }()
-
-  private func shape(
+  func shape(
     _ node: SKShapeNode, fill: UIColor, line: CGFloat = 0, z: CGFloat
   ) -> SKShapeNode {
     node.fillColor = fill
@@ -487,7 +523,7 @@ final class TownScene: SKScene {
     ]
     for (dx, dy, r) in puffs {
       let puff = SKShapeNode(circleOfRadius: r)
-      puff.fillColor = UIColor(white: 1, alpha: 0.95)
+      puff.fillColor = cloudColor
       puff.strokeColor = .clear
       puff.position = CGPoint(x: dx, y: dy)
       cloud.addChild(puff)
@@ -557,6 +593,7 @@ final class TownScene: SKScene {
       fill: UIColor(red: 0.8, green: 0.93, blue: 1, alpha: 1), line: 3, z: -38)
     window.position = CGPoint(x: x + w * 0.14, y: base + bodyHeight * 0.4)
     world.addChild(window)
+    if phase == .night { lightWindow(window, side: w * 0.2, in: world) }
   }
 
   /// 物ひとつ。持ち場の中で動きまわる。足もとの高さ（奥行き）で大きさと手前・奥が決まる。
@@ -606,6 +643,10 @@ final class TownScene: SKScene {
     // 動物の最も奥の段（z=13.6）より奥。手前の列ほど手前。大きな景色は、背景の木・家と同じ奥（丘の手前、草の向こう）。
     // 大きい物ほど奥。
     node.zPosition = landmark ? -60 - min(CGFloat(landmarkFactor ?? 0), 10) / 10 : 2 + CGFloat(1 - place.row) * 2
+    if Rolling.isRollable(object.word), !landmark {
+      // 丸い くだもの・やさい・木の実: 傾けると転がる。押しても転がる（D133）。
+      makeRoller(node, word: object.word)
+    }
     if WordArt.sways(object.word) {
       // 花・草・木: ほんのすこし、根もとからゆれる（動きを減らすときは止める）。
       guard !reduceMotion else { return node }
@@ -1225,7 +1266,12 @@ final class TownScene: SKScene {
     else { return }
     let normal = SKTexture(image: normalImage)
     let happy = SKTexture(image: happyImage)
-    let player = SKSpriteNode(texture: normal)
+    // 夜は、遊びのあいまに 目をとじて うとうとする（§3.5）。
+    let sleep =
+      phase.isSleepy
+      ? WordArt.image(asset: mainCharacter.assetName(.sleep), size: 320).map(SKTexture.init(image:))
+      : nil
+    let player = SKSpriteNode(texture: sleep ?? normal)
     player.size = CGSize(width: objectSize * 0.85, height: objectSize * 0.85)
     player.anchorPoint = CGPoint(x: 0.5, y: 0.04)
     player.name = "player"
@@ -1285,7 +1331,15 @@ final class TownScene: SKScene {
       script.append(bounce())
       script.append(.wait(forDuration: 1.6))
       script.append(.run { [weak player] in player?.texture = normal })
-      script.append(.wait(forDuration: 2.6))
+      if let sleep {
+        script.append(.wait(forDuration: 1.0))
+        script.append(.run { [weak player] in player?.texture = sleep })
+        script.append(Self.doze(seconds: 4.2))
+        script.append(.run { [weak player] in player?.texture = normal })
+        script.append(.wait(forDuration: 0.6))
+      } else {
+        script.append(.wait(forDuration: 2.6))
+      }
     }
     // 1つしか物がないときは、同じ場所で ときどき使う。最後に、はじめの物へ もどる。
     if stops.count > 1, let first = stops.first {

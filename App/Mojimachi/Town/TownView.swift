@@ -1,4 +1,5 @@
 import PracticeKit
+import RecordKit
 import SpriteKit
 import SwiftUI
 
@@ -10,9 +11,60 @@ struct TownView: View {
   /// いえ（いえの なか）へ行く。nil なら、いえの入口を出さない（クローゼット）。
   var onHouse: (() -> Void)?
 
-  init(layer: TownScene.Layer = .town, onHouse: (() -> Void)? = nil) {
+  /// ステッカーを貼る・はがす あいだ（§3.3・D54）。下の列が、ステッカーの入れ物になる。
+  @State private var stickerMode: Bool
+  @State private var drag: StickerDrag?
+  /// まちの絵の場所（`StickerTray.space` の座標）。
+  @State private var sceneFrame: CGRect = .zero
+  @State private var tilt = TiltSensor()
+  @Environment(\.scenePhase) private var scenePhase
+
+  /// - Parameter startsWithStickers: ステッカーの入れ物を開いて始める（おたのしみ ボックスの「まちに はる」から）。
+  init(
+    layer: TownScene.Layer = .town, startsWithStickers: Bool = false, onHouse: (() -> Void)? = nil
+  ) {
     _scene = State(initialValue: TownScene(layer: layer))
+    var stickers = startsWithStickers
+    #if DEBUG
+      // 確かめ用: `-stickerTray YES` で、ステッカーの入れ物を開いておく。
+      if UserDefaults.standard.bool(forKey: "stickerTray") { stickers = true }
+    #endif
+    _stickerMode = State(initialValue: stickers && layer == .town)
     self.onHouse = onHouse
+  }
+
+  /// まちに貼ってあるステッカー。
+  private var townStickers: [TownSticker] {
+    store.stickers.compactMap { owned in
+      guard let place = owned.placement, place.surface == .town else { return nil }
+      return TownSticker(id: owned.id, sticker: owned.sticker, x: place.x, y: place.y)
+    }
+  }
+
+  /// まだ貼っていないステッカー（新しい順）。
+  private var looseStickers: [OwnedSticker] {
+    store.stickers.filter { $0.placement == nil }.reversed()
+  }
+
+  /// 押して貼る: いま見えている空の、あいている所へ。
+  private func stick(_ sticker: OwnedSticker) {
+    let spot = scene.defaultStickerSpot(index: townStickers.count)
+    store.placeSticker(sticker.id, on: .town, x: spot.x, y: spot.y)
+    SoundPlayer.shared.play(.appear)
+  }
+
+  /// 引っぱって貼る: 指を はなした所へ。まちの絵の外なら、入れ物に もどる。
+  private func drop(_ sticker: OwnedSticker, at point: CGPoint) {
+    guard sceneFrame.contains(point) else { return }
+    let spot = scene.stickerSpot(
+      viewPoint: CGPoint(x: point.x - sceneFrame.minX, y: point.y - sceneFrame.minY))
+    store.placeSticker(sticker.id, on: .town, x: spot.x, y: spot.y)
+    SoundPlayer.shared.play(.appear)
+  }
+
+  /// いまの画面の向き（傾きの向きを合わせる）。
+  private var orientation: UIInterfaceOrientation {
+    scene.view?.window?.windowScene?.effectiveGeometry.interfaceOrientation ?? .portrait
   }
 
   /// まちの おもちゃばこに、物が入っているか（入りきらない物があるときだけ、おもちゃばこを出す）。
@@ -66,6 +118,25 @@ struct TownView: View {
             scene.show(store.placed, board: store.board)
             scene.setSky(skyRecords)
             scene.setBody(bodyRecords)
+            startTreats()
+          }
+          .onDisappear { tilt.stop() }
+          .onChange(of: scenePhase) { _, phase in
+            if phase == .active { startTilt() } else { tilt.stop() }
+          }
+          .onChange(of: store.stickerEvents) { scene.setStickers(townStickers) }
+          .onChange(of: stickerMode) { _, on in scene.setStickerMode(on) }
+          .onGeometryChange(for: CGRect.self) { $0.frame(in: .named(StickerTray.space)) } action: {
+            sceneFrame = $0
+          }
+          .accessibilityElement()
+          .accessibilityLabel(
+            scene.layer == .town ? Text("まちの ステッカー") : Text("クローゼット"))
+          .accessibilityValue(Text(verbatim: scene.layer == .town ? "\(townStickers.count)" : ""))
+          .accessibilityIdentifier("townScene")
+          // まちの絵の中のステッカーは VoiceOver で選べないので、はがす操作を別に用意する。
+          .accessibilityAction(named: Text("ステッカーを 1まい はがす")) {
+            if let last = townStickers.last { store.removeSticker(last.id) }
           }
           .onChange(of: store.placed) { _, placed in scene.show(placed, board: store.board) }
           .onChange(of: store.moves) { scene.show(store.placed, board: store.board) }
@@ -76,8 +147,12 @@ struct TownView: View {
           }
       }
       // キャラクターのいえの入口と おもちゃばこ（§3.1・D185）。まちの物に重ならないよう、まちの下の列に置く。
-      if scene.layer == .town, let onHouse {
-        HStack {
+      if scene.layer == .town, stickerMode {
+        StickerTray(
+          stickers: looseStickers, hasPlaced: !townStickers.isEmpty, drag: $drag,
+          onTap: stick, onDrop: drop, onClose: { stickerMode = false })
+      } else if scene.layer == .town, let onHouse {
+        HStack(spacing: 16) {
           Button {
             SoundPlayer.shared.play(.tap)
             onHouse()
@@ -96,6 +171,10 @@ struct TownView: View {
           .buttonStyle(.plain)
           .accessibilityLabel("いえ")
           .accessibilityIdentifier("houseButton")
+          // ステッカーを1枚でも持っていれば出す（何もないのに開く行き止まりを作らない）。
+          if !store.stickers.isEmpty {
+            StickerButton { stickerMode = true }
+          }
           Spacer()
           // 入りきらない物があるときだけ出す（D74）。
           if hasBoxed {
@@ -104,8 +183,33 @@ struct TownView: View {
         }
       }
     }
+    .coordinateSpace(.named(StickerTray.space))
+    .overlay { StickerGhost(drag: drag) }
     .padding(32)
   }
+
+  /// ステッカーと傾きの準備（まちだけ）。
+  private func startTreats() {
+    guard scene.layer == .town else { return }
+    scene.setStickers(townStickers)
+    scene.setStickerMode(stickerMode)
+    scene.onStickerPeel = { id in store.removeSticker(id) }
+    scene.tiltProvider = { tilt.tilt(orientation: orientation) }
+    startTilt()
+    // 夜は、主人公が眠そうにする（§3.5）。声は、アプリを開いてから1回だけ。
+    if TownClock.phase().isSleepy, !stickerMode, !Self.saidSleepy {
+      Self.saidSleepy = true
+      VoicePlayer.shared.speak(.townSleepy)
+    }
+  }
+
+  /// まちが見えていて、「動きを減らす」がオフのときだけ、傾きを読む。
+  private func startTilt() {
+    guard scene.layer == .town, !UIAccessibility.isReduceMotionEnabled else { return }
+    tilt.start()
+  }
+
+  private static var saidSleepy = false
 }
 
 #if DEBUG

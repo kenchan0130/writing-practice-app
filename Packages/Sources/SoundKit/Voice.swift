@@ -30,6 +30,18 @@ public enum VoiceLine: String, CaseIterable, Sendable {
   /// もじから さがすで「ん」「を」を押したとき（D45・D181）。
   case noWordsN
   case noWordsWo
+  /// おたのしみ ボックスが あけられるようになったとき（§3.3・§3.5）。
+  case treatBoxReady
+  /// まだ あけられない おたのしみ ボックスを押したとき。
+  case treatBoxNotYet
+  /// おたのしみ ボックスを あける画面を開いたとき。
+  case treatBoxOpen
+  /// ステッカーが出たとき。
+  case treatBoxGot
+  /// きょうは もう あけた おたのしみ ボックスを押したとき（ステッカーの使い方）。
+  case stickerHint
+  /// 夜に まちを開いたとき（主人公が眠そうにする。§3.5）。
+  case townSleepy
 
   public var text: String {
     switch self {
@@ -49,6 +61,12 @@ public enum VoiceLine: String, CaseIterable, Sendable {
     case .zukanHint: "かいて みよう"
     case .noWordsN: "『ん』から はじまる ことばは ないんだ"
     case .noWordsWo: "『を』は ことばの はじめには つかわないんだ"
+    case .treatBoxReady: "おたのしみ ボックスが あけられるよ！"
+    case .treatBoxNotYet: "きょうの もくひょうの ほしを ぜんぶ ひからせると、あけられるよ"
+    case .treatBoxOpen: "なにが でるかな？"
+    case .treatBoxGot: "やったね！ ステッカーが でたよ！"
+    case .stickerHint: "ステッカーは、まちや ずかんに はれるよ"
+    case .townSleepy: "ふわあ…… ねむく なってきたね"
     }
   }
 }

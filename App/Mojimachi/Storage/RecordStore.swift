@@ -367,6 +367,24 @@ final class RecordStore {
       })
   }
 
+  /// ステッカーの行（手に入れた・貼った・はがした。D190）。まとめるのは `StickerBook.owned`。
+  func loadStickerEvents(profile: UUID) -> [StickerEvent] {
+    dedupe(
+      fetch("StickerRow", profile: profile).compactMap { row in
+        guard let id = row.value(forKey: "id") as? UUID,
+          let date = row.value(forKey: "date") as? Date,
+          let action = (row.value(forKey: "action") as? String).flatMap(
+            StickerEvent.Action.init(rawValue:))
+        else { return nil }
+        return StickerEvent(
+          id: id, date: date, action: action, itemID: row.value(forKey: "itemID") as? UUID,
+          sticker: row.value(forKey: "sticker") as? String ?? "",
+          surface: (row.value(forKey: "surface") as? String).flatMap(
+            StickerEvent.Surface.init(rawValue:)),
+          x: row.value(forKey: "x") as? Double ?? 0, y: row.value(forKey: "y") as? Double ?? 0)
+      })
+  }
+
   /// 全員のおねがい（D160）。まとめるのは `WishNotice.notices`。
   func loadWishes() -> [Wish] {
     fetch("WishRow").compactMap { row in
@@ -383,7 +401,7 @@ final class RecordStore {
   func rowCount() -> Int {
     [
       "CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "ProfileRow",
-      "WishRow", "ToyBoxMoveRow",
+      "WishRow", "ToyBoxMoveRow", "StickerRow",
     ].reduce(
       0
     ) {
@@ -443,6 +461,22 @@ final class RecordStore {
     row.setValue(move.date, forKey: "date")
     row.setValue(move.objectID, forKey: "objectID")
     row.setValue(move.action.rawValue, forKey: "action")
+    row.setValue(Self.dataVersion, forKey: "dataVersion")
+    save()
+  }
+
+  /// ステッカーの行を1行足す（手に入れた・貼った・はがした。D190）。行は消さない。
+  func append(_ event: StickerEvent, profile: UUID) {
+    let row = NSEntityDescription.insertNewObject(forEntityName: "StickerRow", into: context)
+    row.setValue(profile, forKey: "profileID")
+    row.setValue(event.id, forKey: "id")
+    row.setValue(event.date, forKey: "date")
+    row.setValue(event.action.rawValue, forKey: "action")
+    row.setValue(event.itemID, forKey: "itemID")
+    row.setValue(event.sticker, forKey: "sticker")
+    row.setValue(event.surface?.rawValue, forKey: "surface")
+    row.setValue(event.x, forKey: "x")
+    row.setValue(event.y, forKey: "y")
     row.setValue(Self.dataVersion, forKey: "dataVersion")
     save()
   }
@@ -525,7 +559,7 @@ final class RecordStore {
   func deleteProfile(_ id: UUID) {
     for entity in [
       "CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "WishRow",
-      "ToyBoxMoveRow",
+      "ToyBoxMoveRow", "StickerRow",
     ] {
       for row in fetch(entity, profile: id) { context.delete(row) }
     }
@@ -635,6 +669,16 @@ final class RecordStore {
       entity("WishRow", [attribute("item", .string)]),
       // おもちゃばこの「出した」「しまった」（D82・D185）。どの物か（`objectID`）と、どちらか（`action`）。
       entity("ToyBoxMoveRow", [attribute("objectID", .uuid), attribute("action", .string)]),
+      // ステッカー（D190）。手に入れた・貼った・はがした（`action`）。どのステッカーか（`itemID` = 手に入れた行の ID）、
+      // 絵の名前（`sticker`）、貼ったところ（`surface`）と位置（`x`・`y`）。
+      entity(
+        "StickerRow",
+        [
+          attribute("action", .string), attribute("itemID", .uuid), attribute("sticker", .string),
+          attribute("surface", .string),
+          attribute("x", .double, optional: false, defaultValue: 0.0),
+          attribute("y", .double, optional: false, defaultValue: 0.0),
+        ]),
       entity(
         "ProfileRow",
         [

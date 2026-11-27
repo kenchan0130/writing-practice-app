@@ -32,6 +32,17 @@
     "%@の ことば %@": {
       "shouldTranslate": false
     },
+    "%@の ずかん": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@'s Picture Book"
+          }
+        }
+      }
+    },
     "%@の まち": {
       "extractionState": "manual",
       "localizations": {
@@ -392,6 +403,17 @@
         }
       }
     },
+    "あけられる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready to open"
+          }
+        }
+      }
+    },
     "あとで設定する": {
       "extractionState": "manual",
       "localizations": {
@@ -531,6 +553,61 @@
           "stringUnit": {
             "state": "translated",
             "value": "Capitals"
+          }
+        }
+      }
+    },
+    "おして あけよう": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to open"
+          }
+        }
+      }
+    },
+    "おすと はがせる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to peel it off"
+          }
+        }
+      }
+    },
+    "おすと はれる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap to stick it on"
+          }
+        }
+      }
+    },
+    "おたのしみ ボックス": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Surprise Box"
+          }
+        }
+      }
+    },
+    "おたのしみ ボックスを あける": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the Surprise Box"
           }
         }
       }
@@ -729,6 +806,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Today's goal"
+          }
+        }
+      }
+    },
+    "きょうは もう あけた": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already opened today"
           }
         }
       }
@@ -1064,6 +1152,17 @@
         }
       }
     },
+    "つぎの ステッカー": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More stickers"
+          }
+        }
+      }
+    },
     "つぎへ": {
       "extractionState": "manual",
       "localizations": {
@@ -1071,6 +1170,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Next"
+          }
+        }
+      }
+    },
+    "できた": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
           }
         }
       }
@@ -1254,6 +1364,17 @@
         }
       }
     },
+    "はった ステッカーを おすと、はがせるよ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap a sticker you placed to peel it off"
+          }
+        }
+      }
+    },
     "はなばたけ": {
       "extractionState": "manual",
       "localizations": {
@@ -1364,6 +1485,17 @@
         }
       }
     },
+    "まだ あけられない": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not ready yet"
+          }
+        }
+      }
+    },
     "まだ（たね）": {
       "extractionState": "manual",
       "localizations": {
@@ -1382,6 +1514,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "Town"
+          }
+        }
+      }
+    },
+    "まちに はる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stick It in Town"
+          }
+        }
+      }
+    },
+    "まちの ステッカー": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Town stickers"
           }
         }
       }
@@ -1537,6 +1691,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "My House"
+          }
+        }
+      }
+    },
+    "わたしの ずかん": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Picture Book"
           }
         }
       }
@@ -1702,6 +1867,50 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stamp Card"
+          }
+        }
+      }
+    },
+    "ステッカー": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stickers"
+          }
+        }
+      }
+    },
+    "ステッカー、%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sticker: %@"
+          }
+        }
+      }
+    },
+    "ステッカーは まだ ないよ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No stickers yet"
+          }
+        }
+      }
+    },
+    "ステッカーを 1まい はがす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peel off one sticker"
           }
         }
       }
