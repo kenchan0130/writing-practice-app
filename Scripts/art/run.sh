@@ -17,4 +17,5 @@ for n in $NAMES; do
   "$WORK/render" "$WORK/$n.svg" "$WORK/$n-sil.png" 512 sil
 done
 echo "確かめ用の画像: $WORK"
-echo "一覧を作るとき: cd $WORK && swiftc -O $HERE/sheetall.swift -o sheetall && ./sheetall"
+python3 -I "$HERE/sheet_names.py" "$WORK/sheet-names.tsv" >/dev/null
+echo "一覧を作るとき: cd $WORK && swiftc -O $HERE/sheetall.swift -o sheetall && ./sheetall && cp sheet-all.png $ROOT/Content/Art/"
