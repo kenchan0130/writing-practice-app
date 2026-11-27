@@ -34,3 +34,11 @@
 - `App/Mojimachi/Resources/Voices/voices.json`・`provenance.csv`: 手で直さず、どちらか片方を取って、4. のコマンドで作り直す。
 - `Content/Art/references.md`: 節は最後に足すだけなので、両方の節を残す。
 - 画面の数を決めているテスト（`WordCatalogTests` の語数、`WordMapTests` のテーマ数など）は、マージの後に合う数へ直す。
+
+## ステッカーと おたのしみ ボックス（D190）
+
+- 絵: `Scripts/art/stickers.sh`（Mac だけ）。`Scripts/art/stickers.py` で SVG を作り（`Content/Art/stickers/`・`Content/Art/parts/otanoshimi-*.svg`）、
+  アプリの `sticker-<名前>.imageset`・`part-otanoshimi-*.imageset` へ写し、一覧（`Content/Art/sheet-stickers.png`）を作る。
+- ステッカーを足すとき: `stickers.py` に `@sticker` の関数を足し、`TreatBox.stickers`（`Packages/Sources/PracticeKit/TreatBox.swift`）の**最後に**同じ名前を足し、
+  `StickerArt.name`（`App/Mojimachi/Treat/StickerArt.swift`）に読み上げ用の名前を足す。数を決めているテスト（`TreatBoxTests`）も直す。
+- 描き方の決まりは `Content/Art/style-guide.md` の「ステッカーと おたのしみ ボックス」。

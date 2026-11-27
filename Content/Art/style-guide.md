@@ -247,3 +247,10 @@ def inu():
 
 - CLIP STUDIO「お絵かき講座」の犬・猫・デフォルメの記事（顔の形は犬がたて長・猫が横長、目は顔の左右の真ん中、鼻は大きめ、体の比率は本物から離しすぎない）
 - CLIP STUDIO TIPS "Drawing kawaii animals"、Easy Drawing Guides のぞう・ねこの描き方（頭を体より大きく、目は低く広く、足先は指を描かない丸、光を白く残す）
+
+### ステッカーと おたのしみ ボックス（D190）
+- ステッカー（`Content/Art/stickers/`）は ことばの絵ではない。`Scripts/art/stickers.py` で描き、`Scripts/art/stickers.sh` でアプリへ写す（`sticker-<名前>`）。一覧は `Content/Art/sheet-stickers.png`。
+- 描き方は ことばの絵と同じ。最後に、絵のまわりへ白いふち（`stickerize()`）を付ける。ふちがあるので、夜のまちや 絵の上に貼っても形が分かる。
+- 1枚に1つの物。顔は、目・ほほ・小さな口だけ。まちで 90px ほどになるので、細かい模様は入れない。
+- 名前は `TreatBox.stickers`（`Packages/Sources/PracticeKit/TreatBox.swift`）と同じにする。足すときは、並びの後ろに足す（出る順が変わらないように）。
+- おたのしみ ボックスは、箱（`Content/Art/parts/otanoshimi-box.svg`）と ふた（`otanoshimi-lid.svg`）の2枚。同じ大きさ・同じ位置で描き、重ねると しまった箱になる。アプリは ふただけ動かす。
