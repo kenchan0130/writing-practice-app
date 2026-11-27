@@ -23,6 +23,8 @@ final class TownScene: SKScene {
   private var swimObjects: [PlacedObject] = []
   /// こうえんの物（置き場所の番号の順。上限は `TownLayout.maxPlaythings`）と、置き場所の番号（D173・D185）。
   private var playObjects: [(object: PlacedObject, ordinal: Int)] = []
+  /// 季節の飾り（置き場所の番号の順。上限は `FestiveLayout.capacity`）と、置き場所の番号（§3.4）。
+  private var festiveObjects: [(object: PlacedObject, ordinal: Int)] = []
   /// こうえんで遊ぶキャラクター（「なにが すき？」の前に選んだ主人公。D164）。
   private var mainCharacter: MainCharacter = .ton
   /// 空のことばを書いた記録と、いま出している空（D172）。
@@ -85,17 +87,21 @@ final class TownScene: SKScene {
       let swimmers = board.shown(.swimmers).map(\.object)
       // こうえんの物は、8つの置き場所に入る。いっぱいなら、出してからいちばん長い物の場所に入る（D82）。
       let playing = board.shown(.park).map { (object: $0.object, ordinal: $0.slot) }
+      let festive = board.shown(.festive).map { (object: $0.object, ordinal: $0.slot) }
       guard
         roaming.map(\.id) != townObjects.map(\.id)
           || scenery.map(\.id) != sceneryObjects.map(\.id)
           || swimmers.map(\.id) != swimObjects.map(\.id)
           || playing.map(\.object.id) != playObjects.map(\.object.id)
           || playing.map(\.ordinal) != playObjects.map(\.ordinal)
+          || festive.map(\.object.id) != festiveObjects.map(\.object.id)
+          || festive.map(\.ordinal) != festiveObjects.map(\.ordinal)
       else { return }
       townObjects = roaming
       sceneryObjects = scenery
       swimObjects = swimmers
       playObjects = playing
+      festiveObjects = festive
       rebuildTown()
       return
     }
@@ -174,9 +180,27 @@ final class TownScene: SKScene {
           TownLayout.landmarkPlace(place, factor: $0), objectWidth: Double(objectSize))
       }
     }
+    // 季節の飾り（§3.4）。立てる物のはばにも、背景の木と家を出さない。
+    let festiveArea = FestiveLayout.area(
+      landMinX: plan.landMinX, landWidth: plan.landWidth, screenWidth: Double(size.width))
+    let festiveSpots: [(object: PlacedObject, spot: FestiveSpot)] = festiveObjects.compactMap {
+      item in
+      FestiveLayout.style(for: item.object.word).map {
+        (item.object, FestiveLayout.spot(index: item.ordinal, style: $0, in: festiveArea))
+      }
+    }
+    let standSpans = festiveSpots.filter { $0.spot.style == .stand }.map {
+      FestiveLayout.standSpan($0.spot, objectWidth: Double(objectSize))
+    }
     addScenery(
       to: world, landWidth: CGFloat(plan.landWidth), originX: CGFloat(plan.landMinX),
-      avoiding: landmarkSpans)
+      avoiding: landmarkSpans + standSpans)
+    if !festiveSpots.isEmpty {
+      addGarland(to: world, area: festiveArea)
+      for (object, spot) in festiveSpots {
+        addFestive(object, spot: spot, to: world, objectSize: objectSize)
+      }
+    }
     if let water = plan.water { addWater(to: world, water: water) }
     if let park = plan.park {
       addPark(to: world, park: park)
@@ -320,7 +344,9 @@ final class TownScene: SKScene {
     switch kind {
     case .vehicle: .vehicle
     case .flyer: .flyer
-    case .animal, .clothes, .scenery, .swimmer, .sky, .plaything, .bodyAction, .furniture: .animal
+    case .animal, .clothes, .scenery, .swimmer, .sky, .plaything, .bodyAction, .furniture,
+      .seasonal:
+      .animal
     }
   }
 
@@ -1279,6 +1305,142 @@ final class TownScene: SKScene {
     let loop = SKAction.repeatForever(.sequence(script))
     playerScript = loop
     player.run(loop)
+  }
+
+  // MARK: 季節の飾り（§3.4）
+
+  /// おまつりの はた: 柱を立てて、たるんだ ひもをわたし、色とりどりの三角の旗を下げる。
+  /// 季節の飾りが 1つでも出ているあいだ出る。背景の木・家より手前、景色・動物より奥。
+  private func addGarland(to world: SKNode, area: ClosedRange<Double>) {
+    let h = size.height
+    let garland = FestiveLayout.garland(in: area)
+    let wood = UIColor(red: 0.95, green: 0.78, blue: 0.5, alpha: 1)
+    let baseY = h * CGFloat(FestiveLayout.poleBaseY) - h * 0.004
+    let topY = h * CGFloat(garland.poleTopY)
+    let posts = CGMutablePath()
+    for pole in garland.poles {
+      posts.addRoundedRect(
+        in: CGRect(x: CGFloat(pole) - 6, y: baseY, width: 12, height: topY - baseY + 4),
+        cornerWidth: 5, cornerHeight: 5)
+    }
+    world.addChild(shape(SKShapeNode(path: posts), fill: wood, line: 4, z: -36))
+    for pole in garland.poles {
+      let knob = shape(
+        SKShapeNode(circleOfRadius: 10), fill: UIColor(red: 1, green: 0.8, blue: 0.3, alpha: 1),
+        line: 4, z: -35.5)
+      knob.position = CGPoint(x: CGFloat(pole), y: topY + 8)
+      world.addChild(knob)
+    }
+    // ひも（1つのノード）。柱と柱のあいだを、細かい折れ線で たるませる。
+    let rope = CGMutablePath()
+    let steps = 16
+    for (a, b) in zip(garland.poles, garland.poles.dropFirst()) {
+      for step in 0...steps {
+        let x = a + (b - a) * Double(step) / Double(steps)
+        // 柱の真上は、右の間の はじまりとして計算されるので、柱の高さにそろえる。
+        let y = step == 0 || step == steps ? garland.poleTopY : FestiveLayout.ropeY(at: x, in: area)
+        let point = CGPoint(x: CGFloat(x), y: h * CGFloat(y))
+        if step == 0 { rope.move(to: point) } else { rope.addLine(to: point) }
+      }
+    }
+    let ropeLine = SKShapeNode(path: rope)
+    ropeLine.strokeColor = Self.outline
+    ropeLine.lineWidth = 4
+    ropeLine.lineCap = .round
+    ropeLine.lineJoin = .round
+    ropeLine.zPosition = -35
+    world.addChild(ropeLine)
+    // 旗: 色ごとに 1つのノード。ほんの少しだけ、色ごとに ずれて上下する。
+    let colors = [
+      UIColor(red: 0.9, green: 0.33, blue: 0.29, alpha: 1), UIColor(red: 0.97, green: 0.79, blue: 0.28, alpha: 1),
+      UIColor(red: 0.49, green: 0.76, blue: 0.42, alpha: 1), UIColor(red: 0.31, green: 0.66, blue: 0.88, alpha: 1),
+      UIColor(red: 0.97, green: 0.66, blue: 0.7, alpha: 1),
+    ]
+    let flagWidth = unit * 0.034
+    let flagHeight = unit * 0.046
+    for (index, color) in colors.enumerated() {
+      let path = CGMutablePath()
+      for flag in garland.flags where flag.color == index {
+        let top = CGPoint(x: CGFloat(flag.x), y: h * CGFloat(flag.yFraction) - 1)
+        path.move(to: CGPoint(x: top.x - flagWidth / 2, y: top.y))
+        path.addLine(to: CGPoint(x: top.x + flagWidth / 2, y: top.y))
+        path.addLine(to: CGPoint(x: top.x, y: top.y - flagHeight))
+        path.closeSubpath()
+      }
+      let node = shape(SKShapeNode(path: path), fill: color, line: 3, z: -34.5)
+      if !reduceMotion {
+        let flutter = SKAction.sequence([
+          .moveBy(x: 0, y: -3, duration: 1.1), .moveBy(x: 0, y: 3, duration: 1.1),
+        ])
+        flutter.timingMode = .easeInEaseOut
+        node.run(.sequence([.wait(forDuration: Double(index) * 0.35), .repeatForever(flutter)]))
+      }
+      world.addChild(node)
+    }
+  }
+
+  /// 季節の飾り ひとつ。つるす物は ひもの下で ゆれ、立てる物は草の奥に立ち、空の物（はなび）は 丘の向こうの空にあがる。
+  private func addFestive(
+    _ object: PlacedObject, spot: FestiveSpot, to world: SKNode, objectSize: CGFloat
+  ) {
+    let h = size.height
+    let image = WordArt.image(word: object.word, size: 320)
+    let node = SKSpriteNode(texture: SKTexture(image: image))
+    node.name = object.id.uuidString
+    let side = objectSize * CGFloat(spot.scale)
+    node.size = CGSize(width: side, height: side)
+    node.position = CGPoint(x: CGFloat(spot.x), y: h * CGFloat(spot.yFraction))
+    let motion = FestiveLayout.motion(spot.style, reduceMotion: reduceMotion)
+    let phase = Double(spot.index) * 0.45
+    switch spot.style {
+    case .hang:
+      // 絵の上のはしを支点にする（絵のまわりの すきまの分だけ下げる）。
+      let content = WordArt.contentFrame(word: object.word)
+      node.anchorPoint = CGPoint(x: content.midX, y: 1 - content.minY)
+      node.zPosition = -30
+      if let ropeY = spot.ropeY {
+        let string = SKShapeNode(
+          rect: CGRect(x: -1.5, y: 0, width: 3, height: h * CGFloat(ropeY - spot.yFraction) + 2))
+        string.fillColor = Self.outline
+        string.strokeColor = .clear
+        string.zPosition = -1
+        node.addChild(string)
+      }
+    case .stand:
+      let content = WordArt.contentFrame(word: object.word)
+      node.anchorPoint = CGPoint(x: content.midX, y: 1 - content.maxY)
+      // 景色（2〜4）と動物より奥、背景の木・家と はた より手前。
+      node.zPosition = 1
+    case .sky:
+      // 雲（-85）より手前、丘（-80）より奥。
+      node.zPosition = -83
+    }
+    world.addChild(node)
+    guard let motion else { return }
+    if motion.angle > 0 {
+      let angle = CGFloat(motion.angle)
+      let sway = SKAction.sequence([
+        .rotate(toAngle: angle, duration: motion.period / 4),
+        .rotate(toAngle: -angle, duration: motion.period / 2),
+        .rotate(toAngle: 0, duration: motion.period / 4),
+      ])
+      sway.timingMode = .easeInEaseOut
+      node.run(.sequence([.wait(forDuration: phase), .repeatForever(sway)]))
+    }
+    if motion.pulse > 0 {
+      let pulse = SKAction.sequence([
+        .group([
+          .scale(to: 1 + CGFloat(motion.pulse), duration: motion.period / 2),
+          .fadeAlpha(to: 1, duration: motion.period / 2),
+        ]),
+        .group([
+          .scale(to: 1 - CGFloat(motion.pulse), duration: motion.period / 2),
+          .fadeAlpha(to: 0.88, duration: motion.period / 2),
+        ]),
+      ])
+      pulse.timingMode = .easeInEaseOut
+      node.run(.sequence([.wait(forDuration: phase), .repeatForever(pulse)]))
+    }
   }
 
   // MARK: クローゼット

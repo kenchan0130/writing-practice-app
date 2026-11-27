@@ -169,6 +169,7 @@ struct OnboardingChildView: View {
     case .plaything: "こうえん"
     case .bodyAction: "からだ"
     case .furniture: "おうち"
+    case .seasonal: "きせつ"
     }
   }
 
@@ -184,6 +185,7 @@ struct OnboardingChildView: View {
     case .plaything: "figure.play"
     case .bodyAction: "hand.wave.fill"
     case .furniture: "chair.fill"
+    case .seasonal: "flag.fill"
     }
   }
 
@@ -199,6 +201,7 @@ struct OnboardingChildView: View {
     case .plaything: Color(red: 0.95, green: 0.6, blue: 0.25)
     case .bodyAction: Color(red: 0.93, green: 0.45, blue: 0.5)
     case .furniture: Color(red: 0.8, green: 0.55, blue: 0.3)
+    case .seasonal: Color(red: 0.9, green: 0.42, blue: 0.5)
     }
   }
 

@@ -20,7 +20,9 @@ struct ToyBoxBoard {
         ToyBoxItem(id: object.id, word: object.word, date: object.date))
     }
     // 同じことばの物は、新しい3つまで（D74）。
-    let items = grouped.mapValues { ToyBox.newestPerWord($0) }
+    // 季節の飾りは増やさず、いちばん新しい 1つ（`ShelfGroup.perWord`）。
+    let items = Dictionary(
+      uniqueKeysWithValues: grouped.map { ($0.key, ToyBox.newestPerWord($0.value, limit: $0.key.perWord)) })
     self.objects = objects
     self.items = items
     shelves = Dictionary(

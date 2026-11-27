@@ -20,6 +20,8 @@ public enum WordKind: String, Sendable, CaseIterable, Codable {
   case bodyAction
   /// いえの物: キャラクターのいえの 棚・床・壁に置かれ、主人公が使う（D185）。
   case furniture
+  /// 季節の飾り: まちの「おまつりの はた」の下に、つるす・立てる・空にあがる（§3.4・D53・D186）。
+  case seasonal
 }
 
 /// ことば 1つ（絵は持たない。絵はアプリ側）。

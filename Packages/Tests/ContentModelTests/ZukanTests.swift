@@ -31,7 +31,8 @@ struct ZukanTests {
     let index = WordMapIndex { $0 != "ねこ" }
     let sections = Zukan.sections(index: index, writtenCounts: ["いぬ": 5])
     let ie = sections.first { $0.theme.id == "ie-ikimono" }
-    #expect(ie?.entries.map(\.word) == ["いぬ", "うさぎ"])
+    #expect(
+      ie?.entries.map(\.word) == ["いぬ", "うさぎ", "こいぬ", "こねこ", "ことり", "おうむ", "きんぎょ", "すずむし"])
     #expect(ie?.entries.first?.state == .written(stars: 3))
     #expect(ie?.entries.last?.state == .unwritten)
     let order = sections.map(\.theme.id)

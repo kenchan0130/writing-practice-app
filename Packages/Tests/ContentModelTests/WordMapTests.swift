@@ -48,56 +48,139 @@ struct WordMapTests {
     }
   }
 
-  @Test("153語は、すべてどれかのテーマに入っている")
+  @Test("305語は、すべてどれかのテーマに入っている")
   func everyWordHasATheme() {
     for entry in WordCatalog.all {
       #expect(WordMap.themes.contains { $0.words.contains(entry.text) }, "\(entry.text)")
     }
   }
 
-  @Test("153語の割りふり")
+  @Test("305語の割りふり")
   func assignment() {
     func theme(_ id: String) -> [String] { WordMap.theme(id: id)?.words ?? [] }
-    #expect(Set(theme("norimono")) == ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ"])
-    #expect(Set(theme("hataraku-kuruma")) == ["しょうぼうしゃ", "きゅうきゅうしゃ"])
-    #expect(Set(theme("dobutsuen-dobutsu")) == ["さる", "ぞう", "とら", "かば", "きりん", "らくだ"])
-    #expect(Set(theme("makiba-dobutsu")) == ["うし", "うま", "ぶた", "ひつじ"])
-    #expect(Set(theme("mori-dobutsu")) == ["くま", "しか", "りす", "たぬき", "きつね"])
-    #expect(Set(theme("ie-ikimono")) == ["いぬ", "ねこ", "うさぎ"])
+    #expect(
+      Set(theme("norimono"))
+        == ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ", "ばしゃ", "きかんしゃ"])
+    #expect(Set(theme("hataraku-kuruma")) == ["しょうぼうしゃ", "きゅうきゅうしゃ", "はしごしゃ", "ゆうびんしゃ"])
+    #expect(
+      theme("dobutsuen-dobutsu") == [
+        "さる", "ぞう", "とら", "かば", "きりん", "らくだ",
+        "しまうま", "さい", "わに", "へび", "くじゃく", "あざらし",
+      ])
+    #expect(
+      theme("makiba-dobutsu") == [
+        "うし", "うま", "ぶた", "ひつじ",
+        "やぎ", "ろば", "にわとり", "ひよこ", "あひる",
+      ])
+    #expect(
+      theme("mori-dobutsu") == [
+        "くま", "しか", "りす", "たぬき", "きつね",
+        "いのしし", "おおかみ", "ねずみ", "はりねずみ", "もぐら", "こうもり", "むささび",
+      ])
+    #expect(
+      theme("ie-ikimono") == [
+        "いぬ", "ねこ", "うさぎ",
+        "こいぬ", "こねこ", "ことり", "おうむ", "きんぎょ", "すずむし",
+      ])
     #expect(Set(theme("fuku")) == ["ふく", "ゆかた", "きもの"])
     #expect(Set(theme("oshare-komono")) == ["くつ", "ぼうし", "くつした"])
     // 着る ひとそろい（D178）。
     #expect(theme("henshin") == ["にんじゃ", "おひめさま", "おうさま", "まほうつかい", "かいぞく"])
     #expect(theme("oshigoto") == ["だいく", "せんせい", "おいしゃさん", "おまわりさん", "しょうぼうし"])
-    #expect(Set(theme("sora-tobu-mono")) == ["ひこうき", "ききゅう"])
-    #expect(Set(theme("tori")) == ["はと", "すずめ", "からす"])
-    #expect(Set(theme("hana")) == ["さくら", "ひまわり", "たんぽぽ", "あさがお", "ばら"])
-    #expect(Set(theme("kudamono")) == ["りんご", "みかん", "いちご", "もも", "ぶどう", "すいか", "くり"])
-    #expect(Set(theme("mushi")) == ["ちょう", "とんぼ", "はち", "ほたる", "せみ", "かぶとむし", "てんとうむし", "かたつむり"])
-    #expect(Set(theme("okashi")) == ["だんご", "せんべい", "わたあめ"])
-    #expect(Set(theme("gohan-nomimono")) == ["おにぎり", "すし", "うどん"])
-    #expect(Set(theme("yasai")) == ["にんじん", "だいこん", "かぼちゃ"])
+    #expect(Set(theme("sora-tobu-mono")) == ["ひこうき", "ききゅう", "ひこうせん"])
     #expect(
-      Set(theme("umi-ikimono"))
-        == ["たこ", "いか", "かに", "かめ", "くじら", "くらげ", "いるか", "さかな", "ひとで"])
-    #expect(Set(theme("kawa-ikimono")) == ["かえる", "めだか", "ざりがに", "おたまじゃくし"])
+      theme("tori") == [
+        "はと", "すずめ", "からす",
+        "にわとり", "ふくろう", "つる", "わし", "つばめ", "かもめ", "きじ", "きつつき", "はくちょう",
+      ])
+    #expect(
+      theme("hana") == [
+        "さくら", "ひまわり", "たんぽぽ", "あさがお", "ばら",
+        "あじさい", "すみれ", "ゆり", "つばき", "うめ", "なのはな", "すいせん",
+      ])
+    #expect(
+      theme("kudamono") == [
+        "りんご", "みかん", "いちご", "もも", "ぶどう", "すいか", "くり",
+        "なし", "かき", "さくらんぼ", "びわ", "いちじく",
+      ])
+    #expect(
+      theme("mushi") == [
+        "ちょう", "とんぼ", "はち", "ほたる", "せみ", "かぶとむし", "てんとうむし", "かたつむり",
+        "あり", "ばった", "かまきり", "くわがた",
+      ])
+    #expect(
+      theme("okashi") == [
+        "だんご", "せんべい", "わたあめ",
+        "かきごおり", "どらやき", "たいやき", "まんじゅう", "ようかん", "おはぎ", "やきいも", "こんぺいとう", "かしわもち",
+      ])
+    #expect(
+      theme("gohan-nomimono") == [
+        "おにぎり", "すし", "うどん",
+        "ごはん", "たまご", "ぎゅうにゅう", "おちゃ", "おもち", "おべんとう", "てんぷら", "たまごやき", "おでん",
+      ])
+    #expect(
+      theme("yasai") == [
+        "にんじん", "だいこん", "かぼちゃ",
+        "なす", "きゅうり", "ねぎ", "たまねぎ", "じゃがいも", "さつまいも", "とうもろこし", "れんこん", "えだまめ",
+      ])
+    #expect(
+      theme("umi-ikimono") == [
+        "たこ", "いか", "かに", "かめ", "くじら", "くらげ", "いるか", "さかな", "ひとで",
+        "えび", "さめ", "ふぐ",
+      ])
+    #expect(
+      theme("kawa-ikimono") == [
+        "かえる", "めだか", "ざりがに", "おたまじゃくし",
+        "こい", "なまず", "うなぎ", "かも", "はくちょう", "かわうそ", "あめんぼ", "きんぎょ",
+      ])
     // 空のことば（D172）。ほし・つきは、そら・てんきと うちゅうの両方に入る。
     #expect(
       Set(theme("sora-tenki")) == ["くも", "にじ", "あめ", "ゆき", "かみなり", "かぜ", "ほし", "つき"])
     #expect(Set(theme("uchu")) == ["たいよう", "ほし", "つき", "うちゅうじん"])
     // こうえんの物（D173）。
-    #expect(Set(theme("omocha")) == ["つみき", "こま", "けんだま", "ふうせん", "にんぎょう"])
-    #expect(Set(theme("gakki")) == ["たいこ", "ふえ", "すず", "もっきん"])
-    #expect(Set(theme("sports")) == ["なわとび", "てつぼう", "とびばこ"])
-    #expect(Set(theme("koen-asobi")) == ["ぶらんこ", "すべりだい", "すなば"])
+    #expect(
+      Set(theme("omocha")) == [
+        "つみき", "こま", "けんだま", "ふうせん", "にんぎょう", "おりがみ", "たけうま", "ぬいぐるみ", "かざぐるま", "かみひこうき",
+      ])
+    #expect(Set(theme("gakki")) == ["たいこ", "ふえ", "すず", "もっきん", "こと", "てっきん"])
+    #expect(Set(theme("sports")) == ["なわとび", "てつぼう", "とびばこ", "うきわ", "たまいれ", "つなひき"])
+    #expect(
+      Set(theme("koen-asobi")) == ["ぶらんこ", "すべりだい", "すなば", "うんてい", "ふんすい", "さんりんしゃ"])
     // 体のことば（D175）。
     #expect(
       Set(theme("karada")) == ["て", "あし", "め", "みみ", "くち", "あたま", "おなか", "ほっぺ"])
     // 景色になる物（D174）。
-    #expect(Set(theme("shizen")) == ["やま", "たき", "いし", "いけ"])
-    #expect(Set(theme("ki-kusa-kinoko")) == ["くさ", "まつ", "どんぐり", "はっぱ", "きのこ"])
-    #expect(Set(theme("tatemono")) == ["いえ", "がっこう", "びょういん", "おしろ"])
-    #expect(Set(theme("machi-no-mono")) == ["しんごう", "ふみきり", "がいとう"])
+    #expect(
+      theme("shizen") == [
+        "やま", "たき", "いし", "いけ",
+        "いわ", "もり", "しま", "はたけ", "かいがら", "きりかぶ", "みずたまり", "おちば",
+      ])
+    #expect(
+      theme("ki-kusa-kinoko") == [
+        "くさ", "まつ", "どんぐり", "はっぱ", "きのこ",
+        "き", "たけ", "たけのこ", "もみじ", "いちょう", "まつぼっくり", "つくし",
+      ])
+    #expect(
+      Set(theme("tatemono")) == [
+        "いえ", "がっこう", "びょういん", "おしろ", "じんじゃ", "こうばん", "としょかん", "ようちえん", "ゆうびんきょく",
+      ])
+    #expect(
+      Set(theme("machi-no-mono")) == [
+        "しんごう", "ふみきり", "がいとう", "かんばん", "でんちゅう", "ほどうきょう", "じどうはんばいき",
+      ])
+    // めぐり School2: ぶんぼうぐ と 季節の ぎょうじ（季節の飾り）。テーマの中は、土台のことば、めぐりの順。
+    #expect(theme("bunbogu") == ["のり", "ふで", "ほん", "はさみ", "えのぐ", "ねんど", "えんぴつ", "ふでばこ", "じょうぎ"])
+    #expect(
+      theme("haru-natsu-gyoji") == [
+        "はなび", "うちわ", "ふうりん", "たなばた", "ちょうちん", "こいのぼり", "おひなさま", "てるてるぼうず",
+      ])
+    #expect(
+      theme("aki-fuyu-gyoji") == [
+        "すすき", "かかし", "だるま", "おつきみ", "かまくら", "かどまつ", "ちとせあめ", "ゆきだるま", "かがみもち",
+      ])
+    for word in theme("haru-natsu-gyoji") + theme("aki-fuyu-gyoji") {
+      #expect(WordCatalog.entry(for: word)?.kind == .seasonal, "\(word)")
+    }
     // いえの物（D185）。
     #expect(theme("daidokoro") == ["なべ", "おわん", "はし", "おさら", "やかん"])
     #expect(theme("ie-no-mono") == ["いす", "つくえ", "とけい", "ふとん", "たんす"])
@@ -120,13 +203,13 @@ struct WordMapTests {
 
   // MARK: - 出し分け
 
-  @Test("今の153語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・うみ・かわ・おみせ・こうえん・うちゅうが出る")
+  @Test("今の305語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・うみ・かわ・おみせ・こうえん・うちゅう・きせつ の はた が出る")
   func todayPlaces() {
     let index = WordMapIndex { WordCatalog.entry(for: $0) != nil }
     #expect(
       index.places.map(\.id) == [
         "eki", "michi", "sora", "dobutsuen", "makiba", "mori", "ie", "umi", "kawa", "omise", "koen",
-        "uchu",
+        "uchu", "kisetsu",
       ])
     #expect(
       index.themes(in: WordMap.place(id: "ie")!).map(\.id) == [
