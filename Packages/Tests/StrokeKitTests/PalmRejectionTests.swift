@@ -51,8 +51,53 @@ struct PalmRejectionTests {
   @Test("触れてすぐ面が広がった指の線は取り消す")
   func cancelsGrowingContact() {
     #expect(rule.shouldCancel(input: .finger, majorRadius: 50, elapsed: 0.03))
-    #expect(!rule.shouldCancel(input: .finger, majorRadius: 50, elapsed: 0.2))
+    #expect(!rule.shouldCancel(input: .finger, majorRadius: 50, elapsed: 0.5))
     #expect(!rule.shouldCancel(input: .pencil, majorRadius: 50, elapsed: 0.03))
+  }
+}
+
+@Suite("PalmRejection の Pencil 優先（D191）")
+struct PalmRejectionPencilFirstTests {
+  let rule = PalmRejection()
+  let pencil = TouchCandidate(input: .pencil, majorRadius: 1, y: 100, areaHeight: 1000, time: 5)
+  let finger = TouchCandidate(input: .finger, majorRadius: 10, y: 100, areaHeight: 1000, time: 5)
+
+  @Test("指の線を書いている途中に Pencil が触れたら、指の線を取り消して Pencil を書く")
+  func pencilReplacesFinger() {
+    #expect(rule.decide(pencil, lastPencilTime: nil, activeInput: .finger) == .replaceActive)
+  }
+
+  @Test("Pencil を書いている途中に増えた接触は、Pencil でも指でも捨てる")
+  func ignoresExtraWhilePencil() {
+    #expect(rule.decide(pencil, lastPencilTime: 4, activeInput: .pencil) == .reject)
+    #expect(rule.decide(finger, lastPencilTime: 4, activeInput: .pencil) == .reject)
+  }
+
+  @Test("指の線を書いている途中に増えた指は捨てる")
+  func ignoresExtraFinger() {
+    #expect(rule.decide(finger, lastPencilTime: nil, activeInput: .finger) == .reject)
+  }
+
+  @Test("書いていないときは、これまでの決まりどおり")
+  func idleFollowsAccepts() {
+    #expect(rule.decide(finger, lastPencilTime: nil, activeInput: nil) == .accept)
+    #expect(rule.decide(finger, lastPencilTime: 4.5, activeInput: nil) == .reject)
+    #expect(rule.decide(pencil, lastPencilTime: 4.5, activeInput: nil) == .accept)
+  }
+
+  @Test("手のひらは、触れてから 0.3 秒のうちに広がれば取り消す")
+  func growthWindowIsRealistic() {
+    #expect(rule.growthWindow >= 0.2)
+    #expect(rule.shouldCancel(input: .finger, majorRadius: 60, elapsed: 0.15))
+    #expect(!rule.shouldCancel(input: .finger, majorRadius: 10, elapsed: 0.15))
+    #expect(!rule.shouldCancel(input: .finger, majorRadius: 60, elapsed: 0.5))
+  }
+
+  @Test("太い指でしっかり動かして書いている線は、面が大きくても取り消さない")
+  func keepsMovingFatFinger() {
+    #expect(rule.shouldCancel(input: .finger, majorRadius: 60, elapsed: 0.1, travel: 5))
+    #expect(!rule.shouldCancel(input: .finger, majorRadius: 60, elapsed: 0.1, travel: 80))
+    #expect(!rule.shouldCancel(input: .finger, majorRadius: 45, elapsed: 0.1, travel: 0))
   }
 }
 

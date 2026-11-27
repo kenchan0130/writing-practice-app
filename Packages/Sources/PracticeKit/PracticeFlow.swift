@@ -34,7 +34,14 @@ public enum PracticeEffect: Sendable, Equatable {
   /// 書いた画を残す（②③は「ポン」と鳴らす。§3.2）。
   case keepStroke
   /// 書いた画をふわっと消し、書くべき画の書き始めを光らせて「ここから かいてみよう」（D47）。
+  /// 続きから書く途中だったときは、そこまでの線も合わせて消す（D191）。
   case rejectStroke(hintStroke: Int)
+  /// 途中でペンを離した線を残す。続きから書けば同じ画になる（D56 ③・D191）。
+  case keepPartial
+  /// 続きではなく、書き始めからの書き直しだった。残していた途中の線を消す（D191）。
+  case dropPartial
+  /// 続けてまちがえたので、その画のお手本をもう一度見せる（D191）。
+  case replayModel(stroke: Int)
   /// ステップが変わった（戻ったことは子どもに知らせない。§3.2）。
   case stepChanged(PracticeStep)
   /// ④ の判定の結果を出す（違った画のアニメーションなど）。
@@ -61,6 +68,10 @@ public struct PracticeFlow: Sendable {
   private let judge: Judge
   private var sameStrokeMisses = 0
   private var jibundeFailures = 0
+  /// 途中でペンを離した線（続きから書くための記録。②③。D191）。
+  private var trace = StrokeTrace()
+  /// なぞる で同じ画を続けてまちがえてよい回数。これだけまちがえたら、先に進める（D46・D191）。
+  public static let missesBeforeRescue = 3
 
   /// - Parameter mastered: ④ に合格したことのある「慣れた字」なら、①② を省く（§3.2・D56）。
   public init(
@@ -78,6 +89,10 @@ public struct PracticeFlow: Sendable {
   /// 次に書く画の番号（②③）。
   public var expectedStroke: Int { strokes.count }
   public var strokeCount: Int { judge.character.strokes.count }
+  /// 途中でペンを離して、続きを待っているか（②③。D191）。
+  public var hasPartial: Bool { trace.hasPartial }
+  /// 続きから書くとき、「ここから つづき」の印を出す場所（マス 0〜1000）。
+  public var continuationPoint: Point? { trace.continuationPoint }
   /// ④じぶんで の書き終わりの合図（D77）。
   public var endSignal: Judge.EndSignal { judge.endSignal(for: strokes) }
 
@@ -88,6 +103,7 @@ public struct PracticeFlow: Sendable {
       // 書いた画と数え直しをなくして、同じ段階をやり直す（学習記録には残さない）。
       strokes = []
       sameStrokeMisses = 0
+      trace.reset()
       return [.stepChanged(step)]
     case (.miru, .animationFinished):
       return move(to: .nazoru)
@@ -110,31 +126,47 @@ public struct PracticeFlow: Sendable {
   }
 
   /// ②③: 1画ごとにその場で判定する（D47）。
+  /// 途中で離した線は、書き始めと形が合っていれば残し、続きから書けるようにする（D56 ③・D191）。
   private mutating func traceStroke(_ line: Polyline) -> [PracticeEffect] {
-    let check = judge.judgeStroke(line, expected: expectedStroke, preset: preset)
-    guard check == .ok else {
-      sameStrokeMisses += 1
-      if step == .nazoru, sameStrokeMisses >= 2 {
-        // なぞる段階でも同じ画を2回続けて書けなければ、いちばん小さいほめ方で先に進める（D46）。
-        markedDifficult = true
+    let outcome = trace.evaluate(line, judge: judge, expected: expectedStroke, preset: preset)
+    switch outcome {
+    case .partial(let dropped):
+      return (dropped ? [.dropPartial] : []) + [.keepPartial]
+    case .miss(let dropped):
+      return (dropped ? [.dropPartial] : []) + miss()
+    case .complete(let joined, let dropped):
+      let effects: [PracticeEffect] = dropped ? [.dropPartial] : []
+      sameStrokeMisses = 0
+      strokes.append(joined)
+      guard strokes.count == strokeCount else { return effects + [.keepStroke] }
+      if nazoruOnly, step == .nazoru {
         finished = true
-        return [.rejectStroke(hintStroke: expectedStroke), .finished(rating: .maru, rescued: true)]
+        return effects + [.keepStroke, .finished(rating: .maru, rescued: false)]
       }
-      if step == .usuku, sameStrokeMisses >= 3 {
-        // うすく で同じ画を3回まちがえたら なぞる に戻る（D47）。
-        return [.rejectStroke(hintStroke: expectedStroke)] + move(to: .nazoru)
-      }
-      return [.rejectStroke(hintStroke: expectedStroke)]
+      let next: PracticeStep = step == .nazoru ? .usuku : .jibunde
+      return effects + [.keepStroke] + move(to: next)
     }
-    sameStrokeMisses = 0
-    strokes.append(line)
-    guard strokes.count == strokeCount else { return [.keepStroke] }
-    if nazoruOnly, step == .nazoru {
+  }
+
+  /// ②③で、書き直しになったとき。
+  private mutating func miss() -> [PracticeEffect] {
+    sameStrokeMisses += 1
+    let reject = PracticeEffect.rejectStroke(hintStroke: expectedStroke)
+    if step == .nazoru, sameStrokeMisses >= Self.missesBeforeRescue {
+      // なぞる段階でも同じ画を続けてまちがえたら、先に進める（D46・D191）。ほめずに、いっしょに書こうと伝える。
+      markedDifficult = true
       finished = true
-      return [.keepStroke, .finished(rating: .maru, rescued: false)]
+      return [reject, .finished(rating: .maru, rescued: true)]
     }
-    let next: PracticeStep = step == .nazoru ? .usuku : .jibunde
-    return [.keepStroke] + move(to: next)
+    if step == .nazoru, sameStrokeMisses == Self.missesBeforeRescue - 1 {
+      // 先に進める前に、その画のお手本を1回だけ見せる（D191）。
+      return [reject, .replayModel(stroke: expectedStroke)]
+    }
+    if step == .usuku, sameStrokeMisses >= 3 {
+      // うすく で同じ画を3回まちがえたら なぞる に戻る（D47）。
+      return [reject] + move(to: .nazoru)
+    }
+    return [reject]
   }
 
   /// ④: 書き終わってから判定する（D47）。
@@ -159,6 +191,7 @@ public struct PracticeFlow: Sendable {
     step = next
     strokes = []
     sameStrokeMisses = 0
+    trace.reset()
     return [.stepChanged(next)]
   }
 }

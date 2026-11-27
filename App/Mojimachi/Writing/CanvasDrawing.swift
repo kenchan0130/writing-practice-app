@@ -2,6 +2,14 @@ import ContentModel
 import JudgeKit
 import SwiftUI
 
+/// 続けてまちがえたときに、お手本の1画を1回だけ動かして見せる（D191）。
+struct ModelReplay: Equatable {
+  var stroke: Int
+  var start: Date
+  /// 線を引き終えるまでの秒数。
+  static let duration = 1.2
+}
+
 /// 書く場所に描くものの共通の部品（マス、お手本、書いた線）。
 enum CanvasDrawing {
   /// いまの子のペンの色（D88）。
@@ -56,6 +64,46 @@ enum CanvasDrawing {
       }
     }
     return path
+  }
+
+  /// 途中で離した線の続きを書く場所の印（光る丸と「ここから つづき」。D191）。
+  static func continuationMarker(
+    at p: JudgeKit.Point, in context: inout GraphicsContext, scale: Double, pulse: Double
+  ) {
+    let center = CGPoint(x: p.x * scale, y: p.y * scale)
+    let radius = 22 + pulse
+    context.fill(
+      Path(
+        ellipseIn: CGRect(
+          x: center.x - radius - 4, y: center.y - radius - 4, width: (radius + 4) * 2,
+          height: (radius + 4) * 2)), with: .color(.white.opacity(0.9)))
+    context.fill(
+      Path(
+        ellipseIn: CGRect(
+          x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)),
+      with: .color(Theme.pink))
+    context.draw(
+      Text("ここから つづき").font(.ui(22, bold: true)).foregroundStyle(Theme.ink),
+      at: CGPoint(x: center.x, y: center.y - radius - 22))
+  }
+
+  /// お手本の1画を、書き始めから少しずつ引いていく（D191）。
+  static func replay(
+    _ stroke: CharacterData.Stroke, since start: Date, now: Date,
+    in context: inout GraphicsContext, scale: Double
+  ) {
+    let progress = min(max(now.timeIntervalSince(start) / ModelReplay.duration, 0), 1)
+    let points = stroke.centerlinePoints()
+    guard progress > 0, points.count > 1 else { return }
+    let shown = points.prefix(max(2, Int(Double(points.count) * progress)))
+    var path = Path()
+    path.addLines(shown.map { CGPoint(x: $0.x * scale, y: $0.y * scale) })
+    context.stroke(
+      path, with: .color(Color(red: 0.9, green: 0.35, blue: 0.2)),
+      style: StrokeStyle(lineWidth: 18, lineCap: .round, lineJoin: .round))
+    if progress < 1, let tip = shown.last {
+      context.fill(dot(at: tip, scale: scale, radius: 16), with: .color(.orange))
+    }
   }
 
   static func dot(at p: JudgeKit.Point, scale: Double, radius: Double) -> Path {

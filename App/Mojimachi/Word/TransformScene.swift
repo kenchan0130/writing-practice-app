@@ -317,7 +317,8 @@ final class TransformScene: SKScene {
     walk.zPosition = 2
     park.addChild(walk)
     let flowerColors = [
-      UIColor(red: 1, green: 0.62, blue: 0.7, alpha: 1), UIColor(red: 1, green: 0.88, blue: 0.4, alpha: 1),
+      UIColor(red: 1, green: 0.62, blue: 0.7, alpha: 1),
+      UIColor(red: 1, green: 0.88, blue: 0.4, alpha: 1),
       UIColor.white,
     ]
     for index in 0..<9 {
@@ -326,7 +327,8 @@ final class TransformScene: SKScene {
       flower.strokeColor = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)
       flower.lineWidth = 2.5
       flower.position = CGPoint(
-        x: w * (0.08 + CGFloat((index * 37) % 84) / 100), y: h * (0.2 + CGFloat((index * 29) % 18) / 100))
+        x: w * (0.08 + CGFloat((index * 37) % 84) / 100),
+        y: h * (0.2 + CGFloat((index * 29) % 18) / 100))
       flower.zPosition = 3
       park.addChild(flower)
     }
@@ -357,7 +359,8 @@ final class TransformScene: SKScene {
         down.timingMode = .easeIn
         hero.run(
           .sequence([
-            .wait(forDuration: 0.4), .repeatForever(.sequence([up, down, up, down, .wait(forDuration: 0.8)])),
+            .wait(forDuration: 0.4),
+            .repeatForever(.sequence([up, down, up, down, .wait(forDuration: 0.8)])),
           ]))
         PlayMotion.react(sprite)
       }
@@ -414,7 +417,9 @@ final class TransformScene: SKScene {
       BodyMotionFX.play(motion, hero: hero, poses: poses, reduceMotion: reduce)
     }
     let again = SKAction.sequence([once, .wait(forDuration: seconds + 1.0)])
-    run(.sequence([.wait(forDuration: 0.9), reduce ? once : .repeatForever(again)]), withKey: "bodyMotion")
+    run(
+      .sequence([.wait(forDuration: 0.9), reduce ? once : .repeatForever(again)]),
+      withKey: "bodyMotion")
     run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
   }
 
@@ -457,7 +462,9 @@ final class TransformScene: SKScene {
     if spot == .shelf {
       // 棚の板（物の下）。
       let board = SKShapeNode(
-        rect: CGRect(x: w * 0.12, y: target.y - side * content.height / 2 - unit * 0.03, width: w * 0.36, height: unit * 0.03),
+        rect: CGRect(
+          x: w * 0.12, y: target.y - side * content.height / 2 - unit * 0.03, width: w * 0.36,
+          height: unit * 0.03),
         cornerRadius: unit * 0.01)
       board.fillColor = UIColor(red: 0.95, green: 0.71, blue: 0.42, alpha: 1)
       board.strokeColor = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)
@@ -787,8 +794,10 @@ final class TransformScene: SKScene {
     line.lineJoin = .round
     node.addChild(line)
     let colors = [
-      UIColor(red: 0.9, green: 0.33, blue: 0.29, alpha: 1), UIColor(red: 0.97, green: 0.79, blue: 0.28, alpha: 1),
-      UIColor(red: 0.49, green: 0.76, blue: 0.42, alpha: 1), UIColor(red: 0.31, green: 0.66, blue: 0.88, alpha: 1),
+      UIColor(red: 0.9, green: 0.33, blue: 0.29, alpha: 1),
+      UIColor(red: 0.97, green: 0.79, blue: 0.28, alpha: 1),
+      UIColor(red: 0.49, green: 0.76, blue: 0.42, alpha: 1),
+      UIColor(red: 0.31, green: 0.66, blue: 0.88, alpha: 1),
       UIColor(red: 0.97, green: 0.66, blue: 0.7, alpha: 1),
     ]
     let unit = min(w, size.height)

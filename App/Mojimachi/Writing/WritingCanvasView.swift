@@ -207,13 +207,25 @@ struct WritingCanvasView: View {
   }
 
   private var canvas: some View {
-    TimelineView(.animation(paused: model.step != .miru && model.hintStroke == nil)) { timeline in
+    TimelineView(
+      .animation(
+        paused: model.step != .miru && model.hintStroke == nil && model.replay == nil
+          && model.flow?.continuationPoint == nil)
+    ) { timeline in
       Canvas { context, size in
         CanvasDrawing.guide(in: &context, size: size, letterLines: model.letterLines)
         if let character = model.character {
           drawStep(character, in: &context, size: size, now: timeline.date)
         }
         drawWriting(in: &context, size: size)
+        // 続けてまちがえたときは、お手本の画を1回だけ見せる（D191）。
+        if let replay = model.replay, let character = model.character,
+          character.strokes.indices.contains(replay.stroke)
+        {
+          CanvasDrawing.replay(
+            character.strokes[replay.stroke], since: replay.start, now: timeline.date,
+            in: &context, scale: size.width / 1000)
+        }
         // 書き始めの印（番号）は、書いた線より上に描く。前の画の線で番号が隠れないように。
         if let character = model.character {
           drawMarker(character, in: &context, size: size, now: timeline.date)
@@ -321,6 +333,12 @@ struct WritingCanvasView: View {
     _ character: CharacterData, in context: inout GraphicsContext, scale: Double, now: Date
   ) {
     guard let flow = model.flow, flow.expectedStroke < character.strokes.count else { return }
+    // 途中で離した線があれば、書き始めではなく、続きの場所を光らせる（D191）。
+    if let point = flow.continuationPoint {
+      let glow = (sin(now.timeIntervalSinceReferenceDate * 6) + 1) * 6
+      CanvasDrawing.continuationMarker(at: point, in: &context, scale: scale, pulse: glow)
+      return
+    }
     let pulse = model.hintStroke == nil ? 0 : (sin(now.timeIntervalSinceReferenceDate * 6) + 1) * 6
     CanvasDrawing.startMarker(
       for: character.strokes[flow.expectedStroke], number: flow.expectedStroke + 1, in: &context,

@@ -31,6 +31,7 @@ final class StrokeInputRecognizer: UIGestureRecognizer {
   private var activeTouch: UITouch?
   private var activeInput: StrokeInput = .finger
   private var activeStartTime: TimeInterval = 0
+  private var activeStartLocation: CGPoint = .zero
   private var lastPencilTime: TimeInterval?
 
   override init(target: Any?, action: Selector?) {
@@ -50,19 +51,29 @@ final class StrokeInputRecognizer: UIGestureRecognizer {
         y: Double(local.y),
         areaHeight: Double(view?.bounds.height ?? 0),
         time: touch.timestamp)
-      guard
-        palmRejection.accepts(
-          candidate, lastPencilTime: lastPencilTime, strokeInProgress: activeTouch != nil)
-      else {
+      switch palmRejection.decide(
+        candidate, lastPencilTime: lastPencilTime,
+        activeInput: activeTouch == nil ? nil : activeInput)
+      {
+      case .reject:
         ignore(touch, for: event)
         continue
+      case .replaceActive:
+        // 手のひらが先に指の線として始まっていたら、それを取り消して Pencil の線を書く（D191）。
+        // 認識の状態は終わらせない（終わらせると、手のひらが触れている間は Pencil を受け取れない）。
+        if let palm = activeTouch { ignore(palm, for: event) }
+        onEvent?(.cancelled)
+        activeTouch = nil
+      case .accept:
+        break
       }
       activeTouch = touch
       activeInput = input
       activeStartTime = touch.timestamp
+      activeStartLocation = local
       if input == .pencil { lastPencilTime = touch.timestamp }
       onEvent?(.began(input, point(from: touch)))
-      state = .began
+      if state != .began, state != .changed { state = .began }
     }
   }
 
@@ -71,9 +82,18 @@ final class StrokeInputRecognizer: UIGestureRecognizer {
     if palmRejection.shouldCancel(
       input: activeInput,
       majorRadius: Double(activeTouch.majorRadius),
-      elapsed: activeTouch.timestamp - activeStartTime)
+      elapsed: activeTouch.timestamp - activeStartTime,
+      travel: Double(
+        hypot(
+          activeTouch.location(in: view).x - activeStartLocation.x,
+          activeTouch.location(in: view).y - activeStartLocation.y)))
     {
-      finish(.cancelled)
+      // 手のひらだったので取り消す。手のひらはもう追わないので、手のひらが触れたままでも Pencil を受け取れる（D191）。
+      onEvent?(.cancelled)
+      ignore(activeTouch, for: event)
+      self.activeTouch = nil
+      // ほかに追っている接触がないので、終わらせて、次の接触を受けられるようにする（D191）。
+      state = .cancelled
       return
     }
     if activeInput == .pencil { lastPencilTime = activeTouch.timestamp }

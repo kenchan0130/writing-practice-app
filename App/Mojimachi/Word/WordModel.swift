@@ -29,6 +29,13 @@ final class WordModel {
   /// 1字書けたときの小さなごほうびのほめ方（D152）。少しのあいだだけ出す。
   private(set) var charPraise: Rating?
   private var praiseTask: Task<Void, Never>?
+  /// 途中でペンを離して、続きを待っている線の数（D191）。
+  private var pendingPieces = 0
+  /// 続けて捨てた、ごく短い接触の数（D191）。
+  private var discardedTouches = 0
+  /// 続けてまちがえたとき、お手本の画を1回だけ見せる（D191）。
+  private(set) var replay: ModelReplay?
+  private var replayTask: Task<Void, Never>?
 
   private let store = ProgressStore.shared
   /// いまの字の書いた線（マス 0〜1000。学習記録に残す）。
@@ -82,6 +89,39 @@ final class WordModel {
 
   func restartWord() { loadWord() }
 
+  /// ②③で書けた画の数（続きから書く途中の線は数えない。D191）。
+  var completedStrokes: Int {
+    mode == .jibunde ? strokes.count : (flow?.strokes.count ?? strokes.count)
+  }
+
+  /// 「ひとつ もどす」。いまの字の、いちばん新しい1画を消す。ほかの字は そのまま（D191）。
+  func undo() {
+    guard !wordDone, !strokes.isEmpty else { return }
+    judgeTask?.cancel()
+    highlightsDone = false
+    missResult = nil
+    // 続きから書く途中の線は、まとめて消す。
+    let count = max(pendingPieces, 1)
+    strokes.removeLast(min(count, strokes.count))
+    lines.removeLast(min(count, lines.count))
+    pendingPieces = 0
+    apply(flow?.handle(.undo) ?? [])
+    scheduleJudge()
+  }
+
+  /// 「ぜんぶ けす」。いまの字の線をぜんぶ消す。ほかの字と、物の色づきは そのまま（D191）。
+  func clearLetter() {
+    guard !wordDone, !strokes.isEmpty || missResult != nil else { return }
+    judgeTask?.cancel()
+    highlightsDone = false
+    missResult = nil
+    strokes = []
+    lines = []
+    pendingPieces = 0
+    hintStroke = nil
+    apply(flow?.handle(.clear) ?? [])
+  }
+
   /// まちに置く（D53 の「動きまわる」型の試作）。
   func placeInTown() {
     // 空のことばは まちに置かない。書いた記録（WordRecord）から、まちの空が しばらく変わる（D172）。
@@ -105,6 +145,8 @@ final class WordModel {
     flow = WordFlow(characters: characters, mastered: store.mastered, preset: store.preset)
     strokes = []
     lines = []
+    pendingPieces = 0
+    replay = nil
     writtenCharacters = []
     hintStroke = nil
     missResult = nil
@@ -119,12 +161,37 @@ final class WordModel {
       judgeTask?.cancel()
       highlightsDone = false
       missResult = nil
+      if let character = currentCharacter {
+        recorder.accidentalTouch = AccidentalTouch(
+          character: character, expectedStroke: mode == .jibunde ? nil : flow?.expectedStroke)
+      }
     }
-    guard let finished = recorder.handle(event, convert: convert) else { return }
+    guard let finished = recorder.handle(event, convert: convert) else {
+      endedWithoutStroke(event)
+      return
+    }
+    discardedTouches = 0
     strokes.append(finished.drawn)
     lines.append(finished.line)
     apply(flow?.handle(.strokeEnded(finished.line)) ?? [])
     scheduleJudge()
+  }
+
+  /// 画にならなかった接触が終わったとき。止めた「書き終わりの合図」をもう一度かけ、
+  /// ②③で何度も続くときは、次に書く画の書き始めを光らせる（D191）。
+  func endedWithoutStroke(_ event: StrokeInputEvent) {
+    switch event {
+    case .ended, .cancelled:
+      if recorder.lastEndWasDiscarded {
+        discardedTouches += 1
+        if discardedTouches >= 3, mode != .jibunde, let flow {
+          hintStroke = flow.expectedStroke
+        }
+      }
+      scheduleJudge()
+    default:
+      break
+    }
   }
 
   private func apply(_ effects: [WordEffect]) {
@@ -135,25 +202,49 @@ final class WordModel {
       switch effect {
       case .keepStroke:
         hintStroke = nil
+        replay = nil
+        strokes.mergeTail(pieces: pendingPieces) { $0.flatMap { $0 } }
+        lines.mergeTail(pieces: pendingPieces) { $0.flatMap { $0 } }
+        pendingPieces = 0
         // 1画書けたら、ド→レ→ミと高くなる音（§3.9）。
         SoundPlayer.shared.play(.stroke(max(strokes.count - 1, 0)))
       case .rejectStroke(let hint):
-        if !strokes.isEmpty { strokes.removeLast() }
-        if !lines.isEmpty { lines.removeLast() }
+        // 続きから書く途中の線も、まとめて消す（D191）。
+        strokes.removeTail(pieces: pendingPieces)
+        lines.removeTail(pieces: pendingPieces)
+        pendingPieces = 0
         hintStroke = hint
+      case .keepPartial:
+        pendingPieces += 1
+      case .dropPartial:
+        strokes.removeBeforeLast(pieces: pendingPieces)
+        lines.removeBeforeLast(pieces: pendingPieces)
+        pendingPieces = 0
+      case .replayModel(let stroke):
+        replay = ModelReplay(stroke: stroke, start: Date())
+        replayTask?.cancel()
+        replayTask = Task { [weak self] in
+          try? await Task.sleep(for: .seconds(ModelReplay.duration + 0.3))
+          guard !Task.isCancelled else { return }
+          self?.replay = nil
+        }
       case .showModelAndRetryFaint(let result):
         missResult = result
         record(character, stage: .jibunde, passed: false, rescued: false, issues: result.issues)
         strokes = []
         lines = []
+        pendingPieces = 0
       case .characterDone(_, _, let rating, let rescued):
-        showPraise(rating)
+        // 書けなかった字は、ほめない（D191）。
+        if !rescued { showPraise(rating) }
+        replay = nil
         if let stage {
           record(character, stage: stage, passed: !rescued, rescued: rescued, issues: [])
         }
         writtenCharacters.append(strokes)
         strokes = []
         lines = []
+        pendingPieces = 0
         hintStroke = nil
       case .nextCharacter:
         missResult = nil
@@ -206,6 +297,7 @@ final class WordModel {
 
   /// じぶんで の字の書き終わりの合図（D77 の試作）。
   private func scheduleJudge() {
+    judgeTask?.cancel()
     guard mode == .jibunde, let signal = flow?.endSignal, !strokes.isEmpty else { return }
     judgeTask = Task { [weak self] in
       // 書き終わりの合図（D77）: すべての画に当てはまったら1秒で判定、

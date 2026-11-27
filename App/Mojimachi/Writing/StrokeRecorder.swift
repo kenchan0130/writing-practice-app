@@ -1,5 +1,6 @@
 import Foundation
 import JudgeKit
+import PracticeKit
 import StrokeKit
 
 /// 書く場所への入力を、画面に描く線と記録の線（マス 0〜1000）に直す（D106・D109）。
@@ -13,6 +14,10 @@ struct StrokeRecorder {
   private(set) var lastInputTime: TimeInterval = 0
 
   var side: Double = 0
+  /// 画として数えない、ごく短い接触の決まり（いまの字に合わせる。D191）。
+  var accidentalTouch = AccidentalTouch.none
+  /// 直前の接触が、ごく短いので画として数えず捨てられたか（D191）。
+  private(set) var lastEndWasDiscarded = false
   var width = StrokeWidth()
   /// 筆圧で線の太さを変えるか（D66。保護者用の画面の「筆圧を使う」）。
   var usesPressure: Bool { ProgressStore.shared.usesPressure }
@@ -26,6 +31,7 @@ struct StrokeRecorder {
   {
     switch event {
     case .began(_, let point):
+      lastEndWasDiscarded = false
       raw = []
       current = []
       pendingForce = [:]
@@ -42,7 +48,14 @@ struct StrokeRecorder {
     case .ended:
       defer { reset() }
       guard !current.isEmpty else { return nil }
-      return (current, raw.map { Point($0.x, $0.y) }, raw.map(\.time))
+      let line = raw.map { Point($0.x, $0.y) }
+      let times = raw.map(\.time)
+      // ちょんと触れただけ・手が当たっただけの接触は、画として数えない（D191）。
+      if accidentalTouch.isAccidental(line: line, times: times) {
+        lastEndWasDiscarded = true
+        return nil
+      }
+      return (current, line, times)
     case .cancelled:
       reset()
     }

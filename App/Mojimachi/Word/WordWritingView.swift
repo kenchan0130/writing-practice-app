@@ -64,7 +64,7 @@ struct WordWritingView: View {
         }
       }
       StrokeDots(
-        total: model.currentCharacter?.strokes.count ?? 0, done: model.strokes.count
+        total: model.currentCharacter?.strokes.count ?? 0, done: model.completedStrokes
       )
       .frame(height: 48)
       .opacity(model.wordDone ? 0 : 1)
@@ -116,13 +116,18 @@ struct WordWritingView: View {
       .accessibilityIdentifier("wordHeader")
       Spacer()
       ColoringSilhouette(
-        word: model.word, progress: model.progress)
+        word: model.word, progress: model.progress
+      )
       .frame(width: 140, height: 100)
     }
   }
 
   private var canvas: some View {
-    TimelineView(.animation(paused: model.hintStroke == nil)) { timeline in
+    TimelineView(
+      .animation(
+        paused: model.hintStroke == nil && model.replay == nil
+          && model.flow?.continuationPoint == nil)
+    ) { timeline in
       Canvas { context, size in
         CanvasDrawing.guide(in: &context, size: size)
         let scale = size.width / 1000
@@ -142,17 +147,32 @@ struct WordWritingView: View {
         }
         for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context) }
         CanvasDrawing.ink(model.recorder.current, in: &context)
+        // 続けてまちがえたときは、お手本の画を1回だけ見せる（D191）。
+        if let replay = model.replay, let character = model.currentCharacter, !model.wordDone,
+          character.strokes.indices.contains(replay.stroke)
+        {
+          CanvasDrawing.replay(
+            character.strokes[replay.stroke], since: replay.start, now: timeline.date,
+            in: &context, scale: size.width / 1000)
+        }
         // 書き始めの印（番号）は、書いた線より上に描く。前の画の線で番号が隠れないように。
         if let character = model.currentCharacter, !model.wordDone, model.mode != .jibunde,
           let flow = model.flow,
           flow.expectedStroke < character.strokes.count
         {
-          let pulse =
-            model.hintStroke == nil
-            ? 0 : (sin(timeline.date.timeIntervalSinceReferenceDate * 6) + 1) * 6
-          CanvasDrawing.startMarker(
-            for: character.strokes[flow.expectedStroke], number: flow.expectedStroke + 1,
-            in: &context, scale: size.width / 1000, pulse: pulse)
+          // 途中で離した線があれば、書き始めではなく、続きの場所を光らせる（D191）。
+          if let point = flow.continuationPoint {
+            let glow = (sin(timeline.date.timeIntervalSinceReferenceDate * 6) + 1) * 6
+            CanvasDrawing.continuationMarker(
+              at: point, in: &context, scale: size.width / 1000, pulse: glow)
+          } else {
+            let pulse =
+              model.hintStroke == nil
+              ? 0 : (sin(timeline.date.timeIntervalSinceReferenceDate * 6) + 1) * 6
+            CanvasDrawing.startMarker(
+              for: character.strokes[flow.expectedStroke], number: flow.expectedStroke + 1,
+              in: &context, scale: size.width / 1000, pulse: pulse)
+          }
         }
       }
     }
@@ -273,8 +293,12 @@ struct WordWritingView: View {
           }
         }
       } else {
-        // どの段階でも、ことばを最初から書き直せる（D154 と同じ考え方）。
-        ChildToolButton(title: "やりなおす", systemImage: "arrow.counterclockwise") {
+        // 「ひとつ もどす」「ぜんぶ けす」は、いまの字だけ。「ことばを やりなおす」は、ことば全部を最初から（D154・D191）。
+        ChildToolButton(title: "ひとつ もどす", systemImage: "arrow.uturn.backward") {
+          model.undo()
+        }
+        ChildToolButton(title: "ぜんぶ けす", systemImage: "trash") { model.clearLetter() }
+        ChildToolButton(title: "ことばを やりなおす", systemImage: "arrow.counterclockwise") {
           model.restartWord()
         }
         if model.mode == .jibunde {

@@ -29,24 +29,59 @@ public struct PalmRejection: Sendable, Hashable {
   /// Pencil を最後に使ってからこの秒数のあいだは、指の入力を無視する。
   public var pencilGracePeriod: Double
   /// 触れてからこの秒数のうちに面が広がったら、その線を取り消す。
+  /// 手のひらは、触れてから面が広がり切るまで 0.1〜0.3 秒ほどかかる（D191）。
   public var growthWindow: Double
+  /// 触れてからの時間内に、面がこの大きさ以上に広がったら手のひらとみなす（ポイント。D191）。
+  public var growthRadius: Double
+  /// 手のひらは、書き始めからあまり動かない。これより動いた線は、取り消さない（ポイント。D191）。
+  public var maxPalmTravel: Double
 
   public init(
     maxFingerRadius: Double = 40,
     bottomBandRatio: Double = 0.06,
     pencilGracePeriod: Double = 1.0,
-    growthWindow: Double = 0.05
+    growthWindow: Double = 0.3,
+    growthRadius: Double = 50,
+    maxPalmTravel: Double = 30
   ) {
+    self.growthRadius = growthRadius
+    self.maxPalmTravel = maxPalmTravel
     self.maxFingerRadius = maxFingerRadius
     self.bottomBandRatio = bottomBandRatio
     self.pencilGracePeriod = pencilGracePeriod
     self.growthWindow = growthWindow
   }
 
+  /// 新しい接触への答え（D191）。
+  public enum Decision: Sendable, Equatable {
+    /// 書き始めとして受け付ける。
+    case accept
+    /// 捨てる。
+    case reject
+    /// 書いている指の線を取り消して、この Pencil の線を書き始める。
+    /// 先に手のひらが指の線として始まっていても、Pencil を優先する。
+    case replaceActive
+  }
+
+  /// 新しい接触を、どうするか決める。
+  /// - Parameters:
+  ///   - lastPencilTime: 最後に Pencil で書いた時刻。まだ使っていなければ nil。
+  ///   - activeInput: すでに書いている線の入力。書いていなければ nil（途中で増えた接触は捨てる）。
+  public func decide(_ touch: TouchCandidate, lastPencilTime: Double?, activeInput: StrokeInput?)
+    -> Decision
+  {
+    if let activeInput {
+      return touch.input == .pencil && activeInput == .finger ? .replaceActive : .reject
+    }
+    return accepts(touch, lastPencilTime: lastPencilTime, strokeInProgress: false)
+      ? .accept : .reject
+  }
+
   /// 新しい接触を書き始めとして受け付けるか。
   /// - Parameters:
   ///   - lastPencilTime: 最後に Pencil で書いた時刻。まだ使っていなければ nil。
   ///   - strokeInProgress: すでに1画を書いている最中か（途中で増えた接触は捨てる）。
+  ///     Pencil が指の線に重なる場合は `decide` を使う。
   public func accepts(_ touch: TouchCandidate, lastPencilTime: Double?, strokeInProgress: Bool)
     -> Bool
   {
@@ -59,7 +94,13 @@ public struct PalmRejection: Sendable, Hashable {
   }
 
   /// 書いている途中の指の接触を、手のひらだったとして取り消すか。
-  public func shouldCancel(input: StrokeInput, majorRadius: Double, elapsed: Double) -> Bool {
-    input == .finger && elapsed <= growthWindow && majorRadius > maxFingerRadius
+  /// 面が `growthRadius` 以上に広がり、しかも、ほとんど動いていないときだけ取り消す（D191）。
+  /// 太い指でしっかり書いている線（面は大きいが、動いている）は取り消さない。
+  /// - Parameter travel: 書き始めから動いた距離（ポイント）。
+  public func shouldCancel(
+    input: StrokeInput, majorRadius: Double, elapsed: Double, travel: Double = 0
+  ) -> Bool {
+    input == .finger && elapsed <= growthWindow && majorRadius >= growthRadius
+      && travel <= maxPalmTravel
   }
 }

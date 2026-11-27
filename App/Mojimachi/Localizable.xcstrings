@@ -1091,6 +1091,17 @@
         }
       }
     },
+    "ことばを やりなおす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the word over"
+          }
+        }
+      }
+    },
     "ぜんぶ けす": {
       "extractionState": "manual",
       "localizations": {
