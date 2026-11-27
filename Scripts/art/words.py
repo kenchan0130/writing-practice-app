@@ -5173,6 +5173,415 @@ def shouboushi():
     return a
 
 
+# ---- household (いえの なか。D185) ----
+# いえの なかの物。顔はつけない。たなの物は少し上から、ゆかの物は下をそろえて、かべの物は正面から。
+def hs_glint(a, x, y, n, w=7, op="0.8"):
+    """A short white slash (glass, bubbles)."""
+    a.path(f"M{x} {y + n} L{x + n * 0.6:g} {y}", stroke=WHITE, sw=w, **{"stroke-opacity": op})
+
+
+@word
+def nabe():
+    a = Art()
+    POT, POT_D, POT_L, KNOB = "#ef6a4a", "#d5512f", "#f58a68", "#5a4a42"
+    with a.part():                                      # side handles
+        a.sil(e2_rr(34, 262, 110, 44, 20), KNOB)
+        a.sil(e2_rr(368, 262, 110, 44, 20), KNOB)
+    with a.part():                                      # lid knob
+        a.sil(e2_rr(218, 92, 76, 62, 22), KNOB)
+        a.blob(e2_rr(230, 100, 30, 12, 6), "#8a7a70")
+    body = ("M92 240 L420 240 L420 368 C420 414 388 440 342 440 L170 440 C124 440 92 414 92 368 Z")
+    with a.part():                                      # body
+        a.sil(body, POT)
+        a.blob("M372 240 L420 240 L420 368 C420 414 388 440 342 440 L170 440 C150 440 132 434 118 424 "
+               "C200 432 300 430 344 412 C366 400 372 380 372 350 Z", POT_D)
+    with a.part():                                      # lid
+        a.sil("M96 232 C96 168 168 132 256 132 C344 132 416 168 416 232 Z", POT)
+        a.blob("M340 148 C386 166 416 194 416 232 L372 232 C372 200 362 172 340 148 Z", POT_D)
+    with a.part():                                      # rim of the lid
+        a.sil(e2_rr(76, 218, 360, 36, 18), POT_L)
+        a.blob(e2_rr(76, 238, 360, 16, 8), POT)
+    a.shine("M150 204 C156 180 176 164 204 156")
+    a.shine("M122 292 L122 372", sw=9)
+    return a
+
+
+@word
+def owan():
+    a = Art()
+    R, RD, IN, GOLD = "#d9453c", "#bd332e", "#3d2a26", "#f7c948"
+    with a.part(7):                                     # steam
+        a.sil(taper([(206, 150, 180, 120, 226, 96, 200, 62)], 20, 8), WHITE)
+        a.sil(taper([(300, 150, 330, 116, 280, 90, 308, 52)], 20, 8), WHITE)
+    a.sil(d_circ(256, 236, 204, 52), IN)                # inside of the bowl
+    with a.part(7):                                     # soup
+        a.sil(d_circ(256, 244, 170, 36), "#e8a85a")
+    a.blob(d_circ(236, 238, 110, 16), "#f0bb72")
+    for x, y in ((190, 240), (300, 232)):               # tofu
+        with a.part(5):
+            a.sil(e2_rr(x - 20, y - 14, 40, 26, 6), "#fffdf6")
+    for x, y in ((250, 256), (350, 250), (238, 226)):   # green onion
+        a.dot(x, y, 9, "#6fbd5c")
+        a.dot(x, y, 3.5, "#d3efc2")
+    body = ("M52 236 C52 264.7 143.3 288 256 288 C368.7 288 460 264.7 460 236 C460 356 384 428 256 428 "
+            "C128 428 52 356 52 236 Z")
+    with a.part():
+        a.sil("M190 410 L322 410 L314 458 C314 466 198 466 198 458 Z", R)
+        a.sil(body, R)
+        a.blob(d_rim(body, 55, 55, 30), RD)
+        a.blob("M196 440 L316 440 L314 458 C314 466 198 466 198 458 Z", RD)
+        a.ink([(70, 310, 150, 348, 362, 348, 442, 310)], 9, a=1, b=1, col=GOLD)
+        a.ink([(204, 436, 230, 442, 282, 442, 308, 436)], 6, a=0, b=0)
+    a.shine("M84 312 C94 352 116 380 146 398", sw=9)
+    return a
+
+
+@word
+def hashi():
+    a = Art()
+    WD, WD_D, TOP_C, REST, REST_D = "#f3c98f", "#dba865", "#e5534b", "#8fcdea", "#6db4d6"
+    with a.part():                                      # chopstick rest
+        a.sil("M106 296 C122 268 160 276 186 304 C214 334 262 372 268 404 C272 432 240 444 214 424 "
+              "C186 402 150 380 122 350 C104 330 98 312 106 296 Z", REST)
+        a.blob("M122 350 C150 380 186 402 214 424 C240 444 272 432 268 404 C262 420 240 422 220 406 "
+               "C192 384 150 360 122 330 C114 322 108 310 106 296 C98 312 104 330 122 350 Z", REST_D)
+    a.dot(140, 312, 9, WHITE)
+    a.dot(232, 396, 9, WHITE)
+
+    def stick(tx, ty, ex, ey):
+        P = lambda t, k, w: (tx + (ex - tx) * t + k * w * 0.7071 / 2, ty + (ey - ty) * t + k * w * 0.7071 / 2)
+        wid = lambda t: 14 + 20 * t
+        quad = lambda t0, t1: e2_poly([P(t0, -1, wid(t0)), P(t1, -1, wid(t1)), P(t1, 1, wid(t1)), P(t0, 1, wid(t0))])
+        with a.part():
+            a.sil(e2_cap(tx, ty, ex, ey, 14, 34), WD)
+            a.blob(e2_cap(tx + (ex - tx) * 0.62, ty + (ey - ty) * 0.62, ex, ey, wid(0.62), 34), TOP_C)
+            a.blob(quad(0.56, 0.62), YEL2)
+            a.blob(quad(0.76, 0.80), YEL2)
+            a.blob(quad(0.84, 0.88), YEL2)
+            a.blob(e2_poly([P(0.02, 0.2, wid(0.02)), P(0.56, 0.2, wid(0.56)), P(0.56, 1, wid(0.56)), P(0.02, 1, wid(0.02))]), WD_D)
+
+    stick(96, 396, 412, 80)
+    stick(152, 440, 456, 136)
+    return a
+
+
+@word
+def osara():
+    a = Art()
+    PL, PL_D = "#fffdf6", "#e6dfd0"
+    with a.part():
+        a.sil(d_circ(256, 282, 214, 138), PL_D)         # the under side shows as a thick edge
+        a.sil(d_circ(256, 262, 214, 138), PL)
+    a.blob(c_circ(256, 262, 196, 122) + " " + c_circ(256, 262, 164, 96, ccw=True), BLUE)
+    import math
+    for i in range(12):
+        t = math.radians(i * 30 + 15)
+        a.dot(256 + 180 * math.cos(t), 262 + 109 * math.sin(t), 8, WHITE)
+    well = d_circ(256, 266, 132, 74)
+    a.blob(well, "#f3ecdd")
+    a.blob(d_circ(256, 272, 124, 66), PL)
+    a.ink(e1_arc(256, 266, 132, 200, 340, ry=74), 6, a=0, b=0, col="#cfc5b0")
+    a.shine("M150 252 C160 224 190 206 226 200", sw=8)
+    return a
+
+
+@word
+def yakan():
+    a = Art()
+    Y, YD, DK = "#f9cf4f", "#e6b22e", "#5a4a42"
+    with a.part():                                      # handle
+        a.sil(taper([(150, 230, 136, -18, 376, -18, 362, 230)], 26, 26, cap=False), DK)
+        body = ("M256 176 C340 176 398 204 404 262 L410 366 C412 414 380 438 334 438 L178 438 C132 438 100 414 102 366 "
+            "L108 262 C114 204 172 176 256 176 Z")
+    with a.part():                                      # spout and body
+        a.sil("M132 330 C92 322 66 290 52 232 L98 214 C110 252 126 268 150 268 Z", Y)
+        a.sil(body, Y)
+        a.blob("M356 196 C384 210 400 232 404 262 L410 366 C412 414 380 438 334 438 L178 438 C160 438 144 434 132 428 "
+               "C220 432 310 428 344 408 C366 394 370 370 368 340 L364 262 C364 236 362 214 356 196 Z", YD)
+        a.ink([(110, 300, 118, 292, 124, 280, 126, 268)], 7, a=1, b=0)
+    with a.part(8):                                     # spout mouth
+        a.sil("M44 236 L104 210 L98 196 L40 222 Z", YD)
+    with a.part():                                      # lid
+        a.sil(e2_rr(180, 160, 152, 30, 15), Y)
+        a.blob(e2_rr(180, 176, 152, 14, 7), YD)
+    with a.part():                                      # knob
+        a.sil(c_circ(256, 140, 20), DK)
+    a.shine("M136 276 C140 246 156 224 182 212")
+    return a
+
+
+@word
+def sekken():
+    a = Art()
+    SP, SP_D, SP_L, DISH, DISH_D = "#f9b6d2", "#ee93bb", "#fdd7e6", "#9fd3f2", "#7fbfe6"
+    for x, y, r in ((112, 150, 40), (404, 126, 50), (318, 58, 26)):   # bubbles
+        with a.part(6):
+            a.sil(c_circ(x, y, r), "#dff2fc")
+        a.path(f"M{x - r * 0.5:g} {y - r * 0.1:g} C{x - r * 0.5:g} {y - r * 0.4:g} {x - r * 0.3:g} {y - r * 0.55:g} {x - r * 0.05:g} {y - r * 0.58:g}",
+               stroke=WHITE, sw=max(4, r * 0.16))
+    dish = ("M40 372 C40 350 70 340 110 340 L402 340 C442 340 472 350 472 372 C472 424 400 458 256 458 "
+            "C112 458 40 424 40 372 Z")
+    with a.part():                                      # dish
+        a.sil(dish, DISH)
+        a.blob(d_rim(dish, 70, 70, 26), DISH_D)
+        a.blob(d_circ(256, 372, 190, 26), "#c4e6f8")
+    with a.part():                                      # soap
+        a.sil(e2_rr(104, 200, 304, 190, 60), SP_D)
+        a.sil(e2_rr(104, 184, 304, 170, 60), SP)
+    a.blob(e2_rr(150, 220, 212, 98, 44), SP_L)
+    a.blob(e2_rr(160, 232, 192, 86, 38), SP)
+    with a.part(6):                                     # foam on the soap
+        a.sil(c_circ(366, 196, 22), WHITE)
+        a.sil(c_circ(392, 222, 14), WHITE)
+        a.sil(c_circ(340, 180, 12), WHITE)
+    a.shine("M130 262 C128 236 138 216 160 206", sw=8)
+    return a
+
+
+@word
+def haburashi():
+    a = Art()
+    H, HD, CUP, CUP_D, CUP_IN = "#f47c7c", "#dc5f66", "#8fcdea", "#6db4d6", "#4f93b8"
+    T = lambda d: d_tf(d, 1, 250, 410, 13)
+    a.sil(d_circ(256, 304, 122, 30), CUP_IN)            # inside of the cup (behind the brush)
+    with a.part():                                      # handle and head
+        a.sil(T(e2_rr(-19, -350, 38, 350, 19)), H)
+        a.sil(T(e2_rr(-24, -356, 48, 150, 22)), H)
+        a.blob(T(e2_rr(4, -350, 15, 344, 7)), HD)
+    with a.part(8):                                     # bristles
+        a.sil(T(e2_rr(-90, -344, 70, 124, 12)), WHITE)
+        for y in (-313, -282, -251):
+            a.blob(T(e2_rr(-90, y - 3, 62, 6, 3)), "#bcd3e2")
+        a.blob(T(e2_rr(-90, -344, 16, 124, 8)), "#dfeaf2")
+    with a.part(7):                                     # toothpaste
+        a.sil(T("M-106 -330 C-122 -326 -124 -302 -108 -300 C-124 -292 -120 -268 -104 -270 C-118 -260 -112 -240 -96 -244 "
+                "L-90 -330 Z"), "#7fd6c4")
+    cup = ("M134 304 C134 320.6 188.6 334 256 334 C323.4 334 378 320.6 378 304 L360 440 C358 458 346 466 330 466 "
+           "L182 466 C166 466 154 458 152 440 Z")
+    with a.part():                                      # front of the cup
+        a.sil(cup, CUP)
+        a.blob("M330 326 C352 322 370 314 378 304 L360 440 C358 458 346 466 330 466 L300 466 C318 430 328 380 330 326 Z", CUP_D)
+        a.blob("M142 366 C200 384 312 384 370 366 L366 396 C310 414 202 414 146 396 Z", WHITE)
+    a.shine("M160 350 L168 420", sw=8)
+    return a
+
+
+@word
+def kushi():
+    a = Art()
+    C, CD, CL = "#f7a94b", "#e58f2c", "#fbc57f"
+    with a.part(9):
+        for i in range(8):
+            x = 88 + i * 48
+            w = 30 if i in (0, 7) else 22
+            a.sil(e2_cap(x, 230, x, 404 if i in (0, 7) else 396, w, w - 6), C)
+        a.sil("M56 236 C52 150 120 104 256 104 C392 104 460 150 456 236 C456 250 448 256 436 256 L76 256 "
+              "C64 256 56 250 56 236 Z", C)
+        a.blob("M58 222 L454 222 C456 228 456 232 456 236 C456 250 448 256 436 256 L76 256 C64 256 56 250 56 236 "
+               "C56 232 56 228 58 222 Z", CD)
+    for x, y in ((176, 172), (256, 164), (336, 172)):
+        a.blob(e2_star(x, y, 20, 9), WHITE)
+    a.shine("M92 196 C96 160 126 138 170 128", sw=8)
+    return a
+
+
+@word
+def isu():
+    a = Art()
+    CU, CU_D = "#ee6a62", "#d4504c"
+    with a.part():                                      # back legs
+        a.sil(e2_rr(150, 290, 28, 142, 10), WOOD_D)
+        a.sil(e2_rr(354, 290, 28, 142, 10), WOOD_D)
+    with a.part():                                      # backrest
+        a.sil(e2_rr(150, 110, 30, 190, 12), WOOD)
+        a.sil(e2_rr(352, 110, 30, 190, 12), WOOD)
+        a.sil("M150 122 C150 92 170 78 200 78 L332 78 C362 78 382 92 382 122 L382 160 C382 172 376 178 364 178 "
+              "L168 178 C156 178 150 172 150 160 Z", WOOD)
+        a.sil(e2_rr(156, 216, 220, 26, 10), WOOD)
+        a.blob("M150 150 L382 150 L382 160 C382 172 376 178 364 178 L168 178 C156 178 150 172 150 160 Z", "#e3a257")
+        a.blob(e2_rr(362, 180, 20, 110, 6), "#e3a257")
+    a.blob(e2_star(266, 118, 24, 11), CREAM)
+    with a.part():                                      # seat and front legs
+        a.sil(e2_rr(104, 330, 30, 142, 10), WOOD)
+        a.sil(e2_rr(306, 330, 30, 142, 10), WOOD)
+        a.sil(c_rpoly([(98, 314), (150, 268), (388, 268), (388, 300), (340, 344), (98, 344)], [10, 10, 10, 10, 10, 10]), WOOD)
+        a.blob(e2_poly([(338, 316), (387, 272), (387, 300), (338, 343)]), WOOD_D)
+        a.blob(e2_rr(100, 316, 238, 27, 4), "#e3a257")
+        a.blob(e2_rr(322, 344, 13, 126, 5), "#e3a257")
+        a.blob(e2_rr(120, 344, 13, 126, 5), "#e3a257")
+    with a.part(8):                                     # cushion
+        a.sil(c_rpoly([(122, 316), (164, 276), (372, 276), (330, 316)], 14), CU_D)
+        a.sil(c_rpoly([(122, 306), (164, 266), (372, 266), (330, 306)], 14), CU)
+    a.path("M176 280 L312 280", stroke=WHITE, sw=6, **{"stroke-opacity": "0.5"})
+    return a
+
+
+@word
+def tsukue():
+    a = Art()
+    SH = "#e3a257"
+    with a.part():                                      # back legs
+        a.sil(e2_rr(124, 240, 26, 196, 8), WOOD_D)
+        a.sil(e2_rr(362, 240, 26, 196, 8), WOOD_D)
+    with a.part():                                      # front legs and the board under the top
+        a.sil(e2_rr(74, 240, 36, 232, 10), WOOD)
+        a.sil(e2_rr(402, 240, 36, 232, 10), WOOD)
+        a.sil(e2_rr(74, 240, 364, 104, 10), WOOD)
+        a.blob(e2_rr(96, 250, 14, 220, 6), SH)
+        a.blob(e2_rr(424, 250, 14, 220, 6), SH)
+        a.blob(e2_rr(74, 244, 364, 16, 0), SH)
+    with a.part(6):                                     # drawer
+        a.sil(e2_rr(150, 266, 212, 62, 8), WOOD_L)
+    with a.part(6):
+        a.sil(c_circ(256, 297, 14), RED)
+    with a.part():                                      # top
+        a.sil(c_rpoly([(48, 214), (98, 160), (414, 160), (464, 214), (464, 240), (48, 240)], [10, 12, 12, 10, 10, 10]), WOOD_L)
+        a.blob(c_rpoly([(49, 216), (463, 216), (463, 239), (49, 239)], [0, 0, 9, 9]), WOOD)
+        c_line(a, 49, 215, 463, 215, 6, 1, 1)
+    a.path("M120 180 L330 180", stroke=WHITE, sw=7, **{"stroke-opacity": "0.55"})
+    return a
+
+
+@word
+def futon():
+    a = Art()
+    MAT, MAT_D, Q, Q_D, CUFF, PIL, PIL_D = "#fffaf0", "#e9dfcc", "#f9c3d0", "#f0a3b8", "#fff4e2", "#fde49a", "#f2c96a"
+    P = lambda u, v: (36 + 400 * u + 44 * v, 410 - 190 * v)   # a point on the top of the mattress
+    with a.part():                                      # mattress
+        a.sil(c_rpoly([P(0, 0), P(0, 1), P(1, 1), (480, 250), (436, 442), (36, 442)], [12, 18, 18, 10, 12, 12]), MAT)
+        a.blob(c_rpoly([(37, 414), (435, 414), (435, 441), (37, 441)], [0, 0, 10, 10]), MAT_D)
+    with a.part():                                      # pillow
+        a.sil(c_rpoly([(63, 376), P(0.05, 0.8), P(0.3, 0.8), (163, 376)], 34), PIL_D)
+        a.sil(c_rpoly([P(0.05, 0.22), P(0.05, 0.8), P(0.3, 0.8), P(0.3, 0.22)], 34), PIL)
+        a.ink([(104, 330, 112, 322, 124, 318, 136, 320)], 6, a=0, b=0, col=PIL_D)   # a soft dent
+    with a.part():                                      # quilt
+        a.sil("M200 404 C210 350 228 280 244 228 C320 216 420 216 492 228 C500 250 492 280 484 304 C472 346 458 398 448 452 "
+              "C380 464 270 464 204 454 C196 446 196 424 200 404 Z", Q)
+        a.blob("M200 412 C270 426 380 426 456 412 C453 426 450 440 448 452 C380 464 270 464 204 454 C196 446 196 428 200 412 Z", Q_D)
+        for u, v in ((0.62, 0.2), (0.8, 0.36), (0.98, 0.18), (0.6, 0.62), (0.8, 0.76), (0.97, 0.56)):
+            x, y = P(u, v)
+            e2_blossom(a, x, y, 21, col=WHITE, mid=YEL2)
+        a.blob("M200 404 C210 350 228 280 244 228 C262 225 280 223 298 222 C282 276 264 346 254 404 C250 426 252 446 258 460 "
+               "C238 458 220 457 204 454 C196 446 196 424 200 404 Z", CUFF)
+        a.ink([(298, 222, 282, 276, 264, 346, 254, 404)], 7, a=1, b=0.6)
+    return a
+
+
+@word
+def tansu():
+    a = Art()
+    SH, KN = "#e3a257", "#c9403a"
+    with a.part():                                      # feet
+        a.sil(e2_rr(112, 420, 50, 52, 10), WOOD_D)
+        a.sil(e2_rr(350, 420, 50, 52, 10), WOOD_D)
+    with a.part():                                      # body
+        a.sil(e2_rr(92, 84, 328, 356, 16), WOOD)
+        a.blob(e2_rr(392, 100, 28, 340, 12), SH)
+        a.blob(e2_rr(92, 414, 328, 26, 12), SH)
+    for i in range(3):                                  # drawers
+        y = 128 + i * 98
+        with a.part(6):
+            a.sil(e2_rr(118, y, 276, 82, 10), WOOD_L)
+        a.blob(e2_rr(120, y + 64, 272, 16, 8), "#efb878")
+        for x in (190, 322):
+            with a.part(6):
+                a.sil(c_circ(x, y + 40, 14), KN)
+            a.dot(x - 4, y + 36, 4, "#f0908a")
+    with a.part():                                      # top
+        a.sil(e2_rr(76, 64, 360, 42, 14), WOOD_L)
+        a.blob(e2_rr(76, 88, 360, 18, 9), WOOD)
+    a.path("M104 80 L300 80", stroke=WHITE, sw=7, **{"stroke-opacity": "0.55"})
+    return a
+
+
+@word
+def tokei():
+    a = Art()
+    FR, FR_D, FACE, FACE_D = "#4fa8e0", "#3f8fc8", "#fffaf0", "#ece2cf"
+    import math
+    with a.part():
+        a.sil(c_circ(256, 256, 204), FR)
+        a.blob(d_rim(d_circ(256, 256, 204), 50, 70, 26), FR_D)
+    with a.part(7):
+        a.sil(c_circ(256, 256, 158), FACE)
+    a.blob(c_circ(256, 256, 158) + " " + c_circ(256, 266, 152, ccw=True), FACE_D)
+    for i in range(12):
+        t = math.radians(i * 30)
+        ux, uy = math.cos(t), math.sin(t)
+        if i % 3 == 0:
+            a.blob(e2_cap(256 + 112 * ux, 256 + 112 * uy, 256 + 136 * ux, 256 + 136 * uy, 14), RED)
+        else:
+            a.dot(256 + 128 * ux, 256 + 128 * uy, 7, "#b9a58f")
+    for ang, ln, w in ((-150, 74, 22), (-30, 112, 15)):  # hour hand, minute hand (10:10)
+        t = math.radians(ang)
+        a.blob(e2_cap(256 - 16 * math.cos(t), 256 - 16 * math.sin(t), 256 + ln * math.cos(t), 256 + ln * math.sin(t), w, w * 0.6), O)
+    a.dot(256, 256, 15, RED)
+    a.dot(256, 256, 6, "#f7a09a")
+    a.shine("M92 220 C102 164 138 118 190 94", sw=9)
+    return a
+
+
+@word
+def kagami():
+    a = Art()
+    FR, FR_D, FR_L = "#f7c948", "#e0a92a", "#fbe08a"
+    frame = d_circ(256, 276, 168, 206)
+    with a.part():                                      # crest on the top
+        a.sil(c_circ(256, 62, 34), FR)
+        a.sil(c_circ(204, 84, 24), FR)
+        a.sil(c_circ(308, 84, 24), FR)
+    a.dot(256, 60, 13, RED)
+    with a.part():                                      # frame
+        a.sil(frame, FR)
+        a.blob(d_rim(frame, 50, 70, 22), FR_D)
+    glass = d_circ(256, 276, 130, 168)
+    c_glass(a, glass, ow=7, col="#cdeaf9")
+    a.blob(d_rim(glass, 230, 70, 22), "#e6f5fd")
+    a.blob(d_rim(glass, 50, 70, 26), "#aeddf5")
+    a.path("M196 268 L262 172", stroke=WHITE, sw=14, **{"stroke-opacity": "0.85"})
+    a.path("M232 292 L282 220", stroke=WHITE, sw=8, **{"stroke-opacity": "0.85"})
+    a.path("M286 384 L316 340", stroke=WHITE, sw=8, **{"stroke-opacity": "0.7"})
+    a.shine("M106 236 C112 176 138 124 180 98", sw=7)
+    return a
+
+
+def omochabako():
+    """The toy box of the room (a part, not a word): Content/Art/parts/omochabako.svg."""
+    a = Art()
+    SH, BR, BR_D = "#e3a257", "#b9794a", "#9c6238"
+    with a.part():                                      # lid, open at the back
+        a.sil(c_rpoly([(66, 290), (40, 96), (472, 96), (446, 290)], [0, 22, 22, 0]), WOOD_D)
+        a.blob(c_rpoly([(92, 290), (72, 124), (440, 124), (420, 290)], [0, 12, 12, 0]), "#b56f35")
+    with a.part():                                      # ball
+        a.sil(c_circ(150, 234, 62), RED)
+        a.blob("M96 204 C130 222 172 222 206 206 C210 216 212 226 212 236 C172 252 128 252 88 236 C88 224 90 214 96 204 Z", WHITE)
+    with a.part():                                      # block
+        a.sil(d_tf(e2_rr(-48, -48, 96, 96, 12), 1, 262, 226, -12), BLUE)
+    a.dot(262, 224, 20, WHITE)
+    with a.part():                                      # teddy: the ears and the top of the head
+        a.sil(c_circ(326, 186, 26), BR)
+        a.sil(c_circ(414, 186, 26), BR)
+        a.sil(c_circ(370, 250, 66), BR)
+    a.dot(326, 188, 12, "#f2c49a")
+    a.dot(414, 188, 12, "#f2c49a")
+    with a.part():                                      # box
+        a.sil(e2_rr(54, 274, 404, 204, 18), WOOD)
+        a.blob(e2_rr(54, 274, 404, 34, 0), WOOD_L)
+        a.blob(e2_rr(54, 446, 404, 32, 14), SH)
+        a.blob(e2_rr(430, 308, 28, 150, 0), SH)
+        c_line(a, 54, 308, 458, 308, 6, 1, 1)
+    with a.part(7):                                     # star
+        a.sil(e1_star(256, 388, 62, 30), YEL2)
+    a.path("M78 291 L240 291", stroke=WHITE, sw=7, **{"stroke-opacity": "0.5"})
+    return a
+
+
+def write_toy_box():
+    out = os.path.join(HERE, "..", "..", "Content", "Art", "parts")
+    os.makedirs(out, exist_ok=True)
+    open(os.path.join(out, "omochabako.svg"), "w").write(omochabako().svg())
+
+
 def write_swing_parts():
     """The frame and the seat of the swing go to Content/Art/parts/ (D173). Same fit as burango.svg."""
     full, frame, seat, rope = swing_parts()
@@ -5200,6 +5609,9 @@ def print_lamps():
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(W)
+    if not sys.argv[1:] or "omochabako" in names:      # the toy box is a part, not a word
+        write_toy_box()
+    names = [n for n in names if n != "omochabako"]
     for n in names:
         art = W[n]()
         open(os.path.join(OUT, f"{n}.svg"), "w").write(art.svg(params=art.ground_params()) if n in GROUND else art.svg())

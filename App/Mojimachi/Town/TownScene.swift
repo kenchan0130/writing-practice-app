@@ -21,7 +21,7 @@ final class TownScene: SKScene {
   private var sceneryObjects: [PlacedObject] = []
   /// 水べの生きもの（古い順。上限は `TownLayout.maxSwimmers`。D170）。
   private var swimObjects: [PlacedObject] = []
-  /// こうえんの物（古い順。上限は `TownLayout.maxPlaythings`）と、置き場所の番号に使う「何番目に置いたか」（D173）。
+  /// こうえんの物（置き場所の番号の順。上限は `TownLayout.maxPlaythings`）と、置き場所の番号（D173・D185）。
   private var playObjects: [(object: PlacedObject, ordinal: Int)] = []
   /// こうえんで遊ぶキャラクター（「なにが すき？」の前に選んだ主人公。D164）。
   private var mainCharacter: MainCharacter = .ton
@@ -77,25 +77,20 @@ final class TownScene: SKScene {
   }
 
   /// 置いた物の一覧に合わせて、足したり消したりする（子どもを切り替えたときなど）。
-  func show(_ all: [PlacedObject]) {
+  /// まちに出す物は、行から計算した並び（`ToyBoxBoard`）で決まる。入りきらない物は おもちゃばこ（D74・D82）。
+  func show(_ all: [PlacedObject], board: ToyBoxBoard) {
     if layer == .town {
-      let roaming = TownLayout.shown(
-        all.filter {
-          $0.kind != .clothes && $0.kind != .scenery && $0.kind != .swimmer && $0.kind != .sky
-            && $0.kind != .plaything && $0.kind != .bodyAction
-        })
-      let scenery = TownLayout.shownScenery(all.filter { $0.kind == .scenery })
-      let swimmers = TownLayout.shownSwimmers(all.filter { $0.kind == .swimmer })
-      // こうえんの物は、置いた順に8つの置き場所を回る（D82）。見える8つは、新しい8つ。
-      let plays = all.filter { $0.kind == .plaything }
-      let shownPlays = TownLayout.shownPlaythings(plays)
-      let firstOrdinal = plays.count - shownPlays.count
-      let playing = shownPlays.enumerated().map { (object: $0.element, ordinal: firstOrdinal + $0.offset) }
+      let roaming = board.shown(.roaming).map(\.object)
+      let scenery = board.shown(.scenery).map(\.object)
+      let swimmers = board.shown(.swimmers).map(\.object)
+      // こうえんの物は、8つの置き場所に入る。いっぱいなら、出してからいちばん長い物の場所に入る（D82）。
+      let playing = board.shown(.park).map { (object: $0.object, ordinal: $0.slot) }
       guard
         roaming.map(\.id) != townObjects.map(\.id)
           || scenery.map(\.id) != sceneryObjects.map(\.id)
           || swimmers.map(\.id) != swimObjects.map(\.id)
           || playing.map(\.object.id) != playObjects.map(\.object.id)
+          || playing.map(\.ordinal) != playObjects.map(\.ordinal)
       else { return }
       townObjects = roaming
       sceneryObjects = scenery
@@ -325,7 +320,7 @@ final class TownScene: SKScene {
     switch kind {
     case .vehicle: .vehicle
     case .flyer: .flyer
-    case .animal, .clothes, .scenery, .swimmer, .sky, .plaything, .bodyAction: .animal
+    case .animal, .clothes, .scenery, .swimmer, .sky, .plaything, .bodyAction, .furniture: .animal
     }
   }
 

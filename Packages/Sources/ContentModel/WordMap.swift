@@ -121,9 +121,14 @@ public enum WordMap {
     WordTheme(
       "karada", "からだ", in: "ie", row: .closet,
       words: ["て", "あし", "め", "みみ", "くち", "あたま", "おなか", "ほっぺ"]),
-    WordTheme("daidokoro", "だいどころ", in: "ie", row: .inside),
-    WordTheme("ie-no-mono", "いえの もの", in: "ie", row: .inside),
-    WordTheme("ofuro-mijitaku", "おふろ・みじたく", in: "ie", row: .inside),
+    WordTheme(
+      "daidokoro", "だいどころ", in: "ie", row: .inside, words: ["なべ", "おわん", "はし", "おさら", "やかん"]),
+    WordTheme(
+      "ie-no-mono", "いえの もの", in: "ie", row: .inside,
+      words: ["いす", "つくえ", "とけい", "ふとん", "たんす"]),
+    WordTheme(
+      "ofuro-mijitaku", "おふろ・みじたく", in: "ie", row: .inside,
+      words: ["せっけん", "はぶらし", "くし", "かがみ"]),
     WordTheme("bunbogu", "ぶんぼうぐ", in: "omise"),
     WordTheme("tatemono", "たてもの", in: "eki", words: ["いえ", "がっこう", "びょういん", "おしろ"]),
     WordTheme("machi-no-mono", "まちの もの", in: "michi", words: ["しんごう", "ふみきり", "がいとう"]),

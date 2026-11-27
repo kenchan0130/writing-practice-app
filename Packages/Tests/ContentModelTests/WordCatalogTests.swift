@@ -4,10 +4,10 @@ import Testing
 
 @Suite("ことばの一覧（D78）")
 struct WordCatalogTests {
-  @Test("139語で、種類ごとの数が合う")
+  @Test("153語で、種類ごとの数が合う")
   func counts() {
-    #expect(WordCatalog.all.count == 139)
-    #expect(Set(WordCatalog.all.map(\.text)).count == 139)
+    #expect(WordCatalog.all.count == 153)
+    #expect(Set(WordCatalog.all.map(\.text)).count == 153)
     #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 9)
     #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 21)
     #expect(WordCatalog.all.filter { $0.kind == .clothes }.count == 16)
@@ -17,6 +17,7 @@ struct WordCatalogTests {
     #expect(WordCatalog.all.filter { $0.kind == .sky }.count == 10)
     #expect(WordCatalog.all.filter { $0.kind == .plaything }.count == 15)
     #expect(WordCatalog.all.filter { $0.kind == .bodyAction }.count == 8)
+    #expect(WordCatalog.all.filter { $0.kind == .furniture }.count == 14)
   }
 
   @Test("種類が正しい")
@@ -55,6 +56,10 @@ struct WordCatalogTests {
     #expect(WordCatalog.entry(for: "うちゅうじん")?.kind == .sky)
     #expect(WordCatalog.entry(for: "て")?.kind == .bodyAction)
     #expect(WordCatalog.entry(for: "ほっぺ")?.kind == .bodyAction)
+    // いえの物（D185）。
+    #expect(WordCatalog.entry(for: "なべ")?.kind == .furniture)
+    #expect(WordCatalog.entry(for: "とけい")?.kind == .furniture)
+    #expect(WordCatalog.entry(for: "せっけん")?.kind == .furniture)
   }
 
   @Test("はう物は、むしの動物だけ（D169）。はねる動物や空の虫は はわない")

@@ -7,9 +7,16 @@ struct TownView: View {
   private let store = ProgressStore.shared
   @State private var scene: TownScene
 
-  init(layer: TownScene.Layer = .town) {
+  /// いえ（いえの なか）へ行く。nil なら、いえの入口を出さない（クローゼット）。
+  var onHouse: (() -> Void)?
+
+  init(layer: TownScene.Layer = .town, onHouse: (() -> Void)? = nil) {
     _scene = State(initialValue: TownScene(layer: layer))
+    self.onHouse = onHouse
   }
+
+  /// まちの おもちゃばこに、物が入っているか（入りきらない物があるときだけ、おもちゃばこを出す）。
+  private var hasBoxed: Bool { !store.board.boxed(ShelfGroup.town).isEmpty }
 
   /// まちの看板（「ゆうとの まち」。呼び名がなければ「わたしの まち」。§3.9）。
   private var title: String {
@@ -53,16 +60,45 @@ struct TownView: View {
               debugSeedTown(store)
             #endif
             scene.setCharacter(store.mainCharacter)
-            scene.show(store.placed)
+            scene.show(store.placed, board: store.board)
             scene.setSky(skyRecords)
             scene.setBody(bodyRecords)
           }
-          .onChange(of: store.placed) { _, placed in scene.show(placed) }
+          .onChange(of: store.placed) { _, placed in scene.show(placed, board: store.board) }
+          .onChange(of: store.moves) { scene.show(store.placed, board: store.board) }
           .onChange(of: store.mainCharacter) { _, character in scene.setCharacter(character) }
           .onChange(of: store.log.words) {
             scene.setSky(skyRecords)
             scene.setBody(bodyRecords)
           }
+      }
+      // キャラクターのいえの入口と おもちゃばこ（§3.1・D185）。まちの物に重ならないよう、まちの下の列に置く。
+      if scene.layer == .town, let onHouse {
+        HStack {
+          Button {
+            SoundPlayer.shared.play(.tap)
+            onHouse()
+          } label: {
+            VStack(spacing: 2) {
+              Image("place-ie")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 84, height: 72)
+              Text("いえ").font(.ui(22, bold: true)).foregroundStyle(Theme.ink)
+            }
+            .frame(width: 116, height: 116)
+            .background(.white.opacity(0.85), in: .rect(cornerRadius: Theme.Radius.card))
+            .softShadow()
+          }
+          .buttonStyle(.plain)
+          .accessibilityLabel("いえ")
+          .accessibilityIdentifier("houseButton")
+          Spacer()
+          // 入りきらない物があるときだけ出す（D74）。
+          if hasBoxed {
+            ToyBoxButton { ToyBoxPresenter.show(groups: ShelfGroup.town) }
+          }
+        }
       }
     }
     .padding(32)
@@ -70,7 +106,7 @@ struct TownView: View {
 }
 
 #if DEBUG
-  /// 確かめ用: `-seedTown YES` で、7つの型（のりもの・どうぶつ・服・空を飛ぶ物・景色・水の生きもの・こうえんの物）を置く（D168・D170・D173）。
+  /// 確かめ用: `-seedTown YES` で、8つの型（のりもの・どうぶつ・服・空を飛ぶ物・景色・水の生きもの・こうえんの物・いえの物）を置く（D168・D170・D173・D185）。
   @MainActor func debugSeedTown(_ store: ProgressStore) {
     guard UserDefaults.standard.bool(forKey: "seedTown"), store.placed.isEmpty else { return }
     let seeds = [
@@ -83,12 +119,19 @@ struct TownView: View {
       "ぶらんこ", "すべりだい", "こま", "たいこ", "ふうせん", "けんだま", "つみき", "もっきん",
       // 景色（D174）。新しい12個まで出るので、これが後ろに来る。
       "やま", "がっこう", "いえ", "しんごう", "ふみきり", "まつ", "きのこ", "どんぐり", "あさがお", "たき",
+      // いえの物（D185）。棚4つ・床2つ・壁2つに入りきらない物は、おもちゃばこ。
+      "なべ", "おわん", "はし", "おさら", "やかん", "せっけん", "いす", "つくえ", "ふとん", "とけい", "かがみ",
     ]
-    for text in seeds {
+    // 1つずつ、時間をずらして置く（おもちゃばこの計算は、手に入れた時間の順。D82）。
+    let start = Date().addingTimeInterval(-Double(seeds.count) * 60)
+    for (index, text) in seeds.enumerated() {
       guard let item = WordArt.words.first(where: { $0.entry.text == text }) else {
         continue
       }
-      store.place(PlacedObject(word: text, symbol: item.asset, kind: item.entry.kind))
+      store.place(
+        PlacedObject(
+          date: start.addingTimeInterval(Double(index) * 60), word: text, symbol: item.asset,
+          kind: item.entry.kind))
     }
   }
 #else

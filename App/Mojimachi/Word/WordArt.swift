@@ -20,6 +20,7 @@ enum WordArt {
   private static let playColor = UIColor(red: 0.95, green: 0.6, blue: 0.25, alpha: 1)
   private static let bodyColor = UIColor(red: 0.93, green: 0.45, blue: 0.5, alpha: 1)
   private static let skyColor = UIColor(red: 0.35, green: 0.55, blue: 0.9, alpha: 1)
+  private static let furnitureColor = UIColor(red: 0.8, green: 0.55, blue: 0.3, alpha: 1)
   private static let sceneryColor = UIColor(red: 0.4, green: 0.7, blue: 0.32, alpha: 1)
 
   private static let assets: [String: String] = [
@@ -61,6 +62,9 @@ enum WordArt {
     "まほうつかい": "mahoutsukai", "かいぞく": "kaizoku",
     "だいく": "daiku", "せんせい": "sensei", "おいしゃさん": "oishasan",
     "おまわりさん": "omawarisan", "しょうぼうし": "shouboushi",
+    "なべ": "nabe", "おわん": "owan", "はし": "hashi", "おさら": "osara", "やかん": "yakan",
+    "いす": "isu", "つくえ": "tsukue", "とけい": "tokei", "ふとん": "futon", "たんす": "tansu",
+    "せっけん": "sekken", "はぶらし": "haburashi", "くし": "kushi", "かがみ": "kagami",
   ]
 
   static let words: [Item] = WordCatalog.all.map { entry in
@@ -75,6 +79,7 @@ enum WordArt {
       case .sky: skyColor
       case .plaything: playColor
       case .bodyAction: bodyColor
+      case .furniture: furnitureColor
       }
     return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }
@@ -201,6 +206,45 @@ enum WordArt {
       let h = s.height * scale
       art.draw(in: CGRect(x: (size - w) / 2, y: (size - h) / 2, width: w, height: h))
     }
+  }
+
+  @MainActor private static var contentFrames: [String: CGRect] = [:]
+
+  /// 絵の中身のある四角（まわりの すきまを除く。左上が原点で、絵の四角に対する割合）。
+  /// いえの物を、棚や床に ぴったり置くために使う（D185）。絵が無ければ全体。
+  @MainActor static func contentFrame(word: String) -> CGRect {
+    if let cached = contentFrames[word] { return cached }
+    let full = CGRect(x: 0, y: 0, width: 1, height: 1)
+    let side = 96
+    var pixels = [UInt8](repeating: 0, count: side * side * 4)
+    guard uiImage(for: word) != nil,
+      let cg = image(word: word, size: CGFloat(side)).cgImage,
+      let context = CGContext(
+        data: &pixels, width: side, height: side, bitsPerComponent: 8, bytesPerRow: side * 4,
+        space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+    else { return full }
+    context.draw(cg, in: CGRect(x: 0, y: 0, width: side, height: side))
+    var minX = side
+    var maxX = -1
+    var minY = side
+    var maxY = -1
+    for y in 0..<side {
+      for x in 0..<side where pixels[(y * side + x) * 4 + 3] > 40 {
+        minX = min(minX, x)
+        maxX = max(maxX, x)
+        minY = min(minY, y)
+        maxY = max(maxY, y)
+      }
+    }
+    guard maxX >= minX, maxY >= minY else { return full }
+    // この並びでは、0 行目が絵のいちばん上。
+    let frame = CGRect(
+      x: CGFloat(minX) / CGFloat(side), y: CGFloat(minY) / CGFloat(side),
+      width: CGFloat(maxX - minX + 1) / CGFloat(side),
+      height: CGFloat(maxY - minY + 1) / CGFloat(side))
+    contentFrames[word] = frame
+    return frame
   }
 
   /// 絵のアセット（キャラクターなど）を、`size` 四方の透明な画像にする。無ければ nil。

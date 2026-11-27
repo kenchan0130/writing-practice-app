@@ -48,14 +48,14 @@ struct WordMapTests {
     }
   }
 
-  @Test("139語は、すべてどれかのテーマに入っている")
+  @Test("153語は、すべてどれかのテーマに入っている")
   func everyWordHasATheme() {
     for entry in WordCatalog.all {
       #expect(WordMap.themes.contains { $0.words.contains(entry.text) }, "\(entry.text)")
     }
   }
 
-  @Test("139語の割りふり")
+  @Test("153語の割りふり")
   func assignment() {
     func theme(_ id: String) -> [String] { WordMap.theme(id: id)?.words ?? [] }
     #expect(Set(theme("norimono")) == ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ"])
@@ -98,11 +98,29 @@ struct WordMapTests {
     #expect(Set(theme("ki-kusa-kinoko")) == ["くさ", "まつ", "どんぐり", "はっぱ", "きのこ"])
     #expect(Set(theme("tatemono")) == ["いえ", "がっこう", "びょういん", "おしろ"])
     #expect(Set(theme("machi-no-mono")) == ["しんごう", "ふみきり", "がいとう"])
+    // いえの物（D185）。
+    #expect(theme("daidokoro") == ["なべ", "おわん", "はし", "おさら", "やかん"])
+    #expect(theme("ie-no-mono") == ["いす", "つくえ", "とけい", "ふとん", "たんす"])
+    #expect(theme("ofuro-mijitaku") == ["せっけん", "はぶらし", "くし", "かがみ"])
+  }
+
+  @Test("おうちは、いえの なか 4つ・クローゼット 4つの 2列（D67・D185）")
+  func houseRows() {
+    let index = WordMapIndex { WordCatalog.entry(for: $0) != nil }
+    let themes = index.themes(in: WordMap.place(id: "ie")!)
+    #expect(
+      themes.filter { $0.row == .inside }.map(\.id) == [
+        "ie-ikimono", "daidokoro", "ie-no-mono", "ofuro-mijitaku",
+      ])
+    #expect(
+      themes.filter { $0.row == .closet }.map(\.id) == [
+        "fuku", "oshare-komono", "henshin", "karada",
+      ])
   }
 
   // MARK: - 出し分け
 
-  @Test("今の139語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・うみ・かわ・おみせ・こうえん・うちゅうが出る")
+  @Test("今の153語（すべて絵あり）では、えき・みち・そら・どうぶつえん・まきば・もり・おうち・うみ・かわ・おみせ・こうえん・うちゅうが出る")
   func todayPlaces() {
     let index = WordMapIndex { WordCatalog.entry(for: $0) != nil }
     #expect(
@@ -112,7 +130,8 @@ struct WordMapTests {
       ])
     #expect(
       index.themes(in: WordMap.place(id: "ie")!).map(\.id) == [
-        "ie-ikimono", "fuku", "oshare-komono", "henshin", "karada",
+        "ie-ikimono", "fuku", "oshare-komono", "henshin", "karada", "daidokoro", "ie-no-mono",
+        "ofuro-mijitaku",
       ])
   }
 
@@ -135,8 +154,8 @@ struct WordMapTests {
       index.themes(in: WordMap.place(id: "kawa")!).map(\.id) == ["kawa-ikimono", "shizen"])
     let ie = WordMap.place(id: "ie")!
     if case .themes(let themes) = index.entrance(of: ie) {
-      // いえで かう いきもの・ふく・おしゃれ こもの・へんしん（D178）・からだ（D175）。
-      #expect(themes.count == 5)
+      // いえで かう いきもの・ふく・おしゃれ こもの・へんしん（D178）・からだ（D175）と、いえの なかの 3つ（D185）。
+      #expect(themes.count == 8)
     } else {
       Issue.record("おうちはテーマへ行くはず")
     }
