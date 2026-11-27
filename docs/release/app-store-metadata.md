@@ -206,10 +206,10 @@ Welcome to Mojimachi!
 |---|---|---|---|
 | katakana | カタカナ | Katakana | カタカナの字が書けます。（ことばを入れたら足す）／ Write all the Katakana letters. |
 | abc | アルファベットと数字 | Alphabet and Numbers | アルファベットと数字の字が書けます。（えいごのことばを入れたら足す）／ Write the alphabet letters and numbers. |
-| all | すべての文字 | All Letters | いまある文字と、これから追加する文字が、すべて使えます。／ Write every letter available now, and every letter added in the future. |
+| all | すべての文字 | All Letters | いまある文字と、これから追加する文字が、すべて使えます。／ Every letter now, plus letters added later.（ASC の説明は55字まで。アプリの購入画面の英語は長い文のまま） |
 | all.owner1 | すべての文字（1つ購入済みの方） | All Letters (pack owners) | 同上 |
 
-- **名前と説明は D98 にそろえた（D183）**: `Mojimachi.storekit`・購入画面（`PurchaseView.swift`。StoreKit の名前を優先して出す）・この表。説明は、いまのアプリにある中身（字）だけを書く。カタカナ・ABC のことば、すうじ あそび、ずかんは、作ってから足す（D72）。ASC にも、この名前と説明を入れる【人】。
+- **名前と説明は D98 にそろえた（D183）**: `Mojimachi.storekit`・購入画面（`PurchaseView.swift`。StoreKit の名前を優先して出す）・この表。説明は、いまのアプリにある中身（字）だけを書く。カタカナ・ABC のことば、すうじ あそび、ずかんは、作ってから足す（D72）。ASC にも、この名前と説明を入れた（2026-11-27）。
 - 各商品に、審査用のスクリーンショット（保護者用の購入画面）が要る。
 - 子どもの画面に価格・購入は出ない。購入は保護者用の画面の「購入」だけ（確認済み。§8）。
 

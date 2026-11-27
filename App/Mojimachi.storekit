@@ -13,7 +13,7 @@
           "locale": "ja"
         },
         {
-          "description": "Write every letter available now, and every letter added in the future.",
+          "description": "Every letter now, plus letters added later.",
           "displayName": "All Letters",
           "locale": "en_US"
         }
@@ -33,7 +33,7 @@
           "locale": "ja"
         },
         {
-          "description": "Write every letter available now, and every letter added in the future.",
+          "description": "Every letter now, plus letters added later.",
           "displayName": "All Letters (pack owners)",
           "locale": "en_US"
         }
