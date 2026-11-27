@@ -30,17 +30,55 @@ enum TodayWord {
     return Locale.current.region?.identifier == "JP"
   }
 
+  /// その日・その子で、いちど出したことば。あとで購入記録が読み込まれても、その日は変えない（D194）。
+  private static var chosen: [String: String] = [:]
+  /// アプリを起動した時刻（購入記録の読み込みを待つ目安）。
+  private static let launchedAt = Date()
+  nonisolated static let unlockedKey = "todayWordUnlockedScripts"
+
+  /// 使える文字の種類。起動の直後は購入記録がまだ空なので、前に分かっていた分を使う（D194）。
+  /// 読み込めたら、それを覚える。読み込みが5秒たっても空なら、覚えていた分を捨てる。
+  @MainActor private static func unlockedScripts(
+    entitlements: Entitlements, defaults: UserDefaults, now: Date
+  ) -> Set<Script> {
+    if !entitlements.purchases.isEmpty {
+      let live = Set(Script.allCases.filter(entitlements.isUnlocked))
+      defaults.set(live.map(\.rawValue).sorted(), forKey: unlockedKey)
+      return live
+    }
+    let remembered = Set(
+      (defaults.stringArray(forKey: unlockedKey) ?? []).compactMap(Script.init(rawValue:)))
+    if now.timeIntervalSince(launchedAt) > 5, !remembered.isEmpty {
+      defaults.removeObject(forKey: unlockedKey)
+      return Set(Script.allCases.filter(entitlements.isUnlocked))
+    }
+    return remembered.union(Script.allCases.filter(entitlements.isUnlocked))
+  }
+
   /// きょうのことば。選べることばがなければ nil。
+  /// いちど出したことばは、その日は変えない。起動の直後（購入記録が読めるまで）は、前に分かっていた
+  /// 使える文字で選ぶ。そのため、買っている家庭でも、あとから ことばが入れ替わらない（D194）。
   @MainActor static func word(
     store: ProgressStore = .shared, entitlements: Entitlements = PurchaseStore.shared.entitlements,
-    now: Date = Date(), calendar: Calendar = .current
+    defaults: UserDefaults = .standard, now: Date = Date(), calendar: Calendar = .current
+  ) -> String? {
+    let key = "\(day(now: now, calendar: calendar))|\(store.currentProfileID.uuidString)"
+    if let word = chosen[key] { return word }
+    let unlocked = unlockedScripts(entitlements: entitlements, defaults: defaults, now: now)
+    let picked = pick(store: store, unlocked: unlocked, now: now, calendar: calendar)
+    if let picked { chosen[key] = picked }
+    return picked
+  }
+
+  @MainActor private static func pick(
+    store: ProgressStore, unlocked: Set<Script>, now: Date, calendar: Calendar
   ) -> String? {
     let startOfDay = calendar.startOfDay(for: now)
     // きょう書いた分は入れない。書くと選び直しになって、開くたびに変わってしまうため。
     let written = Set(store.log.currentWords.filter { $0.date < startOfDay }.map(\.word))
     let candidates = WordArt.words.map(\.entry.text).filter { text in
       WordArt.hasArt(text)
-        && (ShiritoriWords.script(of: text).map { entitlements.isUnlocked($0) } ?? false)
+        && (ShiritoriWords.script(of: text).map { unlocked.contains($0) } ?? false)
     }
     return DailyWord.pick(
       from: candidates, writtenBeforeToday: written, day: day(now: now, calendar: calendar),

@@ -60,7 +60,7 @@ Sentry のコードとライブラリは入った（D183）。**DSN を入れな
 | 国ごとの必要事項（D65） | 人 | 未 | 配信する国ごとに必要な手続きを確かめ、対応できない国は外す |
 | 名前の最終決定（D136 の「公開前に §10.2 の案に変えるか」） | 人 | 決定（D183） | 「もじまち：ひらがな・カタカナ書き順練習」に決めた。ASC の名前を、この名前に変える【人】。ホームの名前は「もじまち」のまま |
 | 商標・キャラクター名・絵の確認（§10.1） | 人 | 未 | J-PlatPat と画像検索。「ひら」の見た目の見直し（D137）、「とん」が豚に見えないか（D61 ③） |
-| iCloud のデータの形を本番に反映する | 人 | 未 | CloudKit Console の「Deploy Schema Changes」（`docs/operations.md`）。署名ありで一度動かして、開発環境に形ができてから。AI はできない |
+| iCloud のデータの形を本番に反映する | 人 | 未 | CloudKit Console の「Deploy Schema Changes」（`docs/operations.md`）。署名ありで一度動かして、開発環境に形ができてから。AI はできない。本番のデータの形に、**`StickerRow`・`ToyBoxMoveRow`・`WishRow`** が入っていること（この3つを足したあとの形を反映する。開発環境で、おたのしみ ボックスをあける・おもちゃばこで出し入れする・おねがいを押す、を1回ずつして形を作る） |
 | プライバシーレポートの前回との違い、実機の「App プライバシーレポート」で Apple と Sentry 以外への通信がないこと | 人 | 未 | `docs/dependencies.md` の「公開ごとの確認」 |
 | 「このアプリについて」のライセンスの表示の見直し | AI | 確認中 | いまは `SupportView.swift` の `AboutView` で、文字のデータ・書体・効果音・声。Sentry を入れたので足す（D183。MIT）。`Package.resolved` から作る作業（LicensePlist）は未 |
 | ライセンスの義務の確認 | 人 | 未 | Klee One・Zen Maru Gothic（OFL）、strokesvg、OtoLogic（CC BY 4.0。D158）、VOICEVOX:猫使ビィ（表示）、KanjiVG の座標を使った字があれば CC BY-SA の公開（D128） |

@@ -373,7 +373,7 @@ private struct MapCell: View {
     }
     .buttonStyle(.plain)
     .accessibilityLabel(String(char))
-    .accessibilityValue(locked ? "" : state.label)
+    .accessibilityValue(locked ? String(localized: "ロックされています") : state.label)
   }
 
   @ViewBuilder

@@ -38,7 +38,8 @@ struct DataSettingsView: View {
     }
     switch store.syncProblem {
     case .notSignedIn?: return String(localized: "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。")
-    case .quotaExceeded?: return String(localized: "iCloud の空き容量が足りないため、同期できません。記録はこの iPad に保存しています。")
+    case .quotaExceeded?:
+      return String(localized: "iCloud の空き容量が足りないため、同期できません。記録はこの iPad に保存しています。")
     case .other?: return String(localized: "iCloud との同期がうまくいっていません。しばらくしてからもう一度試します。")
     case nil: return nil
     }
@@ -46,7 +47,10 @@ struct DataSettingsView: View {
 
   private var syncFooter: String {
     if store.accountState == .noAccount {
-      return String(localized: "記録はこの iPad の中に保存しています。iCloud にサインインすると、同期できるようになります。")
+      return String(
+        localized:
+          "いまは、記録をこの iPad の中だけに保存しています。iCloud にサインインすると、同期できるようになります。同期をオンにしたまま iCloud からサインアウトしたり、別のアカウントに切り替えたりすると、この iPad の中の記録が消えることがあります（iCloud にあるぶんは、元のアカウントでサインインすると戻ります）。"
+      )
     }
     if store.syncsWithICloud != store.isSyncRunning {
       return String(localized: "同期の切り替えは、次にアプリを開いたときから効きます。オフにしても、この iPad と iCloud の記録は残ります。")
@@ -82,6 +86,39 @@ struct DataSettingsView: View {
         }
       } footer: {
         Text(syncFooter)
+      }
+      if let fallback = store.openFallback {
+        Section {
+          switch fallback {
+          case .localOnly:
+            Text("iCloud につなげて保存先を開けなかったため、この iPad の中だけに保存しています。記録は残ります。アプリを開き直すと、もう一度つなげます。")
+          case .memoryOnly:
+            Text("この iPad の保存先を開けませんでした。いまの記録は、アプリを閉じると消えます。iPad の空き容量を確かめて、アプリを開き直してください。")
+              .foregroundStyle(.red)
+          }
+        }
+      }
+      if let notice = store.accountNotice {
+        Section {
+          switch notice {
+          case .changed:
+            Text(
+              "iCloud のアカウントが前と変わりました。そのため、前のアカウントで同期していたこの iPad の記録が、見えなくなっていることがあります。iCloud に同期していたぶんは、前のアカウントの iCloud に残っています。前のアカウントでサインインし直すと戻ります。"
+            )
+          case .signedOut:
+            Text(
+              "iCloud からサインアウトしました。同期をオンにしたままサインアウトすると、次にアプリを開いたとき、この iPad の中の記録が見えなくなることがあります。iCloud に同期していたぶんは iCloud に残っているので、同じアカウントでサインインし直すと戻ります。"
+            )
+          case .dataMissing:
+            Text(
+              "この iPad の中に、前にあった記録が見つかりませんでした。iCloud からのサインアウトやアカウントの切り替えで、消えた可能性があります。記録は iCloud に残っていることがあります。前のアカウントでサインインすると、あとから戻ります。"
+            )
+          }
+          if let date = Self.format(store.accountNoticeDate) {
+            Text(date).foregroundStyle(.secondary)
+          }
+          Button("OK") { store.dismissAccountNotice() }
+        }
       }
       if let notice = store.cloudDeletedNotice {
         Section {

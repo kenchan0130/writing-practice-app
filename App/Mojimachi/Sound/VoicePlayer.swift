@@ -48,29 +48,35 @@ final class VoicePlayer {
     speak(line.text)
   }
 
-  /// 字・ことばを言う。
-  func speak(_ text: String) {
+  /// 字・ことばを言う。声のファイルの長さ（秒）を返す。ファイルがなければ nil。
+  /// ファイルは1回だけ開く（長さを読むためにもう一度開かない。D194）。
+  @discardableResult
+  func speak(_ text: String) -> TimeInterval? {
     let store = ProgressStore.shared
-    guard !text.isEmpty else { return }
+    guard !text.isEmpty else { return nil }
+    let candidate = url(for: text).flatMap { try? AVAudioPlayer(contentsOf: $0) }
+    let duration = candidate?.duration
     // 字幕は、声が終わるまで出す（短い声でも 約2秒）。
-    let duration = url(for: text).flatMap { try? AVAudioPlayer(contentsOf: $0) }?.duration ?? 0
-    if store.showsSubtitles { showCaption(text, seconds: max(Self.captionSeconds, duration + 0.5)) }
-    guard !store.quietMode, store.voiceVolume > 0 else { return }
-    guard let url = url(for: text) else {
+    if store.showsSubtitles {
+      showCaption(text, seconds: max(Self.captionSeconds, (duration ?? 0) + 0.5))
+    }
+    guard !store.quietMode, store.voiceVolume > 0 else { return duration }
+    guard let candidate else {
       #if DEBUG
         NSLog("[voice] ⚠️⚠️⚠️ 声のファイルがありません: %@", text)
       #endif
-      return
+      return nil
     }
     try? AVAudioSession.sharedInstance().setCategory(.ambient)
     try? AVAudioSession.sharedInstance().setActive(true)
     player?.stop()
-    player = try? AVAudioPlayer(contentsOf: url)
-    player?.volume = Float(store.voiceVolume)
-    player?.play()
+    player = candidate
+    candidate.volume = Float(store.voiceVolume)
+    candidate.play()
     #if DEBUG
       NSLog("[voice] %@", text)
     #endif
+    return duration
   }
 
   /// 順に言う（しりとり: 「これ！」→ことば、など。D57）。1つ言い終わってから次を言う。
@@ -78,8 +84,7 @@ final class VoicePlayer {
   func speak(sequence texts: [String]) async {
     for text in texts {
       guard !Task.isCancelled else { return }
-      speak(text)
-      let duration = url(for: text).flatMap { try? AVAudioPlayer(contentsOf: $0) }?.duration ?? 0.8
+      let duration = speak(text) ?? 0.8
       try? await Task.sleep(for: .seconds(duration + 0.2))
     }
   }

@@ -3,6 +3,7 @@ import ContentModel
 import CoreData
 import Foundation
 import RecordKit
+import UIKit
 
 /// 学習記録とまちの物を、端末に保存する（D44・D63）。
 ///
@@ -64,6 +65,10 @@ final class RecordStore {
   /// 同期をオフにしたとき、「iCloud のデータを消す」のとき、置き場所が消えていたときに消す。
   nonisolated static let syncedBeforeKey = "hasSyncedWithICloud"
   private let defaults: UserDefaults
+  /// 保存するファイルがあるか（なければメモリの中だけ）。
+  private let hasFile: Bool
+  /// 保存するファイルの場所（なければ nil）。
+  private let fileURL: URL?
   /// 起動のとき、iCloud の置き場所があるかの確認を待っている（D159）。
   private var pendingZoneCheck = false
 
@@ -101,6 +106,8 @@ final class RecordStore {
     defaults: UserDefaults = .standard
   ) {
     self.defaults = defaults
+    hasFile = url != nil
+    fileURL = url
     container = NSPersistentCloudKitContainer(name: "Mojimachi", managedObjectModel: Self.model)
     let description = NSPersistentStoreDescription(url: url ?? URL(fileURLWithPath: "/dev/null"))
     let wantsSync = cloudSync && url != nil && !Self.isLocalOnlyRun && Self.hasCloudEntitlement
@@ -115,14 +122,14 @@ final class RecordStore {
     description.setOption(
       true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
     container.persistentStoreDescriptions = [description]
-    container.loadPersistentStores { _, error in
-      if let error { Self.lastError = error }
-    }
+    openWithFallback(description, url: url)
     context.automaticallyMergesChangesFromParent = true
     context.mergePolicy = NSMergePolicy(merge: .mergeByPropertyObjectTrumpMergePolicyType)
+    // 自分の保存に印を付ける。iCloud から届いた変更と見分けて、自分の保存では読み直さない（D194）。
+    context.transactionAuthor = HistoryAuthor.app
     if syncing {
       observeSync()
-    } else if needsCheck {
+    } else if needsCheck, openFallback == nil {
       pendingZoneCheck = true
       Task { await verifyZoneThenStartSync() }
     }
@@ -140,9 +147,17 @@ final class RecordStore {
     }
   }
 
+  /// いますぐ iCloud につなげる（はじめての流れで、保護者が「オン」を選んだとき。D194）。
+  /// 署名なしのビルドや確かめ用の起動では何もしない。
+  func beginSyncNow() {
+    guard hasFile, openFallback != .memoryOnly, !Self.isLocalOnlyRun, Self.hasCloudEntitlement
+    else { return }
+    startSync()
+  }
+
   /// 端末の中だけで開いている保存先を、iCloud につなげて開き直す。`stopSync` の逆。
   private func startSync() {
-    guard !syncing else { return }
+    guard !syncing, openFallback != .memoryOnly else { return }
     syncing = true
     save()
     let coordinator = container.persistentStoreCoordinator
@@ -151,14 +166,108 @@ final class RecordStore {
       description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
         containerIdentifier: Self.cloudContainerID)
     }
-    container.loadPersistentStores { _, error in
-      if let error { Self.lastError = error }
+    if let description = container.persistentStoreDescriptions.first,
+      openStores() != nil
+    {
+      // iCloud につなげて開けなかった。端末の中だけで開き直して、記録を残す（D194）。
+      syncing = false
+      description.cloudKitContainerOptions = nil
+      openFallback = .localOnly
+      if openStores() != nil {
+        // 端末の中だけでも開けなかった。保存先が無いままにせず、メモリの中だけで動かす。
+        description.type = NSInMemoryStoreType
+        description.url = nil
+        openFallback = .memoryOnly
+        if let error = openStores() { Self.lastError = error }
+        watchForRetry()
+      }
+      return
     }
     observeSync()
   }
 
+  /// 保存先が開けなかったときの代わりの動き（D194）。保護者用の画面にだけ知らせる。
+  enum OpenFallback: Equatable {
+    /// iCloud につなげて開けなかったので、端末の中だけで保存している。
+    case localOnly
+    /// 端末の中のファイルも開けなかったので、アプリを閉じると記録が消える。
+    case memoryOnly
+  }
+  private(set) var openFallback: OpenFallback?
+
+  private nonisolated final class ErrorBox: @unchecked Sendable {
+    var error: Error?
+  }
+
+  /// 保存先を開く（同期で終わる）。開けなければそのエラーを返す。
+  private func openStores() -> Error? {
+    let box = ErrorBox()
+    container.loadPersistentStores { _, error in
+      if let error { box.error = error }
+    }
+    return box.error
+  }
+
+  /// 保存先を開く。iCloud つきで開けなければ端末の中だけで開き、それも開けなければ
+  /// メモリの中だけで開く。記録が毎回消える状態にしない（D194）。
+  private func openWithFallback(_ description: NSPersistentStoreDescription, url: URL?) {
+    guard openStores() != nil else { return }
+    if description.cloudKitContainerOptions != nil {
+      description.cloudKitContainerOptions = nil
+      syncing = false
+      openFallback = .localOnly
+      if openStores() == nil { return }
+    }
+    guard url != nil else { return }
+    description.type = NSInMemoryStoreType
+    description.url = nil
+    openFallback = .memoryOnly
+    if let error = openStores() { Self.lastError = error }
+    watchForRetry()
+  }
+
+  private var retryObserver: (any NSObjectProtocol)?
+
+  /// メモリの中だけで動いているあいだ、アプリに戻るたびに、保存先をもう一度開いてみる（D194）。
+  private func watchForRetry() {
+    guard retryObserver == nil else { return }
+    retryObserver = NotificationCenter.default.addObserver(
+      forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+    ) { [weak self] _ in
+      MainActor.assumeIsolated { self?.retryFileStore() }
+    }
+  }
+
+  /// メモリの中の記録をファイルに移して、ふつうの保存先に戻す。移せなければ、そのまま続ける。
+  func retryFileStore() {
+    guard openFallback == .memoryOnly, let url = fileURL else { return }
+    save()
+    let coordinator = container.persistentStoreCoordinator
+    guard let store = coordinator.persistentStores.first else { return }
+    let options: [AnyHashable: Any] = [
+      NSPersistentHistoryTrackingKey: true,
+      NSPersistentStoreRemoteChangeNotificationPostOptionKey: true,
+    ]
+    do {
+      try coordinator.migratePersistentStore(store, to: url, options: options, type: .sqlite)
+    } catch {
+      return
+    }
+    for description in container.persistentStoreDescriptions {
+      description.type = NSSQLiteStoreType
+      description.url = url
+    }
+    openFallback = nil
+    if let retryObserver { NotificationCenter.default.removeObserver(retryObserver) }
+    retryObserver = nil
+  }
+
   /// 同期の出来事を見張る（D63）。
   private func observeSync() {
+    // ここから先の変更だけを見る。起動の前の変更は、最初の読み込みで入っている。
+    historyToken = container.persistentStoreCoordinator.currentPersistentHistoryToken(
+      fromStores: nil)
+    purgeOldHistory()
     let center = NotificationCenter.default
     observers.append(
       center.addObserver(
@@ -183,8 +292,40 @@ final class RecordStore {
         forName: .NSPersistentStoreRemoteChange, object: container.persistentStoreCoordinator,
         queue: .main
       ) { [weak self] _ in
-        MainActor.assumeIsolated { self?.onSyncEvent?(.remoteChange) }
+        MainActor.assumeIsolated {
+          // 自分の保存でも通知が来る。iCloud から届いた変更があるときだけ、画面に知らせる（D194）。
+          guard let self, self.hasRemoteChanges() else { return }
+          self.onSyncEvent?(.remoteChange)
+        }
       })
+  }
+
+  /// 7日より古い変更の履歴を捨てる（履歴が増え続けないように。同期は新しい履歴だけ使う）。
+  /// 画面を止めないよう、別のコンテキストで行う。
+  private func purgeOldHistory() {
+    let cutoff = Date().addingTimeInterval(-7 * 86_400)
+    container.performBackgroundTask { context in
+      _ = try? context.execute(NSPersistentHistoryChangeRequest.deleteHistory(before: cutoff))
+    }
+  }
+
+  /// 最後に見た変更の印。
+  private var historyToken: NSPersistentHistoryToken?
+
+  /// 前に見たあとの変更のうち、iCloud から届いたものがあるか。調べられないときは true（読み直す）。
+  private func hasRemoteChanges() -> Bool {
+    let request = NSPersistentHistoryChangeRequest.fetchHistory(after: historyToken)
+    request.resultType = .transactionsOnly
+    guard let result = try? context.execute(request) as? NSPersistentHistoryResult,
+      let transactions = result.result as? [NSPersistentHistoryTransaction]
+    else { return true }
+    if let last = transactions.last { historyToken = last.token }
+    #if DEBUG
+      // 確かめ用: 見えた作った人の名前。署名ありの実機で、iCloud 由来の名前を人が確かめる（D194）。
+      NSLog(
+        "[history] authors: %@", transactions.map { $0.author ?? "nil" }.joined(separator: ", "))
+    #endif
+    return HistoryAuthor.hasRemote(authors: transactions.map(\.author))
   }
 
   /// この起動の同期を止める。保存先は開き直し、iCloud とのつながりだけ外す（行は消さない。D85）。
@@ -192,7 +333,7 @@ final class RecordStore {
   func stopSync() {
     pendingZoneCheck = false
     Self.setSyncedBefore(false, defaults)
-    guard syncing else { return }
+    guard syncing, openFallback != .memoryOnly else { return }
     syncing = false
     for observer in observers { NotificationCenter.default.removeObserver(observer) }
     observers = []
@@ -202,9 +343,7 @@ final class RecordStore {
     for description in container.persistentStoreDescriptions {
       description.cloudKitContainerOptions = nil
     }
-    container.loadPersistentStores { _, error in
-      if let error { Self.lastError = error }
-    }
+    if let error = openStores() { Self.lastError = error }
   }
 
   private func markSynced() {
@@ -323,7 +462,15 @@ final class RecordStore {
   /// 子ども1人ぶんの学習記録（D16）。
   func loadLog(profile: UUID) -> LearningLog {
     let resets = fetch("ResetMarker", profile: profile).count
-    let characters = fetch("CharacterRecordRow", profile: profile).compactMap(Self.characterRecord)
+    // 線のデータ（strokes）は重いので、一覧では読まない。要るときに `loadStrokes` で読む（D194）。
+    let withStrokes = idsWithStrokes(profile: profile)
+    let characters = fetchValues("CharacterRecordRow", profile: profile, excluding: ["strokes"])
+      .compactMap { values in Self.characterRecord { values[$0] } }
+      .map { record -> CharacterRecord in
+        var record = record
+        record.hasStrokes = withStrokes.contains(record.id)
+        return record
+      }
     let words = fetch("WordRecordRow", profile: profile).compactMap { row -> WordRecord? in
       guard let id = row.value(forKey: "id") as? UUID, let date = row.value(forKey: "date") as? Date
       else { return nil }
@@ -333,6 +480,28 @@ final class RecordStore {
     }
     return LearningLog(
       characters: dedupe(characters), words: dedupe(words), generation: resets)
+  }
+
+  /// 線のデータがある行の ID（中身は読まない）。
+  private func idsWithStrokes(profile: UUID) -> Set<UUID> {
+    let request = NSFetchRequest<NSDictionary>(entityName: "CharacterRecordRow")
+    request.resultType = .dictionaryResultType
+    request.propertiesToFetch = ["id"]
+    request.predicate = NSPredicate(
+      format: "profileID == %@ AND strokes != nil", profile as CVarArg)
+    let rows = (try? context.fetch(request)) ?? []
+    return Set(rows.compactMap { ($0 as? [String: Any])?["id"] as? UUID })
+  }
+
+  /// 1つの記録の書いた線（再生とアルバムの絵に使う。必要なときだけ読む。D194）。
+  func loadStrokes(recordID: UUID) -> [[[Double]]]? {
+    let request = NSFetchRequest<NSManagedObject>(entityName: "CharacterRecordRow")
+    request.predicate = NSPredicate(format: "id == %@", recordID as CVarArg)
+    request.fetchLimit = 1
+    guard let row = (try? context.fetch(request))?.first,
+      let data = row.value(forKey: "strokes") as? Data
+    else { return nil }
+    return try? JSONDecoder().decode([[[Double]]].self, from: data)
   }
 
   func loadPlaced(profile: UUID) -> [PlacedObject] {
@@ -588,28 +757,46 @@ final class RecordStore {
     return (try? context.fetch(request)) ?? []
   }
 
+  /// 行を辞書で読む。`excluding` の項目は読まない（重い項目を避けるため。D194）。
+  private func fetchValues(_ entity: String, profile: UUID? = nil, excluding: Set<String> = [])
+    -> [[String: Any]]
+  {
+    let request = NSFetchRequest<NSDictionary>(entityName: entity)
+    request.resultType = .dictionaryResultType
+    if let description = Self.model.entitiesByName[entity] {
+      request.propertiesToFetch = description.attributesByName.keys.filter {
+        !excluding.contains($0)
+      }
+    }
+    if let profile {
+      request.predicate = NSPredicate(format: "profileID == %@", profile as CVarArg)
+    }
+    return ((try? context.fetch(request)) ?? []).compactMap { $0 as? [String: Any] }
+  }
+
   /// 同じ ID の行は1つにする（2台から同じ行が届いたとき。D63）。
   private func dedupe<T: Identifiable>(_ items: [T]) -> [T] where T.ID == UUID {
     var seen = Set<UUID>()
     return items.filter { seen.insert($0.id).inserted }
   }
 
-  private static func characterRecord(_ row: NSManagedObject) -> CharacterRecord? {
-    guard let id = row.value(forKey: "id") as? UUID,
-      let date = row.value(forKey: "date") as? Date,
-      let stage = CharacterRecord.Stage(rawValue: row.value(forKey: "stage") as? String ?? "")
+  /// 行の値から記録を作る。線のデータ（`strokes`）は、渡されなければ nil（あとから `loadStrokes`）。
+  private static func characterRecord(_ value: (String) -> Any?) -> CharacterRecord? {
+    guard let id = value("id") as? UUID,
+      let date = value("date") as? Date,
+      let stage = CharacterRecord.Stage(rawValue: value("stage") as? String ?? "")
     else { return nil }
-    let reasons = (row.value(forKey: "reasons") as? String ?? "")
+    let reasons = (value("reasons") as? String ?? "")
       .split(separator: ",").compactMap { CharacterRecord.Reason(rawValue: String($0)) }
-    let strokes = (row.value(forKey: "strokes") as? Data).flatMap {
+    let strokes = (value("strokes") as? Data).flatMap {
       try? JSONDecoder().decode([[[Double]]].self, from: $0)
     }
     return CharacterRecord(
-      id: id, date: date, characterID: row.value(forKey: "characterID") as? String ?? "",
-      stage: stage, passed: row.value(forKey: "passed") as? Bool ?? false,
-      rescued: row.value(forKey: "rescued") as? Bool ?? false, reasons: reasons,
-      word: row.value(forKey: "word") as? String, strokes: strokes,
-      generation: Int(row.value(forKey: "generation") as? Int64 ?? 0))
+      id: id, date: date, characterID: value("characterID") as? String ?? "",
+      stage: stage, passed: value("passed") as? Bool ?? false,
+      rescued: value("rescued") as? Bool ?? false, reasons: reasons,
+      word: value("word") as? String, strokes: strokes,
+      generation: Int(value("generation") as? Int64 ?? 0))
   }
 
   // MARK: - データの形

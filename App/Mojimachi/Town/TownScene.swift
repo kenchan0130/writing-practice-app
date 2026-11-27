@@ -99,8 +99,19 @@ final class TownScene: SKScene {
     pan.minimumNumberOfTouches = 1
     pan.maximumNumberOfTouches = 1
     view.addGestureRecognizer(pan)
+    panRecognizer = pan
     watchPhase()
   }
+
+  /// 絵が画面から外れるとき、つけたドラッグの受け取りを外す（まちを開くたびに溜まらないように。D194）。
+  override func willMove(from view: SKView) {
+    if let pan = panRecognizer {
+      view.removeGestureRecognizer(pan)
+      panRecognizer = nil
+    }
+  }
+
+  private var panRecognizer: UIPanGestureRecognizer?
 
   override func didChangeSize(_ oldSize: CGSize) {
     guard layer == .town else { return }
