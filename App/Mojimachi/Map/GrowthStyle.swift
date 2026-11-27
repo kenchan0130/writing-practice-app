@@ -88,7 +88,7 @@ struct ScriptGrowthSummary: Equatable {
   }
 
   /// 「ひらがなの たね」。
-  var title: String { "\(script.title)の \(stage.name)" }
+  var title: String { "\(script.japaneseTitle)の \(stage.name)" }
 
   var symbol: String {
     switch stage {

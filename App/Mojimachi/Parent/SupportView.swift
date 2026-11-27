@@ -21,7 +21,7 @@ struct SupportView: View {
       }
       Section {
         Link("サポートページ", destination: PublicPages.support)
-        Link("プライバシーポリシー", destination: PublicPages.privacy)
+        Link("プライバシーポリシー", destination: AppLanguage.isEnglish ? PublicPages.privacyEnglish : PublicPages.privacy)
         NavigationLink("このアプリについて") { AboutView() }
         Button("アプリを評価する") { requestReview() }
       }
@@ -42,7 +42,7 @@ struct SupportView: View {
       osVersion: "iPadOS \(UIDevice.current.systemVersion)")
   }
 
-  private func formLink(_ title: String, kind: FeedbackForm.Kind, detail: String? = nil)
+  private func formLink(_ title: LocalizedStringKey, kind: FeedbackForm.Kind, detail: String? = nil)
     -> some View
   {
     Link(
@@ -84,7 +84,7 @@ struct AboutView: View {
 
   private func notice(_ path: String) -> some View {
     let url = Bundle.main.resourceURL?.appendingPathComponent(path)
-    let text = url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? "（見つかりません）"
+    let text = url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? String(localized: "（見つかりません）")
     return Text(text).font(.footnote).textSelection(.enabled)
   }
 }

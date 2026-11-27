@@ -48,7 +48,7 @@ struct PenStandButton: View {
 
 /// 8色から選ぶ画面。色のボタンは 104pt 以上。
 struct PenColorPicker: View {
-  var title: String
+  var title: LocalizedStringKey
   /// 閉じるボタン（なければ出さない。最初の起動では色を選んでもらう）。
   var onClose: (() -> Void)?
   var onPick: (PenColor) -> Void

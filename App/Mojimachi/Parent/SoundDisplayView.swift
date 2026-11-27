@@ -7,8 +7,8 @@ struct SoundDisplayView: View {
   var body: some View {
     Form {
       Section {
-        volume("声", $store.voiceVolume)
-        volume("効果音", $store.effectVolume)
+        volume(String(localized: "声"), $store.voiceVolume)
+        volume(String(localized: "効果音"), $store.effectVolume)
         Toggle("すべての音を消す", isOn: $store.quietMode)
       } header: {
         Text("音")

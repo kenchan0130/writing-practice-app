@@ -6,9 +6,9 @@ extension Script {
   /// 保護者用の画面のお知らせに出す名前（ふつうの日本語。D157・D160）。
   var wishTitle: String {
     switch self {
-    case .hiragana: "ひらがな"
-    case .katakana: "カタカナ"
-    case .abc: "アルファベットと数字"
+    case .hiragana: String(localized: "ひらがな")
+    case .katakana: String(localized: "カタカナ")
+    case .abc: String(localized: "アルファベットと数字")
     }
   }
 }

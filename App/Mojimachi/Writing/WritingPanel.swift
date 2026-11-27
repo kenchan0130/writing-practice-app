@@ -60,7 +60,7 @@ struct WritingPanel: View {
     .disabled(!model.hasNeighbors)
   }
 
-  private func arrowButton(_ symbol: String, label: String, action: @escaping () -> Void)
+  private func arrowButton(_ symbol: String, label: LocalizedStringKey, action: @escaping () -> Void)
     -> some View
   {
     Button(action: action) {

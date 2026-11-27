@@ -119,7 +119,7 @@ nonisolated struct ParentGateFeature {
         if ok {
           return .send(.passed)
         }
-        state.message = "iPad の確認ができませんでした"
+        state.message = String(localized: "iPad の確認ができませんでした")
         return .none
 
       case .passed:
@@ -166,14 +166,14 @@ nonisolated struct ParentGateFeature {
       // 「iPad のパスコードも もとめる」（D64）。パスコードが設定されていなければ、かけ算だけで通す。
       if deviceAuth.isRequired() {
         return .run { [deviceAuth] send in
-          await send(.deviceAuthFinished(await deviceAuth.confirm("保護者用の画面を開きます")))
+          await send(.deviceAuthFinished(await deviceAuth.confirm(String(localized: "保護者用の画面を開きます"))))
         }
       }
       return .send(.passed)
     case .wrong(let remaining):
-      state.message = "もう一度どうぞ。あと \(remaining) 回試せます"
+      state.message = String(localized: "もう一度どうぞ。あと \(remaining) 回試せます")
     case .locked(let until):
-      state.message = "\(Int(until - now) + 1) 秒待ってから試してください"
+      state.message = String(localized: "\(Int(until - now) + 1) 秒待ってから試してください")
     }
     return .none
   }

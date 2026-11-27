@@ -1,0 +1,40 @@
+{
+  "sourceLanguage": "ja",
+  "strings": {
+    "NSFaceIDUsageDescription": {
+      "comment": "保護者用の画面を開くときの Face ID の説明",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保護者用の画面を開くとき、保護者の確認として Face ID を使います。顔のデータは iPad の中だけにあり、アプリには渡りません。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mojimachi uses Face ID to confirm that a parent or guardian is opening the parent area. Your face data stays on this iPad and is never shared with the app."
+          }
+        }
+      }
+    },
+    "CFBundleDisplayName": {
+      "comment": "ホーム画面のアプリの名前。どの言語でも「もじまち」（D186）",
+      "localizations": {
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "もじまち"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "もじまち"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

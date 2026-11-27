@@ -67,7 +67,7 @@ struct LearningRecordView: View {
     }
   }
 
-  private func summaryRow(_ title: String, _ summary: PeriodSummary) -> some View {
+  private func summaryRow(_ title: LocalizedStringKey, _ summary: PeriodSummary) -> some View {
     LabeledContent(title) {
       Text("\(summary.characters) 字・ことば \(summary.words) 個・\(summary.days) 日")
     }
@@ -112,7 +112,7 @@ private struct CharacterMapGrid: View {
                 .font(.title3.bold())
                 .frame(width: 44, height: 44)
                 .background(MapLegend.color(state), in: .rect(cornerRadius: 8))
-                .accessibilityLabel("\(char)、\(MapLegend.name(state))")
+                .accessibilityLabel("\(String(char))、\(MapLegend.name(state))")
             }
           }
         }
@@ -134,10 +134,10 @@ private struct MapLegend: View {
 
   static func name(_ state: MapState) -> String {
     switch state {
-    case .notYet: "まだ（たね）"
-    case .practicing: "練習中（め）"
-    case .traced: "なぞって書けた（つぼみ）"
-    case .wroteAlone: "何も見ないで書けた（はな）"
+    case .notYet: String(localized: "まだ（たね）")
+    case .practicing: String(localized: "練習中（め）")
+    case .traced: String(localized: "なぞって書けた（つぼみ）")
+    case .wroteAlone: String(localized: "何も見ないで書けた（はな）")
     }
   }
 
@@ -178,7 +178,7 @@ private struct AlbumCard: View {
     .background(.background.secondary, in: .rect(cornerRadius: 12))
   }
 
-  private func page(_ title: String, _ record: CharacterRecord, traced: Bool) -> some View {
+  private func page(_ title: LocalizedStringKey, _ record: CharacterRecord, traced: Bool) -> some View {
     VStack(spacing: 4) {
       StrokeThumbnail(strokes: record.strokes ?? [])
         .frame(width: 80, height: 80)

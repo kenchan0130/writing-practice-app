@@ -50,7 +50,7 @@ final class PopPresenter {
 
   /// 短い言葉と、ボタン1つの案内（鍵の字など。D150）。
   func notice(
-    _ message: String, button: String = "わかった", sound: SoundPlayer.Effect? = .dialog
+    _ message: String, button: LocalizedStringKey = "わかった", sound: SoundPlayer.Effect? = .dialog
   ) {
     show(id: "notice", sound: sound) {
       PopMessage(message: message, buttonTitle: button) { [weak self] in
@@ -100,7 +100,7 @@ struct PopHost: View {
 /// キャラクターと短い言葉と、大きなボタン1つ。
 struct PopMessage: View {
   var message: String
-  var buttonTitle: String
+  var buttonTitle: LocalizedStringKey
   var action: () -> Void
 
   var body: some View {

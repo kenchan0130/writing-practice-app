@@ -23,7 +23,7 @@ struct ZukanView: View {
       index: WordArt.index, writtenCounts: counts, isLocked: isLocked)
     ScrollView {
       VStack(spacing: 28) {
-        Heading(text: "ずかん")
+        Heading(text: String(localized: "ずかん"))
         ForEach(sections) { section in
           sectionView(section)
         }

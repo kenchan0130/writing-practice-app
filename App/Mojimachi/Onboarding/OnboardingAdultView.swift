@@ -80,7 +80,7 @@ struct OnboardingAdultView: View {
           .accessibilityIdentifier("onboardingNickname")
         Picker("呼び名の敬称", selection: $profile.honorific) {
           ForEach(Profile.Honorific.allCases, id: \.self) { honorific in
-            Text(honorific == .none ? "なし" : honorific.suffix).tag(honorific)
+            Text(honorific == .none ? String(localized: "なし") : honorific.suffix).tag(honorific)
           }
         }
         .pickerStyle(.segmented)

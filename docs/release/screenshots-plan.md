@@ -70,7 +70,36 @@ D40 の①〜⑧の案に、いまのアプリでできる画面を当てた。*
 | まだ | すうじ あそび | 数字を書くと、まちにりんごが出る | ― | **まだ** |
 
 - 並べ方（D40）: ①変身 → ②地図 → ③まち が最初の3枚。④〜⑧はその後ろ。
-- 英語版（D118）: 保護者用の画面を英語にしたものを使う、とあるが、**いまのアプリの表示は日本語だけ**（`.lproj` も `.xcstrings` もない）。英語のストアには、日本語の画面に英語の説明の文字を重ねたものを使う。英語の画面を出す（保護者用の画面の英語対応）かを決める【TODO】。
+- 英語版（D118・D186）: 保護者用の画面などを英語にした（D186）ので、英語のストアには**英語の画面を撮って**使う。作り方は §3b。
+
+## 3b. 英語（en）のスクリーンショット（D186）
+
+画面は、起動の引数で言語を英語にして撮る。`simctl launch` の最後（アプリの引数のあと）ではなく、**アプリの引数の前**に `-AppleLanguages (en) -AppleLocale en_US` を付ける。
+
+```sh
+xcrun simctl terminate "$UDID" "$APP" 2>/dev/null
+xcrun simctl launch "$UDID" "$APP" -AppleLanguages "(en)" -AppleLocale en_US <共通の引数> <その画面の引数>
+xcrun simctl io "$UDID" screenshot --type=png <出力先>-en.png
+```
+
+- 字・ことば・声・字幕・ほめ言葉は日本語のまま（D186）。英語になるのは、ホームのボタン（Letters・Words・Town）・道具のボタン（Try again・Done!）・保護者用の画面・購入の画面など。
+- 日本語版と同じ引数で撮れる（`-openParent records` など。DEBUG だけ）。
+- 画像の上に重ねる説明の文字（D40）は、下の表の英語の案を使う。1枚1メッセージ。金額・年齢・学年は入れない（D24・D98）。
+- 撮るのは、日本語版と同じ①〜⑧のうち、画面の言葉が効くもの。最初の3枚は、日本語と同じ並び（①変身 → ②地図 → ③まち）。
+
+| 順 | 説明の文字（英語の案） | 画面（英語で撮る） |
+|---|---|---|
+| ① | Letters you write come alive | 「でんしゃ」の変身（日本語の字は同じ。ボタンだけ英語） |
+| ② | Hiragana, katakana, ABC and numbers | 文字の地図（`-screen map`。上のつまみは Hiragana・Katakana・ABC） |
+| ③ | Your words build your own town | `-screen town -seedTown YES` |
+| ④ | Never scolded, always "try again" | 書く画面（`-screen letter -mapChar あ`）。ボタンは Try again |
+| ⑤ | Hundreds of words to write (hiragana words are free) | `-screen wordCards -place ie -theme fuku`。語数は公開時の数に（D72） |
+| ⑥ | See how your child is growing | `-openParent records -seedGrowth YES -seedSamples YES -seedRecords 3`（英語の「Learning Record」） |
+| ⑦ | No ads. Purchases are for grown-ups only | ホーム（引数なし）、または `-openParent purchase -fakePurchases none`（**金額を載せない**） |
+| ⑧ | Works with Apple Pencil and fingers | 書く画面＋Pencil の写真か絵 |
+
+- 英語の保護者用の画面が撮れること（切れ・はみ出しがないこと）は、`l10n` の確認で見た（11インチ縦向き）。13インチ・横向きは、撮るときにもう一度見る。
+- 日本語の画面の説明の文字は §3 の表。英語の説明の文字は、翻訳の確認（別のモデルの AI）を通してから使う。
 
 ## 4. 撮影の手順（あとで自動にするとき）
 

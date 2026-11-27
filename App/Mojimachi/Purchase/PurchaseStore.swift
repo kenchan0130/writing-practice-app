@@ -84,18 +84,18 @@ final class PurchaseStore {
         await transaction.finish()
         bought = Purchase(
           product: id, originalPurchaseDate: transaction.originalPurchaseDate, revoked: false)
-        message = "購入しました"
+        message = String(localized: "購入しました")
       case .success(.unverified):
-        message = "購入を確かめられませんでした"
+        message = String(localized: "購入を確かめられませんでした")
       case .pending:
-        message = "承認を待っています"
+        message = String(localized: "承認を待っています")
       case .userCancelled:
         message = nil
       @unknown default:
         message = nil
       }
     } catch {
-      message = "購入できませんでした。時間をおいて試してください。"
+      message = String(localized: "購入できませんでした。時間をおいて試してください。")
     }
     await refresh()
     // 買った直後は、購入の一覧（`Transaction.all`）にまだ入っていないことがある。
@@ -112,7 +112,7 @@ final class PurchaseStore {
     defer { isWorking = false }
     try? await AppStore.sync()
     await refresh()
-    message = "購入を復元しました"
+    message = String(localized: "購入を復元しました")
   }
 
   /// 価格の表示。App Store の商品が読めなければ、決まりの価格（確かめ用）。

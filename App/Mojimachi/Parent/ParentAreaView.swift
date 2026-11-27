@@ -64,10 +64,7 @@ struct ParentAreaView: View {
         ForEach(notices) { notice in
           HStack {
             Label(
-              notice.text(
-                name: store.profiles.profile(notice.profileID)?.displayName ?? "",
-                itemTitle: Script(rawValue: notice.item)?.wishTitle ?? notice.item),
-              systemImage: "heart.fill"
+              wishText(notice), systemImage: "heart.fill"
             )
             .accessibilityIdentifier("wishNotice")
             Spacer()
@@ -82,6 +79,16 @@ struct ParentAreaView: View {
         Text("お子さまが鍵のかかった文字を見て、おとなにおねがいしました。購入するかどうかは、保護者の方が決めてください。")
       }
     }
+  }
+
+  /// 「はなちゃんが、カタカナをやりたがっています（11月15日）」。日付だけ出し、回数や時刻は出さない。
+  private func wishText(_ notice: WishNotice) -> String {
+    let name = store.profiles.profile(notice.profileID)?.displayName
+      .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    let who = name.isEmpty ? String(localized: "お子さま") : name
+    let item = Script(rawValue: notice.item)?.wishTitle ?? notice.item
+    let date = notice.date.formatted(.dateTime.month().day())
+    return String(localized: "\(who)が、\(item)をやりたがっています（\(date)）")
   }
 
   private var judgeSettings: some View {
@@ -118,11 +125,11 @@ struct ParentAreaView: View {
       Section {
         Toggle("iPad のパスコードも求める", isOn: $store.requiresDeviceAuth)
       } footer: {
-        Text(
-          DeviceAuth.isAvailable
-            ? "お子さまの指や顔が iPad に登録されていると、お子さまでも通れます。"
-            : "この iPad にはパスコードが設定されていないので、かけ算だけで通ります。iPad の設定アプリでパスコードを設定すると使えます。"
-        )
+        if DeviceAuth.isAvailable {
+          Text("お子さまの指や顔が iPad に登録されていると、お子さまでも通れます。")
+        } else {
+          Text("この iPad にはパスコードが設定されていないので、かけ算だけで通ります。iPad の設定アプリでパスコードを設定すると使えます。")
+        }
       }
       Section {
         Text("アプリが落ちたときだけ、落ちた場所・アプリの版・iPadOS の版・iPad の種類を、品質を直すために送ります。名前・記録・子どもが書いた線・端末の ID は送りません。くわしくはプライバシーポリシーをごらんください。")

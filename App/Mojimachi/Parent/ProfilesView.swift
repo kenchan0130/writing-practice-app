@@ -16,7 +16,7 @@ struct ProfilesView: View {
             HStack(spacing: 16) {
               ProfileFace(face: profile.face, size: 44)
               VStack(alignment: .leading) {
-                Text(profile.displayName.isEmpty ? "（呼び名なし）" : profile.displayName)
+                Text(profile.displayName.isEmpty ? String(localized: "（呼び名なし）") : profile.displayName)
                 Text("今日の目標 \(profile.dailyGoal) 字").font(.caption)
                   .foregroundStyle(.secondary)
               }
@@ -68,7 +68,7 @@ private struct ProfileEditor: View {
         TextField("ひらがなで（例: ゆうと）", text: $profile.name)
         Picker("呼び名の敬称", selection: $profile.honorific) {
           ForEach(Profile.Honorific.allCases, id: \.self) { h in
-            Text(h == .none ? "なし" : h.suffix).tag(h)
+            Text(h == .none ? String(localized: "なし") : h.suffix).tag(h)
           }
         }
         .pickerStyle(.segmented)
@@ -128,13 +128,15 @@ private struct ProfileEditor: View {
         }
       }
     }
-    .navigationTitle(isNew ? "子どもを足す" : "子どもの設定")
+    .navigationTitle(isNew ? Text("子どもを足す") : Text("子どもの設定"))
     .toolbar {
       ToolbarItem(placement: .cancellationAction) { Button("やめる", action: onDone) }
       ToolbarItem(placement: .confirmationAction) {
-        Button(isNew ? "足す" : "保存") {
+        Button {
           if isNew { store.addProfile(profile) } else { store.updateProfile(profile) }
           onDone()
+        } label: {
+          Text(isNew ? String(localized: "足す") : String(localized: "保存"))
         }
       }
     }
@@ -176,7 +178,7 @@ struct ProfilePicker: View {
             .frame(minWidth: 140, minHeight: 160)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel(profile.displayName.isEmpty ? "こども" : profile.displayName)
+          .accessibilityLabel(profile.displayName.isEmpty ? String(localized: "こども") : profile.displayName)
         }
       }
     }

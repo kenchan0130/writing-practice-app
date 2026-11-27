@@ -329,10 +329,10 @@ struct WritingCanvasView: View {
 
   private func stepName(_ step: PracticeStep) -> String {
     switch step {
-    case .miru: "① みる"
-    case .nazoru: "② なぞる"
-    case .usuku: "③ うすく"
-    case .jibunde: "④ じぶんで"
+    case .miru: String(localized: "① みる")
+    case .nazoru: String(localized: "② なぞる")
+    case .usuku: String(localized: "③ うすく")
+    case .jibunde: String(localized: "④ じぶんで")
     }
   }
 

@@ -144,7 +144,7 @@ struct PlacesView: View {
       let layout = cardLayout(count: places.count, width: proxy.size.width, maxSize: 380)
       ScrollView {
         VStack(spacing: 24) {
-          Heading(text: "どこに いく？")
+          Heading(text: String(localized: "どこに いく？"))
           CardGrid(items: places, columns: layout.columns, size: layout.size) { place in
             PictureCard(
               asset: "place-\(place.id)", title: place.name, color: PlaceStyle.color(place.id),
@@ -169,9 +169,9 @@ private struct WordMapBand: View {
   var body: some View {
     HStack(spacing: 24) {
       BandButton(
-        title: "しりとり", character: ProgressStore.shared.mainCharacter, color: Theme.pink,
+        title: String(localized: "しりとり"), character: ProgressStore.shared.mainCharacter, color: Theme.pink,
         action: onShiritori)
-      BandButton(title: "ずかん", systemImage: "book.fill", color: Theme.green, action: onZukan)
+      BandButton(title: String(localized: "ずかん"), systemImage: "book.fill", color: Theme.green, action: onZukan)
     }
     .padding(.horizontal, 32)
     .padding(.vertical, 12)

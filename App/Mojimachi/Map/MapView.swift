@@ -13,10 +13,19 @@ extension KanaScript {
     }
   }
 
-  var title: String {
+  /// 育ちの名前（「ひらがなの たね」。D151）に使う、日本語のままの名前。
+  var japaneseTitle: String {
     switch self {
     case .hiragana: "ひらがな"
     case .katakana: "カタカナ"
+    case .abc: "ABC"
+    }
+  }
+
+  var title: String {
+    switch self {
+    case .hiragana: String(localized: "ひらがな")
+    case .katakana: String(localized: "カタカナ")
     case .abc: "ABC"
     }
   }
@@ -26,9 +35,9 @@ extension AbcTable.Page {
   /// 地図のページのつまみの名前（D180）。
   var title: String {
     switch self {
-    case .upper: "おおもじ"
-    case .lower: "こもじ"
-    case .digits: "すうじ"
+    case .upper: String(localized: "おおもじ")
+    case .lower: String(localized: "こもじ")
+    case .digits: String(localized: "すうじ")
     }
   }
 }
@@ -122,7 +131,7 @@ struct MapView: View {
       MapSwitchButton(title: "あいうえお", selected: selection.page == .basic, small: true) {
         selection.page = .basic
       }
-      MapSwitchButton(title: "にごる・ちいさい", selected: selection.page == .extra, small: true) {
+      MapSwitchButton(title: String(localized: "にごる・ちいさい"), selected: selection.page == .extra, small: true) {
         selection.page = .extra
       }
     }
