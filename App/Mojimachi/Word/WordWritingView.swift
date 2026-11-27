@@ -9,6 +9,8 @@ struct WordWritingView: View {
   @State private var model: WordModel
   @State private var transform: TransformScene?
   @State private var transformFinished = false
+  /// 変身の場面を作ったときの大きさ。画面の大きさが決まる前に作った場面は、物が枠からはみ出るので、大きさが変わったら作り直す。
+  @State private var transformSize: CGSize = .zero
   /// 置いたあとに見せる画面へ行く（服はクローゼット、ほかはまち。D101）。
   var onShowPlaced: (WordKind) -> Void = { _ in }
   /// ことばを選ばせず、決めたことばだけを書く（はじめての流れ。D23）。
@@ -88,6 +90,7 @@ struct WordWritingView: View {
     .onChange(of: model.wordDone) { _, done in
       if !done {
         transform = nil
+        transformSize = .zero
         transformFinished = false
       }
     }
@@ -176,7 +179,7 @@ struct WordWritingView: View {
   }
 
   private func scene(for size: CGSize) -> TransformScene {
-    if let transform { return transform }
+    if let transform, transformSize == size { return transform }
     let count = max(model.writtenCharacters.count, 1)
     let cell = min(size.width / CGFloat(count), size.height * 0.4)
     let originX = (size.width - cell * CGFloat(count)) / 2
@@ -201,7 +204,10 @@ struct WordWritingView: View {
       size: size, lines: lines, colors: colors, objectImage: image, kind: model.kind,
       word: model.word, character: ProgressStore.shared.mainCharacter)
     scene.onFinished = { transformFinished = true }
-    DispatchQueue.main.async { transform = scene }
+    DispatchQueue.main.async {
+      transform = scene
+      transformSize = size
+    }
     return scene
   }
 
