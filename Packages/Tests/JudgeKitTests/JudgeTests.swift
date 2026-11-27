@@ -206,6 +206,77 @@ struct JudgeTests {
   }
 }
 
+@Suite("まちがいの見せ方（D195）")
+struct JudgeFeedbackTests {
+  private func feedback(_ char: Character, _ lines: [Polyline]) throws -> JudgeFeedback? {
+    let data = try JudgeTests.character(char)
+    let result = Judge(character: data).judge(written: lines, preset: .hajimete)
+    return JudgeFeedback(
+      result: result, writtenCount: lines.count, modelCount: data.strokes.count)
+  }
+
+  @Test("合格のときは出さない")
+  func passed() throws {
+    let data = try JudgeTests.character("き")
+    #expect(try feedback("き", JudgeTests.modelLines(data)) == nil)
+  }
+
+  @Test("書き順がちがう: 最初にちがう画に色をつけ、そこで書くはずの画を見せる")
+  func order() throws {
+    let data = try JudgeTests.character("き")
+    var lines = JudgeTests.modelLines(data)
+    lines.swapAt(0, 1)
+    #expect(
+      try feedback("き", lines) == JudgeFeedback(kind: .order, writtenStroke: 0, modelStroke: 0))
+  }
+
+  @Test("向きがぎゃく: ぎゃくに書いた画に色をつけ、正しい向きを見せる")
+  func direction() throws {
+    let data = try JudgeTests.character("き")
+    var lines = JudgeTests.modelLines(data)
+    lines[2] = lines[2].reversed()
+    #expect(
+      try feedback("き", lines) == JudgeFeedback(kind: .direction, writtenStroke: 2, modelStroke: 2))
+  }
+
+  @Test("形がちがう")
+  func shape() throws {
+    let data = try JudgeTests.character("た")
+    var lines = JudgeTests.modelLines(data)
+    lines[0] = lines[0].enumerated().map { i, p in Point(p.x, p.y + Double(i) * 12) }
+    let result = Judge(character: data).judge(written: lines, preset: .shikkari)
+    let f = JudgeFeedback(result: result, writtenCount: lines.count, modelCount: data.strokes.count)
+    #expect(f?.kind == .shape)
+    #expect(f?.writtenStroke == 0)
+    #expect(f?.modelStroke == 0)
+  }
+
+  @Test("画が足りない: 次に書く画を見せる")
+  func missing() throws {
+    let data = try JudgeTests.character("き")
+    let lines = Array(JudgeTests.modelLines(data).prefix(3))
+    #expect(
+      try feedback("き", lines)
+        == JudgeFeedback(kind: .missingStroke, writtenStroke: nil, modelStroke: 3))
+  }
+
+  @Test("画が多い: 多い画に色をつける")
+  func extra() throws {
+    let data = try JudgeTests.character("き")
+    let lines = JudgeTests.modelLines(data) + [[Point(100, 100), Point(300, 120)]]
+    #expect(
+      try feedback("き", lines)
+        == JudgeFeedback(kind: .extraStroke, writtenStroke: 4, modelStroke: nil))
+  }
+
+  @Test("鏡の字")
+  func mirrored() throws {
+    let data = try JudgeTests.character("く")
+    let lines = Geometry.mirrored(JudgeTests.modelLines(data))
+    #expect(try feedback("く", lines)?.kind == .mirrored)
+  }
+}
+
 @Suite("線の置き直し")
 struct GeometryTests {
   @Test("長さにそって同じ間かくの点に置き直す")

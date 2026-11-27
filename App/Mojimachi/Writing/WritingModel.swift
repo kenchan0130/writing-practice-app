@@ -6,6 +6,7 @@ import Observation
 import PracticeKit
 import QuartzCore
 import RecordKit
+import SoundKit
 import StrokeKit
 
 /// 画面に描く1点（書く場所の座標、ポイント）。
@@ -65,6 +66,8 @@ final class WritingModel {
   private(set) var replay: ModelReplay?
   /// 書けなかったけれど、行き止まりを作らずに先へ進めた（ほめずに、いっしょに書こうと伝える。D191）。
   private(set) var rescued = false
+  /// ④ で合わなかったとき、どの画がちがったか（色をつける画と、お手本で見せる画。D195）。
+  private(set) var wrongFeedback: JudgeFeedback?
   /// 1字書けたあとのごほうびの演出を出しているか（D152）。
   private(set) var showsCelebration = false
   /// 次の字へ自動で進むまでの秒数（D154）。
@@ -177,6 +180,9 @@ final class WritingModel {
   /// パネルのキャラクターが言う短いひとこと（D150）。
   var guidance: String {
     if rescued { return "つぎは いっしょに かこうね" }
+    if let feedback = wrongFeedback, finishedRating == nil {
+      return Self.message(for: feedback.kind)
+    }
     if finishedRating != nil { return "じょうずに かけたね！" }
     if hintStroke != nil { return "ここから かいてみよう" }
     switch step {
@@ -185,6 +191,18 @@ final class WritingModel {
     case .usuku: return "おもいだして かいてみよう"
     case .jibunde: return "じぶんで かいてみよう"
     case nil: return "たのしく かこうね！"
+    }
+  }
+
+  /// まちがいを見せるときの、やさしいひとこと（D195。バツや「まちがい」は使わない）。
+  static func message(for kind: JudgeFeedback.Kind) -> String {
+    switch kind {
+    case .order: "こっちを さきに かいてみよう"
+    case .direction: "こっちむきに かいてみよう"
+    case .shape: "ここを みてみよう"
+    case .missingStroke: "つぎは ここを かいてみよう"
+    case .extraStroke: "ここは いらないかも"
+    case .mirrored: "むきを みてみよう"
     }
   }
 
@@ -206,7 +224,7 @@ final class WritingModel {
     writtenLines = []
     hintStroke = nil
     pendingPieces = 0
-    replay = nil
+    clearFeedback()
     apply(flow?.handle(.restartStep) ?? [])
   }
 
@@ -270,6 +288,7 @@ final class WritingModel {
   /// 「ひとつ もどす」（④。D56）。
   func undo() {
     guard step == .jibunde, !strokes.isEmpty else { return }
+    clearFeedback()
     strokes.removeLast()
     if !writtenEndings.isEmpty { writtenEndings.removeLast() }
     if !writtenLines.isEmpty { writtenLines.removeLast() }
@@ -279,6 +298,7 @@ final class WritingModel {
   /// 「ぜんぶ けす」（④。D56）。
   func clear() {
     guard step == .jibunde else { return }
+    clearFeedback()
     strokes = []
     writtenEndings = []
     writtenLines = []
@@ -299,7 +319,7 @@ final class WritingModel {
     finishedRating = nil
     hintStroke = nil
     pendingPieces = 0
-    replay = nil
+    clearFeedback()
     rescued = false
     highlightsDone = false
     guard let character else {
@@ -337,13 +357,36 @@ final class WritingModel {
   }
 
   /// お手本の画を1回だけ動かして見せる（D191）。
-  private func startReplay(stroke: Int) {
-    replay = ModelReplay(stroke: stroke, start: Date())
+  /// `delay` 秒あとから動かす。`line` があれば、動かし始めに声で言う（D195）。
+  private func startReplay(stroke: Int, delay: Double = 0, line: VoiceLine? = nil) {
+    replay = ModelReplay(stroke: stroke, start: Date().addingTimeInterval(delay))
     replayTask?.cancel()
     replayTask = Task { [weak self] in
+      if delay > 0 { try? await Task.sleep(for: .seconds(delay)) }
+      guard !Task.isCancelled else { return }
+      if let line { VoicePlayer.shared.speak(line) }
       try? await Task.sleep(for: .seconds(ModelReplay.duration + 0.3))
       guard !Task.isCancelled else { return }
       self?.replay = nil
+    }
+  }
+
+  /// まちがいの見せ方と、動かしているお手本を消す。
+  private func clearFeedback() {
+    wrongFeedback = nil
+    replay = nil
+    replayTask?.cancel()
+  }
+
+  /// ④ で合わなかったとき、最初にちがった画に色をつけ、少しあとにお手本の正しい書き方を1回動かす（D195）。
+  private func showFeedback(for result: JudgeResult) {
+    guard let character, step == .jibunde,
+      let feedback = JudgeFeedback(
+        result: result, writtenCount: strokes.count, modelCount: character.strokes.count)
+    else { return }
+    wrongFeedback = feedback
+    if let modelStroke = feedback.modelStroke, character.strokes.indices.contains(modelStroke) {
+      startReplay(stroke: modelStroke, delay: 0.8, line: .zukanHint)
     }
   }
 
@@ -378,6 +421,7 @@ final class WritingModel {
         recordStepChange(from: lastStep, to: step)
         lastStep = step
         pendingPieces = 0
+        clearFeedback()
         strokes = []
         writtenEndings = []
         writtenLines = []
@@ -385,6 +429,7 @@ final class WritingModel {
         if step == .miru { startAnimation() }
       case .showResult(let result):
         self.result = result
+        if !result.passed { showFeedback(for: result) }
         if !result.passed { record(stage: .jibunde, passed: false, issues: result.issues) }
       case .finished(let rating, let rescued):
         finishedRating = rating
@@ -419,11 +464,19 @@ final class WritingModel {
           apply(self.flow?.handle(.animationFinished) ?? [])
           continue
         }
-        for stroke in character.strokes {
+        // `-simulateWrong order` で2画目と1画目を入れ替えて（`direction` なら最後の画をぎゃくに）書いたことにする（D195 の確かめ用）。
+        var lines = character.strokes.map { $0.centerlinePoints() }
+        let wrong =
+          self.flow?.step == .jibunde ? UserDefaults.standard.string(forKey: "simulateWrong") : nil
+        switch wrong {
+        case "order" where lines.count > 1: lines.swapAt(0, 1)
+        case "direction": if let last = lines.indices.last { lines[last].reverse() }
+        default: break
+        }
+        for line in lines {
           // `-simulateStrokes 2` で、2画まで書いたところで止める（確かめ用）。
           let limit = UserDefaults.standard.integer(forKey: "simulateStrokes")
           if limit > 0, strokes.count >= limit { return }
-          let line = stroke.centerlinePoints()
           strokes.append(recorder.drawn(line))
           writtenLines.append(line)
           // `-simulateEndingHint YES` で、どの画も「とめ」で書いたことにする（ヒントの確かめ用）。
@@ -434,6 +487,7 @@ final class WritingModel {
         if self.flow?.step == .jibunde, target != .jibunde {
           apply(self.flow?.handle(.doneWriting) ?? [])
         }
+        if wrong != nil { return }
       }
     }
   #endif
@@ -503,6 +557,7 @@ final class WritingModel {
       }
       if result != nil, result?.passed == false {
         // ④ で合わなかったあとに書き始めたら、書き直しとして始める。
+        clearFeedback()
         result = nil
         strokes = []
         writtenEndings = []

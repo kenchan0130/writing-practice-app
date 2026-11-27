@@ -94,6 +94,89 @@ public struct JudgeResult: Sendable, Hashable {
   public var splitOrJoined = false
   /// お手本とは別の、正解にする書き方（書き順や画数がちがう。D66）で合格したか。
   public var usedAlternate = false
+  /// 書いた画（書いた順）が、お手本のどの画に当たったか（D195）。画数が合ったときだけ入る。
+  public var assignment: [Int] = []
+}
+
+/// 不合格のとき、子どもに見せる「どの画がちがったか」（D195）。純粋なデータ。
+public struct JudgeFeedback: Sendable, Hashable {
+  public enum Kind: Sendable, Hashable {
+    /// 書く順番がちがう。
+    case order
+    /// 向きがぎゃく。
+    case direction
+    /// 形がちがう（ずれ・途中で止めた画も含む）。
+    case shape
+    /// 画が足りない。
+    case missingStroke
+    /// 画が多い。
+    case extraStroke
+    /// 鏡の字。
+    case mirrored
+  }
+
+  public var kind: Kind
+  /// 色をつける、子どもが書いた画の番号（0 から）。見つけられないときは nil。
+  public var writtenStroke: Int?
+  /// 正しい書き方を動かして見せる、お手本の画の番号（0 から）。
+  public var modelStroke: Int?
+
+  public init(kind: Kind, writtenStroke: Int?, modelStroke: Int?) {
+    self.kind = kind
+    self.writtenStroke = writtenStroke
+    self.modelStroke = modelStroke
+  }
+
+  /// 結果から、いちばん前の（書き順で最初の）ちがう画を選ぶ。合格のときや理由がないときは nil。
+  /// - Parameters:
+  ///   - writtenCount: 子どもが書いた画の数。
+  ///   - modelCount: お手本の画の数。
+  public init?(result: JudgeResult, writtenCount: Int, modelCount: Int) {
+    guard !result.passed, modelCount > 0 else { return nil }
+    // 画数がちがう（分けた線・つなげた線の読みとりに失敗したときも含む）。
+    if result.issues.contains(where: {
+      if case .strokeCount = $0 { true } else { false }
+    }) {
+      if writtenCount > modelCount {
+        self.init(kind: .extraStroke, writtenStroke: modelCount, modelStroke: nil)
+      } else {
+        self.init(
+          kind: .missingStroke, writtenStroke: nil, modelStroke: min(writtenCount, modelCount - 1))
+      }
+      return
+    }
+    if result.issues.contains(.mirrored) {
+      self.init(kind: .mirrored, writtenStroke: nil, modelStroke: 0)
+      return
+    }
+    // 書いた画の番号 → お手本の画の番号（分けた線・つなげた線をまとめ直したときは、書いた画に戻せない）。
+    let usable = !result.splitOrJoined && result.assignment.count == writtenCount
+    var best: JudgeFeedback?
+    func consider(_ candidate: JudgeFeedback, at written: Int) {
+      if best == nil || written < (best?.writtenStroke ?? Int.max) { best = candidate }
+    }
+    for issue in result.issues {
+      switch issue {
+      case .order(let written, _):
+        // 「この順番で書く画」は、お手本の written 番目。
+        consider(
+          JudgeFeedback(kind: .order, writtenStroke: usable ? written : nil, modelStroke: written),
+          at: written)
+      case .direction(let model):
+        let w = usable ? result.assignment.firstIndex(of: model) : nil
+        consider(
+          JudgeFeedback(kind: .direction, writtenStroke: w, modelStroke: model), at: w ?? model)
+      case .shape(let model, _), .deviation(let model, _):
+        let w = usable ? result.assignment.firstIndex(of: model) : nil
+        consider(
+          JudgeFeedback(kind: .shape, writtenStroke: w, modelStroke: model), at: w ?? model)
+      case .strokeCount, .mirrored:
+        break
+      }
+    }
+    guard let best else { return nil }
+    self = best
+  }
 }
 
 /// ②③の1画ずつの判定の結果（D47）。
@@ -438,7 +521,7 @@ public struct Judge: Sendable {
     }
     return JudgeResult(
       passed: issues.isEmpty, rating: nil, issues: issues, shapeDistances: distances,
-      maxDistances: maxDistances)
+      maxDistances: maxDistances, assignment: assignment)
   }
 
   /// 長い画（150 以上）の書き始め・書き終わりが、お手本から離れすぎていないか（D192）。
