@@ -137,7 +137,7 @@ struct KanaTableTests {
     #expect(
       Set(WordCatalog.words(containing: "く").map(\.text)) == [
         "くるま", "くま", "くつ", "くつした", "ふく", "らくだ", "さくら", "くり", "くじら", "くらげ", "おたまじゃくし", "くも", "くさ",
-        "くち", "かいぞく", "だいく",
+        "くち", "かいぞく", "だいく", "つくえ", "くし",
       ])
     #expect(WordCatalog.words(containing: "を").isEmpty)
   }

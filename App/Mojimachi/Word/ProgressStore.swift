@@ -46,6 +46,10 @@ final class ProgressStore {
   private(set) var log: LearningLog
   /// まちに置いた物（D43・D53）。
   private(set) var placed: [PlacedObject]
+  /// おもちゃばこの「出した」「しまった」の行（D82・D185）。
+  private(set) var moves: [ToyBoxMove] = []
+  /// まちと いえに出ている物と、おもちゃばこの中身（行から計算する）。
+  var board: ToyBoxBoard { ToyBoxBoard(placed: placed, moves: moves) }
   /// 子どもたちの「おねがい」（D160）。まとめて見せるのは `wishNotices`。
   private(set) var wishes: [Wish] = []
   /// 最後に保存した時刻（保護者用の画面の「学習記録の管理」に出す。D63）。
@@ -329,6 +333,7 @@ final class ProgressStore {
     }
     log = records.loadLog(profile: currentProfileID)
     placed = records.loadPlaced(profile: currentProfileID)
+    moves = records.loadMoves(profile: currentProfileID)
   }
 
   private let defaults: UserDefaults
@@ -384,6 +389,7 @@ final class ProgressStore {
     currentProfileID = current
     log = records.loadLog(profile: current)
     placed = records.loadPlaced(profile: current)
+    moves = records.loadMoves(profile: current)
     wishes = records.loadWishes()
     confirmsProfileSwitch = defaults.bool(forKey: "confirmsProfileSwitch")
     voiceVolume = defaults.object(forKey: "voiceVolume") as? Double ?? 0.8
@@ -449,6 +455,16 @@ final class ProgressStore {
     lastSaved = records.lastSaved
   }
 
+  /// おもちゃばこの物を出す（D74・D82）。出してからいちばん長い物と入れ替わる。行を足すだけ。
+  func takeOut(_ id: UUID, date: Date = Date()) {
+    let rows = board.takeOut(id, moves: moves, date: date)
+    for row in rows {
+      moves.append(row)
+      records.append(row, profile: currentProfileID)
+    }
+    if !rows.isEmpty { lastSaved = records.lastSaved }
+  }
+
   /// 「記録だけリセット」（D19・§6.3）。その子の記録だけ。まちの物と設定は残す。
   func resetRecords(of id: UUID? = nil) {
     let id = id ?? currentProfileID
@@ -471,6 +487,7 @@ final class ProgressStore {
     defaults.set(id.uuidString, forKey: "currentProfile")
     log = records.loadLog(profile: id)
     placed = records.loadPlaced(profile: id)
+    moves = records.loadMoves(profile: id)
   }
 
   @discardableResult
@@ -503,6 +520,8 @@ final class ProgressStore {
 /// まちに置いた物（試作）。
 struct PlacedObject: Identifiable, Hashable {
   var id = UUID()
+  /// 手に入れた時間（おもちゃばこの計算に使う。D82）。
+  var date = Date()
   var word: String
   var symbol: String
   /// ことばの種類（置き方と動きを決める。D53）。

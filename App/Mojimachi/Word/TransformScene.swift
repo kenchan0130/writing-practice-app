@@ -105,6 +105,7 @@ final class TransformScene: SKScene {
     case .sky: rise(object)
     case .plaything: play(object)
     case .bodyAction: show(object)
+    case .furniture: furnish(object)
     }
   }
 
@@ -413,6 +414,80 @@ final class TransformScene: SKScene {
     }
     let again = SKAction.sequence([once, .wait(forDuration: seconds + 1.0)])
     run(.sequence([.wait(forDuration: 0.9), reduce ? once : .repeatForever(again)]), withKey: "bodyMotion")
+    run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// いえの物の型: あたたかい部屋で、物が ラグの よこに置かれ、主人公が それを使う（D185）。
+  /// 動きは、いえの なか（`HouseScene`）と同じ `HouseMotion`。間をあけて くりかえす。
+  private func furnish(_ object: SKNode) {
+    guard let sprite = object as? SKSpriteNode, let use = HouseLayout.use(for: word),
+      let poses = HouseMotion.poses(for: character)
+    else {
+      run(.wait(forDuration: 2)) { [weak self] in self?.onFinished?() }
+      return
+    }
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    let w = size.width
+    let h = size.height
+    let unit = min(w, h)
+    addRoomBackground(reduceMotion: reduce)
+    // 物: 左がわへ。床の物は床に、棚・壁の物は すこし高いところに。
+    let content = WordArt.contentFrame(word: word)
+    let spot = HouseLayout.spot(for: word)
+    let side = sprite.size.height * (spot == .floor ? 0.8 : 0.6)
+    let target: CGPoint
+    switch spot {
+    case .floor:
+      sprite.anchorPoint = CGPoint(x: content.midX, y: 1 - content.maxY)
+      sprite.position = CGPoint(
+        x: sprite.position.x + (content.midX - 0.5) * sprite.size.width,
+        y: sprite.position.y + (0.5 - content.maxY) * sprite.size.height)
+      target = CGPoint(x: w * 0.3, y: h * 0.16)
+    case .shelf, .wall:
+      target = CGPoint(x: w * 0.3, y: h * 0.58)
+    }
+    let settle = SKAction.group([
+      .move(to: target, duration: reduce ? 0.3 : 0.6),
+      .scale(to: side / max(sprite.size.height, 1), duration: reduce ? 0.3 : 0.6),
+    ])
+    settle.timingMode = .easeInEaseOut
+    sprite.zPosition = 10
+    sprite.run(settle)
+    if spot == .shelf {
+      // 棚の板（物の下）。
+      let board = SKShapeNode(
+        rect: CGRect(x: w * 0.12, y: target.y - side * content.height / 2 - unit * 0.03, width: w * 0.36, height: unit * 0.03),
+        cornerRadius: unit * 0.01)
+      board.fillColor = UIColor(red: 0.95, green: 0.71, blue: 0.42, alpha: 1)
+      board.strokeColor = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)
+      board.lineWidth = 3
+      board.zPosition = 9
+      board.alpha = 0
+      addChild(board)
+      board.run(.sequence([.wait(forDuration: 0.3), .fadeIn(withDuration: 0.3)]))
+    }
+    // 主人公: 右がわの ラグの上に立つ。
+    let hero = SKSpriteNode(texture: poses.normal)
+    let heroSide = unit * 0.5
+    hero.size = CGSize(width: heroSide, height: heroSide)
+    hero.anchorPoint = CGPoint(x: 0.5, y: 0.04)
+    hero.position = CGPoint(x: w * 0.68, y: h * 0.12)
+    hero.xScale = -1
+    hero.zPosition = 11
+    hero.alpha = 0
+    addChild(hero)
+    hero.run(.sequence([.wait(forDuration: 0.5), .fadeIn(withDuration: 0.25)]))
+    if reduce {
+      hero.run(.sequence([.wait(forDuration: 0.8), .setTexture(poses.happy, resize: false)]))
+    } else {
+      // 物が 置かれてから使う。大きさを決めてからでないと、飾りの場所が ずれる。
+      let once = SKAction.run { [weak sprite, weak hero] in
+        guard let sprite, let hero else { return }
+        HouseMotion.play(use, hero: hero, thing: sprite, poses: poses, content: content)
+      }
+      let again = SKAction.sequence([once, .wait(forDuration: HouseMotion.duration(of: use) + 1.0)])
+      run(.sequence([.wait(forDuration: 1.0), .repeatForever(again)]), withKey: "houseMotion")
+    }
     run(.wait(forDuration: 3.4)) { [weak self] in self?.onFinished?() }
   }
 

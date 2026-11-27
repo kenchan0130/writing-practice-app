@@ -228,14 +228,30 @@ struct WordWritingView: View {
     .frame(height: 112)
   }
 
+  /// 書いた物を見に行くボタン（服はクローゼット、いえの物は いえ、ほかは まち。D185）。
+  private static func placeTitle(_ kind: WordKind) -> String {
+    switch kind {
+    case .clothes: "クローゼットを みる"
+    case .furniture: "いえを みる"
+    default: "まちを みる"
+    }
+  }
+
+  private static func placeSymbol(_ kind: WordKind) -> String {
+    switch kind {
+    case .clothes: "hanger"
+    case .furniture: "sofa.fill"
+    default: "house.fill"
+    }
+  }
+
   private var buttons: some View {
     HStack(spacing: 32) {
       if model.wordDone {
         if transformFinished || finishButton != nil {
           ChildToolButton(
-            title: finishButton?.title ?? (model.kind == .clothes ? "クローゼットを みる" : "まちを みる"),
-            systemImage: finishButton?.systemImage
-              ?? (model.kind == .clothes ? "hanger" : "house.fill"),
+            title: finishButton?.title ?? Self.placeTitle(model.kind),
+            systemImage: finishButton?.systemImage ?? Self.placeSymbol(model.kind),
             color: Theme.green
           ) {
             let kind = model.kind

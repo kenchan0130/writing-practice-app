@@ -22,13 +22,14 @@ struct ContentView: View {
     case zukan = "ずかん"
     case letterWords = "もじから さがす"
     case town = "まち"
+    case house = "いえ"
     case closet = "クローゼット"
   }
 
   /// nil はホーム。
   @State private var screen: Screen? = {
     #if DEBUG
-      // 確かめ用: `-screen word|town|letter|closet|map|places|themes|wordCards` でその画面を直接開く。
+      // 確かめ用: `-screen word|town|house|letter|closet|map|places|themes|wordCards` でその画面を直接開く。
       // `-mapChar そ` でその字のカードを開く。`-place ie`・`-theme fuku` でまちの地図の場所・テーマを選ぶ。
       if let name = UserDefaults.standard.string(forKey: "screen"),
         let screen = Screen.allCases.first(where: { "\($0)" == name })
@@ -102,6 +103,8 @@ struct ContentView: View {
       return nil
     #endif
   }()
+  /// クローゼットを、いえから開いたか（「←」の戻り先。D185）。
+  @State private var closetFromHouse = false
   /// ことば画面を、ホームの「きょうの ことば」から開いたか（「←」の戻り先）。
   @State private var wordFromToday = false
   /// しりとりの流れ（D35・D45・D70）。書く画面へ行って戻っても、同じ回を続けるため、ここで持つ。
@@ -305,7 +308,14 @@ struct ContentView: View {
         wordFromToday = false
         wordFromZukan = false
         wordFromLetterWords = false
-        self.screen = kind == .clothes ? .closet : .town
+        closetFromHouse = false
+        // 服はクローゼット、いえの物は いえの なか、ほかは まち（D53・D185）。
+        self.screen =
+          switch kind {
+          case .clothes: .closet
+          case .furniture: .house
+          default: .town
+          }
       }
     case .shiritori:
       ShiritoriView(
@@ -383,7 +393,12 @@ struct ContentView: View {
           self.screen = .word
         }
       }
-    case .town: TownView()
+    case .town: TownView(onHouse: { self.screen = .house })
+    case .house:
+      HouseView {
+        closetFromHouse = true
+        self.screen = .closet
+      }
     case .closet: TownView(layer: .closet)
     }
   }
@@ -432,6 +447,11 @@ struct ContentView: View {
         screen = .places
       }
     case .themes: screen = .places
+    // まち → いえ → クローゼット（§3.1）。「←」で1つずつ戻る。
+    case .house: screen = .town
+    case .closet where closetFromHouse:
+      closetFromHouse = false
+      screen = .house
     default: screen = nil
     }
     if screen == nil {

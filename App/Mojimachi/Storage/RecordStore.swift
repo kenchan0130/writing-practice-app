@@ -344,12 +344,27 @@ final class RecordStore {
       .compactMap { row in
         guard let id = row.value(forKey: "id") as? UUID else { return nil }
         return PlacedObject(
-          id: id, word: row.value(forKey: "word") as? String ?? "",
+          id: id, date: row.value(forKey: "date") as? Date ?? .distantPast,
+          word: row.value(forKey: "word") as? String ?? "",
           symbol: row.value(forKey: "symbol") as? String ?? "",
           // 古い行には種類がない。乗り物として読む。
           kind: (row.value(forKey: "kind") as? String).flatMap(WordKind.init(rawValue:))
             ?? .vehicle)
       }
+  }
+
+  /// おもちゃばこの「出した」「しまった」の行（D82・D185）。
+  func loadMoves(profile: UUID) -> [ToyBoxMove] {
+    dedupe(
+      fetch("ToyBoxMoveRow", profile: profile).compactMap { row in
+        guard let id = row.value(forKey: "id") as? UUID,
+          let date = row.value(forKey: "date") as? Date,
+          let object = row.value(forKey: "objectID") as? UUID,
+          let action = (row.value(forKey: "action") as? String).flatMap(
+            ToyBoxMove.Action.init(rawValue:))
+        else { return nil }
+        return ToyBoxMove(id: id, date: date, objectID: object, action: action)
+      })
   }
 
   /// 全員のおねがい（D160）。まとめるのは `WishNotice.notices`。
@@ -368,7 +383,7 @@ final class RecordStore {
   func rowCount() -> Int {
     [
       "CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "ProfileRow",
-      "WishRow",
+      "WishRow", "ToyBoxMoveRow",
     ].reduce(
       0
     ) {
@@ -412,10 +427,22 @@ final class RecordStore {
     let row = NSEntityDescription.insertNewObject(forEntityName: "PlacedObjectRow", into: context)
     row.setValue(profile, forKey: "profileID")
     row.setValue(object.id, forKey: "id")
-    row.setValue(Date(), forKey: "date")
+    row.setValue(object.date, forKey: "date")
     row.setValue(object.word, forKey: "word")
     row.setValue(object.symbol, forKey: "symbol")
     row.setValue(object.kind.rawValue, forKey: "kind")
+    row.setValue(Self.dataVersion, forKey: "dataVersion")
+    save()
+  }
+
+  /// おもちゃばこの「出した」「しまった」を1行足す（D82・D185）。行は消さない。
+  func append(_ move: ToyBoxMove, profile: UUID) {
+    let row = NSEntityDescription.insertNewObject(forEntityName: "ToyBoxMoveRow", into: context)
+    row.setValue(profile, forKey: "profileID")
+    row.setValue(move.id, forKey: "id")
+    row.setValue(move.date, forKey: "date")
+    row.setValue(move.objectID, forKey: "objectID")
+    row.setValue(move.action.rawValue, forKey: "action")
     row.setValue(Self.dataVersion, forKey: "dataVersion")
     save()
   }
@@ -498,6 +525,7 @@ final class RecordStore {
   func deleteProfile(_ id: UUID) {
     for entity in [
       "CharacterRecordRow", "WordRecordRow", "PlacedObjectRow", "ResetMarker", "WishRow",
+      "ToyBoxMoveRow",
     ] {
       for row in fetch(entity, profile: id) { context.delete(row) }
     }
@@ -605,6 +633,8 @@ final class RecordStore {
       entity("ResetMarker", []),
       // 子どもの「おねがい」（D160）。何をやりたがったか（`item`）と、押した日（`date`）。
       entity("WishRow", [attribute("item", .string)]),
+      // おもちゃばこの「出した」「しまった」（D82・D185）。どの物か（`objectID`）と、どちらか（`action`）。
+      entity("ToyBoxMoveRow", [attribute("objectID", .uuid), attribute("action", .string)]),
       entity(
         "ProfileRow",
         [
