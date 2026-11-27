@@ -2179,17 +2179,6 @@
         }
       }
     },
-    "ライセンス（strokesvg・Klee One）": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "License (strokesvg · Klee One)"
-          }
-        }
-      }
-    },
     "ロックされています": {
       "extractionState": "manual",
       "localizations": {
@@ -2487,17 +2476,6 @@
         }
       }
     },
-    "効果音（小森平・Freesound・OtoLogic・こんとどぅふぇ）": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sound effects (小森平 · Freesound · OtoLogic · こんとどぅふぇ)"
-          }
-        }
-      }
-    },
     "取り返しのつかない操作をします": {
       "extractionState": "manual",
       "localizations": {
@@ -2582,17 +2560,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voice"
-          }
-        }
-      }
-    },
-    "声（VOICEVOX:猫使ビィ）": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voice (VOICEVOX:猫使ビィ)"
           }
         }
       }
@@ -2784,17 +2751,6 @@
         }
       }
     },
-    "文字のデータ": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Letter data"
-          }
-        }
-      }
-    },
     "文字の地図": {
       "extractionState": "manual",
       "localizations": {
@@ -2879,17 +2835,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stroke order"
-          }
-        }
-      }
-    },
-    "書体（Klee One・Zen Maru Gothic）": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Typefaces (Klee One · Zen Maru Gothic)"
           }
         }
       }
@@ -3375,17 +3320,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "(No nickname)"
-          }
-        }
-      }
-    },
-    "（見つかりません）": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "(Not found)"
           }
         }
       }

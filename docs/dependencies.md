@@ -26,7 +26,7 @@
 
 - Xcode のプライバシーレポートの前回との違い。
 - 実機の「App プライバシーレポート」で、Apple と Sentry 以外への通信がないこと。
-- 「このアプリについて」のライセンスの表示を `Package.resolved` から作る。
+- 「設定」アプリの もじまち のページのライセンス（`App/Mojimachi/Settings.bundle`）を、`python3 -I Scripts/make_settings_licenses.py` で作り直し、差分を確かめる（D196）。ライブラリを足す・版を上げたら必ず動かす。
 
 ## 一覧
 

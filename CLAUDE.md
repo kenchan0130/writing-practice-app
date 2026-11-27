@@ -16,6 +16,7 @@
 - `make judge-report`: 判定の効き方を、わざと崩した線で表にする（ひらがな・カタカナ・アルファベット。D192）。
 - KanjiVG との照らし合わせ: `python3 -I Scripts/compare_kanjivg.py <KanjiVG の kanji フォルダ> Content/Packs/hira Content/Packs/hira/kanjivg-check.md`（カタカナは `kata`。データを作り直したら必ず動かす）
 - 文字のデータの作り直し: `python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> Content/Packs/hira <コミット> hira`（カタカナは `dist/katakana` と `Content/Packs/kata`、最後を `kata`）。続けて `python3 -I Scripts/make_small_kana.py Content/Packs`（っ・ッ）、`python3 -I Scripts/set_endings.py Content/Packs/hira`（終わり方の下書き）、`python3 -I Scripts/set_mirror_check.py Content/Packs`（ー・ニは鏡の字を見ない）を動かす。
+- 設定アプリの もじまち のページのライセンス（`App/Mojimachi/Settings.bundle`）の作り直し: `python3 -I Scripts/make_settings_licenses.py`（ライブラリを足す・版を上げる・出どころの NOTICE を直したら必ず動かす。D196）。
 
 ## 作り（D104・D105・D109）
 
