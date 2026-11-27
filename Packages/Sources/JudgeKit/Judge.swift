@@ -23,10 +23,13 @@ public struct JudgeConfig: Sendable, Hashable, Codable {
   public var checksMirror: Bool
   /// 1画を分けて書いた線・2画をつなげた線を合格にするか（D56・D84）。
   public var allowsSplitAndJoin: Bool
+  /// 字全体が斜めに傾いても許す角度（度）。0 なら傾きは許さない（D192）。
+  public var rotationTolerance: Double
 
   public init(
     shapeTolerance: Double, maxDeviation: Double? = nil, checksOrder: Bool = true,
-    checksDirection: Bool = true, checksMirror: Bool = true, allowsSplitAndJoin: Bool = true
+    checksDirection: Bool = true, checksMirror: Bool = true, allowsSplitAndJoin: Bool = true,
+    rotationTolerance: Double = 0
   ) {
     self.shapeTolerance = shapeTolerance
     self.maxDeviation = maxDeviation ?? shapeTolerance * 1.7
@@ -34,13 +37,14 @@ public struct JudgeConfig: Sendable, Hashable, Codable {
     self.checksDirection = checksDirection
     self.checksMirror = checksMirror
     self.allowsSplitAndJoin = allowsSplitAndJoin
+    self.rotationTolerance = rotationTolerance
   }
 
   /// わざと崩した線（`make judge-report`）で合わせた仮の値。M0 で正解の付いた線（D79・D120）で合わせ直す。
   public static func preset(_ preset: JudgePreset) -> JudgeConfig {
     switch preset {
-    case .hajimete: JudgeConfig(shapeTolerance: 70, maxDeviation: 125)
-    case .naretekita: JudgeConfig(shapeTolerance: 55, maxDeviation: 105)
+    case .hajimete: JudgeConfig(shapeTolerance: 70, maxDeviation: 125, rotationTolerance: 12)
+    case .naretekita: JudgeConfig(shapeTolerance: 55, maxDeviation: 105, rotationTolerance: 6)
     case .shikkari: JudgeConfig(shapeTolerance: 45, maxDeviation: 90, allowsSplitAndJoin: false)
     case .kicchiri: JudgeConfig(shapeTolerance: 35, maxDeviation: 75, allowsSplitAndJoin: false)
     }
@@ -105,6 +109,10 @@ public enum StrokeCheck: Sendable, Hashable {
 public struct Judge: Sendable {
   public let character: CharacterData
   private let model: [Polyline]
+  /// 置き直す前のお手本の線（画の長さを見るため）。
+  private let modelRaw: [Polyline]
+  /// お手本の字の大きさに合わせた、しきい値の倍率（D192）。
+  private let sizeScale: Double
   /// お手本とは別の、正解にする書き方（D66）。書き順の入れ替え（`orders` の2つ目から）と、
   /// 画数や画の分け方がちがう書き方（`alternates`）。それぞれを、別のお手本として見る。
   private let variants: [Judge]
@@ -115,7 +123,10 @@ public struct Judge: Sendable {
 
   private init(character: CharacterData, withVariants: Bool) {
     self.character = character
-    self.model = character.strokes.map { Geometry.resample(Geometry.polyline(of: $0)) }
+    let model = character.strokes.map { Geometry.resample(Geometry.polyline(of: $0)) }
+    self.model = model
+    self.modelRaw = character.strokes.map { Geometry.polyline(of: $0) }
+    self.sizeScale = Self.sizeScale(of: model)
     guard withVariants else {
       self.variants = []
       return
@@ -131,6 +142,46 @@ public struct Judge: Sendable {
       other.orders = [Array(strokes.indices)]
       other.alternates = nil
       return Judge(character: other, withVariants: false)
+    }
+  }
+
+  /// しきい値の基準にする字の大きさ（マス 0〜1000 での、字の外枠の長い辺）。ひらがな・カタカナの多くはこれ以上。
+  static let referenceSize = 700.0
+  /// 小さい字（アルファベットの小文字など）でも、倍率はここより小さくしない。
+  static let minimumScale = 0.6
+  /// 倍率を掛けたあとの、しきい値の下限（小さい点や短い画で厳しくなりすぎないように）。
+  static let minimumShape = 24.0
+  static let minimumDeviation = 48.0
+
+  /// お手本の字の大きさに合わせた倍率（大きい字は 1）。字の形の違いは、字全体を合わせたあとの
+  /// マス上の距離で比べるので、小さい字ほど同じ距離が大きな違いになる（D192）。
+  static func sizeScale(of model: [Polyline]) -> Double {
+    guard let b = Geometry.bounds(of: model) else { return 1 }
+    let size = max(b.max.x - b.min.x, b.max.y - b.min.y)
+    return max(minimumScale, min(1, size / referenceSize))
+  }
+
+  /// この字での、形の違いのしきい値（平均・いちばん離れた点）。
+  private func limits(_ config: JudgeConfig, scale: Double? = nil) -> (
+    shape: Double, deviation: Double
+  ) {
+    let k = scale ?? sizeScale
+    return (
+      max(config.shapeTolerance * k, min(config.shapeTolerance, Self.minimumShape)),
+      max(config.maxDeviation * k, min(config.maxDeviation, Self.minimumDeviation))
+    )
+  }
+
+  /// 手書きのぶれに近い、決まった揺れを足す（確かめ用の道具。`make judge-report` とテストで同じ式を使う）。
+  /// `phase` を変えると、同じ大きさでも別の揺れ方になる。
+  public static func jittered(_ lines: [Polyline], amplitude: Double, phase: Int = 0) -> [Polyline]
+  {
+    lines.enumerated().map { s, line in
+      line.enumerated().map { i, p in
+        Point(
+          p.x + amplitude * sin(Double(i) * 0.9 + Double(s) + Double(phase) * 1.3),
+          p.y + amplitude * cos(Double(i) * 1.3 + Double(s) + Double(phase) * 0.7))
+      }
     }
   }
 
@@ -197,10 +248,9 @@ public struct Judge: Sendable {
     let stricter = evaluate(aligned, config: stricterConfig)
     let maxDistance = result.shapeDistances.max() ?? 0
     let maxDeviation = result.maxDistances.max() ?? 0
-    let roomy =
-      maxDistance <= config.shapeTolerance * 0.7 && maxDeviation <= config.maxDeviation * 0.7
-    let topTier =
-      maxDistance <= config.shapeTolerance * 0.6 && maxDeviation <= config.maxDeviation * 0.6
+    let limit = limits(config)
+    let roomy = maxDistance <= limit.shape * 0.7 && maxDeviation <= limit.deviation * 0.7
+    let topTier = maxDistance <= limit.shape * 0.6 && maxDeviation <= limit.deviation * 0.6
     if stricter.passed, preset != .kicchiri || topTier {
       result.rating = .hanamaru
     } else if roomy {
@@ -266,14 +316,31 @@ public struct Judge: Sendable {
   public func judgeStroke(_ written: Polyline, expected index: Int, preset: JudgePreset)
     -> StrokeCheck
   {
-    guard model.indices.contains(index), written.count > 1 else { return .wrongStroke }
-    let line = Geometry.resample(written)
+    guard model.indices.contains(index), !written.isEmpty else { return .wrongStroke }
     let config = JudgeConfig.preset(preset)
+    if isDot(index) {
+      // 点（i・j の点など）: 短いタップや短い線を、お手本の位置の近くなら通す（向きは見ない。D192）。
+      return judgeDot(written, expected: index, config: config)
+    }
+    guard written.count > 1 else { return .wrongStroke }
+    let line = Geometry.resample(written)
     // なぞる・うすく はお手本の上をたどるので、形の違いは ④ より広めに許す。
-    let tolerance = config.shapeTolerance * 1.4
-    let deviationLimit = config.maxDeviation * 1.4
+    // 小さい字でも、お手本をたどる画は、倍率を 0.7 より小さくしない。
+    let traced = limits(config, scale: max(sizeScale, 0.7))
+    let tolerance = traced.shape * 1.4
+    let deviationLimit = traced.deviation * 1.4
     let ends = Geometry.endpointDifference(line, model[index])
-    let shape = Geometry.shapeDifference(line, model[index])
+    var shape = Geometry.shapeDifference(line, model[index])
+    // 濁点・半濁点のような短い画は、お手本の上に乗る短い線も通す（書いた線から、お手本までの距離だけ見る）。
+    let modelLength = Geometry.length(of: modelRaw[index])
+    let writtenLength = Geometry.length(of: written)
+    // しっかり以上は、お手本の3割以上の長さがいる。
+    let tickRatio = (preset == .shikkari || preset == .kicchiri) ? 0.3 : 0.15
+    let shortTick = modelLength < 250 && writtenLength >= modelLength * tickRatio
+    if shortTick {
+      let d = line.map { Geometry.distance(from: $0, to: model[index]) }
+      shape = (d.reduce(0, +) / Double(d.count), d.max() ?? 0)
+    }
     if shape.mean > tolerance || shape.max > deviationLimit {
       // 別の画に近ければ「ちがう画」、どれにも近くなければ「形」。
       let other = model.indices.filter { $0 != index }.contains {
@@ -282,16 +349,62 @@ public struct Judge: Sendable {
       }
       return other ? .wrongStroke : .shape
     }
-    if config.checksDirection, ends.backward < ends.forward * 0.6 { return .direction }
+    if config.checksDirection, !shortTick || writtenLength >= modelLength * 0.6,
+      ends.backward < ends.forward * 0.6
+    {
+      return .direction
+    }
     return .ok
   }
 
-  func evaluate(_ written: [Polyline], config: JudgeConfig) -> JudgeResult {
+  /// お手本の画が点か（長さがほぼ 0 のもの。i・j の点）。
+  func isDot(_ index: Int) -> Bool {
+    Geometry.length(of: modelRaw[index]) < Self.dotLength
+  }
+
+  /// 点を受けとる半径の下限（指で打つ点が、字の大きさでせまくなりすぎないように）。
+  static let minimumDotRadius = 50.0
+
+  /// これより短いお手本の画は、点として見る。
+  static let dotLength = 40.0
+
+  private func judgeDot(_ written: Polyline, expected index: Int, config: JudgeConfig)
+    -> StrokeCheck
+  {
+    let target = model[index][0]
+    let traced = limits(config, scale: max(sizeScale, 0.7))
+    // 点は、お手本の位置から外れすぎず、長く引きずらない線。
+    let length = Geometry.length(of: written)
+    let center = Point(
+      written.reduce(0) { $0 + $1.x } / Double(written.count),
+      written.reduce(0) { $0 + $1.y } / Double(written.count))
+    if length <= 150, center.distance(to: target) <= max(traced.shape * 1.4, Self.minimumDotRadius)
+    {
+      return .ok
+    }
+    return .shape
+  }
+
+  /// 先に傾けずに見て、合わなければ小さな傾きを直して見直す。どちらかで合えば合格（D192）。
+  /// 傾きを直したほうが悪くなる字（回すと一部の画だけ外れる）が、傾けなければ合格だったのに落ちることがないように。
+  func evaluate(_ original: [Polyline], config: JudgeConfig) -> JudgeResult {
+    let plain = evaluateAligned(original, config: config)
+    guard !plain.passed, original.count == model.count, config.rotationTolerance > 0 else {
+      return plain
+    }
+    let tilted = tiltCorrected(original, tolerance: config.rotationTolerance)
+    if tilted == original { return plain }
+    let retry = evaluateAligned(tilted, config: config)
+    return retry.passed ? retry : plain
+  }
+
+  private func evaluateAligned(_ written: [Polyline], config: JudgeConfig) -> JudgeResult {
     var issues: [JudgeIssue] = []
     guard written.count == model.count else {
       issues.append(.strokeCount(expected: model.count, actual: written.count))
       return JudgeResult(passed: false, rating: nil, issues: issues, shapeDistances: [])
     }
+    let limit = limits(config)
     // 鏡の字: 左右を反転したほうが、はっきりよく合う（左右対称に近い字は対象外。D107 ④）。
     if config.checksMirror, character.mirrorCheck ?? true {
       let normal = totalDistance(written, assignment: Array(model.indices))
@@ -315,15 +428,69 @@ public struct Judge: Sendable {
       let shape = Geometry.shapeDifference(written[w], model[m])
       distances[m] = shape.mean
       maxDistances[m] = shape.max
-      if shape.mean > config.shapeTolerance {
+      if shape.mean > limit.shape {
         issues.append(.shape(model: m, distance: shape.mean))
-      } else if shape.max > config.maxDeviation {
+      } else if shape.max > limit.deviation {
         issues.append(.deviation(model: m, distance: shape.max))
+      } else if let gap = endpointExcess(written[w], model: m, limit: limit.deviation) {
+        issues.append(.deviation(model: m, distance: gap))
       }
     }
     return JudgeResult(
       passed: issues.isEmpty, rating: nil, issues: issues, shapeDistances: distances,
       maxDistances: maxDistances)
+  }
+
+  /// 長い画（150 以上）の書き始め・書き終わりが、お手本から離れすぎていないか（D192）。
+  /// お手本が閉じた画（始めと終わりの間が画の大きさの25%未満。o や 0 など）は、書いた画も閉じていればよい。
+  /// 閉じていない画は、始めの点と終わりの点の、離れが大きいほうで見る。離れすぎなら、その距離を返す。
+  private func endpointExcess(_ line: Polyline, model index: Int, limit: Double) -> Double? {
+    let raw = modelRaw[index]
+    guard Geometry.length(of: raw) >= 150, let m0 = model[index].first, let m1 = model[index].last,
+      let w0 = line.first, let w1 = line.last, let b = Geometry.bounds(of: [raw])
+    else { return nil }
+    let size = max(b.max.x - b.min.x, b.max.y - b.min.y)
+    let allowed = limit * 1.5
+    if m0.distance(to: m1) < size * 0.25 {
+      let gap = w0.distance(to: w1)
+      return gap > allowed ? gap : nil
+    }
+    let forward = max(w0.distance(to: m0), w1.distance(to: m1))
+    let backward = max(w0.distance(to: m1), w1.distance(to: m0))
+    let worst = min(forward, backward)
+    return worst > allowed ? worst : nil
+  }
+
+  /// 字全体の小さな傾き（`tolerance` 度まで）を直す。いちばんお手本に合う角度で回す。
+  /// 画ごとには回さず、画どうしの位置関係は変えない（D192）。
+  private func tiltCorrected(_ written: [Polyline], tolerance: Double) -> [Polyline] {
+    guard tolerance > 0, let b = Geometry.bounds(of: written) else { return written }
+    let center = (b.min + b.max) * 0.5
+    var best = written
+    var bestCost = totalDistance(written, assignment: Array(model.indices))
+    // すでによく合っているときは、回して試さない（時間をかけない）。
+    if bestCost / Double(max(1, written.count)) < 10 { return written }
+    var angle = -tolerance
+    while angle <= tolerance + 1e-9 {
+      if abs(angle) > 1e-9 {
+        let radians = angle * .pi / 180
+        let c = cos(radians)
+        let s = sin(radians)
+        let rotated = written.map { line in
+          line.map { p -> Point in
+            let d = p - center
+            return Point(center.x + d.x * c - d.y * s, center.y + d.x * s + d.y * c)
+          }
+        }
+        let cost = totalDistance(rotated, assignment: Array(model.indices))
+        if cost < bestCost * 0.97 {
+          bestCost = cost
+          best = rotated
+        }
+      }
+      angle += 2
+    }
+    return best
   }
 
   /// 当てはめに使う、1画どうしの違い（形と、書き始め・書き終わりの位置。向きは問わない）。
