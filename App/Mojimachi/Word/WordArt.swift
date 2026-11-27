@@ -23,7 +23,9 @@ enum WordArt {
   private static let furnitureColor = UIColor(red: 0.8, green: 0.55, blue: 0.3, alpha: 1)
   private static let sceneryColor = UIColor(red: 0.4, green: 0.7, blue: 0.32, alpha: 1)
 
-  private static let assets: [String: String] = [
+  private static let assets: [String: String] = baseAssets.merging(WordCatalog.batchArtNames) { $1 }
+
+  private static let baseAssets: [String: String] = [
     "そり": "sori", "くるま": "kuruma", "ふね": "fune", "でんしゃ": "densha",
     "じてんしゃ": "jitensha", "しんかんせん": "shinkansen", "うし": "ushi", "いぬ": "inu",
     "ねこ": "neko", "うま": "uma", "くま": "kuma", "しか": "shika", "りす": "risu",

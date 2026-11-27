@@ -5607,6 +5607,20 @@ def print_lamps():
               [(round(s1 * x + tx1, 1), round(s1 * y + ty1, 1), round(s1 * (r - sw / 2), 1)) for x in xs])
 
 
+# ---------------------------------------------------------- word batches --
+# めぐりごとの絵は Scripts/art/words_<名前>.py に書く（`from words import word, ...` で同じ @word が使える）。
+# ここで名前順に全部読み込むので、このファイルに足す行はいらない。
+def load_batches():
+    import glob
+    import importlib
+    sys.modules.setdefault("words", sys.modules[__name__])   # `python words.py` でも、batch から `import words` が同じ W を指す
+    for path in sorted(glob.glob(os.path.join(HERE, "words_*.py"))):
+        importlib.import_module(os.path.basename(path)[:-3])
+
+
+load_batches()
+
+
 if __name__ == "__main__":
     names = sys.argv[1:] or list(W)
     if not sys.argv[1:] or "omochabako" in names:      # the toy box is a part, not a word

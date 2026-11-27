@@ -20,13 +20,17 @@ public enum Season: String, Sendable, CaseIterable, Codable {
 /// 印のないことばは、いつでも出してよい。使うのは「きょうの ことば」だけで、
 /// iPad の地域が日本のときに限る（D54）。
 public enum WordSeason {
-  private static let table: [String: Season] = [
+  static let baseTable: [String: Season] = [
     "さくら": .spring, "たんぽぽ": .spring, "いちご": .spring,
     "ひまわり": .summer, "あさがお": .summer, "すいか": .summer, "せみ": .summer,
     "ほたる": .summer, "かぶとむし": .summer, "ゆかた": .summer,
     "とんぼ": .autumn, "くり": .autumn, "どんぐり": .autumn, "ぶどう": .autumn, "きのこ": .autumn,
     "ゆき": .winter, "みかん": .winter,
   ]
+
+  private static let table: [String: Season] = WordBatch.all.reduce(into: [:]) {
+    $0.merge($1.seasons) { $1 }
+  }
 
   /// そのことばの季節。印がなければ nil。
   public static func season(of word: String) -> Season? { table[word] }
