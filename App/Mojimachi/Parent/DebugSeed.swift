@@ -25,7 +25,6 @@
     /// 育ちの確かめ用（`-seedGrowth YES`）。あ行・か行は「はな」、さ行は「つぼみ」、た行は「め」。
     static func growth() {
       let store = ProgressStore.shared
-      guard store.log.characters.isEmpty else { return }
       let now = Date()
       func id(_ char: Character) -> String {
         "hira.\(String(char.unicodeScalars.first!.value, radix: 16))"
@@ -66,6 +65,7 @@
       }
     }
 
+    /// ほかの `-seed…` より先に動かす（あとから足すものは、ここで入れた記録に重ねる）。
     static func records() {
       let store = ProgressStore.shared
       guard store.log.characters.isEmpty else { return }

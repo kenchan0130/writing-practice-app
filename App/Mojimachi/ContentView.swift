@@ -151,7 +151,10 @@ struct ContentView: View {
           }
           .padding(.horizontal, 32)
           .padding(.top, 12)
+          // 声の字幕は、「←」の横の空いている所に出す（字の行や書く場所に重ならない）。
+          .overlay(alignment: .top) { CaptionBubble(inHeader: true).padding(.top, 12) }
           content(screen)
+            .environment(\.captionInHeader, true)
         }
       } else {
         home
@@ -258,16 +261,23 @@ struct ContentView: View {
     #if DEBUG
       .onAppear {
         if UserDefaults.standard.bool(forKey: "showGate") { showsGate = true }
-        // 確かめ用: `-seedRecords 3` できょうの字を3つ入れる。
-        let seeded = UserDefaults.standard.integer(forKey: "seedRecords")
-        if seeded > 0 { DebugSeed.today(count: seeded) }
-        // 確かめ用: `-seedGrowth YES` で、あ行・か行を「はな」、さ行を「つぼみ」、た行を「め」にする。
-        if UserDefaults.standard.bool(forKey: "seedGrowth") { DebugSeed.growth() }
+        // 確かめ用: `-orientation landscape|portrait` で向きを決める（スクリーンショット・UI テスト用）。
+        if let name = UserDefaults.standard.string(forKey: "orientation"),
+          let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        {
+          let mask: UIInterfaceOrientationMask = name == "landscape" ? .landscapeRight : .portrait
+          scene.requestGeometryUpdate(.iOS(interfaceOrientations: mask))
+        }
         // 確かめ用: `-seedSamples YES` で見本の記録を入れる。iCloud の同期が動いているときは入れない
         // （本物のデータに混ざって iCloud に上がるため）。`-localOnlyStore YES` などと一緒に使う。
         if UserDefaults.standard.bool(forKey: "seedSamples"), !store.isSyncRunning {
           DebugSeed.records()
         }
+        // 確かめ用: `-seedRecords 3` できょうの字を3つ入れる。
+        let seeded = UserDefaults.standard.integer(forKey: "seedRecords")
+        if seeded > 0 { DebugSeed.today(count: seeded) }
+        // 確かめ用: `-seedGrowth YES` で、あ行・か行を「はな」、さ行を「つぼみ」、た行を「め」にする。
+        if UserDefaults.standard.bool(forKey: "seedGrowth") { DebugSeed.growth() }
         // 確かめ用: `-seedTown YES` で、5つの型を まち・クローゼットに置く（`debugSeedTown`。D168）。
         if UserDefaults.standard.bool(forKey: "seedTown"), !store.isSyncRunning {
           debugSeedTown(store)
@@ -495,7 +505,19 @@ struct ContentView: View {
   }
 
   /// ホーム: 大きなボタン3つ。顔と歯車は上に置く。
+  /// 高さが足りない端末（11インチの横向きなど）では、絵とボタンを少し小さくして、ぜんぶ画面に入れる。
   private var home: some View {
+    GeometryReader { proxy in
+      let compact = proxy.size.height < 900
+      ScrollView(.vertical, showsIndicators: false) {
+        homeContent(compact: compact)
+          .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+      }
+      .scrollBounceBehavior(.basedOnSize)
+    }
+  }
+
+  private func homeContent(compact: Bool) -> some View {
     VStack(spacing: 0) {
       HStack {
         // 使う子（D16）。押すと切り替えのシートを出す。
@@ -528,9 +550,11 @@ struct ContentView: View {
       }
       .padding(.horizontal, 32)
       .padding(.top, 12)
-      Spacer()
+      Spacer(minLength: 8)
       HStack(alignment: .top, spacing: 32) {
-        HomeCharacter(reachedGoal: goalReached, todayWord: todayWord) { word in
+        HomeCharacter(
+          reachedGoal: goalReached, todayWord: todayWord, artSize: compact ? 150 : 220
+        ) { word in
           wordStart = word
           wordFromCard = false
           wordFromCards = false
@@ -540,24 +564,30 @@ struct ContentView: View {
             await VoicePlayer.shared.speak(sequence: [VoiceLine.todayWord.text, word])
           }
         }
-        VStack(spacing: 20) {
+        VStack(spacing: compact ? 12 : 20) {
           TodayGoalCard(goal: goal, done: todayCount)
           // 文字の種類ごとの育ちの名前（D151）。
-          VStack(spacing: 8) {
-            ForEach(KanaScript.allCases, id: \.self) { script in
-              GrowthBadge(summary: ScriptGrowthSummary(script: script, log: store.log), size: 22)
+          ViewThatFits(in: .horizontal) {
+            if compact {
+              HStack(spacing: 8) { growthBadges }
             }
+            VStack(spacing: 8) { growthBadges }
           }
           StampCard(days: store.log.stampWeek(now: Date(), calendar: .current))
         }
       }
       .padding(.horizontal, 32)
-      Spacer()
+      Spacer(minLength: 8)
       HStack(spacing: 40) {
-        HomeButton(title: "もじ", systemImage: "character.book.closed.fill", color: Theme.accent) {
+        HomeButton(
+          title: "もじ", systemImage: "character.book.closed.fill", color: Theme.accent,
+          compact: compact
+        ) {
           screen = .map
         }
-        HomeButton(title: "ことば", systemImage: "text.bubble.fill", color: Theme.blue) {
+        HomeButton(
+          title: "ことば", systemImage: "text.bubble.fill", color: Theme.blue, compact: compact
+        ) {
           wordStart = nil
           wordFromCard = false
           wordFromCards = false
@@ -567,13 +597,22 @@ struct ContentView: View {
           selectedTheme = nil
           screen = .places
         }
-        HomeButton(title: "まち", systemImage: "house.fill", color: Theme.green) {
+        HomeButton(
+          title: "まち", systemImage: "house.fill", color: Theme.green, compact: compact
+        ) {
           townStartsWithStickers = false
           screen = .town
         }
       }
       .padding(.horizontal, 32)
-      Spacer()
+      Spacer(minLength: 8)
+    }
+  }
+
+  @ViewBuilder
+  private var growthBadges: some View {
+    ForEach(KanaScript.allCases, id: \.self) { script in
+      GrowthBadge(summary: ScriptGrowthSummary(script: script, log: store.log), size: 22)
     }
     // おたのしみ ボックスの声の字幕（§3.9）。上の列の下に出す。
     .overlay(alignment: .top) {
@@ -642,16 +681,18 @@ private struct HomeButton: View {
   var title: LocalizedStringKey
   var systemImage: String
   var color: Color
+  /// 高さが足りないとき（11インチの横向きなど）は低くする。
+  var compact = false
   var action: () -> Void
 
   var body: some View {
     Button(action: action) {
-      VStack(spacing: 16) {
-        Image(systemName: systemImage).font(.system(size: 72, weight: .bold))
-        Text(title).font(.ui(40, bold: true))
+      VStack(spacing: compact ? 8 : 16) {
+        Image(systemName: systemImage).font(.system(size: compact ? 56 : 72, weight: .bold))
+        Text(title).font(.ui(compact ? 34 : 40, bold: true))
       }
       .foregroundStyle(.white)
-      .frame(maxWidth: 280, minHeight: 200)
+      .frame(maxWidth: 280, minHeight: compact ? 150 : 200)
       .frame(maxWidth: .infinity)
       .background(color.gradient, in: .rect(cornerRadius: Theme.Radius.button))
       .softShadow()
@@ -665,6 +706,8 @@ private struct HomeButton: View {
 private struct HomeCharacter: View {
   var reachedGoal: Bool
   var todayWord: String?
+  /// キャラクターの絵の大きさ。
+  var artSize: CGFloat = 220
   var onTodayWord: (String) -> Void
   /// はじめての流れで選んだキャラクター（D39）。
   private var character: MainCharacter { ProgressStore.shared.mainCharacter }
@@ -696,10 +739,10 @@ private struct HomeCharacter: View {
               TownClock.phase(now: timeline.date).isSleepy
               && Int(timeline.date.timeIntervalSinceReferenceDate) % 9 >= 6
             MainCharacterArt(
-              character: character, size: 220,
+              character: character, size: artSize,
               pose: sleepy ? .sleep : reachedGoal ? .happy : .normal)
           }
-          .frame(width: 220, height: 220)
+          .frame(width: artSize, height: artSize)
         }
         .buttonStyle(.plain)
         .disabled(todayWord == nil)

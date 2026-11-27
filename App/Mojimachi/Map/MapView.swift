@@ -75,27 +75,87 @@ struct MapView: View {
   var body: some View {
     GeometryReader { proxy in
       // ABC は1段7字（D180）。段の左右に、はなばたけの印の分の空きを取る。
+      let landscape = proxy.size.width > proxy.size.height
       let decision =
         selection.script == .abc
         ? MapLayout.decide(
           width: proxy.size.width - 2 * (28 + MapLayout.gap), columns: AbcTable.lettersPerRow)
         : MapLayout.decide(width: proxy.size.width)
-      VStack(spacing: 20) {
-        scriptSwitch
-        GrowthBadge(summary: ScriptGrowthSummary(script: selection.script, log: store.log))
-        pageSwitch
+      VStack(spacing: 16) {
+        // 横に余裕があるときは、字の種類とページのつまみを1行に並べて、表の場所を広げる。
+        ViewThatFits(in: .horizontal) {
+          HStack(spacing: 48) {
+            scriptSwitch
+            pageSwitch
+          }
+          VStack(spacing: 16) {
+            scriptSwitch
+            pageSwitch
+          }
+        }
+        // 横向きは高さが足りないので、育ちの名前と凡例を1行に並べる（縦向きは凡例を表の下に出す）。
+        if landscape {
+          HStack(spacing: 32) {
+            GrowthBadge(summary: ScriptGrowthSummary(script: selection.script, log: store.log))
+            legend
+          }
+        } else {
+          GrowthBadge(summary: ScriptGrowthSummary(script: selection.script, log: store.log))
+        }
         if selection.script != .abc && selection.page == .basic && decision.split {
           halfSwitch
         }
-        Spacer(minLength: 0)
-        grid(decision: decision)
-        Spacer(minLength: 0)
-        legend
+        // 残りの高さに表と凡例を入れる。入りきらないときは、自然に縦に送れる。
+        GeometryReader { area in
+          let cell = fittedCell(
+            decision: decision, height: area.size.height, legendBelow: !landscape)
+          ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 16) {
+              Spacer(minLength: 0)
+              grid(decision: decision, cell: cell)
+              Spacer(minLength: 0)
+              if !landscape { legend }
+            }
+            .frame(maxWidth: .infinity, minHeight: area.size.height)
+          }
+          .scrollBounceBehavior(.basedOnSize)
+        }
       }
       .padding(.horizontal, MapLayout.edge)
       .padding(.bottom, 24)
       .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+  }
+
+  /// 凡例の高さ（絵 36pt）と、表の上下の余白（16pt が3つ）、ゆとり。
+  private static let legendHeight = 36.0 + 48 + 12
+
+  /// 残りの高さに表が収まる字の大きさ。幅から決めた大きさより大きくはしない。収まらないとき（1.5cm 角より小さくなるとき）は 1.5cm 角のまま、縦に送る（D125）。
+  private func fittedCell(decision: MapLayout.Decision, height: Double, legendBelow: Bool) -> Double
+  {
+    let gap = MapLayout.gap
+    var rows = 0.0
+    var extra = legendBelow ? Self.legendHeight : 2 * 16.0 + 12
+    if selection.script == .abc {
+      rows = Double(AbcTable.grid(selection.abcPage).cells.count)
+    } else {
+      switch selection.page {
+      case .basic:
+        let grid =
+          decision.split
+          ? KanaTable.halves(selection.script)[min(selection.half, 1)]
+          : KanaTable.main(selection.script)
+        rows = Double(grid.cells.count)
+        extra += 28 + gap
+      case .extra:
+        let small = KanaTable.small(selection.script)
+        let wraps = decision.split || small.columnCount > 9
+        rows = Double(KanaTable.dakuon(selection.script).cells.count) + (wraps ? 2 : 1)
+        extra += 28 + gap + 24 + 4
+      }
+    }
+    let byHeight = (height - extra - gap * (rows - 1)) / rows
+    return max(MapLayout.minCell, min(decision.cell, byHeight))
   }
 
   // MARK: - つまみ（2cm 角以上。D101）
@@ -151,11 +211,11 @@ struct MapView: View {
   // MARK: - 表
 
   @ViewBuilder
-  private func grid(decision: MapLayout.Decision) -> some View {
+  private func grid(decision: MapLayout.Decision, cell: Double) -> some View {
     if selection.script == .abc {
-      abcGridView(AbcTable.grid(selection.abcPage), cell: decision.cell)
+      abcGridView(AbcTable.grid(selection.abcPage), cell: cell)
     } else {
-      kanaGrid(decision: decision)
+      kanaGrid(decision: decision, cell: cell)
     }
   }
 
@@ -185,20 +245,20 @@ struct MapView: View {
   }
 
   @ViewBuilder
-  private func kanaGrid(decision: MapLayout.Decision) -> some View {
+  private func kanaGrid(decision: MapLayout.Decision, cell: Double) -> some View {
     switch selection.page {
     case .basic:
       let halves = KanaTable.halves(selection.script)
       if decision.split {
-        gridView(halves[min(selection.half, 1)], cell: decision.cell)
+        gridView(halves[min(selection.half, 1)], cell: cell)
       } else {
-        gridView(KanaTable.main(selection.script), cell: decision.cell)
+        gridView(KanaTable.main(selection.script), cell: cell)
       }
     case .extra:
       VStack(spacing: 24) {
-        gridView(KanaTable.dakuon(selection.script), cell: decision.cell)
+        gridView(KanaTable.dakuon(selection.script), cell: cell)
         gridView(
-          KanaTable.small(selection.script), cell: decision.cell,
+          KanaTable.small(selection.script), cell: cell,
           wraps: decision.split || KanaTable.small(selection.script).columnCount > 9)
       }
     }
