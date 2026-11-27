@@ -117,3 +117,22 @@ xcrun simctl io "$UDID" screenshot --type=png <出力先>-en.png
 - スクリーンショットの内容は、そのまま App Store の約束になる。**まだない機能（ずかん・すうじ あそび・カタカナのことば・えいごの ことば）を載せない**（D72）。
 - 説明に書く語数は、撮影の直前に `Assets.xcassets/word-*` の数を数え直す。
 - アプリのアイコンの画像が、いまのプロジェクトにない（`release-checklist.md`）。スクリーンショットの前に作る。
+
+## 6. 撮った結果（2026-11-27 の撮り直し）
+
+`Scripts/make_screenshots.sh` で、`docs/release/screenshots/<ja|en>/<13|11>-<portrait|landscape>/NN-<画面>.png` に 72 枚（2言語 × 2サイズ × 2向き × 9 枚）。8画面＋おまけの夕方のまち。大きさは 13インチ 2064×2752／2752×2064、11インチ 1668×2420／2420×1668。**アルファなし（RGB の PNG）**。端末は iOS 27.0 の iPad Pro 13-inch (M5)・11-inch (M5)（毎回作って、撮り終わったら消す）。iOS 27.1 のランタイムは入っているが、iPad のシミュレータを作れない（2026-11-27 時点）ので 27.0 を使う。アプリのコードは main のまま（変えていない）。
+
+- 画面と引数（共通の引数は §2）:
+  - 01-word（でんしゃ）: `-screen word -startWord でんしゃ -simulateWord YES`
+  - 02-map: `-screen map -uiTesting YES`
+  - 03-town: `-screen town -seedTown YES -townScroll 0.2 -townHour 13 -seedStickers 6 -seedStickersPlaced YES`（昼の13時。ステッカー6枚のうち4枚をまちに貼る。季節の飾り〈こいのぼり・ゆきだるま・はなび・ちょうちん・かどまつ・ふうりん〉も出る）
+  - 04-letter（なぞる手前）/ 08-writing（うすく）: `-screen letter -mapChar あ -simulateUntil nazoru|usuku`
+  - 05-wordcards: 13インチの縦は「むし」12枚（`-place mori -theme mushi`）。横と11インチの縦は「そら・てんき」8枚（`-place sora -theme sora-tenki`）。**カードは、横向き（4列）は2行まで、11インチの縦（3列）は3行までしか切れずに入らない**ので、8枚のテーマにした。
+  - 06-records: `-openParent records -seedGrowth YES -seedSamples YES -uiTesting YES`（成長アルバムに、書き直しの見本が入る。縦向きは下に出る）
+  - 07-home: `-seedRecords 5 -seedGrowth YES -seedStickers 4 -seedStickersPlaced YES`（目標の星が5つ光って、上に「おたのしみ ボックス」が出る）
+  - 09-town-evening（おまけ）: 03 と同じで `-townHour 19`（夜のまち。月と星）。9枚目。要らなければ ASC に入れない。
+- **向きの切り替え**: DEBUG の `-orientation landscape|portrait`（`ContentView.swift`）。撮る用のビルドだけ `INFOPLIST_KEY_UIRequiresFullScreen=YES`（iPadOS 26 の窓のモードだと向きを変えられない）。`simctl io screenshot` は縦の画像のまま出すので、横向きは `sips -r 270` で回す。
+- **窓の大きさを変える弧**（縦は右下、横は右上）は、全画面のビルドでも消えない。`Scripts/clean_screenshot.py`（ffmpeg が要る）が、弧のまわりが無地なら四角で隣の背景の色に塗り、無地でなければ弧だけを両隣の色でつないで塗る（11インチの縦の「むし」12枚で後者を使ったが、8枚に変えたので今は使わない）。目で全画像を見て、跡がないことを確かめた。
+- 撮ってから見た確認（全72枚の一覧と、各セットの原寸）: 切れているもの・空の画面・デバッグの文字・動きの途中はなし。残る「切れ」は、スクロールの画面が自然に切れているだけ（01-word の下の絵の列、11インチ横向きの 06-records の文字の地図の最下行）。
+- 見え方のメモ（アプリ側。今回は直さない）: 横向きの 06-records は、文字の地図が左に小さく寄って右が空き、成長アルバムは画面の外（下）にある。01-word は、電車の絵が小さく見える向き・大きさがある（11インチ横）。
+- ① 変身の途中の1コマ、④ 合わなかったときの声かけ、⑧ Pencil の絵は、引数で出せないので撮っていない。⑦ の購入画面（`-openParent purchase`）も撮っていない。
