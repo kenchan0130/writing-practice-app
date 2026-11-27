@@ -10,6 +10,8 @@ public enum ShelfGroup: String, Sendable, Hashable, CaseIterable {
   case swimmers
   /// こうえんの物。
   case park
+  /// まちの 季節の飾り（おまつりの はた の下）。
+  case festive
   /// キャラクターのいえの 棚・床・壁。
   case houseShelf
   case houseFloor
@@ -22,6 +24,7 @@ public enum ShelfGroup: String, Sendable, Hashable, CaseIterable {
     case .scenery: TownLayout.maxScenery
     case .swimmers: TownLayout.maxSwimmers
     case .park: TownLayout.maxPlaythings
+    case .festive: FestiveLayout.capacity
     case .houseShelf: HouseLayout.capacity(.shelf)
     case .houseFloor: HouseLayout.capacity(.floor)
     case .houseWall: HouseLayout.capacity(.wall)
@@ -29,7 +32,10 @@ public enum ShelfGroup: String, Sendable, Hashable, CaseIterable {
   }
 
   /// まちの おもちゃばこに入る場所。
-  public static let town: [ShelfGroup] = [.roaming, .scenery, .swimmers, .park]
+  public static let town: [ShelfGroup] = [.roaming, .scenery, .swimmers, .park, .festive]
+
+  /// 同じことばの物を いくつまで出すか（D74）。季節の飾りは増やさず、いちばん新しい 1つ。
+  public var perWord: Int { self == .festive ? 1 : 3 }
   /// いえの おもちゃばこに入る場所。
   public static let house: [ShelfGroup] = [.houseShelf, .houseFloor, .houseWall]
 
@@ -40,6 +46,7 @@ public enum ShelfGroup: String, Sendable, Hashable, CaseIterable {
     case .scenery: .scenery
     case .swimmer: .swimmers
     case .plaything: .park
+    case .seasonal: .festive
     case .furniture:
       switch HouseLayout.spot(for: word) {
       case .shelf: .houseShelf
@@ -79,7 +86,7 @@ public enum HouseUse: String, Sendable, Hashable, CaseIterable {
   case cook
   /// すわる（いす）。
   case sit
-  /// つくえに むかう（つくえ）。
+  /// つくえに むかう（つくえ）。ぶんぼうぐを つかう（えんぴつ・はさみ など）。
   case study
   /// じかんを みる（とけい）。
   case look
@@ -157,7 +164,7 @@ public enum HouseLayout {
     case "はし", "おわん", "おさら": .eat
     case "なべ", "やかん": .cook
     case "いす": .sit
-    case "つくえ": .study
+    case "つくえ", "えんぴつ", "はさみ", "のり", "ふでばこ", "じょうぎ", "えのぐ", "ふで", "ほん", "ねんど": .study
     case "とけい": .look
     case "ふとん": .sleep
     case "たんす": .tidy

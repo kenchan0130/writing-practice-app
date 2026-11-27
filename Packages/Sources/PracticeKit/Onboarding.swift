@@ -109,6 +109,7 @@ public enum Onboarding {
     case .plaything: "こま"
     case .bodyAction: "あし"
     case .furniture: "いす"
+    case .seasonal: "うちわ"
     }
   }
 }

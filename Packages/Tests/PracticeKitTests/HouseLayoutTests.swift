@@ -20,7 +20,7 @@ struct HouseLayoutTests {
 
   @Test("どの種類にも、置くことばがある。いえの物は、どれも使い方が決まっている")
   func everyWord() {
-    #expect(Self.words.count == 14)
+    #expect(Self.words.count == 23)
     for spot in HouseSpot.allCases {
       #expect(Self.words.contains { HouseLayout.spot(for: $0) == spot })
     }
@@ -33,6 +33,10 @@ struct HouseLayoutTests {
     #expect(HouseLayout.spot(for: "ふとん") == .floor)
     #expect(HouseLayout.spot(for: "なべ") == .shelf)
     #expect(HouseLayout.spot(for: "せっけん") == .shelf)
+    // ぶんぼうぐ（めぐり School2）は棚に置かれ、つくえに むかうときと同じ動きで使う。
+    #expect(HouseLayout.spot(for: "えんぴつ") == .shelf)
+    #expect(HouseLayout.use(for: "えんぴつ") == .study)
+    #expect(HouseLayout.use(for: "ねんど") == .study)
     // いえの物でないことばには、使い方がない。
     for entry in WordCatalog.all where entry.kind != .furniture {
       #expect(HouseLayout.use(for: entry.text) == nil, "\(entry.text)")

@@ -21,6 +21,7 @@ enum WordArt {
   private static let bodyColor = UIColor(red: 0.93, green: 0.45, blue: 0.5, alpha: 1)
   private static let skyColor = UIColor(red: 0.35, green: 0.55, blue: 0.9, alpha: 1)
   private static let furnitureColor = UIColor(red: 0.8, green: 0.55, blue: 0.3, alpha: 1)
+  private static let seasonalColor = UIColor(red: 0.9, green: 0.42, blue: 0.5, alpha: 1)
   private static let sceneryColor = UIColor(red: 0.4, green: 0.7, blue: 0.32, alpha: 1)
 
   private static let assets: [String: String] = baseAssets.merging(WordCatalog.batchArtNames) { $1 }
@@ -82,6 +83,7 @@ enum WordArt {
       case .plaything: playColor
       case .bodyAction: bodyColor
       case .furniture: furnitureColor
+      case .seasonal: seasonalColor
       }
     return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
   }
@@ -105,7 +107,7 @@ enum WordArt {
   static func flyerStyle(_ word: String) -> FlyerStyle {
     switch word {
     case "ひこうき": .plane
-    case "ききゅう": .balloon
+    case "ききゅう", "ひこうせん": .balloon
     default: .bird
     }
   }
@@ -143,25 +145,30 @@ enum WordArt {
     switch word {
     case "ぶらんこ": .swing
     case "すべりだい": .slide
-    case "こま": .top
+    case "こま", "かざぐるま": .top
     case "けんだま": .kendama
-    case "ふうせん": .balloon
-    case "にんぎょう": .doll
-    case "つみき": .blocks
+    case "ふうせん", "かみひこうき", "うきわ": .balloon
+    case "にんぎょう", "ぬいぐるみ": .doll
+    case "つみき", "おりがみ": .blocks
     case "たいこ": .drum
     case "ふえ": .flute
     case "すず": .bell
-    case "もっきん": .xylophone
+    case "もっきん", "てっきん", "こと": .xylophone
     case "なわとび": .rope
-    case "てつぼう": .bar
-    case "とびばこ": .box
+    case "てつぼう", "うんてい", "たけうま", "つなひき": .bar
+    case "とびばこ", "たまいれ": .box
     default: .sandbox
     }
   }
 
   /// 景色になる物のうち、風でゆれる物（花・草・木・はっぱ）。ほかは、ぽんと出て ひとはずみする（D168・D174）。
   static func sways(_ word: String) -> Bool {
-    ["さくら", "ひまわり", "たんぽぽ", "あさがお", "ばら", "くさ", "まつ", "はっぱ"].contains(word)
+    [
+      "さくら", "ひまわり", "たんぽぽ", "あさがお", "ばら", "くさ", "まつ", "はっぱ",
+      // めぐり food2（D189）の 花・木・草。
+      "あじさい", "すみれ", "ゆり", "つばき", "うめ", "なのはな", "すいせん",
+      "き", "たけ", "もみじ", "いちょう", "つくし", "もり",
+    ].contains(word)
   }
 
   /// 大きな景色（D174）の倍率。丘と草の境目に立ち、背景の木・家と同じ奥に描く。

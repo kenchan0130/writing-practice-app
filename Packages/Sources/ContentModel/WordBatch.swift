@@ -35,7 +35,10 @@ public struct WordBatch: Sendable {
 
   /// めぐりの一覧。**ここが共有する唯一の行**。新しいめぐりは、1行足すだけ（足す順がことばの順）。
   public static let all: [WordBatch] = [
-    .base
+    .base,
+    .animals2,
+    .school2,
+    .food2,
   ]
 
   /// 今までのことば（`WordCatalog`・`WordMap`・`WordNotes`・`WordSeason` に書いてある分）。

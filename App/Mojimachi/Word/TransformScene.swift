@@ -106,6 +106,7 @@ final class TransformScene: SKScene {
     case .plaything: play(object)
     case .bodyAction: show(object)
     case .furniture: furnish(object)
+    case .seasonal: decorate(object)
     }
   }
 
@@ -692,6 +693,125 @@ final class TransformScene: SKScene {
       sprite.run(.group([pop, hop]))
     }
     run(.wait(forDuration: 2.5)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 季節の飾りの型: まちの丘と草の上に「おまつりの はた」がわたり、飾りが その下で ゆれる（§3.4）。
+  /// つるす物は ひもの下で ゆれ、立てる物は草の上に ぽんと立ち、空の物（はなび）は ふわっと ひらく。
+  /// 背景は全体をおおうので、下の書く場所の枠が すけない。
+  private func decorate(_ object: SKNode) {
+    guard let sprite = object as? SKSpriteNode else { return }
+    let reduce = UIAccessibility.isReduceMotionEnabled
+    let style = FestiveLayout.style(for: word) ?? .stand
+    let side = sprite.size.height
+    let base = sprite.position.y - side / 2
+    addSceneryBackground(groundY: base, side: side, reduceMotion: reduce)
+    // はた: 絵の上を、左右のはしから たるんで わたる。
+    let ropeMid = min(sprite.position.y + side * 0.56, size.height - side * 0.12)
+    let garland = festiveGarland(midY: ropeMid, rise: side * 0.16)
+    garland.zPosition = -10
+    garland.alpha = 0
+    addChild(garland)
+    garland.run(.sequence([.wait(forDuration: 0.15), .fadeIn(withDuration: reduce ? 0.3 : 0.5)]))
+    let motion = FestiveLayout.motion(style, reduceMotion: reduce)
+    switch style {
+    case .hang:
+      // 上のはしを支点にして、ひもから つるす。
+      let top = sprite.position.y + side * 0.46
+      sprite.anchorPoint = CGPoint(x: 0.5, y: 0.96)
+      sprite.position = CGPoint(x: sprite.position.x, y: top)
+      let string = SKShapeNode(
+        rect: CGRect(x: -2, y: 0, width: 4, height: max(ropeMid - top, 0) + side * 0.04))
+      string.fillColor = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)
+      string.strokeColor = .clear
+      string.zPosition = -1
+      sprite.addChild(string)
+    case .stand:
+      sprite.anchorPoint = CGPoint(x: 0.5, y: 0)
+      sprite.position = CGPoint(x: sprite.position.x, y: base)
+      if !reduce {
+        sprite.setScale(0.5)
+        let pop = SKAction.sequence([
+          .scale(to: 1.15, duration: 0.2), .scale(to: 0.95, duration: 0.12),
+          .scale(to: 1.0, duration: 0.1),
+        ])
+        sprite.run(pop)
+      }
+    case .sky:
+      if !reduce {
+        sprite.setScale(0.4)
+        let open = SKAction.scale(to: 1, duration: 0.5)
+        open.timingMode = .easeOut
+        sprite.run(open)
+      }
+    }
+    if let motion {
+      // はじめの動きが終わってから、ゆっくり ゆれる（まちと同じ ゆれ方。変身では すこし大きく）。
+      var loop: [SKAction] = []
+      if motion.angle > 0 {
+        let angle = CGFloat(motion.angle) * 1.6
+        loop = [
+          .rotate(toAngle: angle, duration: motion.period / 5),
+          .rotate(toAngle: -angle, duration: motion.period / 2.5),
+          .rotate(toAngle: 0, duration: motion.period / 5),
+        ]
+      } else if motion.pulse > 0 {
+        loop = [
+          .scale(to: 1 + CGFloat(motion.pulse), duration: motion.period / 2),
+          .scale(to: 1 - CGFloat(motion.pulse), duration: motion.period / 2),
+        ]
+      }
+      for action in loop { action.timingMode = .easeInEaseOut }
+      if !loop.isEmpty {
+        sprite.run(.sequence([.wait(forDuration: 0.6), .repeatForever(.sequence(loop))]))
+      }
+    }
+    run(.wait(forDuration: 3.0)) { [weak self] in self?.onFinished?() }
+  }
+
+  /// 変身の画面にわたす はた（ひもと三角の旗）。`midY` が いちばん低いところ、両はしは `rise` だけ高い。
+  private func festiveGarland(midY: CGFloat, rise: CGFloat) -> SKNode {
+    let w = size.width
+    let outline = UIColor(red: 0.29, green: 0.204, blue: 0.157, alpha: 1)
+    let node = SKNode()
+    func y(_ t: CGFloat) -> CGFloat { midY + rise * (2 * t - 1) * (2 * t - 1) }
+    let rope = CGMutablePath()
+    let steps = 24
+    for step in 0...steps {
+      let t = CGFloat(step) / CGFloat(steps)
+      let point = CGPoint(x: -20 + (w + 40) * t, y: y(t))
+      if step == 0 { rope.move(to: point) } else { rope.addLine(to: point) }
+    }
+    let line = SKShapeNode(path: rope)
+    line.strokeColor = outline
+    line.lineWidth = 5
+    line.lineJoin = .round
+    node.addChild(line)
+    let colors = [
+      UIColor(red: 0.9, green: 0.33, blue: 0.29, alpha: 1), UIColor(red: 0.97, green: 0.79, blue: 0.28, alpha: 1),
+      UIColor(red: 0.49, green: 0.76, blue: 0.42, alpha: 1), UIColor(red: 0.31, green: 0.66, blue: 0.88, alpha: 1),
+      UIColor(red: 0.97, green: 0.66, blue: 0.7, alpha: 1),
+    ]
+    let unit = min(w, size.height)
+    let flagWidth = unit * 0.07
+    let flagHeight = unit * 0.09
+    let count = 9
+    for index in 0..<count where index != count / 2 {
+      // 真ん中（絵の真上）は あける。
+      let t = (CGFloat(index) + 0.5) / CGFloat(count)
+      let top = CGPoint(x: -20 + (w + 40) * t, y: y(t) - 2)
+      let path = CGMutablePath()
+      path.move(to: CGPoint(x: top.x - flagWidth / 2, y: top.y))
+      path.addLine(to: CGPoint(x: top.x + flagWidth / 2, y: top.y))
+      path.addLine(to: CGPoint(x: top.x, y: top.y - flagHeight))
+      path.closeSubpath()
+      let flag = SKShapeNode(path: path)
+      flag.fillColor = colors[index % colors.count]
+      flag.strokeColor = outline
+      flag.lineWidth = 4
+      flag.lineJoin = .round
+      node.addChild(flag)
+    }
+    return node
   }
 
   /// 景色の変身の背景（D174）。空のグラデーション・丘・草。全体をおおうので、下の書く場所の枠が すけない。
