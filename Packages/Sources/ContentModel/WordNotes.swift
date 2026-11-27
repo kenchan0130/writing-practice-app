@@ -7,7 +7,7 @@ public enum WordNotes {
   public static let maxLength = 28
 
   /// ことば → ひとこと説明。
-  public static let all: [String: String] = [
+  static let baseNotes: [String: String] = [
     // のりもの
     "そり": "そりは ゆきの うえを すべるよ",
     "くるま": "くるまは タイヤで はしるよ",
@@ -175,6 +175,11 @@ public enum WordNotes {
     "くし": "くしは かみのけを とかす どうぐだよ",
     "かがみ": "かがみは じぶんの かおを うつすよ",
   ]
+
+  /// 土台と、足しためぐりの説明（同じことばがあれば、後のめぐりが勝つ。テストで重なりを許さない）。
+  public static let all: [String: String] = WordBatch.all.reduce(into: [:]) {
+    $0.merge($1.notes) { $1 }
+  }
 
   /// そのことばの説明。なければ nil（その場合、ずかんは説明を読まない）。
   public static func note(for word: String) -> String? { all[word] }

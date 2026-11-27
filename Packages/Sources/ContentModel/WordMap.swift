@@ -69,7 +69,8 @@ public enum WordMap {
   /// 1画面に出すことばの数の上限（D53）。
   public static let maxWordsPerTheme = 12
 
-  public static let themes: [WordTheme] = [
+  /// テーマの並び（ことばは土台だけ）。ことばを足すときは、ここではなく `WordBatches/` の中に書く。
+  static let baseThemes: [WordTheme] = [
     WordTheme(
       "norimono", "のりもの", in: "eki",
       words: ["でんしゃ", "しんかんせん", "ふね", "くるま", "じてんしゃ", "そり", "いかだ"]),
@@ -136,6 +137,14 @@ public enum WordMap {
     WordTheme("haru-natsu-gyoji", "はる・なつの ぎょうじ", in: "kisetsu"),
     WordTheme("aki-fuyu-gyoji", "あき・ふゆの ぎょうじ", in: "kisetsu"),
   ]
+
+  /// 土台のことばの後ろに、めぐり（`WordBatch.all`）のことばを順に足したテーマ。
+  public static let themes: [WordTheme] = baseThemes.map { theme in
+    let extra = WordBatch.all.flatMap { $0.themeWords[theme.id] ?? [] }
+    guard !extra.isEmpty else { return theme }
+    return WordTheme(
+      theme.id, theme.name, in: theme.placeID, row: theme.row, words: theme.words + extra)
+  }
 
   public static func place(id: String) -> Place? { places.first { $0.id == id } }
   public static func theme(id: String) -> WordTheme? { themes.first { $0.id == id } }

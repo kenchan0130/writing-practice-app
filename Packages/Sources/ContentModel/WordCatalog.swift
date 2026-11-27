@@ -35,7 +35,8 @@ public struct WordEntry: Sendable, Hashable {
 
 /// M0 後半の約20語（D78）に、D167 で14語、D168 で14語、D169 で18語、D170 で13語、D172 で10語、D173 で15語、D174 で18語、D175 で8語、D178 で10語、D185 で14語を足した。
 public enum WordCatalog {
-  public static let all: [WordEntry] =
+  /// 土台のことば（`WordBatch.base`）。新しいことばは、ここではなく `WordBatches/` の中に足す。
+  static let baseEntries: [WordEntry] =
     ["そり", "くるま", "ふね", "でんしゃ", "じてんしゃ", "しんかんせん", "いかだ", "しょうぼうしゃ", "きゅうきゅうしゃ"].map {
       WordEntry($0, .vehicle)
     }
@@ -82,8 +83,20 @@ public enum WordCatalog {
       "せっけん", "はぶらし", "くし", "かがみ",
     ].map { WordEntry($0, .furniture) }
 
+  /// 土台と、足しためぐり（`WordBatch.all`）のことばを、その順につないだもの。
+  public static let all: [WordEntry] = WordBatch.all.flatMap(\.entries)
+
+  /// めぐりで足したことばの絵の名前（土台の分は、アプリの `WordArt` にある）。
+  public static let batchArtNames: [String: String] = WordBatch.all.reduce(into: [:]) {
+    $0.merge($1.artNames) { $1 }
+  }
+
+  static let baseCrawlers: Set<String> = ["かぶとむし", "てんとうむし", "かたつむり"]
+
   /// はねずに、ゆっくり はう物（D169）。まちでは はずまず ゆっくり歩き、変身のあとも ゆっくり進む。
-  public static let crawlers: Set<String> = ["かぶとむし", "てんとうむし", "かたつむり"]
+  public static let crawlers: Set<String> = WordBatch.all.reduce(into: []) {
+    $0.formUnion($1.crawlers)
+  }
 
   public static func crawls(_ text: String) -> Bool { crawlers.contains(text) }
 
