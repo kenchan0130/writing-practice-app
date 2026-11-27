@@ -13,9 +13,9 @@
 - `make build` / `make lint` / `make format`
 - `make app-test`: アプリの単体テストと、購入・押して画面を行き来する流れ（XCUITest。`App/MojimachiUITests`）を、iPad のシミュレータで確かめる。ビルドは `make app-build-for-testing`（`build/DerivedData`）で一度だけ。UI テストは並列（`APP_TEST_WORKERS`、既定2）、15分で打ち切る。`SIM=<udid>` でシミュレータを選べる。一部だけなら `make app-test-ui ONLY=FlowWordUITests`。StoreKit の試し用の設定は `App/Mojimachi.storekit`（Mac だけ。CI では動かさない。ビルドを入れて約4〜5分、ビルド済みなら約3分（機械が空いていればもっと短い。単体テストと UI テストが全部通る））
 - `make content-check`: 文字のデータを確かめる（画数が教科書と合うか など）。
-- `make judge-report`: 判定の部品ができたら実装する。
+- `make judge-report`: 判定の効き方を、わざと崩した線で表にする（ひらがな・カタカナ・アルファベット。D192）。
 - KanjiVG との照らし合わせ: `python3 -I Scripts/compare_kanjivg.py <KanjiVG の kanji フォルダ> Content/Packs/hira Content/Packs/hira/kanjivg-check.md`（カタカナは `kata`。データを作り直したら必ず動かす）
-- 文字のデータの作り直し: `python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> Content/Packs/hira <コミット> hira`（カタカナは `dist/katakana` と `Content/Packs/kata`、最後を `kata`）。続けて `python3 -I Scripts/make_small_kana.py Content/Packs`（っ・ッ）と `python3 -I Scripts/set_endings.py Content/Packs/hira`（終わり方の下書き）を動かす。
+- 文字のデータの作り直し: `python3 -I Scripts/import_strokesvg.py <strokesvg の dist/hiragana> Content/Packs/hira <コミット> hira`（カタカナは `dist/katakana` と `Content/Packs/kata`、最後を `kata`）。続けて `python3 -I Scripts/make_small_kana.py Content/Packs`（っ・ッ）、`python3 -I Scripts/set_endings.py Content/Packs/hira`（終わり方の下書き）、`python3 -I Scripts/set_mirror_check.py Content/Packs`（ー・ニは鏡の字を見ない）を動かす。
 
 ## 作り（D104・D105・D109）
 

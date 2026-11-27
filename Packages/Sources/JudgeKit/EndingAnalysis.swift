@@ -17,12 +17,9 @@ public enum EndingAnalysis {
       lengths.firstIndex { $0 >= total * ratio } ?? line.count - 1
     }
 
-    // はね: 終わり近くで、向きが急に変わる（D107 ⑤ の「向き」）。
-    let bodyStart = line[index(at: 0.7)]
-    let bend = line[index(at: 0.9)]
-    let tip = line[line.count - 1]
-    let hookLength = bend.distance(to: tip)
-    if hookLength >= 15, turnAngle(bodyStart, bend, tip) > 70 { return .hane }
+    // はね: 終わり近くに、向きが急に変わるかどが1つある（D107 ⑤ の「向き」）。
+    // かどの前後を同じ長さの窓で見て、終わり近く（35%、マスで 260 まで）でいちばん曲がったところを探す。
+    if hookTurn(line, lengths: lengths) > Self.haneTurnDegrees { return .hane }
 
     // とめ・はらい: 終わり約15% の速さを、なかほどの速さと比べる（D107 ⑤ の「速さ」）。
     let mid = speed(from: index(at: 0.3), to: index(at: 0.7), lengths: lengths, times: times)
@@ -54,6 +51,46 @@ public enum EndingAnalysis {
     return zip(model, written).allSatisfy { expected, actual in
       expected == nil || expected == actual
     }
+  }
+
+  /// はねと見なす、かどの前後の向きの違い（度）。実機で合わせる（D192）。
+  static let haneTurnDegrees = 70.0
+  /// かどから先の はね の長さの下限（ペンを離すときの短い跳ね上がりを はね にしない。D192）。
+  static let minimumHook = 40.0
+
+  /// 終わり近くのかどの曲がり具合（度）。かどの前後を同じ長さの窓で見るので、
+  /// ゆるやかなカーブ（つ・の・る の丸み）は小さく、はねのかどは大きくなる。
+  static func hookTurn(_ line: Polyline, lengths: [Double], window givenWindow: Double? = nil)
+    -> Double
+  {
+    let total = lengths.last!
+    let window = givenWindow ?? min(40, max(20, total * 0.05))
+    func point(at distance: Double) -> Point {
+      let s = max(0, min(total, distance))
+      let i = lengths.firstIndex { $0 >= s } ?? line.count - 1
+      guard i > 0 else { return line[0] }
+      let span = lengths[i] - lengths[i - 1]
+      guard span > 0 else { return line[i] }
+      let t = (s - lengths[i - 1]) / span
+      return line[i - 1] + (line[i] - line[i - 1]) * t
+    }
+    let tip = line[line.count - 1]
+    var best = 0.0
+    // はねのかどから先は短い（マス 0〜1000 で 260 まで）。長い画の途中のかどは、はねにしない。
+    var s = total - min(260, total * 0.35)
+    let step = max(3, total * 0.01)
+    while s <= total - 15 {
+      let corner = point(at: s)
+      let before = point(at: s - window)
+      let after = point(at: min(total, s + window))
+      if corner.distance(to: before) >= window * 0.7, corner.distance(to: after) >= 12,
+        corner.distance(to: tip) >= Self.minimumHook
+      {
+        best = max(best, turnAngle(before, corner, after))
+      }
+      s += step
+    }
+    return best
   }
 
   private static func speed(from a: Int, to b: Int, lengths: [Double], times: [Double]) -> Double? {

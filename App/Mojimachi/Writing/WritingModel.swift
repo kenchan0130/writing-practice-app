@@ -70,6 +70,8 @@ final class WritingModel {
   /// 次の字へ自動で進むまでの秒数（D154）。
   static let autoAdvanceSeconds = 1.5
   private var replayTask: Task<Void, Never>?
+  /// 終わり方のヒントを出したときに、読めるよう足して待つ秒数（D192）。
+  static let endingHintExtraSeconds = 1.5
   private var advanceTask: Task<Void, Never>?
   private var onboardingFinishTask: Task<Void, Never>?
   /// 判定のおまかせ設定（保護者用の画面と共通。D22）。
@@ -111,7 +113,7 @@ final class WritingModel {
     } else if let start, let startScript = KanaTable.script(of: start) {
       let entitlements = PurchaseStore.shared.entitlements
       script = startScript
-      sequence = KanaTable.all(startScript).filter {
+      sequence = KanaTable.practiceOrder(startScript).filter {
         entitlements.canWrite($0, in: startScript.entitlementScript)
       }
       characterIndex = sequence.firstIndex(of: start) ?? 0
@@ -231,7 +233,7 @@ final class WritingModel {
     finish()
   }
 
-  private func scheduleAutoAdvance() {
+  private func scheduleAutoAdvance(extra: Double = 0) {
     cancelAutoAdvance()
     #if DEBUG
       // 確かめ用: `-freezeCelebration YES` で、ごほうびの画面を止めたままにする。
@@ -247,7 +249,7 @@ final class WritingModel {
       return
     }
     advanceTask = Task { [weak self] in
-      try? await Task.sleep(for: .seconds(Self.autoAdvanceSeconds))
+      try? await Task.sleep(for: .seconds(Self.autoAdvanceSeconds + extra))
       guard !Task.isCancelled, let self else { return }
       self.nextCharacter()
     }
@@ -394,12 +396,11 @@ final class WritingModel {
           record(stage: stage, passed: !rescued, rescued: rescued, issues: result?.issues ?? [])
         }
         if !rescued, step == .jibunde, let mismatch = endingMismatch() {
-          // 終わり方がお手本と違うときは、はなまるにしない（合否は変えない。D145）。
-          if rating == .hanamaru { finishedRating = .nijumaru }
+          // 終わり方がお手本と違うときは、やさしいヒントだけ出す。実機で合わせるまでは、
+          // はなまるは下げず、自動で進むのも止めない（読めるよう少し長く待つ。D192）。
           if store.showsEndingHints { endingHint = mismatch }
         }
-        // 終わり方のヒントを出すときは、読めるように自動では進まない（D154）。
-        if endingHint == nil { scheduleAutoAdvance() }
+        scheduleAutoAdvance(extra: endingHint == nil ? 0 : Self.endingHintExtraSeconds)
       }
     }
   }
@@ -483,7 +484,6 @@ final class WritingModel {
   ) {
     guard let character else { return }
     var reasons = issues.map(RecordMapping.reason)
-    if passed, endingMismatch() != nil { reasons.append(.ending) }
     store.record(
       CharacterRecord(
         date: Date(), characterID: character.id, stage: stage, passed: passed, rescued: rescued,
@@ -541,8 +541,11 @@ final class WritingModel {
 
   /// ④ で合格したとき、終わり方がお手本と違う最初の画を探す（D145）。
   /// 分けた線・つなげた線は画の対応がずれるので出さない。
+  /// アルファベット・数字には出さない（D145）。お手本に終わり方が決まっていない画は見ない。
   private func endingMismatch() -> EndingHint? {
-    guard let character, result?.splitOrJoined != true, result?.usedAlternate != true else {
+    guard script != .abc, let character, result?.splitOrJoined != true,
+      result?.usedAlternate != true
+    else {
       return nil
     }
     let model = character.strokes.map(\.end)

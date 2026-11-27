@@ -174,4 +174,20 @@ struct KanaRowTests {
     #expect(KanaTable.row(of: "そ", script: .hiragana)?.head == "さ")
     #expect(KanaTable.row(of: "ョ", script: .katakana)?.characters.contains("ー") == true)
   }
+
+  @Test("次の字へ進む順は、あいうえお・かきくけこ…の順（D192）")
+  func practiceOrder() {
+    let hira = String(KanaTable.practiceOrder(.hiragana))
+    #expect(hira.hasPrefix("あいうえおかきくけこさしすせそ"))
+    #expect(hira.contains("やゆよらりるれろわ"))
+    #expect(hira.hasSuffix("ぁぃぅぇぉっゃゅょ"))
+    #expect(String(KanaTable.practiceOrder(.katakana)).hasPrefix("アイウエオカキクケコ"))
+    let abc = String(KanaTable.practiceOrder(.abc))
+    #expect(abc.hasPrefix("ABCDEFG"))
+    #expect(abc.hasSuffix("0123456789"))
+    for script in KanaScript.allCases {
+      #expect(Set(KanaTable.practiceOrder(script)) == Set(KanaTable.all(script)))
+      #expect(KanaTable.practiceOrder(script).count == KanaTable.all(script).count)
+    }
+  }
 }

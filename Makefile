@@ -50,7 +50,7 @@ lint: ## swift-format で書式を確かめる
 
 .PHONY: judge-report
 judge-report: ## 判定の効き方を、わざと崩した線で表にする（D79・D107。正解の付いた線が集まったらそれも足す）
-	swift run --package-path $(PACKAGES) JudgeReport Content/Packs/hira
+	swift run --package-path $(PACKAGES) JudgeReport Content/Packs/hira Content/Packs/kata Content/Packs/abc
 
 .PHONY: shiritori-report
 shiritori-report: ## しりとりの字ごとのことばの数と、行き止まりの字を出す（D70）

@@ -118,6 +118,12 @@ public enum KanaTable {
     return main(script).characters + dakuon(script).characters + small(script).characters
   }
 
+  /// 書く画面で次の字へ進む順（D192）。あ行から わ行（あいうえお、かきくけこ…）→ 濁音・半濁音 → 小さい字。
+  /// `all` は表の見た目の順（上の段から）なので、進む順には使わない。アルファベットは A〜Z、a〜z、0〜9。
+  public static func practiceOrder(_ script: KanaScript) -> [Character] {
+    rows(script).flatMap(\.characters)
+  }
+
   /// 文字のデータの ID（例: そ → `hira.305d`）。
   public static func characterID(_ char: Character, script: KanaScript) -> String? {
     guard let scalar = char.unicodeScalars.first else { return nil }

@@ -1,4 +1,5 @@
 import ContentModel
+import Foundation
 import Testing
 
 @testable import JudgeKit
@@ -57,5 +58,83 @@ struct EndingAnalysisTests {
     #expect(EndingAnalysis.allMatch(model: model, written: [.hane, .tome, .harai]))
     #expect(!EndingAnalysis.allMatch(model: model, written: [.hane, .tome, nil]))
     #expect(!EndingAnalysis.allMatch(model: [nil], written: [.tome]))
+  }
+
+  /// パックのフォルダの字（`hira`・`kata`・`abc`）。
+  static func pack(_ name: String) -> [CharacterData] {
+    let directory = JudgeTests.packDirectory.deletingLastPathComponent()
+      .appendingPathComponent(name)
+    let files =
+      (try? FileManager.default.contentsOfDirectory(
+        at: directory, includingPropertiesForKeys: nil)) ?? []
+    return files.filter { $0.lastPathComponent.hasPrefix("\(name).") && $0.pathExtension == "json" }
+      .sorted { $0.lastPathComponent < $1.lastPathComponent }
+      .compactMap { try? JSONDecoder().decode(CharacterData.self, from: Data(contentsOf: $0)) }
+  }
+
+  /// お手本の1画を、その終わり方らしい速さで書いたことにした（線の点と時刻）。
+  /// とめは終わり15%で速さを落とし、それ以外は一定の速さ。
+  static func written(_ stroke: CharacterData.Stroke) -> (Polyline, [Double]) {
+    let line = stroke.centerlinePoints()
+    var times = [0.0]
+    var walked = 0.0
+    let total = zip(line, line.dropFirst()).reduce(0) { $0 + $1.0.distance(to: $1.1) }
+    for (a, b) in zip(line, line.dropFirst()) {
+      walked += a.distance(to: b)
+      let slow = stroke.end == .tome && walked > total * 0.85
+      times.append(times.last! + a.distance(to: b) / 1000 * (slow ? 5 : 1))
+    }
+    return (line, times)
+  }
+
+  @Test("お手本の画をそのまま書くと、字のデータに決めてある終わり方に読める（ひらがな）")
+  func modelStrokesReadAsTheirOwnEnding() {
+    var checked = 0
+    for data in Self.pack("hira") {
+      for (index, stroke) in data.strokes.enumerated() {
+        guard let expected = stroke.end else { continue }
+        let (line, times) = Self.written(stroke)
+        let actual = EndingAnalysis.classify(line, times: times)
+        #expect(
+          actual == expected,
+          "\(data.char) \(index + 1)画: \(expected) が \(String(describing: actual)) に読めた")
+        checked += 1
+      }
+    }
+    #expect(checked >= 50)
+  }
+
+  @Test("はねではない画（終わり方が決まっているもの）を、はねと読まない（ひらがな）")
+  func noFalseHane() {
+    for data in Self.pack("hira") {
+      for (index, stroke) in data.strokes.enumerated()
+      where stroke.end == .tome || stroke.end == .harai {
+        let (line, times) = Self.written(stroke)
+        #expect(EndingAnalysis.classify(line, times: times) != .hane, "\(data.char) \(index + 1)画")
+      }
+    }
+  }
+
+  @Test("お手本どおりに書けば、ヒントは出ない（ひらがな・カタカナ）")
+  func modelWritingGetsNoHint() {
+    for name in ["hira", "kata"] {
+      for data in Self.pack(name) {
+        let model = data.strokes.map(\.end)
+        let written = data.strokes.map { stroke -> CharacterData.Ending? in
+          let (line, times) = Self.written(stroke)
+          return EndingAnalysis.classify(line, times: times)
+        }
+        #expect(EndingAnalysis.hintStroke(model: model, written: written) == nil, "\(data.char)")
+      }
+    }
+  }
+
+  @Test("終わり方が決まっていない字（カタカナ）には、ヒントが出ない")
+  func noHintWithoutEndingData() {
+    for data in Self.pack("kata") {
+      let model = data.strokes.map(\.end)
+      let written = [CharacterData.Ending?](repeating: .tome, count: model.count)
+      #expect(EndingAnalysis.hintStroke(model: model, written: written) == nil, "\(data.char)")
+    }
   }
 }
