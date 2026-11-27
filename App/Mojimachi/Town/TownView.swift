@@ -21,8 +21,11 @@ struct TownView: View {
   /// まちの看板（「ゆうとの まち」。呼び名がなければ「わたしの まち」。§3.9）。
   private var title: String {
     let name = store.currentProfile?.name.trimmingCharacters(in: .whitespaces) ?? ""
-    let base = scene.layer == .closet ? "クローゼット" : "まち"
-    return name.isEmpty ? (scene.layer == .closet ? "わたしの クローゼット" : "わたしの まち") : "\(name)の \(base)"
+    let isCloset = scene.layer == .closet
+    if name.isEmpty {
+      return isCloset ? String(localized: "わたしの クローゼット") : String(localized: "わたしの まち")
+    }
+    return isCloset ? String(localized: "\(name)の クローゼット") : String(localized: "\(name)の まち")
   }
 
   /// 空のことばを書いた記録（まちの空が しばらく変わる。D172）。

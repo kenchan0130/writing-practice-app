@@ -1,0 +1,2947 @@
+{
+  "sourceLanguage": "ja",
+  "strings": {
+    "%@、%@": {
+      "shouldTranslate": false
+    },
+    "%@、こんにちは！": {
+      "shouldTranslate": false
+    },
+    "%@が、%@をやりたがっています（%@）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ wants to try %2$@ (%3$@)"
+          }
+        }
+      }
+    },
+    "%@の いえ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@'s House"
+          }
+        }
+      }
+    },
+    "%@の ことば %@": {
+      "shouldTranslate": false
+    },
+    "%@の まち": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@'s Town"
+          }
+        }
+      }
+    },
+    "%@の クローゼット": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@'s Closet"
+          }
+        }
+      }
+    },
+    "%@の音量": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ volume"
+          }
+        }
+      }
+    },
+    "%@を だす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take out %@"
+          }
+        }
+      }
+    },
+    "%lld": {
+      "shouldTranslate": false
+    },
+    "%lld / %lld": {
+      "shouldTranslate": false
+    },
+    "%lld 件": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld record"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld records"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld 字": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld letters"
+          }
+        }
+      }
+    },
+    "%lld 字・ことば %lld 個・%lld 日": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters: %1$lld · Words: %2$lld · Days: %3$lld"
+          }
+        }
+      }
+    },
+    "%lld 秒待ってから試してください": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Wait %lld second, then try again."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Wait %lld seconds, then try again."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lldかく のうち %lldかく": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%2$lld of %1$lld strokes done"
+          }
+        }
+      }
+    },
+    "3秒長押しで実行します": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press and hold for 3 seconds to do this"
+          }
+        }
+      }
+    },
+    "6人まで登録できます。記録は子どもごとに分けて保存します。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can add up to 6 children. Records are kept separately for each child."
+          }
+        }
+      }
+    },
+    "ABC・数字": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ABC & Numbers"
+          }
+        }
+      }
+    },
+    "OK": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "iCloud": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud"
+          }
+        }
+      }
+    },
+    "iCloud で同期": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync with iCloud"
+          }
+        }
+      }
+    },
+    "iCloud との同期がうまくいっていません。しばらくしてからもう一度試します。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Syncing with iCloud is not working right now. The app will try again later."
+          }
+        }
+      }
+    },
+    "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are not signed in to iCloud, so syncing is off. Sign in from the Settings app."
+          }
+        }
+      }
+    },
+    "iCloud に保存する": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to iCloud"
+          }
+        }
+      }
+    },
+    "iCloud のデータを消しました。この iPad の同期はオフです。この iPad の記録は残っています。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The iCloud data was deleted. Syncing is off on this iPad. The records on this iPad are still here."
+          }
+        }
+      }
+    },
+    "iCloud のデータを消す": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete iCloud data"
+          }
+        }
+      }
+    },
+    "iCloud のデータを消せませんでした。しばらくしてからもう一度試してください。この iPad の同期はオフです。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The iCloud data could not be deleted. Please try again later. Syncing is off on this iPad."
+          }
+        }
+      }
+    },
+    "iCloud の空き容量が足りないため、同期できません。記録はこの iPad に保存しています。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There is not enough iCloud storage to sync. Records are saved on this iPad."
+          }
+        }
+      }
+    },
+    "iPad のパスコードも求める": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Also ask for the iPad passcode"
+          }
+        }
+      }
+    },
+    "iPad の確認ができませんでした": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The iPad could not confirm it was you"
+          }
+        }
+      }
+    },
+    "① みる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "① Watch"
+          }
+        }
+      }
+    },
+    "② なぞる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "② Trace"
+          }
+        }
+      }
+    },
+    "③ うすく": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "③ Faint"
+          }
+        }
+      }
+    },
+    "④ じぶんで": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "④ On your own"
+          }
+        }
+      }
+    },
+    "「%@」から はじまる ことば": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words that start with \"%@\""
+          }
+        }
+      }
+    },
+    "「%@」を書いた動き": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How \"%@\" was written"
+          }
+        }
+      }
+    },
+    "あとで設定する": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up later"
+          }
+        }
+      }
+    },
+    "いえ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "House"
+          }
+        }
+      }
+    },
+    "いえの なか": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inside the house"
+          }
+        }
+      }
+    },
+    "いえを みる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See the house"
+          }
+        }
+      }
+    },
+    "いこう！": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let's go!"
+          }
+        }
+      }
+    },
+    "いちばんやさしい判定です。線を分けて書いても、つなげて書いても、形が合えば合格にします。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The gentlest setting. If the shape matches, it passes, whether the strokes are written separately or joined."
+          }
+        }
+      }
+    },
+    "いちばん厳しい判定です。形を細かく見て、画数の違いも合格にしません。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The strictest setting. It checks the shape closely, and a different number of strokes does not pass."
+          }
+        }
+      }
+    },
+    "いつも使う子": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Main child"
+          }
+        }
+      }
+    },
+    "いつも使う子にする": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make main child"
+          }
+        }
+      }
+    },
+    "いまある文字と、これから追加する文字が、すべて使えます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write every letter available now, and every letter added in the future."
+          }
+        }
+      }
+    },
+    "いまは からっぽだよ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "It's empty right now"
+          }
+        }
+      }
+    },
+    "おうちへ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go home"
+          }
+        }
+      }
+    },
+    "おおもじ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capitals"
+          }
+        }
+      }
+    },
+    "おとなのひとと いっしょに はじめてね": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start together with a grown-up"
+          }
+        }
+      }
+    },
+    "おとなのひとに おねがいする": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask a grown-up"
+          }
+        }
+      }
+    },
+    "おもちゃばこ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toy Box"
+          }
+        }
+      }
+    },
+    "お問い合わせのフォームを開きます。アプリの版や iPad の情報は、こちらからは送りません。必要なときだけ、下の文を長押しでコピーして書き足してください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This opens a contact form (the form is in Japanese; English is welcome). The app does not send the app version or iPad details. If you need to, press and hold the text below to copy it and add it to your message."
+          }
+        }
+      }
+    },
+    "お子さま": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your child"
+          }
+        }
+      }
+    },
+    "お子さまからのおねがい": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requests from your child"
+          }
+        }
+      }
+    },
+    "お子さまが鍵のかかった文字を見て、おとなにおねがいしました。購入するかどうかは、保護者の方が決めてください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your child saw a locked letter and asked a grown-up. Whether to buy is up to you."
+          }
+        }
+      }
+    },
+    "お子さまの指や顔が iPad に登録されていると、お子さまでも通れます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If your child's fingerprint or face is registered on this iPad, your child may also get through."
+          }
+        }
+      }
+    },
+    "お子さんが間違って開かないように、かけ算の確認があります。学習記録や判定の変更は、ここから行います。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A multiplication question keeps children from opening it by accident. You can see learning records and change judging here."
+          }
+        }
+      }
+    },
+    "お子さんに iPad をわたしてください": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please hand the iPad to your child"
+          }
+        }
+      }
+    },
+    "お手本の速さ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model speed"
+          }
+        }
+      }
+    },
+    "お試し": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trial"
+          }
+        }
+      }
+    },
+    "お試しで書けるもの": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What you can write in the trial"
+          }
+        }
+      }
+    },
+    "かいて みよう": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Let's write it!"
+          }
+        }
+      }
+    },
+    "かく": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write"
+          }
+        }
+      }
+    },
+    "きっちり": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strict"
+          }
+        }
+      }
+    },
+    "きょうの ことば": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word of the Day"
+          }
+        }
+      }
+    },
+    "きょうの もくひょう": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's goal"
+          }
+        }
+      }
+    },
+    "ここからは、お子さんが自分で進めます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From here, your child can go on alone."
+          }
+        }
+      }
+    },
+    "ことば": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words"
+          }
+        }
+      }
+    },
+    "ことばを さがす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find words"
+          }
+        }
+      }
+    },
+    "こども": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Child"
+          }
+        }
+      }
+    },
+    "この iPad では iCloud が制限されているため、同期できません。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud is restricted on this iPad, so syncing is off."
+          }
+        }
+      }
+    },
+    "この iPad にはパスコードが設定されていないので、かけ算だけで通ります。iPad の設定アプリでパスコードを設定すると使えます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This iPad has no passcode, so only the multiplication question is used. Set a passcode in the Settings app to use this option."
+          }
+        }
+      }
+    },
+    "この もじの ことば": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Words with this letter"
+          }
+        }
+      }
+    },
+    "このことばを かく": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write this word"
+          }
+        }
+      }
+    },
+    "このアプリについて": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About this app"
+          }
+        }
+      }
+    },
+    "このビルドでは iCloud を使いません": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This build does not use iCloud"
+          }
+        }
+      }
+    },
+    "この判定はおかしい": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This judging looks wrong"
+          }
+        }
+      }
+    },
+    "この子の記録だけリセット": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset only this child's records"
+          }
+        }
+      }
+    },
+    "この子を削除": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this child"
+          }
+        }
+      }
+    },
+    "この起動ではまだ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet since launch"
+          }
+        }
+      }
+    },
+    "こもじ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lowercase"
+          }
+        }
+      }
+    },
+    "こんにちは！": {
+      "shouldTranslate": false
+    },
+    "ご意見": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback"
+          }
+        }
+      }
+    },
+    "しっかり": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Careful"
+          }
+        }
+      }
+    },
+    "しりとり": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shiritori"
+          }
+        }
+      }
+    },
+    "すうじ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Numbers"
+          }
+        }
+      }
+    },
+    "すごい！\nできたね！": {
+      "shouldTranslate": false
+    },
+    "すべての文字": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Letters"
+          }
+        }
+      }
+    },
+    "すべての文字（1つ購入済みの方）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All Letters (pack owners)"
+          }
+        }
+      }
+    },
+    "すべての音を消す": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute all sounds"
+          }
+        }
+      }
+    },
+    "すべて開いています": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything is unlocked"
+          }
+        }
+      }
+    },
+    "ずかん": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Picture Book"
+          }
+        }
+      }
+    },
+    "ぜんぶ けす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear all"
+          }
+        }
+      }
+    },
+    "たのしく\nかこうね！": {
+      "shouldTranslate": false
+    },
+    "だしたい ものを おしてね": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap what you want to take out"
+          }
+        }
+      }
+    },
+    "だれが かく？": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who is writing?"
+          }
+        }
+      }
+    },
+    "だれと いっしょに かく？": {
+      "shouldTranslate": false
+    },
+    "つかう こを かえる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Switch child"
+          }
+        }
+      }
+    },
+    "つぎの もじ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next letter"
+          }
+        }
+      }
+    },
+    "つぎへ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        }
+      }
+    },
+    "できた！": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done!"
+          }
+        }
+      }
+    },
+    "とじる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "とめ・はね・はらい": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop, hook, sweep"
+          }
+        }
+      }
+    },
+    "とめ・はね・はらいのヒントを出す": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show stop, hook and sweep hints"
+          }
+        }
+      }
+    },
+    "とめ・はね・はらいは、まちがいにはしません（文化庁の考え方）。学校によっては採点することもあるので、気になるときはヒントをオンにしてください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop, hook and sweep are never counted as mistakes (following guidance from Japan's Agency for Cultural Affairs). Some schools do grade them, so turn the hints on if that matters to you."
+          }
+        }
+      }
+    },
+    "どこに いく？": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where to?"
+          }
+        }
+      }
+    },
+    "どちらも3秒長押しで実行します。リセットしても設定とまちは残ります。削除すると、この子の記録とまちも消えます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Both need a 3-second press and hold. After a reset, settings and the town stay. Deleting also removes this child's records and town."
+          }
+        }
+      }
+    },
+    "なし": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        }
+      }
+    },
+    "なぞって書いた": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traced"
+          }
+        }
+      }
+    },
+    "なぞって書けた（つぼみ）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traced it (bud)"
+          }
+        }
+      }
+    },
+    "なにが すき？": {
+      "shouldTranslate": false
+    },
+    "なれてきた": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Getting there"
+          }
+        }
+      }
+    },
+    "にごる・ちいさい": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voiced & small"
+          }
+        }
+      }
+    },
+    "ねむっている キャラクター": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleeping character"
+          }
+        }
+      }
+    },
+    "はじめて": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starter"
+          }
+        }
+      }
+    },
+    "はじめて書いた字と、最近の字を並べています。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows the first time a letter was written next to a recent one."
+          }
+        }
+      }
+    },
+    "はじめる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        }
+      }
+    },
+    "はなばたけ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Flower Garden"
+          }
+        }
+      }
+    },
+    "ひとつ もどす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        }
+      }
+    },
+    "ひらがな": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiragana"
+          }
+        }
+      }
+    },
+    "ひらがなで（例: ゆうと）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In hiragana (e.g. ゆうと)"
+          }
+        }
+      }
+    },
+    "ひらがなはずっと無料です。ファミリー共有で家族も使えます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiragana is free forever. Family Sharing lets your family use purchases too."
+          }
+        }
+      }
+    },
+    "ほかの iPad が iCloud のデータを消したため、この iPad の同期をオフにしました。この iPad の記録は残っています。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another iPad deleted the iCloud data, so syncing was turned off on this iPad. The records on this iPad are still here."
+          }
+        }
+      }
+    },
+    "ほかの iPad の記録も消えることがあります": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records on other iPads may also be lost"
+          }
+        }
+      }
+    },
+    "ほかのお子さんは、保護者用の画面の「子どもたち」から追加できます（最大6人）。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can add other children from \"Children\" in the parent area (up to 6)."
+          }
+        }
+      }
+    },
+    "まえの もじ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Previous letter"
+          }
+        }
+      }
+    },
+    "まだ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet"
+          }
+        }
+      }
+    },
+    "まだ（たね）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet (seed)"
+          }
+        }
+      }
+    },
+    "まち": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Town"
+          }
+        }
+      }
+    },
+    "まちを みる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See the town"
+          }
+        }
+      }
+    },
+    "もういちど かく": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Write again"
+          }
+        }
+      }
+    },
+    "もういっかい": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play again"
+          }
+        }
+      }
+    },
+    "もういっこ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One more"
+          }
+        }
+      }
+    },
+    "もうすぐ あそべるよ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Almost ready to play!"
+          }
+        }
+      }
+    },
+    "もう一度どうぞ。あと %lld 回試せます": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Try again. You have %lld try left."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Try again. You have %lld tries left."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "もじ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters"
+          }
+        }
+      }
+    },
+    "もじを かく ばしょ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing area"
+          }
+        }
+      }
+    },
+    "もどる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        }
+      }
+    },
+    "やめる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "やりなおす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      }
+    },
+    "わかった": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        }
+      }
+    },
+    "わたしの いえ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My House"
+          }
+        }
+      }
+    },
+    "わたしの まち": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Town"
+          }
+        }
+      }
+    },
+    "わたしの クローゼット": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Closet"
+          }
+        }
+      }
+    },
+    "アプリが落ちたときだけ、落ちた場所・アプリの版・iPadOS の版・iPad の種類を、品質を直すために送ります。名前・記録・子どもが書いた線・端末の ID は送りません。くわしくはプライバシーポリシーをごらんください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only when the app crashes, it sends where it crashed, the app version, the iPadOS version and the iPad model, so we can fix the problem. It never sends names, records, the lines your child wrote, or device IDs. See the privacy policy for details."
+          }
+        }
+      }
+    },
+    "アプリを評価する": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate the app"
+          }
+        }
+      }
+    },
+    "アルファベットと数字": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alphabet and Numbers"
+          }
+        }
+      }
+    },
+    "オンにすると、声も効果音もすべて止めます。iPad が消音のときも、音は出ません。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When on, all voices and sound effects are off. The app is also silent when the iPad is muted."
+          }
+        }
+      }
+    },
+    "オンにすると、子どもを切り替えるときに保護者用の確認が出ます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When on, switching children asks for the parent check."
+          }
+        }
+      }
+    },
+    "カタカナ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Katakana"
+          }
+        }
+      }
+    },
+    "クローゼット": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closet"
+          }
+        }
+      }
+    },
+    "クローゼットを みる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See the closet"
+          }
+        }
+      }
+    },
+    "サインインしていません": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not signed in"
+          }
+        }
+      }
+    },
+    "サインイン済み": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in"
+          }
+        }
+      }
+    },
+    "サポート": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support"
+          }
+        }
+      }
+    },
+    "サポートページ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support page"
+          }
+        }
+      }
+    },
+    "スタンプカード": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stamp Card"
+          }
+        }
+      }
+    },
+    "プライバシーポリシー": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy policy"
+          }
+        }
+      }
+    },
+    "ペンたて": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pen Stand"
+          }
+        }
+      }
+    },
+    "ペンの いろを えらぼう": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick a pen color"
+          }
+        }
+      }
+    },
+    "ホーム画面の歯車を、2秒間長押しすると開きます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Press and hold the gear on the home screen for 2 seconds to open it."
+          }
+        }
+      }
+    },
+    "マスを大きくする": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Larger writing grid"
+          }
+        }
+      }
+    },
+    "ライセンス（strokesvg・Klee One）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License (strokesvg · Klee One)"
+          }
+        }
+      }
+    },
+    "・「%@」": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " · \"%@\""
+          }
+        }
+      }
+    },
+    "不具合の情報": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crash information"
+          }
+        }
+      }
+    },
+    "今はありません": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None right now"
+          }
+        }
+      }
+    },
+    "今は使えません": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not available right now"
+          }
+        }
+      }
+    },
+    "今日": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        }
+      }
+    },
+    "今日 / 今週": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today / This week"
+          }
+        }
+      }
+    },
+    "今日の目標": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily goal"
+          }
+        }
+      }
+    },
+    "今日の目標 %lld 字": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daily goal: %lld letters"
+          }
+        }
+      }
+    },
+    "今週": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This week"
+          }
+        }
+      }
+    },
+    "何も見ないで書けた（はな）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wrote it from memory (flower)"
+          }
+        }
+      }
+    },
+    "使えます": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlocked"
+          }
+        }
+      }
+    },
+    "使えません（制限されています）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not available (restricted)"
+          }
+        }
+      }
+    },
+    "使える文字": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters you can write"
+          }
+        }
+      }
+    },
+    "保存": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "保存している記録": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved records"
+          }
+        }
+      }
+    },
+    "保存に失敗したことがあります。iPad の空き容量を確かめてください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving failed at some point. Please check the free storage on this iPad."
+          }
+        }
+      }
+    },
+    "保護者の方へ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For parents"
+          }
+        }
+      }
+    },
+    "保護者用の画面": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parent Area"
+          }
+        }
+      }
+    },
+    "保護者用の画面を開きます": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the parent area"
+          }
+        }
+      }
+    },
+    "先にこの iPad の同期をオフにして、iCloud にあるもじまちのデータを消します。この iPad の中の記録は残ります。ほかの iPad は、次に開いたときに保護者用の画面で知らせて、同期をオフにします。3秒長押しで実行します。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This turns off syncing on this iPad first, then deletes Mojimachi's data in iCloud. Records on this iPad stay. Other iPads will show a notice in the parent area the next time they open, and turn syncing off. Press and hold for 3 seconds."
+          }
+        }
+      }
+    },
+    "全員の記録をリセット": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset everyone's records"
+          }
+        }
+      }
+    },
+    "全員の記録をリセットしました。設定とまちは残っています。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everyone's records were reset. Settings and the town are still here."
+          }
+        }
+      }
+    },
+    "切り替えは、次にアプリを開いたときから効きます。あとから「学習記録の管理」で変えられます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The change takes effect the next time you open the app. You can change it later in \"Manage Records\"."
+          }
+        }
+      }
+    },
+    "判定": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Judging"
+          }
+        }
+      }
+    },
+    "判定の厳しさ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Judging strictness"
+          }
+        }
+      }
+    },
+    "利き手": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Writing hand"
+          }
+        }
+      }
+    },
+    "効果音": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound effects"
+          }
+        }
+      }
+    },
+    "効果音（小森平・Freesound・OtoLogic・こんとどぅふぇ）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound effects (小森平 · Freesound · OtoLogic · こんとどぅふぇ)"
+          }
+        }
+      }
+    },
+    "取り返しのつかない操作をします": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm an action that cannot be undone"
+          }
+        }
+      }
+    },
+    "右": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Right"
+          }
+        }
+      }
+    },
+    "同期の切り替えは、次にアプリを開いたときから効きます。オフにしても、この iPad と iCloud の記録は残ります。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sync change takes effect the next time you open the app. Even when off, the records on this iPad and in iCloud stay."
+          }
+        }
+      }
+    },
+    "同期はオフです。記録はこの iPad の中だけに保存しています。オンに戻すと、この iPad の記録を iCloud に上げます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync is off. Records are saved only on this iPad. When you turn it back on, this iPad's records are uploaded to iCloud."
+          }
+        }
+      }
+    },
+    "呼び名": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nickname"
+          }
+        }
+      }
+    },
+    "呼び名の敬称": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Honorific"
+          }
+        }
+      }
+    },
+    "商品": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Products"
+          }
+        }
+      }
+    },
+    "声": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice"
+          }
+        }
+      }
+    },
+    "声（VOICEVOX:猫使ビィ）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice (VOICEVOX:猫使ビィ)"
+          }
+        }
+      }
+    },
+    "子どもたち": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Children"
+          }
+        }
+      }
+    },
+    "子どもの切り替えに確認を求める": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask for a check when switching children"
+          }
+        }
+      }
+    },
+    "子どもの設定": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Child settings"
+          }
+        }
+      }
+    },
+    "子どもを足す": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a child"
+          }
+        }
+      }
+    },
+    "子ども全員の学習記録・文字の地図・アルバムを最初からにします。設定とまちは残ります。1人だけリセットするときは「子どもたち」から。3秒長押しで実行します。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starts every child's learning record, letter map and album over. Settings and the town stay. To reset one child only, use \"Children\". Press and hold for 3 seconds."
+          }
+        }
+      }
+    },
+    "字を書くと、ここに並びます": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letters will appear here as they are written"
+          }
+        }
+      }
+    },
+    "字幕（吹き出し）を表示": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show captions (speech bubbles)"
+          }
+        }
+      }
+    },
+    "学習記録": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Learning Record"
+          }
+        }
+      }
+    },
+    "学習記録の管理": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Records"
+          }
+        }
+      }
+    },
+    "安心のための設定": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Safety Settings"
+          }
+        }
+      }
+    },
+    "少し形をよく見ます。線を分けたり、つなげたりしても合格にします。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looks a little more closely at the shape. Separated or joined strokes still pass."
+          }
+        }
+      }
+    },
+    "左": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left"
+          }
+        }
+      }
+    },
+    "左右の向き": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left-right direction"
+          }
+        }
+      }
+    },
+    "形": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shape"
+          }
+        }
+      }
+    },
+    "形をしっかり見ます。線を分けたり、つなげたりすると、画数の違いにします。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Looks carefully at the shape. Separating or joining strokes counts as a different number of strokes."
+          }
+        }
+      }
+    },
+    "成長アルバム": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Growth Album"
+          }
+        }
+      }
+    },
+    "承認を待っています": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for approval"
+          }
+        }
+      }
+    },
+    "文字のデータ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter data"
+          }
+        }
+      }
+    },
+    "文字の地図": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter Map"
+          }
+        }
+      }
+    },
+    "施設でお使いの方へ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For schools and facilities"
+          }
+        }
+      }
+    },
+    "普通": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Normal"
+          }
+        }
+      }
+    },
+    "書いた動きの再生": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replay of the strokes"
+          }
+        }
+      }
+    },
+    "書いた動きを見る": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Watch how it was written"
+          }
+        }
+      }
+    },
+    "書き順": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroke order"
+          }
+        }
+      }
+    },
+    "書体（Klee One・Zen Maru Gothic）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typefaces (Klee One · Zen Maru Gothic)"
+          }
+        }
+      }
+    },
+    "最初": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First"
+          }
+        }
+      }
+    },
+    "最初に、お子さんのことを教えてください。どれも飛ばせて、あとから保護者用の画面で変えられます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First, tell us about your child. You can skip anything and change it later in the parent area."
+          }
+        }
+      }
+    },
+    "最後に iCloud から取り込んだ時間": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last imported from iCloud"
+          }
+        }
+      }
+    },
+    "最後に iCloud に保存した時間": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last saved to iCloud"
+          }
+        }
+      }
+    },
+    "最後にこの iPad に保存した時間": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last saved on this iPad"
+          }
+        }
+      }
+    },
+    "最近": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent"
+          }
+        }
+      }
+    },
+    "最近 %lld 回 書き直し": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Redone %lld time recently"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Redone %lld times recently"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "次へ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        }
+      }
+    },
+    "消しています…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deleting…"
+          }
+        }
+      }
+    },
+    "消す": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear"
+          }
+        }
+      }
+    },
+    "画の向き": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroke direction"
+          }
+        }
+      }
+    },
+    "画数": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stroke count"
+          }
+        }
+      }
+    },
+    "画面では「%@」と出ます（声では読みません）。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The screen will show \"%@\" (it is not read aloud)."
+          }
+        }
+      }
+    },
+    "確かめています": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking"
+          }
+        }
+      }
+    },
+    "確かめられません": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot check"
+          }
+        }
+      }
+    },
+    "確認した": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        }
+      }
+    },
+    "筆圧を使う": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use pen pressure"
+          }
+        }
+      }
+    },
+    "筆圧を取れるペンでは、筆圧で線の太さを変えます。合否には使いません。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "With a pen that senses pressure, line thickness follows the pressure. It is not used for pass or fail."
+          }
+        }
+      }
+    },
+    "練習中（め）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Practicing (sprout)"
+          }
+        }
+      }
+    },
+    "苦手な字": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tricky Letters"
+          }
+        }
+      }
+    },
+    "表示": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display"
+          }
+        }
+      }
+    },
+    "記録は iCloud で同期しています。オフにしても、この iPad と iCloud の記録は残ります。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records are syncing through iCloud. Even when off, the records on this iPad and in iCloud stay."
+          }
+        }
+      }
+    },
+    "記録は この iPad と あなたの iCloud にだけ保存します": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records are saved only on this iPad and in your iCloud"
+          }
+        }
+      }
+    },
+    "記録はこの iPad の中に保存しています。iCloud にサインインすると、同期できるようになります。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records are saved on this iPad. Sign in to iCloud to turn on syncing."
+          }
+        }
+      }
+    },
+    "購入": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchases"
+          }
+        }
+      }
+    },
+    "購入しました": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased"
+          }
+        }
+      }
+    },
+    "購入できませんでした。時間をおいて試してください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The purchase did not go through. Please try again later."
+          }
+        }
+      }
+    },
+    "購入を復元": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore purchases"
+          }
+        }
+      }
+    },
+    "購入を復元しました": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchases restored"
+          }
+        }
+      }
+    },
+    "購入を確かめられませんでした": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The purchase could not be verified"
+          }
+        }
+      }
+    },
+    "購入を見る": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See purchases"
+          }
+        }
+      }
+    },
+    "足す": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add"
+          }
+        }
+      }
+    },
+    "迷ったときは「はじめて」から始めてください。上達したら、この画面でお知らせします。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you are not sure, start with \"Starter\". When your child improves, we will let you know on this screen."
+          }
+        }
+      }
+    },
+    "迷ったときは「はじめて」のままで大丈夫です。上達したら、保護者用の画面でお知らせします。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you are not sure, \"Starter\" is fine. When your child improves, we will let you know in the parent area."
+          }
+        }
+      }
+    },
+    "速い": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fast"
+          }
+        }
+      }
+    },
+    "遅い": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Slow"
+          }
+        }
+      }
+    },
+    "遅れの目安": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show input lag"
+          }
+        }
+      }
+    },
+    "閉じる": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
+          }
+        }
+      }
+    },
+    "音": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound"
+          }
+        }
+      }
+    },
+    "音と表示": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound & Display"
+          }
+        }
+      }
+    },
+    "顔": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face"
+          }
+        }
+      }
+    },
+    "（呼び名なし）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(No nickname)"
+          }
+        }
+      }
+    },
+    "（見つかりません）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(Not found)"
+          }
+        }
+      }
+    },
+    "？": {
+      "shouldTranslate": false
+    }
+  },
+  "version": "1.0"
+}

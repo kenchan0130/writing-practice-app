@@ -12,7 +12,7 @@ struct HouseView: View {
 
   private var title: String {
     let name = store.currentProfile?.name.trimmingCharacters(in: .whitespaces) ?? ""
-    return name.isEmpty ? "わたしの いえ" : "\(name)の いえ"
+    return name.isEmpty ? String(localized: "わたしの いえ") : String(localized: "\(name)の いえ")
   }
 
   var body: some View {

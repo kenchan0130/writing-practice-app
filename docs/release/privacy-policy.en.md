@@ -3,7 +3,7 @@
 > [Working note for the developer. Do not publish this block.]
 > - Publish at `https://kenchan0130.github.io/apps/mojimachi/privacy` (English section or `/en`). Fill in every `TODO` first.
 > - Sentry is in the app as of 2026-11-27 (D183). It starts only in release builds that have a DSN, and sends crash information only (what is sent is locked by `CrashReportingTests`). There is no switch to turn it off. Before publishing: create the Sentry project, choose the data region, and write it in the `TODO` below (checklist S1).
-> - The menu names in English ("Children", "Manage Records", and so on) are translations. The app's parent area is Japanese only today (no English localization yet, D116). Either add the English parent screens or write the Japanese names next to the English ones.
+> - The menu names in English ("Children", "Manage Records", and so on) match the app's English parent area (D186; see `docs/glossary.md`). The app's English screens link to `.../privacy/en`, so publish this page there before submitting.
 > - Translation: the Japanese file is the source (D118). Use the terms in `docs/glossary.md`. Have another model check it.
 
 Effective date: TODO (the release day, e.g. Month D, 2026)

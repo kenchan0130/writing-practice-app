@@ -17,43 +17,43 @@ struct DataSettingsView: View {
   }
 
   private var accountText: String {
-    if !RecordStore.hasCloudEntitlement { return "このビルドでは iCloud を使いません" }
+    if !RecordStore.hasCloudEntitlement { return String(localized: "このビルドでは iCloud を使いません") }
     switch store.accountState {
-    case .checking: return "確かめています"
-    case .available: return "サインイン済み"
-    case .noAccount: return "サインインしていません"
-    case .restricted: return "使えません（制限されています）"
-    case .temporarilyUnavailable: return "今は使えません"
-    case .unknown: return "確かめられません"
+    case .checking: return String(localized: "確かめています")
+    case .available: return String(localized: "サインイン済み")
+    case .noAccount: return String(localized: "サインインしていません")
+    case .restricted: return String(localized: "使えません（制限されています）")
+    case .temporarilyUnavailable: return String(localized: "今は使えません")
+    case .unknown: return String(localized: "確かめられません")
     }
   }
 
   private var problemMessage: String? {
     switch store.accountState {
     case .noAccount:
-      return "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。"
+      return String(localized: "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。")
     case .restricted:
-      return "この iPad では iCloud が制限されているため、同期できません。"
+      return String(localized: "この iPad では iCloud が制限されているため、同期できません。")
     default: break
     }
     switch store.syncProblem {
-    case .notSignedIn?: return "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。"
-    case .quotaExceeded?: return "iCloud の空き容量が足りないため、同期できません。記録はこの iPad に保存しています。"
-    case .other?: return "iCloud との同期がうまくいっていません。しばらくしてからもう一度試します。"
+    case .notSignedIn?: return String(localized: "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。")
+    case .quotaExceeded?: return String(localized: "iCloud の空き容量が足りないため、同期できません。記録はこの iPad に保存しています。")
+    case .other?: return String(localized: "iCloud との同期がうまくいっていません。しばらくしてからもう一度試します。")
     case nil: return nil
     }
   }
 
   private var syncFooter: String {
     if store.accountState == .noAccount {
-      return "記録はこの iPad の中に保存しています。iCloud にサインインすると、同期できるようになります。"
+      return String(localized: "記録はこの iPad の中に保存しています。iCloud にサインインすると、同期できるようになります。")
     }
     if store.syncsWithICloud != store.isSyncRunning {
-      return "同期の切り替えは、次にアプリを開いたときから効きます。オフにしても、この iPad と iCloud の記録は残ります。"
+      return String(localized: "同期の切り替えは、次にアプリを開いたときから効きます。オフにしても、この iPad と iCloud の記録は残ります。")
     }
     return store.isSyncRunning
-      ? "記録は iCloud で同期しています。オフにしても、この iPad と iCloud の記録は残ります。"
-      : "同期はオフです。記録はこの iPad の中だけに保存しています。オンに戻すと、この iPad の記録を iCloud に上げます。"
+      ? String(localized: "記録は iCloud で同期しています。オフにしても、この iPad と iCloud の記録は残ります。")
+      : String(localized: "同期はオフです。記録はこの iPad の中だけに保存しています。オンに戻すと、この iPad の記録を iCloud に上げます。")
   }
 
   var body: some View {
@@ -64,13 +64,13 @@ struct DataSettingsView: View {
           Text(accountText)
         }
         LabeledContent("最後に iCloud に保存した時間") {
-          Text(Self.format(store.lastExported) ?? "まだ")
+          Text(Self.format(store.lastExported) ?? String(localized: "まだ"))
         }
         if let imported = Self.format(store.lastImported) {
           LabeledContent("最後に iCloud から取り込んだ時間") { Text(imported) }
         }
         LabeledContent("最後にこの iPad に保存した時間") {
-          Text(Self.format(store.lastSaved) ?? "この起動ではまだ")
+          Text(Self.format(store.lastSaved) ?? String(localized: "この起動ではまだ"))
         }
         LabeledContent("保存している記録") { Text("\(store.savedRowCount) 件") }
         if let message = problemMessage {
@@ -133,7 +133,7 @@ struct DataSettingsView: View {
 
 /// 取り返しのつかない操作の赤いボタン。3秒長押しで実行する（D116）。
 struct HoldToConfirmButton: View {
-  var title: String
+  var title: LocalizedStringKey
   var action: () -> Void
   @State private var progress = 0.0
 

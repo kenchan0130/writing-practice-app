@@ -28,7 +28,7 @@ struct LetterWordsView: View {
       let layout = cardLayout(count: words.count, width: proxy.size.width, maxSize: 280)
       ScrollView {
         VStack(spacing: 24) {
-          if rule == nil { Heading(text: "「\(String(char))」から はじまる ことば") }
+          if rule == nil { Heading(text: String(localized: "「\(String(char))」から はじまる ことば")) }
           if words.isEmpty {
             emptyState
           } else {

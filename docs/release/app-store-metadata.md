@@ -12,14 +12,14 @@
 | サブタイトル | 楽しく書いて、きれいな字が身につく知育アプリ（22文字。上限30） | D42 |
 | バンドル ID | `io.github.kenchan0130.mojimachi` | D136 |
 | SKU | `mojimachi` | D136 |
-| プライマリ言語 | 日本語（英語ほかを追加）。**ストアの文面は多言語で出す**（D183）。ローカライズは別の作業で、この文書の日本語と英語の文面は元になる下書き | D30・D136・D183 |
+| プライマリ言語 | 日本語。**英語（米国。English (U.S.)）を追加する（D186）**。ストアの文面は多言語で出す（D183）。アプリの画面は、保護者用の画面などを英語にした（D186）。字・ことば・声は日本語のまま | D30・D136・D183・D186 |
 | カテゴリ | プライマリ: 教育。**Kids カテゴリ**に入れ、年齢帯は「5歳以下」 | D51・D86（審査後は変えられない）。`INFOPLIST_KEY_LSApplicationCategoryType = public.app-category.education` |
 | 年齢制限（レーティング） | 4+（下の §7） | |
 | 対応端末 | iPad のみ（`TARGETED_DEVICE_FAMILY = 2`）。iPadOS 26 以上。Apple シリコンの Mac には「iPad 版」で出す。Vision Pro には出さない | D13・D14・D100。ASC の「Vision Pro の提供」はオフにする【要確認】 |
 | 価格 | 無料（アプリ内課金あり） | D2 |
 | 配信する国 | 全世界から **EU 27か国と中国本土を除く**。香港・台湾は配信。米国は配信（年齢確認の最新の案内に対応。`release-checklist.md`） | D52・D65 |
 | サポート URL | `https://kenchan0130.github.io/apps/mojimachi` | D73・`docs/operations.md` |
-| プライバシーポリシー URL | `https://kenchan0130.github.io/apps/mojimachi/privacy`（日本語と英語。本文は `privacy-policy.ja.md`・`privacy-policy.en.md`） | D73 |
+| プライバシーポリシー URL | 日本語: `https://kenchan0130.github.io/apps/mojimachi/privacy`。英語: `https://kenchan0130.github.io/apps/mojimachi/privacy/en`（D186。アプリの英語の画面のリンクもこちら。本文は `privacy-policy.ja.md`・`privacy-policy.en.md`。**英語のページを公開してから提出する**【TODO】） | D73・D186 |
 | マーケティング URL | 置かない（サポートページで足りる） | |
 | 著作権 | `© 2026 TODO（販売者名。本名。D65）` | 【TODO】 |
 | 販売者名 | 本名（D50・D65） | |
@@ -40,6 +40,17 @@
 - 「年長」「年中」「入学準備」はキーワード欄だけにする（D41）。説明文・画像には年齢や学年を書かない（D24）。
 - ほかの会社の名前や商標は入れない。
 - ASC が受け付ける上限（文字かバイトか）を、入れるときに確かめる【要確認】。
+
+### 最初のバージョンの「このバージョンの新機能」（上限4,000）
+
+```
+はじめてのリリースです。
+ひらがなは、すべて無料。書いた字が うごきだす、文字の練習アプリです。
+・ひらがな・カタカナ・アルファベットと数字を、書き順どおりに練習
+・書いたことばが、まちで うごきだす
+・「きょうの ことば」と「しりとり」
+・保護者用の画面が、英語でも使えます
+```
 
 ### 説明文（上限4,000）
 
@@ -89,35 +100,39 @@
 - 「Apple Pencil にも、指にも」は、実機で確かめてから【要確認】。
 - 施設向け版は書かない（D72）。
 
-## 3. 英語の文面
+## 3. 英語の文面（ASC の「English (U.S.)」。D186）
 
-名前・サブタイトル・キーワードは英語でも作る（D40・D118）。訳は AI が作り、別のモデルの AI が確かめる。用語は `docs/glossary.md` に合わせる。
+アプリは日本語を学ぶ人のための道具で、子どもの画面・声は日本語のまま。保護者用の画面と、ストアの文面だけを英語にした（D186）。名前・サブタイトル・キーワードは D40・D118 のとおり。訳は AI が作り、別のモデルの AI が確かめる。用語は `docs/glossary.md` に合わせる。他の言語（中国語・韓国語など）は、この英語を元に、同じ決まり（D186）で足せる。
 
-| 欄 | 文面 | 文字数 |
+| 欄 | 文面 | 文字数（上限） |
 |---|---|---|
-| 名前 | Mojimachi: Hiragana Writing | 27 |
-| サブタイトル | Write kana, watch them move | 27 |
-| プロモーションテキスト | Letters you write come alive. Hiragana is free. No ads, no subscription. Write words and fill your own little town. | 117 |
-| キーワード | `katakana,japanese,stroke order,tracing,alphabet,ABC,numbers,preschool,kids,toddler,handwriting` | 94 |
+| 名前 | Mojimachi: Hiragana Writing | 27（30） |
+| サブタイトル | Write kana, watch them move | 27（30） |
+| プロモーションテキスト（審査なしで変えられる） | Letters you write come alive. Hiragana is free. No ads, no subscription. Write words and fill your own little town. | 115（170） |
+| キーワード | `katakana,japanese,stroke order,tracing,alphabet,ABC,numbers,preschool,kids,nihongo,handwriting` | 94（100） |
+| サポート URL | `https://kenchan0130.github.io/apps/mojimachi` | |
+| プライバシーポリシー URL | `https://kenchan0130.github.io/apps/mojimachi/privacy/en` | |
+| 著作権 | `© 2026 TODO` | 【TODO】 |
 
 - 名前とサブタイトルにある語（mojimachi・hiragana・writing・write・kana・watch・move）は、キーワードに入れない。
 - 日本のストアで英語の欄が検索に使われるかを確かめ、使われるなら日本語の検索語を補う【要確認】（D40）。
+- 端末の言語が英語でも、App Store の「年齢」「国」の設定は日本語版と同じ。
 
-### 英語の説明文
+### 英語の説明文（上限4,000）
 
-最初に「日本語を学ぶアプリで、子ども向けの画面と声は日本語」と書く（D118）。
+最初に「日本語を学ぶアプリで、子ども向けの画面と声は日本語」と書く（D118）。**金額は書かない。今後足す言語の予告もしない。**
 
 ```
-Mojimachi teaches Japanese hiragana and katakana. Please note: the child-facing screens and voices are in Japanese.
+Mojimachi helps young children learn to write Japanese hiragana, katakana, and the alphabet. Please note: the child-facing screens and voices are in Japanese. The parent area is available in English.
 
 Hiragana is completely free.
-Katakana, the alphabet, and numbers can be added with a one-time purchase, after a free trial.
+You can try a few letters from each pack for free, then add Katakana, the alphabet and numbers with a one-time purchase.
 No ads. No subscriptions.
 
 Write a word, and the lines you drew gather and turn into a moving picture. What you write joins "My Town", which grows busier with every word.
 
 GENTLE STROKE-ORDER PRACTICE
-- Learn each letter step by step: watch, trace, trace lightly, then write on your own
+- Learn each letter step by step: watch, trace, trace a faint guide, then write on your own
 - Gentle feedback on stroke order, starting point, and direction
 - Mistakes are never scolded. The app simply says "Let's try again"
 - Stop, hook, and sweep endings are shown as hints, not mistakes
@@ -125,24 +140,52 @@ GENTLE STROKE-ORDER PRACTICE
 
 LETTER MAP
 - Hiragana (free), katakana, alphabet (upper and lower case), and numbers
-- Choose in gojuon order or in a suggested order
+- Choose from the a-i-u-e-o (gojuon) chart or a suggested order
 - Each letter grows from seed to sprout to bud to flower
 
 WORDS
 - [UPDATE: actual number] About 300 words to write, arranged by place and theme
 - All hiragana words are free
-- "Today's Word" and Shiritori bring new words every day
-- Words are read aloud, so children who cannot read yet can play
+- "Word of the Day" and Shiritori (a Japanese word-chain game) bring new words every day
+- Words are read aloud in Japanese, so children who cannot read yet can play
 
-FOR PARENTS
+FOR PARENTS (IN ENGLISH)
 - No ads and no third-party analytics
 - Purchases and settings are only in the parent area, behind a multiplication question. Child screens never show prices or buy buttons
 - Try a few letters and one word from each paid pack first. One-time purchases, no subscription
 - Learning records are stored only on the iPad and in the parent's own iCloud (you can turn this off). The developer cannot see them
-- Works with Apple Pencil and fingers
+- See which letters your child has written, how they improved, and which ones are tricky
+- Works with Apple Pencil or a finger
+- Crash reports are sent only when the app crashes, with no names or records
 
-Privacy policy: https://kenchan0130.github.io/apps/mojimachi/privacy
+Privacy policy: https://kenchan0130.github.io/apps/mojimachi/privacy/en
 ```
+
+- 「Shiritori」「ずかん」の扱い: ずかんはコードにある（D181）が、説明には入れていない。出す版で足す。**ないものは書かない**（D72）。
+- 「Family Sharing」は、全商品で有効にしたときだけ書く（D89）。
+
+### 英語の「このバージョンの新機能」（最初のバージョン）
+
+```
+Welcome to Mojimachi!
+- Practice hiragana, katakana, and the alphabet with the right stroke order
+- Words you write come alive in your own little town
+- Word of the Day and Shiritori
+- The parent area is available in English
+```
+
+### 英語の App のプライバシー（栄養成分表示）の答え
+
+§6 と同じ答えを、ASC の英語の画面の言葉で書く。
+
+| ASC の質問 | 答え |
+|---|---|
+| Do you or your third-party partners collect data from this app? | Yes |
+| Data used to track you | None. The app does not use App Tracking Transparency |
+| Data linked to you | Contact Info > Email Address (optional, only if a parent writes it in the contact form); User Content > Other User Content (the text of the contact form). Purpose: App Functionality (customer support) |
+| Data not linked to you | Diagnostics > Crash Data. Purpose: App Functionality. Collected through Sentry only when the app crashes. No user ID, IP address, breadcrumbs, performance data, sessions, or recordings. Do not select "Performance Data" or "Other Diagnostic Data" |
+| Data not collected | Name and nickname (they stay on the iPad and in the parent's iCloud and never reach the developer), learning records, lines the child drew, purchases, identifiers, usage data, advertising data, location, contacts, photos, audio, health, financial info |
+| Age rating | 4+. In-app controls: Parental controls = Yes (parental gate before purchases, settings and external links). Age assurance = No |
 
 ## 4. 課金アイテム（コードから）
 
@@ -159,12 +202,12 @@ Privacy policy: https://kenchan0130.github.io/apps/mojimachi/privacy
 - 課金のプロモーションは使わない（D76）。審査用のメモで、同じ効果の商品が並ぶ理由を書く。
 - 表示名は日本語・英語とも2〜30文字（D89）。D98 の名前の案:
 
-| 商品 | 日本語の表示名（D98） | 英語の表示名（案。用語集: すべての文字＝All Letters） | 説明（D98） |
+| 商品 | 日本語の表示名（D98） | 英語の表示名（`Mojimachi.storekit` の `en_US` と同じ。D186。用語集: すべての文字＝All Letters） | 説明（D98） |
 |---|---|---|---|
-| katakana | カタカナ | Katakana | カタカナの字が書けます。（ことばを入れたら足す） |
-| abc | アルファベットと数字 | Alphabet and Numbers | アルファベットと数字の字が書けます。（えいごのことばを入れたら足す） |
-| all | すべての文字 | All Letters | いまある文字と、これから追加する文字が、すべて使えます。 |
-| all.owner1 | すべての文字（1つ購入済みの方） | All Letters (One Pack Owned) | 同上 |
+| katakana | カタカナ | Katakana | カタカナの字が書けます。（ことばを入れたら足す）／ Write all the Katakana letters. |
+| abc | アルファベットと数字 | Alphabet and Numbers | アルファベットと数字の字が書けます。（えいごのことばを入れたら足す）／ Write the alphabet letters and numbers. |
+| all | すべての文字 | All Letters | いまある文字と、これから追加する文字が、すべて使えます。／ Write every letter available now, and every letter added in the future. |
+| all.owner1 | すべての文字（1つ購入済みの方） | All Letters (pack owners) | 同上 |
 
 - **名前と説明は D98 にそろえた（D183）**: `Mojimachi.storekit`・購入画面（`PurchaseView.swift`。StoreKit の名前を優先して出す）・この表。説明は、いまのアプリにある中身（字）だけを書く。カタカナ・ABC のことば、すうじ あそび、ずかんは、作ってから足す（D72）。ASC にも、この名前と説明を入れる【人】。
 - 各商品に、審査用のスクリーンショット（保護者用の購入画面）が要る。
@@ -196,7 +239,7 @@ App Store Connect の「App のプライバシー」。D73・D103・D124・D148 
 | Sentry | **入れた**（D183。`sentry-cocoa` 9.36.0）。DSN が空のビルドと DEBUG では動かない。動くときも、落ちたときの情報だけ。ID・ユーザー・端末の名前・操作の記録・性能・セッション・録画は送らない（`CrashReportingTests`）。オフにするスイッチはない |
 | MetricKit | 使っていない |
 | 外部リンク | `SupportView.swift` の 5 つだけ（Google フォーム3つ、サポート、プライバシーポリシー）。すべて保護者用の画面の中 |
-| 権限の確認（位置・カメラ・マイク・写真・連絡先） | なし。`NSFaceIDUsageDescription` は日本語で入れた（D183。保護者用の確認の「iPad のパスコードも求める」用） |
+| 権限の確認（位置・カメラ・マイク・写真・連絡先） | なし。`NSFaceIDUsageDescription` は日本語と英語で入れた（`InfoPlist.xcstrings`。D183・D186。保護者用の確認の「iPad のパスコードも求める」用） |
 | iCloud | 自分の非公開データベースだけ（`privateCloudDatabase`）。共有・公開データベースは使わない（D148） |
 
 ### 答え

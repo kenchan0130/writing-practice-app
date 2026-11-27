@@ -14,8 +14,13 @@ struct PurchaseView: View {
         }
         ForEach(Script.allCases, id: \.self) { script in
           LabeledContent(Self.name(script)) {
-            Text(purchases.entitlements.isUnlocked(script) ? "使えます" : "お試し")
-              .foregroundStyle(purchases.entitlements.isUnlocked(script) ? .green : .secondary)
+            Group {
+              if purchases.entitlements.isUnlocked(script) {
+                Text("使えます").foregroundStyle(.green)
+              } else {
+                Text("お試し").foregroundStyle(.secondary)
+              }
+            }
           }
         }
       }
@@ -55,7 +60,7 @@ struct PurchaseView: View {
           LabeledContent(Self.name(script)) {
             Text(
               String(Trial.characters(for: script))
-                + (Trial.word(for: script).map { "・「\($0)」" } ?? ""))
+                + (Trial.word(for: script).map { String(localized: "・「\($0)」") } ?? ""))
           }
         }
       }
@@ -66,18 +71,18 @@ struct PurchaseView: View {
 
   static func name(_ script: Script) -> String {
     switch script {
-    case .hiragana: "ひらがな"
-    case .katakana: "カタカナ"
-    case .abc: "ABC・数字"
+    case .hiragana: String(localized: "ひらがな")
+    case .katakana: String(localized: "カタカナ")
+    case .abc: String(localized: "ABC・数字")
     }
   }
 
   static func title(_ id: ProductID) -> String {
     switch id {
-    case .allOpen: "すべての文字"
-    case .allOpenForOneOwner: "すべての文字（1つ購入済みの方）"
-    case .katakanaPack: "カタカナ"
-    case .abcPack: "アルファベットと数字"
+    case .allOpen: String(localized: "すべての文字")
+    case .allOpenForOneOwner: String(localized: "すべての文字（1つ購入済みの方）")
+    case .katakanaPack: String(localized: "カタカナ")
+    case .abcPack: String(localized: "アルファベットと数字")
     }
   }
 }

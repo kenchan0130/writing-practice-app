@@ -19,6 +19,6 @@ enum DeviceAuth {
   @MainActor
   static func confirmIfRequired() async -> Bool {
     guard ProgressStore.shared.requiresDeviceAuth else { return true }
-    return await confirm(reason: "取り返しのつかない操作をします")
+    return await confirm(reason: String(localized: "取り返しのつかない操作をします"))
   }
 }

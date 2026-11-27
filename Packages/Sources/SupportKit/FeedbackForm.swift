@@ -83,4 +83,7 @@ public enum FeedbackForm {
 public enum PublicPages {
   public static let support = URL(string: "https://kenchan0130.github.io/apps/mojimachi")!
   public static let privacy = URL(string: "https://kenchan0130.github.io/apps/mojimachi/privacy")!
+  /// 英語のプライバシーポリシー（D186）。日本語版が原本で、英語は同じ内容の翻訳。
+  public static let privacyEnglish = URL(
+    string: "https://kenchan0130.github.io/apps/mojimachi/privacy/en")!
 }

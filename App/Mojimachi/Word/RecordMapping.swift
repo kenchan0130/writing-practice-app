@@ -22,12 +22,12 @@ enum RecordMapping {
   /// 保護者に見せる理由のことば。
   static func label(_ reason: CharacterRecord.Reason) -> String {
     switch reason {
-    case .strokeCount: "画数"
-    case .order: "書き順"
-    case .direction: "画の向き"
-    case .mirrored: "左右の向き"
-    case .shape: "形"
-    case .ending: "とめ・はね・はらい"
+    case .strokeCount: String(localized: "画数")
+    case .order: String(localized: "書き順")
+    case .direction: String(localized: "画の向き")
+    case .mirrored: String(localized: "左右の向き")
+    case .shape: String(localized: "形")
+    case .ending: String(localized: "とめ・はね・はらい")
     }
   }
 }

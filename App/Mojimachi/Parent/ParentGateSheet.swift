@@ -12,13 +12,13 @@ struct ParentGateSheet: View {
   var body: some View {
     VStack(spacing: 20) {
       Text("保護者の方へ").font(.ui(30, bold: true)).foregroundStyle(Theme.ink)
-      Text(store.gate.question.japanese)
+      Text(question)
         .font(.ui(28, bold: true))
         .foregroundStyle(Theme.ink)
         .multilineTextAlignment(.center)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: 520)
-        .accessibilityLabel(store.gate.question.japanese)
+        .accessibilityLabel(question)
       Text(store.input.isEmpty ? " " : store.input)
         .font(.system(size: 48, weight: .bold, design: .monospaced))
         .foregroundStyle(Theme.ink)
@@ -47,6 +47,11 @@ struct ParentGateSheet: View {
     }
   }
 
+  /// 問題の文。英語の画面では英語の数の言葉で出す（D186）。
+  private var question: String {
+    AppLanguage.isEnglish ? store.gate.question.english : store.gate.question.japanese
+  }
+
   private var keypad: some View {
     let rows = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"], ["消す", "0", "OK"]]
     return VStack(spacing: 12) {
@@ -56,7 +61,7 @@ struct ParentGateSheet: View {
             Button {
               store.send(.keyPressed(key))
             } label: {
-              Text(key)
+              Text(key == "消す" ? String(localized: "消す") : key)
                 .font(.ui(34, bold: true))
                 .foregroundStyle(key == "OK" ? Color.white : Theme.ink)
                 .frame(width: 112, height: 88)

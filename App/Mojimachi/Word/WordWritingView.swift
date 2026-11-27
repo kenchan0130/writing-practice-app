@@ -18,7 +18,7 @@ struct WordWritingView: View {
   private let finishButton: FinishButton?
 
   struct FinishButton {
-    var title: String
+    var title: LocalizedStringKey
     var systemImage: String
   }
 
@@ -229,7 +229,7 @@ struct WordWritingView: View {
   }
 
   /// 書いた物を見に行くボタン（服はクローゼット、いえの物は いえ、ほかは まち。D185）。
-  private static func placeTitle(_ kind: WordKind) -> String {
+  private static func placeTitle(_ kind: WordKind) -> LocalizedStringKey {
     switch kind {
     case .clothes: "クローゼットを みる"
     case .furniture: "いえを みる"

@@ -584,7 +584,7 @@ private struct PreparingView: View {
 
 /// ホームの大きなボタン（約104pt 以上。D101）。丸い大きな形とやわらかい影（D152）。
 private struct HomeButton: View {
-  var title: String
+  var title: LocalizedStringKey
   var systemImage: String
   var color: Color
   var action: () -> Void
@@ -677,6 +677,7 @@ private struct StampCard: View {
   var days: [StampDay]
 
   private static let names = ["にち", "げつ", "か", "すい", "もく", "きん", "ど"]
+  private static let englishNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
 
   var body: some View {
     VStack(spacing: 12) {
@@ -684,7 +685,9 @@ private struct StampCard: View {
       HStack(spacing: 6) {
         ForEach(days, id: \.date) { day in
           VStack(spacing: 6) {
-            Text(Self.names[Calendar.current.component(.weekday, from: day.date) - 1])
+            Text(
+              (AppLanguage.isEnglish ? Self.englishNames : Self.names)[
+                Calendar.current.component(.weekday, from: day.date) - 1])
               .font(.ui(18, bold: true))
               .foregroundStyle(Theme.inkSoft)
             Image(systemName: day.stamped ? "heart.circle.fill" : "circle.dashed")

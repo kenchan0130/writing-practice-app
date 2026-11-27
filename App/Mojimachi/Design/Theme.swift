@@ -91,7 +91,7 @@ struct PillButtonStyle: ButtonStyle {
 
 /// 子どもが押す道具のボタン（絵と短い字。押せる部分は 104pt 以上。D101・D152）。
 struct ChildToolButton: View {
-  var title: String
+  var title: LocalizedStringKey
   var systemImage: String
   var color: Color = Theme.blue
   var highlighted = false

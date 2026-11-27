@@ -11,6 +11,11 @@
           "description": "いまある文字と、これから追加する文字が、すべて使えます。",
           "displayName": "すべての文字",
           "locale": "ja"
+        },
+        {
+          "description": "Write every letter available now, and every letter added in the future.",
+          "displayName": "All Letters",
+          "locale": "en_US"
         }
       ],
       "productID": "io.github.kenchan0130.mojimachi.all",
@@ -26,6 +31,11 @@
           "description": "いまある文字と、これから追加する文字が、すべて使えます。",
           "displayName": "すべての文字（1つ購入済みの方）",
           "locale": "ja"
+        },
+        {
+          "description": "Write every letter available now, and every letter added in the future.",
+          "displayName": "All Letters (pack owners)",
+          "locale": "en_US"
         }
       ],
       "productID": "io.github.kenchan0130.mojimachi.all.owner1",
@@ -41,6 +51,11 @@
           "description": "カタカナの字が書けます。",
           "displayName": "カタカナ",
           "locale": "ja"
+        },
+        {
+          "description": "Write all the Katakana letters.",
+          "displayName": "Katakana",
+          "locale": "en_US"
         }
       ],
       "productID": "io.github.kenchan0130.mojimachi.pack.katakana",
@@ -56,6 +71,11 @@
           "description": "アルファベットと数字の字が書けます。",
           "displayName": "アルファベットと数字",
           "locale": "ja"
+        },
+        {
+          "description": "Write the alphabet letters and numbers.",
+          "displayName": "Alphabet and Numbers",
+          "locale": "en_US"
         }
       ],
       "productID": "io.github.kenchan0130.mojimachi.pack.abc",
