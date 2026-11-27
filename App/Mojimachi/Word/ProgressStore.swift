@@ -1,5 +1,6 @@
 import CloudKit
 import ContentModel
+import CryptoKit
 import Foundation
 import JudgeKit
 import Observation
@@ -143,13 +144,80 @@ final class ProgressStore {
   private(set) var accountState: AccountState = .checking
   private var accountObserver: (any NSObjectProtocol)?
 
+  // MARK: - iCloud のアカウントが変わったとき（D194）
+
+  /// iCloud のサインアウトやアカウントの切り替えで、システムは端末の中の同期の行を消すことがある
+  /// （避ける方法はない）。次の起動で子どもが0人に見えても、黙って新しく始めない。
+  /// 保護者用の画面にだけ、理由を知らせる。
+  enum AccountNotice: String, Equatable {
+    /// 別の iCloud アカウントになった。
+    case changed
+    /// iCloud からサインアウトした。
+    case signedOut
+    /// 前は子どもがいたのに、この iPad の中の記録が見つからない。
+    case dataMissing
+  }
+  private(set) var accountNotice: AccountNotice?
+  private(set) var accountNoticeDate: Date?
+  nonisolated static let accountNoticeKey = "accountNotice"
+  nonisolated static let accountNoticeDateKey = "accountNoticeDate"
+  nonisolated static let accountMarkKey = "iCloudAccountMark"
+  nonisolated static let accountNoticeShownKey = "accountNoticeShownFor"
+  /// 前の起動までに、保存された子がいたか。
+  nonisolated static let hadProfilesKey = "hadSavedProfiles"
+
+  func dismissAccountNotice() {
+    accountNotice = nil
+    accountNoticeDate = nil
+    defaults.removeObject(forKey: Self.accountNoticeKey)
+    defaults.removeObject(forKey: Self.accountNoticeDateKey)
+  }
+
+  private func showAccountNotice(_ notice: AccountNotice) {
+    accountNotice = notice
+    accountNoticeDate = Date()
+    defaults.set(notice.rawValue, forKey: Self.accountNoticeKey)
+    defaults.set(accountNoticeDate, forKey: Self.accountNoticeDateKey)
+  }
+
+  /// アカウントの印（CloudKit のユーザー ID を一方向に変えたもの）。端末の中だけに置く。
+  private func currentAccountMark() async -> String? {
+    guard let id = try? await CKContainer(identifier: RecordStore.cloudContainerID).userRecordID()
+    else { return nil }
+    let digest = SHA256.hash(data: Data(id.recordName.utf8))
+    return digest.map { String(format: "%02x", $0) }.joined()
+  }
+
+  /// アカウントの状態から、変わったかを確かめて、保護者に知らせる。
+  private func evaluateAccountChange() async {
+    let previous = defaults.string(forKey: Self.accountMarkKey)
+    switch accountState {
+    case .available:
+      guard let mark = await currentAccountMark() else { return }
+      let outcome = ICloudAccountWatch.evaluate(
+        previous: previous, current: mark, accountKnown: true)
+      defaults.set(mark, forKey: Self.accountMarkKey)
+      if outcome == .changed { showAccountNotice(.changed) }
+    case .noAccount:
+      let outcome = ICloudAccountWatch.evaluate(
+        previous: previous, current: nil, accountKnown: true)
+      // 同じ「サインアウト」を何度も知らせない。
+      let shown = "signedOut:\(previous ?? "")"
+      if outcome == .signedOut, defaults.string(forKey: Self.accountNoticeShownKey) != shown {
+        defaults.set(shown, forKey: Self.accountNoticeShownKey)
+        showAccountNotice(.signedOut)
+      }
+    default: break
+    }
+  }
+
   /// アカウントの状態を確かめる。サインインや切り替えのたびにもう一度確かめる。
   func refreshAccountState() async {
     guard !RecordStore.isLocalOnlyRun, RecordStore.hasCloudEntitlement else {
       accountState = .unknown
       return
     }
-    if accountObserver == nil {
+    if accountObserver == nil, syncsWithICloud {
       accountObserver = NotificationCenter.default.addObserver(
         forName: .CKAccountChanged, object: nil, queue: .main
       ) { [weak self] _ in
@@ -168,6 +236,8 @@ final class ProgressStore {
     } catch {
       accountState = .unknown
     }
+    // 同期をオフにしているときは、アカウントの印を調べない（iCloud に問い合わせない。D194）。
+    if syncsWithICloud { await evaluateAccountChange() }
   }
 
   private func handle(_ event: RecordStore.SyncEvent) {
@@ -184,7 +254,7 @@ final class ProgressStore {
       syncProblem = problem
       firstImportWait.importFailed()
       finishFirstImportWaitIfNeeded()
-    case .remoteChange: reloadFromStore()
+    case .remoteChange: scheduleReload()
     case .zoneDeleted: handleRemoteZoneDeleted()
     }
   }
@@ -194,21 +264,28 @@ final class ProgressStore {
   /// 2台目の最初の起動で、iCloud からの最初の取り込みを待っている（最大10秒）。
   /// 待っているあいだは、ホームではなく「じゅんびちゅう」の画面を出す。
   private(set) var firstImportWait: FirstImportWait
-  /// 待っているあいだ、保存せずに持っておく最初の子。取り込みで子が届かなければ保存する。
-  private var pendingFirstProfile: Profile?
+  /// まだ保存していない最初の子の ID（D194）。子が1人もいない起動では、名前のない子を画面の中だけに
+  /// 作っておき、保護者や子どもが何かするまで保存しない。保存してしまうと、2台目で取り込みが
+  /// 10秒より遅れたとき、空の子が残って、あとから届いた本物の子と二重になる。
+  /// 本物の子が届いたら、この子は捨てて、本物に入れ替える。
+  private(set) var placeholderID: UUID?
   var isWaitingForFirstImport: Bool { firstImportWait.isWaiting }
+  private var firstImportSettled = false
+
+  /// 保存していない最初の子を、保存する（子や保護者が何かしたとき。D194）。
+  private func materializePlaceholder() {
+    guard let id = placeholderID else { return }
+    placeholderID = nil
+    defaults.set(true, forKey: Self.hadProfilesKey)
+    if let profile = profiles.profile(id) { records.save(profile) }
+  }
 
   /// 待ちが終わっていたら、画面の中身を決める。取り込みで届いた子がいれば、その子を使う。
   private func finishFirstImportWaitIfNeeded() {
-    guard !firstImportWait.isWaiting, let pending = pendingFirstProfile else { return }
-    pendingFirstProfile = nil
+    guard !firstImportWait.isWaiting, !firstImportSettled else { return }
+    firstImportSettled = true
     defaults.set(true, forKey: Self.firstLaunchDoneKey)
-    if records.loadProfiles().isEmpty {
-      records.save(pending)
-      lastSaved = records.lastSaved
-    } else {
-      reloadFromStore()
-    }
+    if placeholderID != nil { reloadFromStore() }
   }
 
   /// 待ちの時間を進める。期限になったら待つのをやめる。
@@ -327,16 +404,33 @@ final class ProgressStore {
     defaults.removeObject(forKey: Self.cloudDeletedNoticeKey)
   }
 
+  // MARK: - 読み直し（D194）
+
+  private var reloadCoalescer = ReloadCoalescer()
+
+  /// 読み直しの依頼をまとめる。短い間にたくさん届いても、読み直しは1回にする。
+  private func scheduleReload() {
+    guard reloadCoalescer.request() else { return }
+    let delay = reloadCoalescer.interval
+    Task { [weak self] in
+      try? await Task.sleep(for: .seconds(delay))
+      guard let self, self.reloadCoalescer.fire() else { return }
+      self.reloadFromStore()
+    }
+  }
+
   /// ほかの iPad の変更を画面に反映する。
-  private func reloadFromStore() {
+  func reloadFromStore() {
     wishes = records.loadWishes()
     let loaded = records.loadProfiles()
     guard !loaded.isEmpty else { return }
-    let list = ProfileList(profiles: loaded)
-    profiles = list
-    if list.profile(currentProfileID) == nil, let first = list.profiles.first {
-      currentProfileID = first.id
-    }
+    defaults.set(true, forKey: Self.hadProfilesKey)
+    let preferred = defaults.string(forKey: "currentProfile").flatMap(UUID.init(uuidString:))
+    let decision = ProfileAdoption.resolve(
+      placeholder: placeholderID, current: currentProfileID, loaded: loaded, preferred: preferred)
+    profiles = ProfileList(profiles: loaded)
+    if decision.dropPlaceholder { placeholderID = nil }
+    currentProfileID = decision.currentID
     log = records.loadLog(profile: currentProfileID)
     placed = records.loadPlaced(profile: currentProfileID)
     moves = records.loadMoves(profile: currentProfileID)
@@ -351,26 +445,38 @@ final class ProgressStore {
     syncsWithICloud = defaults.object(forKey: Self.syncKey) as? Bool ?? true
     var list = ProfileList(profiles: records.loadProfiles())
     // 同期が動いていて、最初の起動で、端末に子がいなければ、最初の取り込みを待つ（D63）。
+    // 前は子がいたのに0人（行がシステムに消された）ときも、取り込みを待つ（D194）。
+    let hadProfilesBefore = defaults.bool(forKey: Self.hadProfilesKey)
     var needsWait =
       records.syncing && list.profiles.isEmpty
-      && !defaults.bool(forKey: Self.firstLaunchDoneKey)
+      && (!defaults.bool(forKey: Self.firstLaunchDoneKey) || hadProfilesBefore)
     #if DEBUG
       // 確かめ用: `-forceFirstImportWait YES` で、同期なしでも待ちの画面を10秒出す。
       if defaults.bool(forKey: "forceFirstImportWait") { needsWait = true }
     #endif
     firstImportWait = FirstImportWait(needed: needsWait, now: Date())
     if list.profiles.isEmpty {
-      // はじめての起動では、名前のない子を1人作っておく（呼び名はあとで保護者が決める）。
-      // 待っているあいだは保存しない（2台目で、1台目の子と二重にならないように）。
+      // 名前のない子を1人、画面の中だけに作っておく（呼び名はあとで保護者が決める）。
+      // 何かするまで保存しない（2台目で、1台目の子と二重にならないように。D194）。
       let first = Profile(name: "", face: Self.faces[0])
-      if needsWait {
-        pendingFirstProfile = first
-      } else {
-        records.save(first)
-      }
+      placeholderID = first.id
       list.add(first)
+      // 前は子がいたのに0人。サインアウトや別のアカウントで消えたのかもしれない（D194）。
+      if records.openFallback != .memoryOnly,
+        ICloudAccountWatch.lostLocalData(
+          hadProfilesBefore: hadProfilesBefore, loadedProfileCount: 0)
+      {
+        defaults.set(Date(), forKey: Self.accountNoticeDateKey)
+        defaults.set(AccountNotice.dataMissing.rawValue, forKey: Self.accountNoticeKey)
+      }
+    } else {
+      defaults.set(true, forKey: Self.hadProfilesKey)
     }
     if !needsWait { defaults.set(true, forKey: Self.firstLaunchDoneKey) }
+    firstImportSettled = !needsWait
+    accountNotice = defaults.string(forKey: Self.accountNoticeKey).flatMap(
+      AccountNotice.init(rawValue:))
+    accountNoticeDate = defaults.object(forKey: Self.accountNoticeDateKey) as? Date
     cloudDeletedNotice = defaults.object(forKey: Self.cloudDeletedNoticeKey) as? Date
     #if DEBUG
       // 確かめ用: `-resetOnboarding YES` で、はじめての流れをもう一度出す。
@@ -426,6 +532,7 @@ final class ProgressStore {
 
   /// 鍵のかかったもので「おねがい」を押した（D160）。記録するだけで、購入は開かない。
   func makeWish(item: String, date: Date = Date()) {
+    materializePlaceholder()
     let wish = Wish(profileID: currentProfileID, item: item, date: date)
     wishes.append(wish)
     records.append(wish)
@@ -446,18 +553,21 @@ final class ProgressStore {
   }
 
   func record(_ record: CharacterRecord) {
+    materializePlaceholder()
     log.append(record)
     records.append(log.characters.last ?? record, profile: currentProfileID)
     lastSaved = records.lastSaved
   }
 
   func record(_ record: WordRecord) {
+    materializePlaceholder()
     log.append(record)
     records.append(log.words.last ?? record, profile: currentProfileID)
     lastSaved = records.lastSaved
   }
 
   func place(_ object: PlacedObject) {
+    materializePlaceholder()
     placed.append(object)
     records.append(object, profile: currentProfileID)
     lastSaved = records.lastSaved
@@ -466,6 +576,7 @@ final class ProgressStore {
   /// おもちゃばこの物を出す（D74・D82）。出してからいちばん長い物と入れ替わる。行を足すだけ。
   func takeOut(_ id: UUID, date: Date = Date()) {
     let rows = board.takeOut(id, moves: moves, date: date)
+    if !rows.isEmpty { materializePlaceholder() }
     for row in rows {
       moves.append(row)
       records.append(row, profile: currentProfileID)
@@ -519,6 +630,7 @@ final class ProgressStore {
   }
 
   private func append(_ event: StickerEvent) {
+    materializePlaceholder()
     stickerEvents.append(event)
     records.append(event, profile: currentProfileID)
     lastSaved = records.lastSaved
@@ -550,6 +662,7 @@ final class ProgressStore {
   /// 「記録だけリセット」（D19・§6.3）。その子の記録だけ。まちの物と設定は残す。
   func resetRecords(of id: UUID? = nil) {
     let id = id ?? currentProfileID
+    materializePlaceholder()
     records.appendReset(profile: id)
     if id == currentProfileID { log.reset() }
     lastSaved = records.lastSaved
@@ -576,13 +689,36 @@ final class ProgressStore {
   @discardableResult
   func addProfile(_ profile: Profile) -> Bool {
     guard profiles.add(profile) else { return false }
+    materializePlaceholder()
     records.save(profile)
     lastSaved = records.lastSaved
     return true
   }
 
+  /// はじめての流れで決めた呼び名などを保存する（D194）。流れの途中で本物の子に入れ替わっていたら、
+  /// その子がまだ名前のないときだけ、決めた内容を入れる。名前があれば、本物を守って保存しない。
+  func applyOnboardingProfile(_ edited: Profile) {
+    if profiles.profile(edited.id) != nil {
+      updateProfile(edited)
+      return
+    }
+    guard var current = currentProfile,
+      current.name.trimmingCharacters(in: .whitespaces).isEmpty
+    else { return }
+    current.name = edited.name
+    current.honorific = edited.honorific
+    current.face = edited.face
+    current.handedness = edited.handedness
+    updateProfile(current)
+  }
+
   func updateProfile(_ profile: Profile) {
+    // 捨てた最初の子（本物に入れ替わったあと）を、保存し直さない（D194）。
+    guard profiles.profile(profile.id) != nil else { return }
     profiles.update(profile)
+    if placeholderID == profile.id { placeholderID = nil }
+    materializePlaceholder()
+    defaults.set(true, forKey: Self.hadProfilesKey)
     records.save(profile)
     lastSaved = records.lastSaved
   }
@@ -598,6 +734,24 @@ final class ProgressStore {
 
   /// 保存している行の数。
   var savedRowCount: Int { records.rowCount() }
+
+  /// 保存先が開けなかったときの代わりの動き（保護者用の画面にだけ出す。D194）。
+  var openFallback: RecordStore.OpenFallback? { records.openFallback }
+
+  /// 記録の書いた線。一覧には入れていないので、要るときに読む（アルバムと再生。D194）。
+  func strokes(of record: CharacterRecord) -> [[[Double]]]? {
+    record.strokes ?? records.loadStrokes(recordID: record.id)
+  }
+
+  /// はじめての流れで、iCloud のオン・オフをすぐ効かせる（D194）。
+  /// 何かを保存する前に、保護者の選んだとおりにするため。ふだんの切り替えは次の起動から。
+  func applySyncChoiceNow() {
+    if syncsWithICloud {
+      records.beginSyncNow()
+    } else {
+      records.stopSync()
+    }
+  }
 }
 
 /// まちに置いた物（試作）。

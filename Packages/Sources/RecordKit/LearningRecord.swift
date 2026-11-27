@@ -46,13 +46,35 @@ public struct CharacterRecord: Sendable, Hashable, Codable, Identifiable {
   public var word: String?
   /// 書いた線（マス 0〜1000。アルバムと再生に使う。§3.8）。
   public var strokes: [[[Double]]]?
+  /// 線のデータがある（一覧では線そのものを読まないので、あるかどうかだけ持つ。D194）。
+  public var hasStrokes: Bool = false
   /// この行を書いたときのリセットの回数（D44）。
   public var generation: Int
+
+  private enum CodingKeys: String, CodingKey {
+    case id, date, characterID, stage, passed, rescued, reasons, word, strokes, generation
+    case hasStrokes
+  }
+
+  public init(from decoder: Decoder) throws {
+    let c = try decoder.container(keyedBy: CodingKeys.self)
+    let strokes = try c.decodeIfPresent([[[Double]]].self, forKey: .strokes)
+    self.init(
+      id: try c.decode(UUID.self, forKey: .id), date: try c.decode(Date.self, forKey: .date),
+      characterID: try c.decode(String.self, forKey: .characterID),
+      stage: try c.decode(Stage.self, forKey: .stage),
+      passed: try c.decode(Bool.self, forKey: .passed),
+      rescued: try c.decode(Bool.self, forKey: .rescued),
+      reasons: try c.decode([Reason].self, forKey: .reasons),
+      word: try c.decodeIfPresent(String.self, forKey: .word), strokes: strokes,
+      generation: try c.decode(Int.self, forKey: .generation),
+      hasStrokes: try c.decodeIfPresent(Bool.self, forKey: .hasStrokes) ?? false)
+  }
 
   public init(
     id: UUID = UUID(), date: Date, characterID: String, stage: Stage, passed: Bool,
     rescued: Bool = false, reasons: [Reason] = [], word: String? = nil,
-    strokes: [[[Double]]]? = nil, generation: Int = 0
+    strokes: [[[Double]]]? = nil, generation: Int = 0, hasStrokes: Bool = false
   ) {
     self.id = id
     self.date = date
@@ -63,6 +85,7 @@ public struct CharacterRecord: Sendable, Hashable, Codable, Identifiable {
     self.reasons = reasons
     self.word = word
     self.strokes = strokes
+    self.hasStrokes = hasStrokes || strokes?.isEmpty == false
     self.generation = generation
   }
 }
@@ -282,7 +305,7 @@ public struct LearningLog: Sendable, Hashable, Codable {
 
   /// 1回でも書いた字（線のある記録）を、はじめて書いた順に並べる（D83）。
   public var album: [AlbumEntry] {
-    let withStrokes = currentCharacters.filter { $0.strokes?.isEmpty == false }
+    let withStrokes = currentCharacters.filter { $0.hasStrokes || $0.strokes?.isEmpty == false }
     let grouped = Dictionary(grouping: withStrokes, by: \.characterID)
     let entries = grouped.compactMap { id, records -> AlbumEntry? in
       guard let first = records.first else { return nil }

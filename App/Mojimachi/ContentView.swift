@@ -619,6 +619,9 @@ struct ContentView: View {
       // あける画面には、その画面の字幕がある（2つ出さない）。
       if !showsTreatBox { CaptionBubble().padding(.top, 128) }
     }
+    // アプリを開いたまま日付が変わったら（夜中をまたぐ、時計が変わる、アプリに戻る）、目標・スタンプ・
+    // おたのしみ ボックスを今日の分に読み直す（D194）。
+    .modifier(DayRefresh(token: $dayToken))
     // 目標に届いたら、主人公が おたのしみ ボックスのことを知らせる（その日に1回だけ）。
     .onChange(of: treatBoxState, initial: true) { _, state in
       guard state == .ready, !showsTreatBox else { return }
@@ -629,8 +632,14 @@ struct ContentView: View {
     }
   }
 
+  /// 日付が変わったときに増やして、ホームを読み直させる（D194）。
+  @State private var dayToken = 0
+
   /// おたのしみ ボックスの、きょうの状態。
-  private var treatBoxState: TreatBoxState { store.treatBoxState() }
+  private var treatBoxState: TreatBoxState {
+    _ = dayToken  // 日付が変わったら読み直す
+    return store.treatBoxState()
+  }
   /// おたのしみ ボックスが あけられると知らせた日。
   private static var treatBoxAnnounced: Date?
 
@@ -640,7 +649,8 @@ struct ContentView: View {
   private var goal: Int { store.currentProfile?.dailyGoal ?? 5 }
   /// きょう練習した字の数（同じ字は1つ。§3.8）。
   private var todayCount: Int {
-    store.log.today(now: Date(), calendar: .current).characters
+    _ = dayToken
+    return store.log.today(now: Date(), calendar: .current).characters
   }
   private var goalReached: Bool { todayCount >= goal }
 

@@ -193,8 +193,16 @@ struct TownView: View {
     guard scene.layer == .town else { return }
     scene.setStickers(townStickers)
     scene.setStickerMode(stickerMode)
+    // まちの絵（SKScene）が持つ closure は、この View を捕まえない（捕まえると、まちを開くたびに
+    // 絵が解放されず溜まる。D194）。必要なものだけを、弱い参照か共有の物で持つ。
+    let store = store
+    let tilt = tilt
     scene.onStickerPeel = { id in store.removeSticker(id) }
-    scene.tiltProvider = { tilt.tilt(orientation: orientation) }
+    scene.tiltProvider = { [weak scene] in
+      let orientation =
+        scene?.view?.window?.windowScene?.effectiveGeometry.interfaceOrientation ?? .portrait
+      return tilt.tilt(orientation: orientation)
+    }
     startTilt()
     // 夜は、主人公が眠そうにする（§3.5）。声は、アプリを開いてから1回だけ。
     if TownClock.phase().isSleepy, !stickerMode, !Self.saidSleepy {

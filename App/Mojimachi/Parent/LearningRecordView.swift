@@ -1,9 +1,12 @@
+import ContentModel
+import EntitlementKit
 import RecordKit
 import SwiftUI
 
 /// 保護者向けの学習記録（D25・§3.8）。ほかの子との比較や平均は出さない（D24）。
 struct LearningRecordView: View {
   private let store = ProgressStore.shared
+  private let purchases = PurchaseStore.shared
   @State private var replaying: ReplayItem?
 
   private var log: LearningLog { store.log }
@@ -14,12 +17,17 @@ struct LearningRecordView: View {
         summaryRow("今日", log.today(now: Date(), calendar: .current))
         summaryRow("今週", log.thisWeek(now: Date(), calendar: .current))
       }
-      Section {
-        CharacterMapGrid(map: log.map)
-      } header: {
-        Text("文字の地図")
-      } footer: {
-        MapLegend()
+      // 使える文字の地図（ひらがな・カタカナ・ABC と数字）。鍵がかかっている文字は鍵の印で出す。
+      ForEach(KanaScript.allCases, id: \.self) { script in
+        Section {
+          CharacterMapGrid(
+            map: log.map, script: script,
+            isLocked: { !purchases.entitlements.canWrite($0, in: script.entitlementScript) })
+        } header: {
+          Text(String(localized: "文字の地図（\(script.title)）"))
+        } footer: {
+          if script == KanaScript.allCases.last { MapLegend() }
+        }
       }
       Section("苦手な字") {
         let weak = log.weakCharacters
@@ -36,7 +44,7 @@ struct LearningRecordView: View {
             }
             Spacer()
             Button("書いた動きを見る") { replaying = ReplayItem(weak: item) }
-              .disabled(item.latestMiss.strokes == nil)
+              .disabled(!item.latestMiss.hasStrokes && item.latestMiss.strokes == nil)
           }
         }
       }
@@ -59,7 +67,8 @@ struct LearningRecordView: View {
       let item = replay.weak
       VStack(spacing: 16) {
         Text("「\(Self.char(item.characterID))」を書いた動き").font(.title2.bold())
-        StrokeReplay(strokes: item.latestMiss.strokes ?? [])
+        // 線のデータは一覧に入れていないので、開いたときに読む。
+        StrokeReplay(strokes: store.strokes(of: item.latestMiss) ?? [])
           .frame(width: 360, height: 360)
         Button("閉じる") { replaying = nil }
       }
@@ -88,37 +97,63 @@ private struct ReplayItem: Identifiable {
   var id: String { weak.characterID }
 }
 
-/// 50音表の地図（§3.8）。4つの状態で色分けする。
+/// 文字の地図（§3.8）。4つの状態で色分けする。鍵のかかった字は、色をつけず鍵の印を出す。
 private struct CharacterMapGrid: View {
   var map: [String: MapState]
+  var script: KanaScript
+  var isLocked: (Character) -> Bool
 
-  /// 50音表の並び（行ごと。空きは " "）。
-  static let rows: [String] = [
-    "あいうえお", "かきくけこ", "さしすせそ", "たちつてと", "なにぬねの", "はひふへほ", "まみむめも", "や ゆ よ",
-    "らりるれろ", "わ を ん",
-  ]
+  /// 地図の並び（行ごと。空きは nil）。かなは「あ行・か行 …」を横に並べる。ABC は左から右。
+  private var rows: [[Character?]] {
+    switch script {
+    case .hiragana, .katakana:
+      let table = KanaTable.main(script)
+      // 表は あ行が右の列。行ごとに（あ行から）並べ直す。
+      return (0..<table.columnCount).reversed().map { column in table.cells.map { $0[column] } }
+    case .abc:
+      return AbcTable.Page.allCases.flatMap { AbcTable.grid($0).cells }
+    }
+  }
 
   var body: some View {
     Grid(horizontalSpacing: 6, verticalSpacing: 6) {
-      ForEach(Self.rows, id: \.self) { row in
+      ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
         GridRow {
           ForEach(Array(row.enumerated()), id: \.offset) { _, char in
-            if char == " " {
-              Color.clear.frame(width: 44, height: 44)
+            if let char {
+              cell(char)
             } else {
-              let id = "hira.\(String(char.unicodeScalars.first!.value, radix: 16))"
-              let state = map[id] ?? .notYet
-              Text(String(char))
-                .font(.title3.bold())
-                .frame(width: 44, height: 44)
-                .background(MapLegend.color(state), in: .rect(cornerRadius: 8))
-                .accessibilityLabel("\(String(char))、\(MapLegend.name(state))")
+              Color.clear.frame(width: 44, height: 44)
             }
           }
         }
       }
     }
     .padding(.vertical, 8)
+  }
+
+  private func cell(_ char: Character) -> some View {
+    let locked = isLocked(char)
+    let id = KanaTable.characterID(char, script: script) ?? ""
+    let state = map[id] ?? .notYet
+    return Text(String(char))
+      .font(.title3.bold())
+      .foregroundStyle(locked ? Color.secondary : Color.primary)
+      .frame(width: 44, height: 44)
+      .background(
+        locked ? Color.gray.opacity(0.12) : MapLegend.color(state), in: .rect(cornerRadius: 8)
+      )
+      .overlay(alignment: .topTrailing) {
+        if locked {
+          Image(systemName: "lock.fill").font(.system(size: 9)).foregroundStyle(.secondary)
+            .padding(3)
+        }
+      }
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(
+        locked
+          ? String(localized: "\(String(char))、ロックされています")
+          : String(localized: "\(String(char))、\(MapLegend.name(state))"))
   }
 }
 
@@ -178,15 +213,28 @@ private struct AlbumCard: View {
     .background(.background.secondary, in: .rect(cornerRadius: 12))
   }
 
-  private func page(_ title: LocalizedStringKey, _ record: CharacterRecord, traced: Bool) -> some View {
+  private func page(_ title: LocalizedStringKey, _ record: CharacterRecord, traced: Bool)
+    -> some View
+  {
     VStack(spacing: 4) {
-      StrokeThumbnail(strokes: record.strokes ?? [])
+      LazyStrokeThumbnail(record: record)
         .frame(width: 80, height: 80)
       Text(title).font(.caption)
       if traced {
         Text("なぞって書いた").font(.caption2).foregroundStyle(.secondary)
       }
     }
+  }
+}
+
+/// 線のデータを、表示するときに読んで出す絵（一覧には線を入れていない。D194）。
+private struct LazyStrokeThumbnail: View {
+  var record: CharacterRecord
+  @State private var strokes: [[[Double]]] = []
+
+  var body: some View {
+    StrokeThumbnail(strokes: strokes)
+      .task(id: record.id) { strokes = ProgressStore.shared.strokes(of: record) ?? [] }
   }
 }
 

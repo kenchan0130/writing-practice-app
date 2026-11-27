@@ -7,6 +7,17 @@
     "%@、こんにちは！": {
       "shouldTranslate": false
     },
+    "%@、ロックされています": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, locked"
+          }
+        }
+      }
+    },
     "%@が、%@をやりたがっています（%@）": {
       "extractionState": "manual",
       "localizations": {
@@ -227,6 +238,17 @@
         }
       }
     },
+    "iCloud からサインアウトしました。同期をオンにしたままサインアウトすると、次にアプリを開いたとき、この iPad の中の記録が見えなくなることがあります。iCloud に同期していたぶんは iCloud に残っているので、同じアカウントでサインインし直すと戻ります。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You signed out of iCloud. If you sign out while syncing is on, records on this iPad may become invisible the next time you open the app. What was synced stays in iCloud and comes back when you sign in to the same account again."
+          }
+        }
+      }
+    },
     "iCloud で同期": {
       "extractionState": "manual",
       "localizations": {
@@ -249,6 +271,17 @@
         }
       }
     },
+    "iCloud につなげて保存先を開けなかったため、この iPad の中だけに保存しています。記録は残ります。アプリを開き直すと、もう一度つなげます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open the storage with iCloud, so records are saved only on this iPad. Nothing is lost. iCloud will be tried again the next time you open the app."
+          }
+        }
+      }
+    },
     "iCloud にサインインしていないため、同期できません。設定アプリでサインインしてください。": {
       "extractionState": "manual",
       "localizations": {
@@ -267,6 +300,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Save to iCloud"
+          }
+        }
+      }
+    },
+    "iCloud のアカウントが前と変わりました。そのため、前のアカウントで同期していたこの iPad の記録が、見えなくなっていることがあります。iCloud に同期していたぶんは、前のアカウントの iCloud に残っています。前のアカウントでサインインし直すと戻ります。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your iCloud account is different from before, so records this iPad had synced with the previous account may no longer be visible. What was synced stays in the previous account's iCloud and comes back when you sign in to that account again."
           }
         }
       }
@@ -513,6 +557,17 @@
         }
       }
     },
+    "いぬ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dog"
+          }
+        }
+      }
+    },
     "いまある文字と、これから追加する文字が、すべて使えます。": {
       "extractionState": "manual",
       "localizations": {
@@ -531,6 +586,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "It's empty right now"
+          }
+        }
+      }
+    },
+    "いまは、記録をこの iPad の中だけに保存しています。iCloud にサインインすると、同期できるようになります。同期をオンにしたまま iCloud からサインアウトしたり、別のアカウントに切り替えたりすると、この iPad の中の記録が消えることがあります（iCloud にあるぶんは、元のアカウントでサインインすると戻ります）。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "For now, records are saved only on this iPad. Sign in to iCloud to enable syncing. If you sign out of iCloud or switch to another account while syncing is on, records on this iPad may be removed (what was synced stays in iCloud and comes back when you sign in to the original account)."
+          }
+        }
+      }
+    },
+    "うさぎ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rabbit"
           }
         }
       }
@@ -777,6 +854,17 @@
         }
       }
     },
+    "かめ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turtle"
+          }
+        }
+      }
+    },
     "きっちり": {
       "extractionState": "manual",
       "localizations": {
@@ -821,6 +909,17 @@
         }
       }
     },
+    "くまの ぬいぐるみ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teddy bear"
+          }
+        }
+      }
+    },
     "ここからは、お子さんが自分で進めます。": {
       "extractionState": "manual",
       "localizations": {
@@ -828,6 +927,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "From here, your child can go on alone."
+          }
+        }
+      }
+    },
+    "ここで選んだあとで、お子さんの呼び名などを保存します。あとから「学習記録の管理」で変えられます。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your child's nickname and other details are saved after you choose here. You can change this later in \"Learning records\"."
           }
         }
       }
@@ -883,6 +993,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "This iPad has no passcode, so only the multiplication question is used. Set a passcode in the Settings app to use this option."
+          }
+        }
+      }
+    },
+    "この iPad の中に、前にあった記録が見つかりませんでした。iCloud からのサインアウトやアカウントの切り替えで、消えた可能性があります。記録は iCloud に残っていることがあります。前のアカウントでサインインすると、あとから戻ります。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The records that were on this iPad before could not be found. They may have been removed by signing out of iCloud or switching accounts. They may still be in iCloud, and will come back when you sign in to the previous account."
+          }
+        }
+      }
+    },
+    "この iPad の保存先を開けませんでした。いまの記録は、アプリを閉じると消えます。iPad の空き容量を確かめて、アプリを開き直してください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not open the storage on this iPad. Current records will be lost when the app is closed. Check the free space on the iPad and open the app again."
           }
         }
       }
@@ -996,6 +1128,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Feedback"
+          }
+        }
+      }
+    },
+    "さかな": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fish"
           }
         }
       }
@@ -1185,6 +1328,17 @@
         }
       }
     },
+    "てんとうむし": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ladybug"
+          }
+        }
+      }
+    },
     "できた": {
       "extractionState": "manual",
       "localizations": {
@@ -1247,6 +1401,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stop, hook and sweep are never counted as mistakes (following guidance from Japan's Agency for Cultural Affairs). Some schools do grade them, so turn the hints on if that matters to you."
+          }
+        }
+      }
+    },
+    "とり": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bird"
           }
         }
       }
@@ -1327,6 +1492,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voiced & small"
+          }
+        }
+      }
+    },
+    "ねこ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cat"
           }
         }
       }
@@ -1992,6 +2168,17 @@
         }
       }
     },
+    "ロックされています": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Locked"
+          }
+        }
+      }
+    },
     "・「%@」": {
       "extractionState": "manual",
       "localizations": {
@@ -2604,6 +2791,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Letter Map"
+          }
+        }
+      }
+    },
+    "文字の地図（%@）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Letter map (%@)"
           }
         }
       }

@@ -18,6 +18,8 @@ struct OnboardingAdultView: View {
   @State private var page = Page.profile
   @State private var profile: Profile = ProgressStore.shared.currentProfile
     ?? Profile(name: "", face: ProgressStore.faces[0])
+  /// 「次へ」で呼び名などを決めた。保存は、iCloud の選び方を決めたあと（「はじめる」）にする（D194）。
+  @State private var profileConfirmed = false
 
   var body: some View {
     VStack(spacing: 0) {
@@ -105,7 +107,7 @@ struct OnboardingAdultView: View {
                 .frame(width: 76, height: 76)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(face)
+            .accessibilityLabel(ProfileFace.name(face))
             .accessibilityAddTraits(profile.face == face ? .isSelected : [])
           }
         }
@@ -201,7 +203,8 @@ struct OnboardingAdultView: View {
           .font(.headline)
         Toggle("iCloud に保存する", isOn: $store.syncsWithICloud)
           .accessibilityIdentifier("onboardingICloud")
-        Text("切り替えは、次にアプリを開いたときから効きます。あとから「学習記録の管理」で変えられます。")
+          .onChange(of: store.syncsWithICloud) { store.applySyncChoiceNow() }
+        Text("ここで選んだあとで、お子さんの呼び名などを保存します。あとから「学習記録の管理」で変えられます。")
           .font(.footnote).foregroundStyle(.secondary)
       }
       .padding(16)
@@ -245,7 +248,8 @@ struct OnboardingAdultView: View {
           .controlSize(.extraLarge)
           .accessibilityIdentifier("onboardingSkip")
         Button("次へ") {
-          store.updateProfile(profile)
+          // まだ保存しない。iCloud にするかを決めたあと（「はじめる」）に保存する（D194）。
+          profileConfirmed = true
           move(by: 1)
         }
         .buttonStyle(.borderedProminent)
@@ -273,6 +277,7 @@ struct OnboardingAdultView: View {
           .accessibilityIdentifier("onboardingNext")
       case .handoff:
         Button("はじめる") {
+          if profileConfirmed { store.applyOnboardingProfile(profile) }
           store.finishAdultOnboarding()
           onFinish()
         }

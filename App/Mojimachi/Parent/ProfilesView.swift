@@ -91,7 +91,8 @@ private struct ProfileEditor: View {
                 }
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(face)
+            .accessibilityLabel(ProfileFace.name(face))
+            .accessibilityAddTraits(profile.face == face ? .isSelected : [])
           }
         }
       }
@@ -147,6 +148,21 @@ private struct ProfileEditor: View {
 struct ProfileFace: View {
   var face: String
   var size: CGFloat
+
+  /// 顔の読み上げ用の名前（VoiceOver が「hare.fill」と読まないように）。
+  static func name(_ face: String) -> String {
+    switch face {
+    case "hare.fill": String(localized: "うさぎ")
+    case "tortoise.fill": String(localized: "かめ")
+    case "cat.fill": String(localized: "ねこ")
+    case "dog.fill": String(localized: "いぬ")
+    case "bird.fill": String(localized: "とり")
+    case "fish.fill": String(localized: "さかな")
+    case "ladybug.fill": String(localized: "てんとうむし")
+    case "teddybear.fill": String(localized: "くまの ぬいぐるみ")
+    default: String(localized: "顔")
+    }
+  }
 
   var body: some View {
     Image(systemName: face)
