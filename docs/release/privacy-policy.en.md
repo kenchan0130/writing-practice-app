@@ -70,7 +70,7 @@ Where Sentry stores the data: TODO (write the region chosen in Sentry)
 
 ### Contact form
 
-From the parent area, a parent can open a contact form. It is a Google Form that opens in an in-app browser. A parent decides whether to send it.
+From the parent area, a parent can open a contact form. It is a Google Form that opens in Safari, with the app version and iPadOS version filled in to help us look into the problem. A parent decides whether to send it.
 
 - The text you write and an optional email address reach the operator.
 - The form is pre-filled only with the app name and the type of message. If you open it from "This judgment looks wrong", the name of the judgment setting is also filled in. The app does not put the app version, the iPadOS version, or the device model into the link. If you want to add them, the support screen shows them as text you can copy yourself. You can delete anything before you send.

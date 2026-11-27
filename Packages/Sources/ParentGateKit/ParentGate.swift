@@ -103,7 +103,6 @@ public struct ParentGate: Sendable {
     lockedUntil = nil
     if value == question.answer {
       mistakes = 0
-      lastActivity = now
       question = GateQuestion.make(random: random)
       return .passed
     }
@@ -116,6 +115,11 @@ public struct ParentGate: Sendable {
       return .locked(until: until)
     }
     return .wrong(remaining: Self.maxMistakes - mistakes)
+  }
+
+  /// 確認を有効にする。答えが合ったうえで、iPad の確認も要るなら、それも通ってから呼ぶ（D193）。
+  public mutating func open(at now: Double) {
+    lastActivity = now
   }
 
   /// いま確認が有効か（5分間操作がなければ切れる）。

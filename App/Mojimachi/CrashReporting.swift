@@ -8,7 +8,8 @@ import Sentry
 enum CrashReporting {
   /// DSN を読む。空・未設定は nil。
   static func configuredDSN(from info: [String: Any]? = Bundle.main.infoDictionary) -> String? {
-    guard let dsn = (info?["SentryDSN"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+    guard
+      let dsn = (info?["SentryDSN"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
       !dsn.isEmpty, !dsn.hasPrefix("$(")
     else { return nil }
     return dsn
@@ -59,6 +60,13 @@ enum CrashReporting {
     options.beforeBreadcrumb = { _ in nil }
   }
 
+  /// 送ってよい文脈。OS の名前と版、iPad の機種と種類、アプリの版とビルドだけ（D193）。
+  static let allowedContext: [String: Set<String>] = [
+    "os": ["name", "version"],
+    "device": ["model", "family"],
+    "app": ["app_version", "app_build"],
+  ]
+
   /// 送る前に、利用者・通信・端末の名前などを消す。落ちた場所・アプリと OS の版・機種は残す。
   static func scrub(_ event: Event) -> Event? {
     event.user = nil
@@ -67,14 +75,14 @@ enum CrashReporting {
     event.breadcrumbs = nil
     event.extra = nil
     event.tags = nil
-    if var context = event.context {
-      if var device = context["device"] {
-        device["name"] = nil
-        context["device"] = device
-      }
-      context["culture"] = nil
-      event.context = context
+    // 文脈は、許す項目だけで作り直す（D193）。Sentry の版が上がって項目が増えても、端末の ID などが漏れない。
+    var context: [String: [String: Any]] = [:]
+    for (name, keys) in allowedContext {
+      guard let source = event.context?[name] else { continue }
+      let kept = source.filter { keys.contains($0.key) }
+      if !kept.isEmpty { context[name] = kept }
     }
+    event.context = context
     return event
   }
 }

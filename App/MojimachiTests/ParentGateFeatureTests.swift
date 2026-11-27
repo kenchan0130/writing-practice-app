@@ -43,7 +43,10 @@ struct ParentGateFeatureTests {
       $0.input = ""
       _ = $0.gate.answer(36, at: 1000)
     }
-    await store.receive(.passed) { $0.outcome = .passed }
+    await store.receive(.passed) {
+      $0.gate.open(at: 1000)
+      $0.outcome = .passed
+    }
     #expect(store.state.gate.isOpen(at: 1000))
   }
 
@@ -83,8 +86,14 @@ struct ParentGateFeatureTests {
       $0.input = ""
       _ = $0.gate.answer(36, at: 1000)
     }
+    // iPad の確認が通るまでは、有効にならない。
+    #expect(!store.state.gate.isOpen(at: 1000))
     await store.receive(.deviceAuthFinished(true))
-    await store.receive(.passed) { $0.outcome = .passed }
+    await store.receive(.passed) {
+      $0.gate.open(at: 1000)
+      $0.outcome = .passed
+    }
+    #expect(store.state.gate.isOpen(at: 1000))
   }
 
   @Test("iPad の確認が通らなければ、通さない")
@@ -98,6 +107,26 @@ struct ParentGateFeatureTests {
     await store.receive(.deviceAuthFinished(false)) {
       $0.message = "iPad の確認ができませんでした"
     }
+    // 確認に失敗したら、かけ算が合っていても開いたままにしない（D193）。
+    #expect(!store.state.gate.isOpen(at: 1000))
+    #expect(store.state.outcome == nil)
+  }
+
+  @Test("子どもの切り替えに使ったあとは、閉じる（D193）")
+  func closeAfterSwitchUse() async {
+    let store = Self.store()
+    await Self.type(store, "36")
+    await store.send(.keyPressed("OK")) {
+      $0.input = ""
+      _ = $0.gate.answer(36, at: 1000)
+    }
+    await store.receive(.passed) {
+      $0.gate.open(at: 1000)
+      $0.outcome = .passed
+    }
+    #expect(store.state.gate.isOpen(at: 1000))
+    await store.send(.close) { $0.gate.close() }
+    #expect(!store.state.gate.isOpen(at: 1000))
   }
 
   @Test("やめるで閉じる。「消す」で入力を消す")
@@ -115,6 +144,7 @@ struct ParentGateFeatureTests {
   > {
     var gate = ParentGate(random: { 0 })
     _ = gate.answer(36, at: 1000)
+    gate.open(at: 1000)
     return TestStore(initialState: ParentGateFeature.State(gate: gate)) {
       ParentGateFeature()
     } withDependencies: {

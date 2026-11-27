@@ -3,6 +3,28 @@ import JudgeKit
 import RecordKit
 import SwiftUI
 
+/// 保護者用の画面の上に出ているシート・ブラウザの数（D193）。
+/// 出ているあいだは、5分の「操作がない」を数えない（入力中に画面が閉じて、書いたものが消えないように）。
+@MainActor
+final class ParentModalTracker {
+  static let shared = ParentModalTracker()
+  private var count = 0
+
+  /// 何かが重なっているか。購入の処理中（Apple の確認の画面が出る）も含める。
+  var isPresenting: Bool { count > 0 || PurchaseStore.shared.isWorking }
+
+  fileprivate func appear() { count += 1 }
+  fileprivate func disappear() { count = max(0, count - 1) }
+}
+
+extension View {
+  /// このシート・ブラウザが出ているあいだ、保護者用の画面を5分で閉じない（D193）。
+  func pausesParentTimeout() -> some View {
+    onAppear { ParentModalTracker.shared.appear() }
+      .onDisappear { ParentModalTracker.shared.disappear() }
+  }
+}
+
 /// 保護者用の画面（D116 の8つの項目の枠。試作）。iPad の設定アプリと同じ一覧の作り。
 struct ParentAreaView: View {
   var onClose: () -> Void
@@ -83,7 +105,8 @@ struct ParentAreaView: View {
 
   /// 「はなちゃんが、カタカナをやりたがっています（11月15日）」。日付だけ出し、回数や時刻は出さない。
   private func wishText(_ notice: WishNotice) -> String {
-    let name = store.profiles.profile(notice.profileID)?.displayName
+    let name =
+      store.profiles.profile(notice.profileID)?.displayName
       .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     let who = name.isEmpty ? String(localized: "お子さま") : name
     let item = Script(rawValue: notice.item)?.wishTitle ?? notice.item
@@ -132,8 +155,10 @@ struct ParentAreaView: View {
         }
       }
       Section {
-        Text("アプリが落ちたときだけ、落ちた場所・アプリの版・iPadOS の版・iPad の種類を、品質を直すために送ります。名前・記録・子どもが書いた線・端末の ID は送りません。くわしくはプライバシーポリシーをごらんください。")
-          .font(.footnote)
+        Text(
+          "アプリが落ちたときだけ、落ちた場所・アプリの版・iPadOS の版・iPad の種類を、品質を直すために送ります。名前・記録・子どもが書いた線・端末の ID は送りません。くわしくはプライバシーポリシーをごらんください。"
+        )
+        .font(.footnote)
       } header: {
         Text("不具合の情報")
       }
