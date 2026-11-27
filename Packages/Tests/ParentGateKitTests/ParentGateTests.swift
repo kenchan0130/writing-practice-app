@@ -42,6 +42,9 @@ struct ParentGateTests {
     var gate = ParentGate(random: { 0.25 })
     let answer = gate.question.answer
     #expect(gate.answer(answer, at: 100) == .passed)
+    // 答えが合っただけでは、まだ開かない（iPad の確認の前に開かないように。D193）。
+    #expect(!gate.isOpen(at: 100))
+    gate.open(at: 100)
     #expect(gate.isOpen(at: 100 + 299))
     #expect(!gate.isOpen(at: 100 + 300))
   }
@@ -50,6 +53,7 @@ struct ParentGateTests {
   func touchAndClose() {
     var gate = ParentGate(random: { 0.5 })
     _ = gate.answer(gate.question.answer, at: 0)
+    gate.open(at: 0)
     gate.touch(at: 200)
     #expect(gate.isOpen(at: 450))
     gate.close()

@@ -297,10 +297,10 @@ App Store Connect の「App のプライバシー」。D73・D103・D124・D148 
 |---|---|---|---|
 | 第三者の広告を入れない | 入れていない | 依存の一覧、ソース検索 | OK |
 | 第三者の分析を入れない | 分析は入っていない。ただし **Sentry が、落ちたときだけクラッシュの情報を第三者（Sentry）に送る**（D183）。1.3 で却下される報告がある（D103） | `CrashReporting.swift` | 【要確認】審査用のメモに書く。却下に備え、外した版をすぐ出せる作りにする（D123。`CrashReporting.start()` を消して依存を外すだけ） |
-| 個人情報・端末の情報を第三者に送らない | 通信は Apple の部品だけ。例外は、クラッシュの情報（Sentry。端末の名前・ID は消す）と、Google フォーム（保護者が任意に送る。**フォームの URL に、アプリの版・iPadOS の版は入れない**。D183 で直した） | `FeedbackForm.swift`・`CrashReporting.swift` | OK。審査用のメモで説明する |
+| 個人情報・端末の情報を第三者に送らない | 通信は Apple の部品だけ。例外は、クラッシュの情報（Sentry。端末の名前・ID は消し、送る文脈は許す項目だけ。D193）と、Google フォーム（保護者が任意に送る。フォームの URL には、調べるためにアプリの版と iPadOS の版だけを入れる。端末の ID・機種名は入れない。D193 で D183 を変更） | `FeedbackForm.swift`・`CrashReporting.swift` | OK。審査用のメモで説明する |
 | 外部リンクの前に保護者用の確認 | 5つのリンクはすべて保護者用の画面の中。入口は歯車の2秒長押し＋かけ算 | `SupportView.swift`・`ContentView.swift` | OK。ただし下の2点に注意 |
 | 購入の前に保護者用の確認 | 購入は保護者用の画面の「購入」だけ。子どもの画面に価格も購入ボタンもない | `PurchaseView.swift`・`LockScreenView` | OK。ただし下の2点に注意 |
-| 保護者用の確認が子どもに解けない | 漢数字の「2桁×1桁」のかけ算。3回まちがえると30秒待つ | `ParentGateKit` | OK |
+| 保護者用の確認が子どもに解けない | 漢数字の「2桁×1桁」のかけ算。3回まちがえると30秒待つ。iPad の確認が要るときは、それが通るまで開かない。子どもの切り替えに使ったあとはすぐ閉じる（D193） | `ParentGateKit` | OK |
 | 保護者用の画面の有効時間（5分）が守られる | 守られる（D183）。操作のたびに5分先へ延び、開いているあいだ1秒ごとと、アプリに戻ったときに確かめて閉じる | `ParentGateFeature.swift`・`ContentView.swift`・`ParentAreaView.swift`。テスト: `ParentGateFeatureTests`・`ParentAreaTimeoutUITests` | OK |
 | 権限（位置・カメラ・マイクなど）を求めない | 求めない | Info.plist | OK |
 | プッシュ通知で子どもを誘導しない | 通知は使わない。`remote-notification` は iCloud 同期の裏の更新のためだけ（許可の確認は出ない） | `Info-extra.plist` | OK。審査用のメモに書く |
@@ -328,7 +328,7 @@ Purchases are only in Parent Area > Purchase (購入), after the parental gate. 
 There are four non-consumable products. "All Letters (One Pack Owned)" is shown only after the user owns one pack, as a cheaper way to get the second pack. In the sandbox, buy one pack first to see it.
 
 EXTERNAL LINKS
-All links are in Parent Area > Support, behind the parental gate: the support page, the privacy policy, and a Google Form for contact. The form opens in an in-app browser. A parent decides whether to send it.
+All links are in Parent Area > Support, behind the parental gate: the support page, the privacy policy, and a Google Form for contact. Links open in Safari, outside the app. A parent decides whether to send it.
 
 DATA
 No ads. No third-party analytics. Crash information only (crash location, app and OS versions, device model family) is sent to Sentry, only when the app crashes. No user ID, no IP address stored, no breadcrumbs, no sessions, no screen recordings. It is not linked to any user and not used for tracking. The contact form link carries no app version or device information.

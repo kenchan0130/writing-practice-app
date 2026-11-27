@@ -32,7 +32,7 @@ struct PurchaseFlowTests {
     await store.refresh()
     #expect(store.products.count == ProductID.allCases.count)
     #expect(store.entitlements.offers == [.allOpen, .katakanaPack, .abcPack])
-    #expect(store.price(.allOpen).contains("500"))
+    #expect(store.price(.allOpen)?.contains("500") == true)
   }
 
   @Test("カタカナを買うとカタカナが開き、持っている人向けの「ぜんぶ」だけ出す。返金すると戻る", .timeLimit(.minutes(1)))

@@ -722,13 +722,13 @@
         }
       }
     },
-    "お問い合わせのフォームを開きます。アプリの版や iPad の情報は、こちらからは送りません。必要なときだけ、下の文を長押しでコピーして書き足してください。": {
+    "お問い合わせのフォームを Safari で開きます。調べるために、アプリの版と iPadOS の版を入れておきます。": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This opens a contact form (the form is in Japanese; English is welcome). The app does not send the app version or iPad details. If you need to, press and hold the text below to copy it and add it to your message."
+            "value": "Opens the contact form in Safari. The app version and iPadOS version are filled in to help us look into it."
           }
         }
       }
@@ -960,6 +960,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Find words"
+          }
+        }
+      }
+    },
+    "ことばを やりなおす": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start the word over"
           }
         }
       }
@@ -1234,17 +1245,6 @@
         }
       }
     },
-    "ことばを やりなおす": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start the word over"
-          }
-        }
-      }
-    },
     "ぜんぶ けす": {
       "extractionState": "manual",
       "localizations": {
@@ -1324,6 +1324,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Next"
+          }
+        }
+      }
+    },
+    "つなげませんでした。通信を確かめて、もう一度試してください。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't connect. Check your connection and try again."
           }
         }
       }
@@ -1782,6 +1793,17 @@
         }
       }
     },
+    "もう一度": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try again"
+          }
+        }
+      }
+    },
     "もう一度どうぞ。あと %lld 回試せます": {
       "extractionState": "manual",
       "localizations": {
@@ -2175,17 +2197,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Locked"
-          }
-        }
-      }
-    },
-    "・「%@」": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": " · \"%@\""
           }
         }
       }
@@ -2806,6 +2817,17 @@
         }
       }
     },
+    "新しく復元できる購入は、ありませんでした": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing new to restore"
+          }
+        }
+      }
+    },
     "施設でお使いの方へ": {
       "extractionState": "manual",
       "localizations": {
@@ -3144,6 +3166,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Records are saved on this iPad. Sign in to iCloud to turn on syncing."
+          }
+        }
+      }
+    },
+    "読み込めませんでした": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load"
           }
         }
       }

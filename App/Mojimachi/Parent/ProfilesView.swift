@@ -16,7 +16,8 @@ struct ProfilesView: View {
             HStack(spacing: 16) {
               ProfileFace(face: profile.face, size: 44)
               VStack(alignment: .leading) {
-                Text(profile.displayName.isEmpty ? String(localized: "（呼び名なし）") : profile.displayName)
+                Text(
+                  profile.displayName.isEmpty ? String(localized: "（呼び名なし）") : profile.displayName)
                 Text("今日の目標 \(profile.dailyGoal) 字").font(.caption)
                   .foregroundStyle(.secondary)
               }
@@ -51,6 +52,7 @@ struct ProfilesView: View {
           profile: profile, isNew: store.profiles.profile(profile.id) == nil,
           onDone: { editing = nil })
       }
+      .pausesParentTimeout()
     }
   }
 }
@@ -194,7 +196,8 @@ struct ProfilePicker: View {
             .frame(minWidth: 140, minHeight: 160)
           }
           .buttonStyle(.plain)
-          .accessibilityLabel(profile.displayName.isEmpty ? String(localized: "こども") : profile.displayName)
+          .accessibilityLabel(
+            profile.displayName.isEmpty ? String(localized: "こども") : profile.displayName)
         }
       }
     }

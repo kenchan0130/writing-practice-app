@@ -183,6 +183,8 @@ struct ContentView: View {
               showsGate = false
               if gateForSwitch {
                 gateForSwitch = false
+                // 切り替えのための確認は、ここで使い切る。子どもが長押しで保護者用の画面へ入れないように（D193）。
+                gateStore.send(.close)
                 showsProfilePicker = true
               } else {
                 showsParentArea = true
@@ -191,6 +193,7 @@ struct ContentView: View {
             onCancel: {
               showsGate = false
               gateForSwitch = false
+              gateStore.send(.close)
             })
         }
       } else {
@@ -246,13 +249,13 @@ struct ContentView: View {
       if shows { gateStore.send(.parentAreaOpened) }
     }
     .onChange(of: scenePhase) { _, phase in
-      if phase == .active, showsParentArea { gateStore.send(.checkExpiry) }
+      if phase == .active, showsParentArea { checkParentExpiry() }
     }
     .task(id: showsParentArea) {
       guard showsParentArea else { return }
       while !Task.isCancelled {
         try? await Task.sleep(for: .seconds(1))
-        gateStore.send(.checkExpiry)
+        checkParentExpiry()
       }
     }
     .onChange(of: gateStore.parentAreaExpired) { _, expired in
@@ -663,6 +666,15 @@ struct ContentView: View {
     if finished == .child { screen = nil }
   }
 
+  /// 保護者用の画面の上に、シートやブラウザや購入の画面が出ているあいだは切らない。閉じたら、また5分から（D193）。
+  private func checkParentExpiry() {
+    if ParentModalTracker.shared.isPresenting {
+      gateStore.send(.touched)
+    } else {
+      gateStore.send(.checkExpiry)
+    }
+  }
+
   private func openParentArea() {
     if gate.isOpen(at: Date().timeIntervalSince1970) {
       showsParentArea = true
@@ -806,9 +818,10 @@ private struct StampCard: View {
           VStack(spacing: 6) {
             Text(
               (AppLanguage.isEnglish ? Self.englishNames : Self.names)[
-                Calendar.current.component(.weekday, from: day.date) - 1])
-              .font(.ui(18, bold: true))
-              .foregroundStyle(Theme.inkSoft)
+                Calendar.current.component(.weekday, from: day.date) - 1]
+            )
+            .font(.ui(18, bold: true))
+            .foregroundStyle(Theme.inkSoft)
             Image(systemName: day.stamped ? "heart.circle.fill" : "circle.dashed")
               .font(.system(size: 40))
               .foregroundStyle(day.stamped ? Theme.pink : Color.gray.opacity(0.4))

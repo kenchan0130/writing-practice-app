@@ -5,32 +5,30 @@ import Testing
 
 @Suite("お問い合わせのフォーム")
 struct FeedbackFormTests {
-  static let context = FeedbackForm.Context(detail: "字: そ / 設定: はじめて")
+  static let context = FeedbackForm.Context(
+    appVersion: "1.0 (27)", os: "iPadOS 27.0", detail: "字: そ / 設定: はじめて")
 
   @Test("アプリの情報の欄に、アプリ・種類・詳しいことを1行ずつ書く")
   func appInfo() {
     #expect(
       FeedbackForm.appInfo(kind: .judge, context: Self.context)
-        == "アプリ: もじまち\n種類: 判定\n字: そ / 設定: はじめて")
+        == "アプリ: もじまち\n種類: 判定\nアプリの版: 1.0 (27)\niPadOS 27.0\n字: そ / 設定: はじめて")
   }
 
-  @Test("URL に、アプリの版・OS の版・機種を入れない（Kids 1.3）")
-  func noDeviceInfoInURL() {
-    for kind in FeedbackForm.Kind.allCases {
-      let text =
-        FeedbackForm.url(kind: kind, context: Self.context).absoluteString
-        .removingPercentEncoding ?? ""
-      for word in ["iPadOS", "iOS", "iPad ", "1.0.0", "UIDevice"] {
-        #expect(!text.contains(word), "\(word) が入っている")
-      }
-    }
+  @Test("URL に、アプリの版と OS の版を入れる（D193）")
+  func versionsInURL() throws {
+    let url = FeedbackForm.url(kind: .opinion, context: Self.context)
+    let items = try #require(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems)
+    let info = try #require(items.first { $0.name == FeedbackForm.appInfoEntry }?.value)
+    #expect(info.contains("アプリの版: 1.0 (27)"))
+    #expect(info.contains("iPadOS 27.0"))
   }
 
-  @Test("版の文は、保護者が書き足すためのもの")
-  func deviceInfoText() {
+  @Test("版がわからないときは、その行を書かない")
+  func missingVersions() {
     #expect(
-      FeedbackForm.deviceInfoText(appVersion: "1.0.0", osVersion: "iPadOS 26.1")
-        == "アプリの版: 1.0.0 / iPadOS 26.1")
+      FeedbackForm.appInfo(kind: .opinion, context: FeedbackForm.Context())
+        == "アプリ: もじまち\n種類: ご意見")
   }
 
   @Test("フォームの選択肢は既存のものに当てはめる（D124）")

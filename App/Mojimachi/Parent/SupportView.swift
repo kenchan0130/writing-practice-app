@@ -3,7 +3,7 @@ import SupportKit
 import SwiftUI
 import UIKit
 
-/// 保護者用の画面の「サポート」（D124・§5.3）。フォームはアプリの中のブラウザで開く。
+/// 保護者用の画面の「サポート」（D124・§5.3）。フォームやページは Safari で開く（D193）。
 struct SupportView: View {
   @Environment(\.requestReview) private var requestReview
 
@@ -14,20 +14,18 @@ struct SupportView: View {
         formLink("ご意見", kind: .opinion)
         formLink("施設でお使いの方へ", kind: .facility)
       } footer: {
-        Text("お問い合わせのフォームを開きます。アプリの版や iPad の情報は、こちらからは送りません。必要なときだけ、下の文を長押しでコピーして書き足してください。")
-      }
-      Section {
-        Text(deviceInfo).textSelection(.enabled)
+        Text("お問い合わせのフォームを Safari で開きます。調べるために、アプリの版と iPadOS の版を入れておきます。")
       }
       Section {
         Link("サポートページ", destination: PublicPages.support)
-        Link("プライバシーポリシー", destination: AppLanguage.isEnglish ? PublicPages.privacyEnglish : PublicPages.privacy)
+        Link(
+          "プライバシーポリシー",
+          destination: AppLanguage.isEnglish ? PublicPages.privacyEnglish : PublicPages.privacy)
         NavigationLink("このアプリについて") { AboutView() }
         Button("アプリを評価する") { requestReview() }
       }
     }
     .navigationTitle("サポート")
-    .environment(\.openURL, OpenURLAction { .systemAction($0, prefersInApp: true) })
   }
 
   /// 判定の報告に添える、最後の設定。
@@ -35,11 +33,12 @@ struct SupportView: View {
     "設定: \(ProgressStore.shared.preset.rawValue)"
   }
 
-  /// 保護者が自分で書き足すための文。フォームの URL には入れない。
-  private var deviceInfo: String {
-    FeedbackForm.deviceInfoText(
-      appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "",
-      osVersion: "iPadOS \(UIDevice.current.systemVersion)")
+  /// フォームに入れる、アプリの版（例 "1.0 (27)"）。
+  private var appVersion: String {
+    let info = Bundle.main.infoDictionary
+    let version = info?["CFBundleShortVersionString"] as? String ?? ""
+    let build = info?["CFBundleVersion"] as? String ?? ""
+    return build.isEmpty ? version : "\(version) (\(build))"
   }
 
   private func formLink(_ title: LocalizedStringKey, kind: FeedbackForm.Kind, detail: String? = nil)
@@ -49,7 +48,8 @@ struct SupportView: View {
       title,
       destination: FeedbackForm.url(
         kind: kind,
-        context: FeedbackForm.Context(detail: detail)))
+        context: FeedbackForm.Context(
+          appVersion: appVersion, os: "iPadOS \(UIDevice.current.systemVersion)", detail: detail)))
   }
 }
 
@@ -84,7 +84,8 @@ struct AboutView: View {
 
   private func notice(_ path: String) -> some View {
     let url = Bundle.main.resourceURL?.appendingPathComponent(path)
-    let text = url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? String(localized: "（見つかりません）")
+    let text =
+      url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? String(localized: "（見つかりません）")
     return Text(text).font(.footnote).textSelection(.enabled)
   }
 }

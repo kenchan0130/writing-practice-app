@@ -119,10 +119,13 @@ nonisolated struct ParentGateFeature {
         if ok {
           return .send(.passed)
         }
+        state.gate.close()
         state.message = String(localized: "iPad の確認ができませんでした")
         return .none
 
       case .passed:
+        // かけ算も iPad の確認も通ってから、はじめて有効にする（D193）。
+        state.gate.open(at: date.now.timeIntervalSince1970)
         state.outcome = .passed
         return .none
 
@@ -138,7 +141,7 @@ nonisolated struct ParentGateFeature {
           if UserDefaults.standard.string(forKey: "openParent") != nil,
             !state.gate.isOpen(at: now)
           {
-            _ = state.gate.answer(state.gate.question.answer, at: now)
+            state.gate.open(at: now)
           }
         #endif
         return .none
@@ -166,7 +169,8 @@ nonisolated struct ParentGateFeature {
       // 「iPad のパスコードも もとめる」（D64）。パスコードが設定されていなければ、かけ算だけで通す。
       if deviceAuth.isRequired() {
         return .run { [deviceAuth] send in
-          await send(.deviceAuthFinished(await deviceAuth.confirm(String(localized: "保護者用の画面を開きます"))))
+          await send(
+            .deviceAuthFinished(await deviceAuth.confirm(String(localized: "保護者用の画面を開きます"))))
         }
       }
       return .send(.passed)

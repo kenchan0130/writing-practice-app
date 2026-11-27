@@ -14,6 +14,8 @@ final class PurchaseStore {
   /// 子どもには見せない。保護者用の画面にだけ出す（D117）。
   private(set) var message: String?
   private(set) var isWorking = false
+  /// 商品を読めなかったか。読めなかったときは価格を出さず、「読み込めませんでした」と再読み込みを出す（D193）。
+  private(set) var productsFailed = false
 
   private var updates: Task<Void, Never>?
   /// 確かめ用に、持っていることにしているか。
@@ -41,7 +43,7 @@ final class PurchaseStore {
     // StoreKit の試し用の設定がないと、「Apple Account にサインイン」の画面が出て止まるため。
     guard observesStore, !Self.isTestHost else { return }
     updates = Task { [weak self] in
-      for await _ in Transaction.updates { await self?.refresh() }
+      for await result in Transaction.updates { await self?.handleUpdate(result) }
     }
     Task { await refresh() }
   }
@@ -51,11 +53,18 @@ final class PurchaseStore {
     ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
   }
 
+  /// アプリの外で起きた購入（承認待ちの承認・ファミリー共有・返金など）。権利に入れたあとで終わらせる（D193）。
+  private func handleUpdate(_ result: VerificationResult<Transaction>) async {
+    await refresh()
+    if case .verified(let transaction) = result { await transaction.finish() }
+  }
+
   /// 商品と購入記録を読み直す。
   func refresh() async {
     guard !isFake else { return }
     if products.isEmpty {
       let loaded = (try? await Product.products(for: ProductID.allCases.map(\.rawValue))) ?? []
+      productsFailed = loaded.isEmpty
       products = Dictionary(
         loaded.compactMap { p in ProductID(rawValue: p.id).map { ($0, p) } },
         uniquingKeysWith: { a, _ in a })
@@ -106,18 +115,31 @@ final class PurchaseStore {
     }
   }
 
-  /// 購入を復元（D95）。
+  /// 購入を復元（D95）。結果は正しく伝える（D193）。
   func restore() async {
     isWorking = true
     defer { isWorking = false }
-    try? await AppStore.sync()
+    let before = Set(entitlements.purchases.map(\.product))
+    do {
+      try await AppStore.sync()
+    } catch StoreKitError.userCancelled {
+      message = nil
+      return
+    } catch {
+      message = String(localized: "つなげませんでした。通信を確かめて、もう一度試してください。")
+      return
+    }
     await refresh()
-    message = String(localized: "購入を復元しました")
+    let after = Set(entitlements.purchases.map(\.product))
+    message =
+      after.isSubset(of: before)
+      ? String(localized: "新しく復元できる購入は、ありませんでした")
+      : String(localized: "購入を復元しました")
   }
 
-  /// 価格の表示。App Store の商品が読めなければ、決まりの価格（確かめ用）。
-  func price(_ id: ProductID) -> String {
-    products[id]?.displayPrice ?? "¥\(id.yen)"
+  /// 価格の表示。App Store の商品が読めなければ nil（決まった金額は出さない）。
+  func price(_ id: ProductID) -> String? {
+    products[id]?.displayPrice
   }
 
   #if DEBUG

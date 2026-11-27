@@ -73,6 +73,7 @@ struct LearningRecordView: View {
         Button("閉じる") { replaying = nil }
       }
       .padding(32)
+      .pausesParentTimeout()
     }
   }
 

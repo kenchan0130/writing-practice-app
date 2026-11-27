@@ -38,9 +38,16 @@ struct PurchaseView: View {
               }
             }
             Spacer()
-            Button(purchases.price(id)) { Task { await purchases.buy(id) } }
-              .buttonStyle(.borderedProminent)
-              .disabled(purchases.isWorking || purchases.products[id] == nil)
+            if let price = purchases.price(id) {
+              Button(price) { Task { await purchases.buy(id) } }
+                .buttonStyle(.borderedProminent)
+                .disabled(purchases.isWorking)
+            } else {
+              // 価格を読めないときは、金額を出さない（D193）。
+              Text("読み込めませんでした").foregroundStyle(.secondary)
+              Button("もう一度") { Task { await purchases.refresh() } }
+                .buttonStyle(.bordered)
+            }
           }
         }
         if let message = purchases.message {
@@ -58,9 +65,8 @@ struct PurchaseView: View {
       Section("お試しで書けるもの") {
         ForEach(Script.paid, id: \.self) { script in
           LabeledContent(Self.name(script)) {
-            Text(
-              String(Trial.characters(for: script))
-                + (Trial.word(for: script).map { String(localized: "・「\($0)」") } ?? ""))
+            // ことばは、そのことばが入るまで出さない（D72・D193）。
+            Text(String(Trial.characters(for: script)))
           }
         }
       }
