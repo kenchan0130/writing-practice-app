@@ -245,7 +245,14 @@ struct WritingCanvasView: View {
 
   /// 子どもが書いた線。
   private func drawWriting(in context: inout GraphicsContext, size: CGSize) {
-    for stroke in model.strokes { CanvasDrawing.ink(stroke, in: &context) }
+    for (index, stroke) in model.strokes.enumerated() {
+      if model.wrongFeedback?.writtenStroke == index, model.finishedRating == nil {
+        // ちがった画は、やさしい色で目立たせる（D195。赤やバツは使わない）。
+        CanvasDrawing.ink(stroke, in: &context, color: Color(red: 0.98, green: 0.62, blue: 0.2))
+      } else {
+        CanvasDrawing.ink(stroke, in: &context)
+      }
+    }
     CanvasDrawing.ink(model.recorder.current, in: &context)
     if let last = model.recorder.current.last {
       CanvasDrawing.ink([last] + model.recorder.predicted, in: &context, opacity: 0.5)
