@@ -104,11 +104,12 @@ struct OnboardingTests {
     #expect(flow.step == .nazoru)
   }
 
-  @Test("最初の1字も、2回続けて合わなければ行き止まりにせず先へ進む（D46）")
+  @Test("最初の1字も、3回続けて合わなければ行き止まりにせず先へ進む（D46・D191）")
   func nazoruOnlyHasNoDeadEnd() throws {
     let data = try PracticeFlowTests.character("あ")
     var flow = PracticeFlow(character: data, preset: .hajimete, nazoruOnly: true)
     _ = flow.handle(.animationFinished)
+    _ = flow.handle(.strokeEnded(PracticeFlowTests.scribble))
     _ = flow.handle(.strokeEnded(PracticeFlowTests.scribble))
     let effects = flow.handle(.strokeEnded(PracticeFlowTests.scribble))
     #expect(effects.last == .finished(rating: .maru, rescued: true))

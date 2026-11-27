@@ -250,7 +250,9 @@ final class ProgressStore {
     #if DEBUG
       // 確かめ用: `-skipOnboarding YES` で出さない（`-screen`・`-openParent`・`-mapChar` のときも出さない）。
       if defaults.bool(forKey: "skipOnboarding")
-        || ["screen", "openParent", "mapChar"].contains(where: { defaults.string(forKey: $0) != nil })
+        || ["screen", "openParent", "mapChar"].contains(where: {
+          defaults.string(forKey: $0) != nil
+        })
       {
         return nil
       }
@@ -500,7 +502,8 @@ final class ProgressStore {
     guard stickers.contains(where: { $0.id == id }) else { return }
     append(
       StickerEvent(
-        date: laterThanStickerRows(date), action: .placed, itemID: id, surface: surface, x: x, y: y))
+        date: laterThanStickerRows(date), action: .placed, itemID: id, surface: surface, x: x, y: y)
+    )
   }
 
   /// ステッカーを はがす（入れ物に もどる）。行を足すだけ。

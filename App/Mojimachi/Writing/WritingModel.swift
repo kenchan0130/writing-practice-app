@@ -57,10 +57,19 @@ final class WritingModel {
   private(set) var endingHint: EndingHint?
   /// ① の書き順のアニメーションを始めた時刻。
   private(set) var animationStart: Date?
+  /// 途中でペンを離して、続きを待っている線の数（D191）。
+  private var pendingPieces = 0
+  /// 続けて捨てた、ごく短い接触の数（D191）。
+  private var discardedTouches = 0
+  /// 続けてまちがえたとき、お手本の画を1回だけ見せる（D191）。
+  private(set) var replay: ModelReplay?
+  /// 書けなかったけれど、行き止まりを作らずに先へ進めた（ほめずに、いっしょに書こうと伝える。D191）。
+  private(set) var rescued = false
   /// 1字書けたあとのごほうびの演出を出しているか（D152）。
   private(set) var showsCelebration = false
   /// 次の字へ自動で進むまでの秒数（D154）。
   static let autoAdvanceSeconds = 1.5
+  private var replayTask: Task<Void, Never>?
   private var advanceTask: Task<Void, Never>?
   private var onboardingFinishTask: Task<Void, Never>?
   /// 判定のおまかせ設定（保護者用の画面と共通。D22）。
@@ -158,11 +167,14 @@ final class WritingModel {
   var strokeTotal: Int { character?.strokes.count ?? 0 }
   var strokesDone: Int {
     if finishedRating != nil { return strokeTotal }
+    // ②③は、続きから書く途中の線を数えない（D191）。
+    if step != .jibunde, let flow { return min(flow.strokes.count, strokeTotal) }
     return min(strokes.count, strokeTotal)
   }
 
   /// パネルのキャラクターが言う短いひとこと（D150）。
   var guidance: String {
+    if rescued { return "つぎは いっしょに かこうね" }
     if finishedRating != nil { return "じょうずに かけたね！" }
     if hintStroke != nil { return "ここから かいてみよう" }
     switch step {
@@ -191,6 +203,8 @@ final class WritingModel {
     writtenEndings = []
     writtenLines = []
     hintStroke = nil
+    pendingPieces = 0
+    replay = nil
     apply(flow?.handle(.restartStep) ?? [])
   }
 
@@ -282,6 +296,9 @@ final class WritingModel {
     result = nil
     finishedRating = nil
     hintStroke = nil
+    pendingPieces = 0
+    replay = nil
+    rescued = false
     highlightsDone = false
     guard let character else {
       flow = nil
@@ -309,23 +326,56 @@ final class WritingModel {
     }
   }
 
+  /// 続きから書いた線を、1画にまとめる（D191）。
+  private func mergePieces() {
+    strokes.mergeTail(pieces: pendingPieces) { $0.flatMap { $0 } }
+    writtenEndings.mergeTail(pieces: pendingPieces) { $0.last ?? nil }
+    writtenLines.mergeTail(pieces: pendingPieces) { $0.flatMap { $0 } }
+    pendingPieces = 0
+  }
+
+  /// お手本の画を1回だけ動かして見せる（D191）。
+  private func startReplay(stroke: Int) {
+    replay = ModelReplay(stroke: stroke, start: Date())
+    replayTask?.cancel()
+    replayTask = Task { [weak self] in
+      try? await Task.sleep(for: .seconds(ModelReplay.duration + 0.3))
+      guard !Task.isCancelled else { return }
+      self?.replay = nil
+    }
+  }
+
   /// 流れからの指示を画面に映す。
   private func apply(_ effects: [PracticeEffect]) {
     for effect in effects {
       switch effect {
       case .keepStroke:
         hintStroke = nil
+        replay = nil
+        mergePieces()
         // 1画書けたら、ド→レ→ミと高くなる音（§3.9）。
         SoundPlayer.shared.play(.stroke(max(strokes.count - 1, 0)))
       case .rejectStroke(let hint):
-        // 違う画はふわっと消して、書き始めを光らせる（D47）。
-        if !strokes.isEmpty { strokes.removeLast() }
-        if !writtenEndings.isEmpty { writtenEndings.removeLast() }
-        if !writtenLines.isEmpty { writtenLines.removeLast() }
+        // 違う画はふわっと消して、書き始めを光らせる（D47）。続きから書く途中の線も、まとめて消す（D191）。
+        strokes.removeTail(pieces: pendingPieces)
+        writtenEndings.removeTail(pieces: pendingPieces)
+        writtenLines.removeTail(pieces: pendingPieces)
+        pendingPieces = 0
         hintStroke = hint
+      case .keepPartial:
+        // 途中で離した線は残して、続きから書けるようにする（D56 ③・D191）。
+        pendingPieces += 1
+      case .dropPartial:
+        strokes.removeBeforeLast(pieces: pendingPieces)
+        writtenEndings.removeBeforeLast(pieces: pendingPieces)
+        writtenLines.removeBeforeLast(pieces: pendingPieces)
+        pendingPieces = 0
+      case .replayModel(let stroke):
+        startReplay(stroke: stroke)
       case .stepChanged(let step):
         recordStepChange(from: lastStep, to: step)
         lastStep = step
+        pendingPieces = 0
         strokes = []
         writtenEndings = []
         writtenLines = []
@@ -336,8 +386,10 @@ final class WritingModel {
         if !result.passed { record(stage: .jibunde, passed: false, issues: result.issues) }
       case .finished(let rating, let rescued):
         finishedRating = rating
-        showsCelebration = true
-        SoundPlayer.shared.play(.praise)
+        self.rescued = rescued
+        // 書けなかった字は、ほめる演出を出さない。いっしょに書こうと伝えて、先へ進む（D191）。
+        showsCelebration = !rescued
+        if !rescued { SoundPlayer.shared.play(.praise) }
         if let stage = step.flatMap(Self.recordStage) {
           record(stage: stage, passed: !rescued, rescued: rescued, issues: result?.issues ?? [])
         }
@@ -445,6 +497,10 @@ final class WritingModel {
     if case .began = event {
       judgeTask?.cancel()
       highlightsDone = false
+      if let character {
+        recorder.accidentalTouch = AccidentalTouch(
+          character: character, expectedStroke: step == .jibunde ? nil : flow?.expectedStroke)
+      }
       if result != nil, result?.passed == false {
         // ④ で合わなかったあとに書き始めたら、書き直しとして始める。
         result = nil
@@ -453,12 +509,34 @@ final class WritingModel {
         writtenLines = []
       }
     }
-    guard let finished = recorder.handle(event, convert: convert) else { return }
+    guard let finished = recorder.handle(event, convert: convert) else {
+      endedWithoutStroke(event)
+      return
+    }
+    discardedTouches = 0
     strokes.append(finished.drawn)
     writtenEndings.append(EndingAnalysis.classify(finished.line, times: finished.times))
     writtenLines.append(finished.line)
     apply(flow?.handle(.strokeEnded(finished.line)) ?? [])
     scheduleJudge()
+  }
+
+  /// 画にならなかった接触（ちょんと触れた・手のひらで取り消した）が終わったとき。
+  /// 触れたときに止めた「書き終わりの合図」を、もう一度かける（D191）。
+  /// ②③で何度も続くときは、次に書く画の書き始めを光らせて、どこから書くかを伝える。
+  func endedWithoutStroke(_ event: StrokeInputEvent) {
+    switch event {
+    case .ended, .cancelled:
+      if recorder.lastEndWasDiscarded {
+        discardedTouches += 1
+        if discardedTouches >= 3, step == .nazoru || step == .usuku, let flow {
+          hintStroke = flow.expectedStroke
+        }
+      }
+      scheduleJudge()
+    default:
+      break
+    }
   }
 
   /// ④ で合格したとき、終わり方がお手本と違う最初の画を探す（D145）。

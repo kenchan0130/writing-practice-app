@@ -60,7 +60,9 @@ struct WritingPanel: View {
     .disabled(!model.hasNeighbors)
   }
 
-  private func arrowButton(_ symbol: String, label: LocalizedStringKey, action: @escaping () -> Void)
+  private func arrowButton(
+    _ symbol: String, label: LocalizedStringKey, action: @escaping () -> Void
+  )
     -> some View
   {
     Button(action: action) {
@@ -164,7 +166,7 @@ struct WritingHelper: View {
   private var mascot: some View {
     MainCharacterArt(
       character: ProgressStore.shared.mainCharacter, size: vertical ? 96 : 68,
-      pose: model.finishedRating != nil ? .happy : .normal)
+      pose: model.finishedRating != nil && !model.rescued ? .happy : .normal)
   }
 
   private var bubble: some View {
