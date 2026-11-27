@@ -21,11 +21,18 @@ struct SupportView: View {
         Link(
           "プライバシーポリシー",
           destination: AppLanguage.isEnglish ? PublicPages.privacyEnglish : PublicPages.privacy)
-        NavigationLink("このアプリについて") { AboutView() }
+        // ライセンスと出どころは、iOS の「設定」アプリの もじまち のページに出す（D196）。
+        Button("このアプリについて") { openAppSettings() }
         Button("アプリを評価する") { requestReview() }
       }
     }
     .navigationTitle("サポート")
+  }
+
+  /// 「設定」アプリの もじまち のページ（ライセンス）を開く。ブラウザでは開かない（D196）。
+  private func openAppSettings() {
+    guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+    UIApplication.shared.open(url)
   }
 
   /// 判定の報告に添える、最後の設定。
@@ -50,42 +57,5 @@ struct SupportView: View {
         kind: kind,
         context: FeedbackForm.Context(
           appVersion: appVersion, os: "iPadOS \(UIDevice.current.systemVersion)", detail: detail)))
-  }
-}
-
-/// このアプリについて（ライセンスの表示。D128）。
-struct AboutView: View {
-  var body: some View {
-    List {
-      Section("文字のデータ") {
-        notice("Packs/hira/NOTICE.md")
-        notice("Packs/kata/NOTICE.md")
-      }
-      Section("ライセンス（strokesvg・Klee One）") {
-        notice("Packs/hira/LICENSE")
-      }
-      // 子どもの画面の書体（D153）。ライセンス文と著作権表示。
-      Section("書体（Klee One・Zen Maru Gothic）") {
-        notice("FONTS-NOTICE.txt")
-        notice("OFL-KleeOne.txt")
-        notice("OFL-ZenMaruGothic.txt")
-      }
-      // 効果音の出どころ（D149）。小森平さん・Freesound（CC0）・OtoLogic（CC BY 4.0。D158）・こんとどぅふぇ。
-      Section("効果音（小森平・Freesound・OtoLogic・こんとどぅふぇ）") {
-        notice("SOUNDS-NOTICE.txt")
-      }
-      // 声のクレジット（D162）。VOICEVOX:猫使ビィ。
-      Section("声（VOICEVOX:猫使ビィ）") {
-        notice("VOICES-NOTICE.txt")
-      }
-    }
-    .navigationTitle("このアプリについて")
-  }
-
-  private func notice(_ path: String) -> some View {
-    let url = Bundle.main.resourceURL?.appendingPathComponent(path)
-    let text =
-      url.flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? String(localized: "（見つかりません）")
-    return Text(text).font(.footnote).textSelection(.enabled)
   }
 }

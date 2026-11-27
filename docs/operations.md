@@ -49,6 +49,14 @@
 - クラッシュ: Sentry と Xcode のクラッシュ報告を週1回。
 - ライブラリ: Dependabot の提案を確かめて入れる（原則最新の版。D147）。
 
+## ライセンスの表示（D196）
+
+- iOS の「設定」アプリの もじまち のページに出す。置き場は `App/Mojimachi/Settings.bundle`（作ったものをコミットする。手で直さない）。
+- 作り直す: `python3 -I Scripts/make_settings_licenses.py [SwiftPM の checkouts のフォルダ]`。ライブラリの LICENSE は、checkouts にあればそこから、なければ `gh api` で `Package.resolved` の版から取る。
+- 動かすとき: ライブラリを足す・版を上げた、声・効果音・書体・文字のデータの出どころ（`Resources` の NOTICE・OFL、`Content/Packs/hira/LICENSE`）を直した、とき。
+- 載せないもの: swift-syntax（ビルド時のマクロだけ。アプリに入らない）、KanjiVG（確認に使っただけ）。
+- 確かめる: シミュレータで「設定」→ もじまち → ライセンス。
+
 ## 元データの置き場（D112・D132・D139）
 
 - リポジトリが公開のあいだは、圧縮前の元データと AI で作ったときの記録を、手元と外付けのディスク（または iCloud Drive）だけに置く（`Originals/` は git に入れない）。

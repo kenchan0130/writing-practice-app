@@ -62,7 +62,7 @@ Sentry のコードとライブラリは入った（D183）。**DSN を入れな
 | 商標・キャラクター名・絵の確認（§10.1） | 人 | 未 | J-PlatPat と画像検索。「ひら」の見た目の見直し（D137）、「とん」が豚に見えないか（D61 ③） |
 | iCloud のデータの形を本番に反映する | 人 | 未 | CloudKit Console の「Deploy Schema Changes」（`docs/operations.md`）。署名ありで一度動かして、開発環境に形ができてから。AI はできない。本番のデータの形に、**`StickerRow`・`ToyBoxMoveRow`・`WishRow`** が入っていること（この3つを足したあとの形を反映する。開発環境で、おたのしみ ボックスをあける・おもちゃばこで出し入れする・おねがいを押す、を1回ずつして形を作る） |
 | プライバシーレポートの前回との違い、実機の「App プライバシーレポート」で Apple と Sentry 以外への通信がないこと | 人 | 未 | `docs/dependencies.md` の「公開ごとの確認」 |
-| 「このアプリについて」のライセンスの表示の見直し | AI | 確認中 | いまは `SupportView.swift` の `AboutView` で、文字のデータ・書体・効果音・声。Sentry を入れたので足す（D183。MIT）。`Package.resolved` から作る作業（LicensePlist）は未 |
+| 「このアプリについて」のライセンスの表示の見直し | AI | 確認中 | 「設定」アプリの `Settings.bundle` に移した（D196）。声・効果音・書体・文字のデータ・ライブラリ全部（Sentry を含む）。`Scripts/make_settings_licenses.py` で作る。公開前に、実機の「設定」でも見る |
 | ライセンスの義務の確認 | 人 | 未 | Klee One・Zen Maru Gothic（OFL）、strokesvg、OtoLogic（CC BY 4.0。D158）、VOICEVOX:猫使ビィ（表示）、KanjiVG の座標を使った字があれば CC BY-SA の公開（D128） |
 | Xcode Cloud のワークフローを作る | 人 | 未 | `docs/operations.md`: まだ作っていない。マクロの確認を省く設定も未（`docs/dependencies.md`） |
 | TestFlight（内部 → 外部）で実機の確認 | 人 | 未 | 下の §4 |
@@ -158,7 +158,7 @@ M0 の基準は、M1 に進む条件だった。D179 は「約300語で出す」
 | Xcode Cloud でビルド → TestFlight（内部） | 人 | 未 | ワークフローをまず作る |
 | TestFlight（外部テスト）→ 審査 → 手動で公開 | 人 | 未 | |
 | 語数の確定と、説明文・スクリーンショットの数の更新 | AI | 未 | D72・D179。いまは305語 |
-| 「このアプリについて」の最終確認 | AI | 未 | |
+| 「このアプリについて」（「設定」アプリの もじまち のページ）の最終確認 | AI | 未 | 実機で、保護者用の画面から開けること。日本語・英語で見ること |
 | ライブラリの最新版の確認（Dependabot。原則最新。D147） | 人 | 未 | |
 | 脆弱性の確認（`osv-scanner`） | AI | 未 | `docs/dependencies.md` |
 | デバッグ用の引数がリリースで効かないこと | AI | 確認中 | すべて `#if DEBUG`（`ContentView.swift`・`ProgressStore.swift` ほか）。リリースのビルドで一度確かめる |
