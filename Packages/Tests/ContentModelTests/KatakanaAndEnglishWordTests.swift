@@ -82,7 +82,7 @@ struct KatakanaAndEnglishWordTests {
     #expect(EnglishWords.entries.count == all.count)
     for word in all {
       #expect(EnglishWords.isLowercaseLetters(word.text), "\(word.text)")
-      #expect((3...4).contains(word.text.count), "\(word.text)")
+      #expect((3...5).contains(word.text.count), "\(word.text)")
       #expect(WordCatalog.entry(for: word.japanese) != nil, "\(word.text) → \(word.japanese)")
       #expect(WordText.script(of: word.text) == .abc)
     }
@@ -101,7 +101,7 @@ struct KatakanaAndEnglishWordTests {
     #expect(pets.first == "cat")
     #expect(pets.contains("dog"))
     // 英語のことばがないテーマには、旗を出さない（空）
-    #expect(index.englishWords(in: WordMap.theme(id: "karada")!).isEmpty)
+    #expect(index.englishWords(in: WordMap.theme(id: "sports")!).isEmpty)
     // 絵のない日本語のことばの英語は出ない
     let noArt = WordMapIndex { $0 != "ねこ" }
     #expect(
@@ -142,9 +142,10 @@ struct KatakanaAndEnglishWordTests {
   func englishSearch() {
     let candidates = EnglishWords.all.map(\.text)
     let c = WordSearch.words(startingWith: "C", among: candidates)
-    #expect(Set(c) == ["cat", "cow", "car"])
+    #expect(Set(c).isSuperset(of: ["cat", "cow", "car"]))
+    #expect(c.allSatisfy { $0.hasPrefix("c") })
     #expect(WordSearch.words(startingWith: "c", among: candidates) == c)
-    #expect(WordSearch.words(startingWith: "z", among: candidates).isEmpty)
+    #expect(WordSearch.words(startingWith: "q", among: candidates).isEmpty)
   }
 
   @Test("探した結果: 開いていることばが先、鍵のことばは影絵で2枚まで")

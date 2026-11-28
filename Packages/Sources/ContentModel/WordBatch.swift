@@ -45,6 +45,7 @@ public struct WordBatch: Sendable {
     .food2,
     .kataSeed,
     .englishSeed,
+    .english2,
   ]
 
   /// 今までのことば（`WordCatalog`・`WordMap`・`WordNotes`・`WordSeason` に書いてある分）。
