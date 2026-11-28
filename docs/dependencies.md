@@ -46,7 +46,7 @@
 | swift-clocks | 1.1.1 | MIT | A | TCA が使う | 2026-11-17 | TCA と一緒 |
 | swift-collections | 1.7.6 | Apache-2.0 | A | TCA が使う | 2026-11-17 | TCA と一緒 |
 | swift-syntax | 604.0.0 | Apache-2.0 | A（ビルド時のマクロだけ） | TCA のマクロが使う。アプリには入らない | 2026-11-17 | TCA と一緒 |
-| Sentry（sentry-cocoa。https://github.com/getsentry/sentry-cocoa 【TODO 人が URL を開いて本物か確かめる（CLAUDE.md の決まり）】） | 9.36.0（2026-11-27 時点の最新。`exact:`） | MIT | A（アプリだけ。`Packages/` には入れない） | クラッシュの報告（D103・D123・D183）。落ちたときの情報だけを、設定した DSN に送る | 2026-11-27 | なし（Apple のクラッシュ報告だけにする案は、D103 で退けた） |
+| Sentry（sentry-cocoa。https://github.com/getsentry/sentry-cocoa 確認済み 2026-11-28 ユーザー） | 9.36.0（2026-11-27 時点の最新。`exact:`） | MIT | A（アプリだけ。`Packages/` には入れない） | クラッシュの報告（D103・D123・D183）。落ちたときの情報だけを、設定した DSN に送る | 2026-11-27 | なし（Apple のクラッシュ報告だけにする案は、D103 で退けた） |
 
 - 承認: 2026-11-17 ユーザー。方針: 最新版を使う（2026-11-17 ユーザーの方針）。版は `exact:`（`project.pbxproj` の `exactVersion`）で固定し、`App/Mojimachi.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` をコミットする。
 - 通信の確認（2026-11-17）: 上の 12 個（swift-collections と swift-syntax 以外）の `Sources` を `URLSession`・`NWConnection`・`NWPathMonitor`・`URLRequest`・`import Network`・`CFNetwork`・Analytics・telemetry で検索した。通信や送信をするコードはない。見つかったのは、swift-dependencies が「`urlSession` を差し替える」ための入口（`DependencyValues.urlSession`。使わなければ動かない）と、swift-custom-dump が `URLRequest` の値を表示するための型の対応だけ。TCA と swift-sharing は `PrivacyInfo.xcprivacy` を持ち、追跡なし・集める情報なし（使う API は UserDefaults と ファイルの日時）。swift-collections・swift-syntax は検索していない（Apple の公式）。
@@ -54,7 +54,7 @@
 - マクロ: Xcode で入れるときは、マクロの信頼の確認が出る。コマンドでは `-skipMacroValidation`（`Makefile`）で省く。Xcode Cloud の設定（マクロの確認を省く方法）はまだ入れていない（人の判断待ち）。swift-syntax はビルド時に Apple のサーバー（download.swift.org）から作り置きを取ることがある（ビルドの道具の通信。アプリは通信しない）。
 - ビルド時間は `docs/reports/tca-build-time.md`。
 - **Sentry（D183。承認: 2026-11-27 ユーザー）**:
-  - 【TODO 人】https://github.com/getsentry/sentry-cocoa を人が開いて、本物の公式リポジトリか確かめる（getsentry の公式。MIT。似た名前に注意）。確かめたら、上の表の TODO を「確認済み 日付 ユーザー」に直す。
+  - 【確認済み 2026-11-28 ユーザー】URL（https://github.com/getsentry/sentry-cocoa）は人が開いて、本物の公式か確かめた（CLAUDE.md の決まり）。
   - 版は `project.pbxproj` の `exactVersion = 9.36.0`。`Package.resolved` に固定した（リビジョン `733cff21…`）。
   - 通信の確認（2026-11-27）: 送り先は、`SentryDSN` に入れた先だけ。**DSN が空のビルド・DEBUG では起動しない**ので何も送らない（`App/Mojimachi/CrashReporting.swift`）。起動したときも、落ちたときの情報（落ちた場所・アプリと OS の版・機種）だけ。セッション・性能・画面の録画・操作の記録・通信の追跡・スクリーンショット・固まりの検知は全部オフ、`sendDefaultPii = false`、`beforeSend` でユーザー・通信・端末の名前・追加の情報を消す。送る内容は `App/MojimachiTests/CrashReportingTests.swift` で固定した。
   - **例外**: 上の A の選び方の「ソースで入れる」に対し、Sentry の SwiftPM は**ビルド済みの xcframework**（バイナリ）を配る。Sentry は自分の `PrivacyInfo.xcprivacy` を中に入れている。承認のうえの例外とする（D132）。公開のたびに、プライバシーレポートで通信先を確かめる。
