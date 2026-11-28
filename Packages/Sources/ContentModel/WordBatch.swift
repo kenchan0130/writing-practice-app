@@ -54,6 +54,8 @@ public struct WordBatch: Sendable {
     .nature3,
     .town3,
     .english2,
+    .kata1,
+    .kata2,
   ]
 
   /// 今までのことば（`WordCatalog`・`WordMap`・`WordNotes`・`WordSeason` に書いてある分）。

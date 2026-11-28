@@ -20,7 +20,7 @@ struct HouseLayoutTests {
 
   @Test("どの種類にも、置くことばがある。いえの物は、どれも使い方が決まっている")
   func everyWord() {
-    #expect(Self.words.count == 46)
+    #expect(Self.words.count == 48)
     for spot in HouseSpot.allCases {
       #expect(Self.words.contains { HouseLayout.spot(for: $0) == spot })
     }
