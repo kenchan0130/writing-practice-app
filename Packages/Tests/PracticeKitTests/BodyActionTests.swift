@@ -15,7 +15,7 @@ struct BodyActionTests {
   @Test("体のことばは、どれも動きがある。体のことばでなければない")
   func everyBodyWordHasAMotion() {
     let words = WordCatalog.all.filter { $0.kind == .bodyAction }.map(\.text)
-    #expect(words.count == 8)
+    #expect(words.count == 10)
     #expect(Set(words.compactMap(BodyAction.motion(for:))) == Set(BodyMotion.allCases))
     for entry in WordCatalog.all where entry.kind != .bodyAction {
       #expect(BodyAction.motion(for: entry.text) == nil, "\(entry.text)")
@@ -32,6 +32,9 @@ struct BodyActionTests {
     #expect(BodyAction.motion(for: "あたま") == .nod)
     #expect(BodyAction.motion(for: "おなか") == .belly)
     #expect(BodyAction.motion(for: "ほっぺ") == .puff)
+    // めぐり life3（D200）: 新しい4語は、今ある動きを使う。
+    #expect(BodyAction.motion(for: "ゆび") == .wave)
+    #expect(BodyAction.motion(for: "ひざ") == .jump)
   }
 
   @Test("記録がなければ、動かない")

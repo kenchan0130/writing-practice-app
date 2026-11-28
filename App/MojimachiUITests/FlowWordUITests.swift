@@ -46,16 +46,16 @@ final class FlowWordUITests: MojimachiUITestCase {
   /// テーマが1つだけの場所は、テーマを飛ばして、すぐことばのカードを出す（D67）。
   @MainActor func testSingleThemePlaceSkipsThemes() {
     tap(button("ことば"), "ホームの ことば")
-    // えきは たてもの（D174）が足されてテーマが2つになったので、テーマが1つの うみ で確かめる。
-    tap(button("うみ"), "うみ")
-    XCTAssertTrue(button("たこ").waitForExistence(timeout: 10), "ことばのカードが出ない")
-    XCTAssertTrue(button("くじら").exists)
-    tap(button("たこ"), "たこのカード")
+    // えきは たてもの（D174）、うみは さかな・かい（D201）が足されてテーマが増えたので、テーマが1つの うちゅう（D172）で確かめる。
+    tap(button("うちゅう"), "うちゅう")
+    XCTAssertTrue(button("たいよう").waitForExistence(timeout: 10), "ことばのカードが出ない")
+    XCTAssertTrue(button("うちゅうじん").exists)
+    tap(button("たいよう"), "たいようのカード")
     XCTAssertTrue(
       app.descendants(matching: .any)["wordHeader"].firstMatch.waitForExistence(timeout: 10),
       "書く画面が出ない")
     tap(button("もどる"), "書く画面の ←")
-    XCTAssertTrue(button("たこ").waitForExistence(timeout: 10))
+    XCTAssertTrue(button("たいよう").waitForExistence(timeout: 10))
     // テーマの画面を通らず、まちの地図へ戻る。
     tap(button("もどる"), "ことばのカードの ←")
     XCTAssertTrue(button("まきば").waitForExistence(timeout: 10), "まちの地図へ戻らない")

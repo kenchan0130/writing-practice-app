@@ -133,7 +133,10 @@ struct KanaTableTests {
 
   @Test("字のカードのことば")
   func wordsContaining() {
-    #expect(WordCatalog.words(containing: "そ").map(\.text) == ["そり", "かわうそ"])
+    #expect(
+      Set(WordCatalog.words(containing: "そ").map(\.text)) == [
+        "そり", "かわうそ", "ばんそうこう", "せいそうしゃ",
+      ])
     #expect(
       Set(WordCatalog.words(containing: "く").map(\.text)) == [
         "くるま", "くま", "くつ", "くつした", "ふく", "らくだ", "さくら", "くり", "くじら", "くらげ", "おたまじゃくし", "くも", "くさ",
@@ -141,6 +144,12 @@ struct KanaTableTests {
         "くじゃく", "ふくろう", "はくちょう", "くわがた", "ゆうびんきょく", "かまくら",
         // めぐり food2（D189）。
         "さくらんぼ", "いちじく", "まつぼっくり", "つくし",
+        // めぐり life3（D200）。
+        "まくら", "しずく",
+        // めぐり nature3（D201）。
+        "しゃくとりむし", "なめくじ",
+        // めぐり town3（D202）。
+        "すごろく", "おみくじ", "きんぎょすくい", "やっきょく",
       ])
     #expect(WordCatalog.words(containing: "を").isEmpty)
   }

@@ -43,8 +43,8 @@ public enum BodyAction {
   public static func motion(for word: String) -> BodyMotion? {
     // えいごの ことば（sun・moon・star）は、借りた日本語のことばと同じ（D199）。
     switch EnglishWords.base(of: word) {
-    case "て": .wave
-    case "あし": .jump
+    case "て", "ゆび": .wave
+    case "あし", "ひざ": .jump
     case "め": .look
     case "みみ": .listen
     case "くち": .sing

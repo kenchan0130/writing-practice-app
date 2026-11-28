@@ -80,10 +80,16 @@ public enum FestiveLayout {
 
   private static let standWords: Set<String> = [
     "こいのぼり", "おひなさま", "たなばた", "すすき", "おつきみ", "かかし", "ゆきだるま", "かがみもち", "かどまつ", "だるま", "かまくら",
+    "かぶと", "おみこし", "ゆきうさぎ",
+    // めぐり town3（D202）。
+    "きんぎょすくい", "やたい", "やぐら", "ぼんぼり", "おとしだま", "おみくじ",
   ]
   private static let skyWords: Set<String> = ["はなび"]
   private static let hangWords: Set<String> = [
     "うちわ", "ふうりん", "ちょうちん", "てるてるぼうず", "ちとせあめ",
+    "ほおずき", "おにのめん", "つらら",
+    // めぐり town3（D202）。
+    "しめかざり",
   ]
 
   /// そのことばの飾りの置き方。季節の飾りでなければ nil。

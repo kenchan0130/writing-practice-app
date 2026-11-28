@@ -4,6 +4,9 @@ public struct WordBatch: Sendable {
   public let name: String
   /// このめぐりのことば（種類つき）。
   public let entries: [WordEntry]
+  /// このめぐりで新しく宣言するテーマ（なければ空）。`WordMap.baseThemes` は触らず、めぐりのファイルに書く（D201・D202）。
+  /// テーマの ID は変えない・使い回さない（D114）。ことばは `themeWords` で入れる。場所に 4 つまで（D53・D67）。
+  public let newThemes: [WordTheme]
   /// テーマの ID → このめぐりで足すことば（そのテーマの、土台のことばの後ろに順に並ぶ）。
   public let themeWords: [String: [String]]
   /// ことば → ずかんの ひとこと説明。
@@ -20,6 +23,7 @@ public struct WordBatch: Sendable {
   public init(
     name: String,
     entries: [WordEntry],
+    newThemes: [WordTheme] = [],
     themeWords: [String: [String]],
     notes: [String: String],
     artNames: [String: String] = [:],
@@ -29,6 +33,7 @@ public struct WordBatch: Sendable {
   ) {
     self.name = name
     self.entries = entries
+    self.newThemes = newThemes
     self.themeWords = themeWords
     self.notes = notes
     self.artNames = artNames
@@ -45,6 +50,9 @@ public struct WordBatch: Sendable {
     .food2,
     .kataSeed,
     .englishSeed,
+    .life3,
+    .nature3,
+    .town3,
     .english2,
   ]
 

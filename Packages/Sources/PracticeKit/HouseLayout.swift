@@ -161,16 +161,19 @@ public enum HouseLayout {
   /// 主人公の使い方。いえの物でなければ nil。
   public static func use(for word: String) -> HouseUse? {
     switch word {
-    case "はし", "おわん", "おさら": .eat
-    case "なべ", "やかん": .cook
+    case "はし", "おわん", "おさら", "ゆのみ", "おぼん": .eat
+    case "なべ", "やかん", "まないた", "しゃもじ", "おたま", "ざる": .cook
     case "いす": .sit
-    case "つくえ", "えんぴつ", "はさみ", "のり", "ふでばこ", "じょうぎ", "えのぐ", "ふで", "ほん", "ねんど": .study
-    case "とけい": .look
-    case "ふとん": .sleep
-    case "たんす": .tidy
-    case "せっけん": .wash
-    case "はぶらし", "くし": .groom
+    case "つくえ", "えんぴつ", "はさみ", "のり", "ふでばこ", "じょうぎ", "えのぐ", "ふで", "ほん", "ねんど",
+      "はんこ", "ふうとう":
+      .study
+    case "とけい", "めがね": .look
+    case "ふとん", "まくら": .sleep
+    case "たんす", "れいぞうこ": .tidy
+    case "せっけん", "おふろ", "おけ", "てぬぐい", "ぞうきん": .wash
+    case "はぶらし", "くし", "つめきり": .groom
     case "かがみ": .mirror
+    // 合う動きが まだない物（ほうき・かなづち・でんわ・かさ・かぎ・せんぷうき・ばんそうこう）は、使わない。
     default: nil
     }
   }
