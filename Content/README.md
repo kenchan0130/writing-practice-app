@@ -51,8 +51,8 @@
 
 えいごの ことばは、日本語のことばの**絵を使い回す**。絵も声の説明もいらず、`EnglishWord` を足すだけ。
 
-- `WordBatch(..., english: [EnglishWord("cat", japanese: "ねこ"), ...])` に足す。見本は `WordBatches/BatchEnglishSeed.swift`（はじめの20語）。あと約80語は、新しいめぐり（`entries: []` でよい）の `english` に足し、`WordBatch.all` に1行足す。
-- `text` は**小文字**の英字、3〜4文字のやさしいことば。`japanese` は、絵を借りる日本語のことば（`WordCatalog` にあって、絵のあるもの。カタカナのことばでもよい。bus は「バス」）。書くのは `abc` パックの小文字（`Content/Packs/abc`）。
+- `WordBatch(..., english: [EnglishWord("cat", japanese: "ねこ"), ...])` に足す。見本は `WordBatches/BatchEnglishSeed.swift`（はじめの20語）。つづきの78語は `WordBatches/BatchEnglish2.swift`（D203）。さらに足すときは、新しいめぐり（`entries: []` でよい）の `english` に足し、`WordBatch.all` に1行足す。
+- `text` は**小文字**の英字、3〜5文字のやさしいことば（D203 で5文字まで）。`japanese` は、絵を借りる日本語のことば（`WordCatalog` にあって、絵のあるもの。カタカナのことばでもよい。bus は「バス」）。書くのは `abc` パックの小文字（`Content/Packs/abc`）。
 - 動きの種類（まちでの動き・変身）と季節は、借りる日本語のことばと同じ。しりとりには出ない。
 - そのテーマに、借りる日本語のことばがあれば、テーマの画面に「ABC」の旗が出る。パックがなければ cat だけが開き、ほかは影絵に鍵。
 - 声: `Content/Voices/lines.csv` に `english_<ことば>,<ことば>,ochitsuki,<読み>,` の行を足す（D180 と同じ猫使ビィ。エンジンの英語の読みで読む）。読みが合わないときだけ、4列目に `kana:` の読みを書く（`kana:ベ'ア`）。そのあと、4. のコマンドで声を作り直す。
