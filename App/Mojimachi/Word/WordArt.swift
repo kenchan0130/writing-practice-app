@@ -127,7 +127,7 @@ enum WordArt {
   static func flyerStyle(_ word: String) -> FlyerStyle {
     switch word {
     case "ひこうき": .plane
-    case "ききゅう", "ひこうせん": .balloon
+    case "ききゅう", "ひこうせん", "ヘリコプター", "パラシュート", "ロケット": .balloon
     default: .bird
     }
   }
@@ -140,7 +140,7 @@ enum WordArt {
     switch word {
     case "いるか": .dolphin
     case "くじら": .whale
-    case "たこ": .bob
+    case "たこ", "ラッコ": .bob
     case "くらげ": .jelly
     case "かに", "ざりがに": .crab
     case "かめ": .turtle
@@ -168,12 +168,15 @@ enum WordArt {
     case "こま", "かざぐるま": .top
     case "けんだま": .kendama
     case "ふうせん", "かみひこうき", "うきわ", "てまり", "おてだま", "はねつき": .balloon
-    case "にんぎょう", "ぬいぐるみ": .doll
+    case "にんぎょう", "ぬいぐるみ", "ロボット", "グローブ": .doll
+    case "ボール", "ラケット": .kendama
+    case "トランポリン": .rope
+    case "スキー": .bar
     case "つみき", "おりがみ", "かるた", "すごろく", "おはじき", "だるまおとし", "かみしばい", "わなげ": .blocks
-    case "たいこ", "つづみ": .drum
+    case "たいこ", "つづみ", "カスタネット": .drum
     case "ふえ", "たてぶえ": .flute
     case "すず": .bell
-    case "もっきん", "てっきん", "こと", "しゃみせん": .xylophone
+    case "もっきん", "てっきん", "こと", "しゃみせん", "ピアノ", "ギター": .xylophone
     case "なわとび": .rope
     case "てつぼう", "うんてい", "たけうま", "つなひき": .bar
     case "とびばこ", "たまいれ": .box
@@ -188,6 +191,8 @@ enum WordArt {
       // めぐり food2（D189）の 花・木・草。
       "あじさい", "すみれ", "ゆり", "つばき", "うめ", "なのはな", "すいせん",
       "き", "たけ", "もみじ", "いちょう", "つくし", "もり",
+      // めぐり kata2（D205）の 花・草。
+      "チューリップ", "コスモス", "クローバー",
     ].contains(word)
   }
 
