@@ -34,4 +34,33 @@ struct WordArtTests {
     let points = WordArt.targetPoints(in: image, count: 1000)
     #expect(!points.contains { $0.x < 2 && $0.y < 2 })
   }
+
+  @Test("バスに絵がある。英語のことばは、日本語のことばの絵を使う（D199）")
+  func busAndEnglishArt() {
+    #expect(WordArt.hasArt("バス"))
+    #expect(WordArt.assetName(for: "バス") == "word-basu")
+    #expect(WordArt.assetName(for: "cat") == WordArt.assetName(for: "ねこ"))
+    #expect(WordArt.assetName(for: "bus") == "word-basu")
+    #expect(WordArt.englishItems.count == EnglishWords.all.count)
+    for item in WordArt.englishItems {
+      #expect(UIImage(named: WordArt.assetName(item)) != nil, "\(item.entry.text)")
+      #expect(WordArt.hasArt(item.entry.text), "\(item.entry.text)")
+    }
+    #expect(WordArt.item(named: "cat")?.entry.kind == WordArt.item(named: "ねこ")?.entry.kind)
+    // 日本語のことばの一覧には、英語を入れない
+    #expect(!WordArt.words.contains { $0.entry.text == "cat" })
+  }
+
+  @Test("テーマの並び: バスは、のりもののひらがなの後ろ。cat は ねこの テーマの英語の最初")
+  func themes() {
+    let norimono = WordMap.theme(id: "norimono").map { WordArt.index.words(in: $0) } ?? []
+    // バスは、ひらがなのことばの後ろ、ほかのカタカナのことばの前（あとから足されても通る）。
+    let bus = norimono.firstIndex(of: "バス")
+    #expect(bus != nil)
+    let b = bus ?? 0
+    #expect(norimono[..<b].allSatisfy { WordText.script(of: $0) == .hiragana })
+    #expect(norimono[b...].dropFirst().allSatisfy { WordText.script(of: $0) == .katakana })
+    let pets = WordMap.theme(id: "ie-ikimono").map { WordArt.index.englishWords(in: $0) } ?? []
+    #expect(pets.first == "cat")
+  }
 }

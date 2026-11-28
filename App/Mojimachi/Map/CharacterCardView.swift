@@ -1,4 +1,5 @@
 import ContentModel
+import EntitlementKit
 import SwiftUI
 
 /// 字のカード（D101）。「かく」の大きなボタンと、その字のことばカード。
@@ -8,18 +9,36 @@ struct CharacterCardView: View {
   var onWord: (String) -> Void
   /// 「ことばを さがす」（もじから さがす。D181）。
   var onSearch: () -> Void = {}
+  /// 鍵のかかったことばを押した（鍵の画面へ。D93・D160）。
+  var onLocked: (EntitlementKit.Script) -> Void = { _ in }
 
   /// その字を「書けた」か（なぞって かけた以上）。書けた字だけ、ことばを さがせる。
   private var canSearch: Bool {
-    guard let script = KanaTable.script(of: char),
+    // 数字には、はじまることばがない（D199）。
+    guard AbcTable.page(of: char) != .digits, let script = KanaTable.script(of: char),
       let id = KanaTable.characterID(char, script: script)
     else { return false }
     return ProgressStore.shared.log.canWrite(characterID: id)
   }
 
-  private var words: [WordArt.Item] {
-    WordCatalog.words(containing: char).compactMap { entry in
-      WordArt.words.first { $0.entry.text == entry.text }
+  /// その字を含むことば。アルファベットは英語のことば（大文字も小文字も同じ字として探す。D199）。
+  /// 開いていることばを先に、鍵のことばは影絵で2枚まで（D93）。
+  private var words: [(item: WordArt.Item, script: EntitlementKit.Script?)] {
+    let texts: [String]
+    if KanaTable.script(of: char) == .abc {
+      let lower = Character(char.lowercased())
+      texts = EnglishWords.all.map(\.text).filter { $0.contains(lower) }
+    } else {
+      texts = WordCatalog.words(containing: char).map(\.text)
+    }
+    let entitlements = PurchaseStore.shared.entitlements
+    return WordSearch.arranged(
+      texts.filter(WordArt.hasArt),
+      isLocked: { WordAccess.lockedScript(of: $0, entitlements: entitlements) != nil }
+    ).compactMap { result in
+      WordArt.item(named: result.word).map {
+        ($0, WordAccess.lockedScript(of: result.word, entitlements: entitlements))
+      }
     }
   }
 
@@ -66,8 +85,10 @@ struct CharacterCardView: View {
         Text("この もじの ことば").font(.ui(28, bold: true)).foregroundStyle(Theme.inkSoft)
         ScrollView(.horizontal, showsIndicators: false) {
           HStack(spacing: 20) {
-            ForEach(words, id: \.entry.text) { item in
-              WordCard(item: item) { onWord(item.entry.text) }
+            ForEach(words, id: \.item.entry.text) { entry in
+              WordCard(item: entry.item, locked: entry.script != nil) {
+                if let script = entry.script { onLocked(script) } else { onWord(entry.item.entry.text) }
+              }
             }
           }
           .padding(.horizontal, 32)
@@ -83,14 +104,23 @@ struct CharacterCardView: View {
 
 private struct WordCard: View {
   var item: WordArt.Item
+  var locked = false
   var action: () -> Void
 
   var body: some View {
     Button(action: action) {
       VStack(spacing: 8) {
-        Image(WordArt.assetName(item)).resizable().scaledToFit()
+        Image(WordArt.assetName(item))
+          .renderingMode(locked ? .template : .original)
+          .resizable().scaledToFit()
+          .foregroundStyle(Theme.ink.opacity(0.28))
           .frame(height: 96)
-        Text(item.entry.text).font(.learning(30)).foregroundStyle(Theme.ink)
+        if locked {
+          Image(systemName: "lock.fill").font(.system(size: 28)).foregroundStyle(Theme.inkSoft)
+            .frame(height: 38)
+        } else {
+          Text(item.entry.text).font(.learning(30)).foregroundStyle(Theme.ink)
+        }
       }
       .frame(minWidth: 160, minHeight: 180)
       .padding(.horizontal, 12)

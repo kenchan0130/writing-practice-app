@@ -22,6 +22,20 @@ struct VoicePlayerTests {
     }
   }
 
+  @Test("すべての英語のことばに、声のファイルがある（D199）")
+  func everyEnglishWordHasFile() {
+    for word in EnglishWords.all {
+      #expect(VoicePlayer.shared.url(for: word.text) != nil, "\(word.text)")
+    }
+  }
+
+  @Test("ずかんの説明の声が、すべてのことばにある（バスをふくむ）")
+  func everyNoteHasFile() {
+    for (word, note) in WordNotes.all {
+      #expect(VoicePlayer.shared.url(for: note) != nil, "\(word): \(note)")
+    }
+  }
+
   @Test("練習できるすべての字に、声のファイルがある")
   func everyKanaHasFile() {
     for script in KanaScript.allCases {

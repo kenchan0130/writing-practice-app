@@ -33,6 +33,29 @@ public struct WordEntry: Sendable, Hashable {
     self.text = text
     self.kind = kind
   }
+
+  /// ことばの文字の種類。字から決まる（ひらがな・カタカナ。D199）。ことばのデータに別の印はいらない。
+  public var script: KanaScript? { WordText.script(of: text) }
+
+  /// カタカナで書くことば（バス・パトカーなど。D7・D199）。
+  public var isKatakana: Bool { script == .katakana }
+}
+
+/// ことばの字から、文字の種類を決める（D199）。画面に頼らない。
+public enum WordText {
+  private static let hiragana = Set(KanaTable.all(.hiragana))
+  private static let katakana = Set(KanaTable.all(.katakana))
+
+  /// すべてひらがななら `.hiragana`、すべてカタカナ（長音「ー」と小さい字をふくむ）なら `.katakana`、
+  /// すべて英字（小文字・大文字）なら `.abc`。まざっているときと空のときは nil。
+  public static func script(of text: String) -> KanaScript? {
+    guard !text.isEmpty else { return nil }
+    let chars = Array(text)
+    if chars.allSatisfy({ $0.isASCII && $0.isLetter }) { return .abc }
+    if chars.allSatisfy({ hiragana.contains($0) }) { return .hiragana }
+    if chars.allSatisfy({ katakana.contains($0) }) { return .katakana }
+    return nil
+  }
 }
 
 /// M0 後半の約20語（D78）に、D167 で14語、D168 で14語、D169 で18語、D170 で13語、D172 で10語、D173 で15語、D174 で18語、D175 で8語、D178 で10語、D185 で14語を足した。

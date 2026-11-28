@@ -54,4 +54,32 @@ final class FlowTownLockUITests: MojimachiUITestCase {
     XCTAssertTrue(panel.waitForExistence(timeout: 10), "書く画面が出ない")
     XCTAssertEqual(panel.label, "7")
   }
+
+  // MARK: - 6. おためしのことばのカード（D92・D199）
+
+  @MainActor func testTrialWordCards() {
+    openMap()
+    // ひらがなには、カードはない。
+    XCTAssertFalse(app.buttons["trialWordCard"].exists)
+    tap(button("カタカナ"), "カタカナの つまみ")
+    let bus = app.buttons["trialWordCard"].firstMatch
+    XCTAssertTrue(bus.waitForExistence(timeout: 10), "バスのカードが出ない")
+    XCTAssertEqual(bus.label, "バス")
+    bus.tap()
+    let header = app.descendants(matching: .any)["wordHeader"].firstMatch
+    XCTAssertTrue(header.waitForExistence(timeout: 10), "書く画面が出ない")
+    XCTAssertEqual(header.label, "バス")
+    // 選べることばは、バスだけ。
+    XCTAssertFalse(button("ねこ").exists, "ほかのことばが選べる")
+    tap(button("もどる"), "書く画面の ←")
+    XCTAssertTrue(app.buttons["trialWordCard"].waitForExistence(timeout: 10), "地図へ戻らない")
+    // ABC には cat のカード。
+    tap(button("ABC"), "ABC の つまみ")
+    // cat は こもじのページだけ。おおもじ・すうじには出さない（D92）。
+    XCTAssertFalse(app.buttons["trialWordCard"].exists, "おおもじに cat が出ている")
+    tap(button("すうじ"), "すうじの つまみ")
+    XCTAssertFalse(app.buttons["trialWordCard"].exists, "すうじに cat が出ている")
+    tap(button("こもじ"), "こもじの つまみ")
+    XCTAssertEqual(app.buttons["trialWordCard"].firstMatch.label, "cat")
+  }
 }

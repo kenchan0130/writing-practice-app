@@ -57,7 +57,8 @@ public enum SkyWeather {
 
   /// ことばごとの空。空のことばでなければ nil。
   public static func effect(for word: String) -> SkyEffect? {
-    switch word {
+    // えいごの ことば（sun・moon・star）は、借りた日本語のことばと同じ（D199）。
+    switch EnglishWords.base(of: word) {
     case "くも": .cloudy
     case "あめ": .rain
     case "ゆき": .snow

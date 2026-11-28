@@ -102,3 +102,83 @@ struct EntitlementsTests {
     #expect(ProductID.katakanaPack.yen + ProductID.abcPack.yen == ProductID.allOpen.yen)
   }
 }
+
+@Suite("ことばの鍵（D90・D93・D199）")
+struct WordEntitlementsTests {
+  static let early = Date(timeIntervalSince1970: 1_800_000_000)
+
+  @Test("ひらがなのことばは、いつも書ける")
+  func hiragana() {
+    #expect(Entitlements(purchases: []).canWrite(word: "ねこ", in: .hiragana))
+  }
+
+  @Test("おためしのことば（バス・cat）は、パックがなくても書ける。ほかは鍵")
+  func trialWordsOpen() {
+    let none = Entitlements(purchases: [])
+    #expect(none.canWrite(word: "バス", in: .katakana))
+    #expect(!none.canWrite(word: "パトカー", in: .katakana))
+    #expect(none.canWrite(word: "cat", in: .abc))
+    #expect(!none.canWrite(word: "dog", in: .abc))
+    #expect(Trial.isTrialWord("バス", in: .katakana))
+    #expect(!Trial.isTrialWord("バス", in: .abc))
+    #expect(Trial.words == ["バス", "cat"])
+  }
+
+  @Test("バスは、カタカナパックを買ったら、ほかのカタカナのことばも書ける")
+  func ownedPack() {
+    let kata = Entitlements(purchases: [
+      Purchase(product: .katakanaPack, originalPurchaseDate: Self.early)
+    ])
+    #expect(kata.canWrite(word: "パトカー", in: .katakana))
+    // カタカナのパックでは、英語は開かない
+    #expect(!kata.canWrite(word: "dog", in: .abc))
+    let abc = Entitlements(purchases: [
+      Purchase(product: .abcPack, originalPurchaseDate: Self.early)
+    ])
+    #expect(abc.canWrite(word: "dog", in: .abc))
+    #expect(!abc.canWrite(word: "パトカー", in: .katakana))
+    let all = Entitlements(purchases: [
+      Purchase(product: .allOpen, originalPurchaseDate: Self.early)
+    ])
+    #expect(all.canWrite(word: "パトカー", in: .katakana))
+    #expect(all.canWrite(word: "dog", in: .abc))
+  }
+
+  @Test("おためしの字だけでできたことばも、おためしのことばでなければ鍵（字のおためしは、字の練習のもの）")
+  func trialCharactersDoNotOpenWords() {
+    let none = Entitlements(purchases: [])
+    // ニ・ト・ロ・コ・ハ はおためしの字だが、ことばは開かない
+    #expect(!none.canWrite(word: "ニコ", in: .katakana))
+    #expect(!none.canWrite(word: "ハト", in: .katakana))
+    #expect(!none.canWrite(word: "", in: .katakana))
+    // 字としては書ける
+    #expect(none.canWrite("ニ", in: .katakana))
+    // 買えば開く
+    let kata = Entitlements(purchases: [
+      Purchase(product: .katakanaPack, originalPurchaseDate: Self.early)
+    ])
+    #expect(kata.canWrite(word: "ニコ", in: .katakana))
+  }
+
+  @Test("すうじ あそびは、パックを持っているか「1」だけ（7・4 は字のおためしだが、あそびは1だけ）")
+  func numberPlay() {
+    let none = Entitlements(purchases: [])
+    #expect(none.canPlayNumber("1"))
+    for digit in "0234567 89" where digit != " " {
+      #expect(!none.canPlayNumber(digit), "\(digit)")
+    }
+    #expect(none.canWrite("7", in: .abc))
+    let abc = Entitlements(purchases: [
+      Purchase(product: .abcPack, originalPurchaseDate: Self.early)
+    ])
+    #expect("0123456789".allSatisfy { abc.canPlayNumber($0) })
+    let kata = Entitlements(purchases: [
+      Purchase(product: .katakanaPack, originalPurchaseDate: Self.early)
+    ])
+    #expect(!kata.canPlayNumber("3"))
+    let all = Entitlements(purchases: [
+      Purchase(product: .allOpen, originalPurchaseDate: Self.early)
+    ])
+    #expect(all.canPlayNumber("9"))
+  }
+}

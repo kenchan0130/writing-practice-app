@@ -942,4 +942,7 @@ struct PlacedObject: Identifiable, Hashable {
   var symbol: String
   /// ことばの種類（置き方と動きを決める。D53）。
   var kind: WordKind = .vehicle
+  /// 絵・動き・置き場所を決めるもとのことば。えいごの ことば（cat）は、借りた日本語のことば（ねこ）。
+  /// 数えるときの `word` は、そのまま英語（D93・D199）。
+  var baseWord: String { EnglishWords.base(of: word) }
 }

@@ -55,7 +55,8 @@ struct WritingCanvasView: View {
     .overlay {
       if model.showsCelebration, let rating = model.finishedRating, let char = model.currentChar {
         CelebrationView(
-          rating: rating, char: char, onTap: { model.dismissCelebration() },
+          rating: rating, char: char, apples: model.appleCount,
+          onTap: { model.dismissCelebration() },
           frozenAt: Self.frozenCelebration
         )
         .accessibilityIdentifier("celebration")

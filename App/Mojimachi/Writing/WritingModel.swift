@@ -68,6 +68,8 @@ final class WritingModel {
   private(set) var rescued = false
   /// ④ で合わなかったとき、どの画がちがったか（色をつける画と、お手本で見せる画。D195）。
   private(set) var wrongFeedback: JudgeFeedback?
+  /// すうじ あそび（D45・D67・D199）: 数字を書けたとき、ごほうびに見せるりんごの数。ごほうびで見せる。0 なら何も出さない。
+  private(set) var appleCount = 0
   /// 1字書けたあとのごほうびの演出を出しているか（D152）。
   private(set) var showsCelebration = false
   /// 次の字へ自動で進むまでの秒数（D154）。
@@ -243,6 +245,16 @@ final class WritingModel {
     finishOnboardingLetter()
   }
 
+  /// すうじ あそび（D45・D67・D199）: 数字の N（1〜9）を書けたら、ごほうびに りんごを N 個見せる。
+  /// まちの かごの りんごは、書いた記録から決まる（`NumberPlay.appleCount`）。ここでは物を置かない。
+  /// おためしでは「1」だけ（`canPlayNumber`）。
+  private func showApples() {
+    guard script == .abc, !isOnboarding, let char = currentChar,
+      PurchaseStore.shared.entitlements.canPlayNumber(char)
+    else { return }
+    appleCount = NumberPlay.apples(for: char)
+  }
+
   /// はじめての流れ: 最初の1字が終わった。次の画面へ（1回だけ）。
   private func finishOnboardingLetter() {
     guard let finish = onboardingFinish, finishedRating != nil else { return }
@@ -310,6 +322,7 @@ final class WritingModel {
     animationTask?.cancel()
     cancelAutoAdvance()
     showsCelebration = false
+    appleCount = 0
     character = PackLibrary.character(sequence[characterIndex], script: script)
     strokes = []
     writtenEndings = []
@@ -437,6 +450,7 @@ final class WritingModel {
         // 書けなかった字は、ほめる演出を出さない。いっしょに書こうと伝えて、先へ進む（D191）。
         showsCelebration = !rescued
         if !rescued { SoundPlayer.shared.play(.praise) }
+        if !rescued { showApples() }
         if let stage = step.flatMap(Self.recordStage) {
           record(stage: stage, passed: !rescued, rescued: rescued, issues: result?.issues ?? [])
         }

@@ -33,7 +33,8 @@ public enum WordSeason {
   }
 
   /// そのことばの季節。印がなければ nil。
-  public static func season(of word: String) -> Season? { table[word] }
+  /// 英語のことばは、絵を借りる日本語のことばの季節を使う（D199）。
+  public static func season(of word: String) -> Season? { table[EnglishWords.base(of: word)] }
 
   /// 印のあることば（テスト・一覧用）。
   public static var tagged: [String: Season] { table }

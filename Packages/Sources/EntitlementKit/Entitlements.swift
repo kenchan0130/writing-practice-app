@@ -99,6 +99,19 @@ public struct Entitlements: Sendable, Hashable {
     isUnlocked(script) || insideTrialWord || Trial.characters(for: script).contains(char)
   }
 
+  /// ことばが書けるか（D7・D90・D93・D199）。文字の種類（パック）が開いているか、おためしのことば
+  /// （カタカナは「バス」、アルファベットは「cat」）のときだけ書ける。字が全部おためしの字でも、ことばは書けない
+  /// （おためしの字は、字の練習のためのもの）。おためしのことばの中では、おためしでない字も書ける。
+  public func canWrite(word: String, in script: Script) -> Bool {
+    isUnlocked(script) || Trial.isTrialWord(word, in: script)
+  }
+
+  /// すうじ あそびができるか（D45・D90）。アルファベットと数字のパックを持っているか、「1」だけ（おためし）。
+  /// 数字の 7・4 は書く練習のおためしの字だが、すうじ あそびは「1」だけ。
+  public func canPlayNumber(_ digit: Character) -> Bool {
+    isUnlocked(.abc) || digit == "1"
+  }
+
   /// 使えるものの数（購入画面に出す。D95）。
   public var unlockedScriptCount: Int {
     Script.allCases.filter(isUnlocked).count
@@ -123,6 +136,16 @@ public enum Trial {
     case .katakana: ["ニ", "ト", "ロ", "コ", "ハ"]
     case .abc: ["L", "T", "I", "E", "F", "1", "7", "4"]
     }
+  }
+
+  /// そのことばが、その文字のおためしのことばか。
+  public static func isTrialWord(_ word: String, in script: Script) -> Bool {
+    word == Trial.word(for: script)
+  }
+
+  /// おためしのことばぜんぶ（バス・cat）。
+  public static var words: Set<String> {
+    Set(Script.allCases.compactMap { word(for: $0) })
   }
 
   /// おためしのことば（文字ごとに1語。変身まで体験できる）。

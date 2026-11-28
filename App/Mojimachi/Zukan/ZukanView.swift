@@ -149,12 +149,14 @@ struct ZukanView: View {
             }
           }
           Spacer(minLength: 0)
+          englishChips(for: word)
           Button("もういちど かく") { onWrite(word) }
             .buttonStyle(PillButtonStyle(color: Theme.blue, minWidth: 200))
             .accessibilityIdentifier("zukanWriteAgain")
         case .unwritten:
           Text("かいて みよう").font(.ui(34, bold: true)).foregroundStyle(Theme.ink)
           Spacer(minLength: 0)
+          englishChips(for: word)
           Button("このことばを かく") { onWrite(word) }
             .buttonStyle(PillButtonStyle(color: Theme.accent, minWidth: 260))
             .accessibilityIdentifier("zukanWrite")
@@ -169,6 +171,35 @@ struct ZukanView: View {
       .padding(.horizontal, 32)
       .padding(.bottom, 12)
       .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+  }
+
+  /// 英語のことばがあるときの「ABC」の印（D93・D199）。押すと英語の声で読む。鍵のかかる英語のことばは、鍵の印で、
+  /// 押すと「おねがい」。ずかんの★は日本語のことばだけで数える（英語は別の記録）。
+  @ViewBuilder
+  private func englishChips(for word: String) -> some View {
+    let entitlements = purchases.entitlements
+    ForEach(EnglishWords.words(for: word), id: \.text) { english in
+      let lock = WordAccess.lockedScript(of: english.text, entitlements: entitlements)
+      Button {
+        SoundPlayer.shared.play(.tap)
+        if let lock { onLocked(lock) } else { VoicePlayer.shared.speak(english.text) }
+      } label: {
+        HStack(spacing: 8) {
+          Text("ABC").font(.ui(22, bold: true)).foregroundStyle(Theme.blue)
+          if lock != nil {
+            Image(systemName: "lock.fill").font(.system(size: 26)).foregroundStyle(Theme.inkSoft)
+          } else {
+            Text(english.text).font(.learning(34)).foregroundStyle(Theme.ink)
+          }
+        }
+        .padding(.horizontal, 20)
+        .frame(minWidth: 104, minHeight: 104)
+        .background(Theme.blue.opacity(0.15), in: .rect(cornerRadius: Theme.Radius.button))
+      }
+      .buttonStyle(.plain)
+      .accessibilityLabel(lock == nil ? english.text : String(localized: "ねむっている ことば"))
+      .accessibilityIdentifier("zukanEnglish-\(english.text)")
     }
   }
 
@@ -192,15 +223,13 @@ struct ZukanView: View {
   }
 
   /// ことばを書くのに鍵がかかっているか（字のどれかが書けないとき）。
+  /// おためしのことば（バス）は書けるので、鍵ではない（D93）。
   private func isLocked(_ word: String) -> Bool {
-    word.contains { char in
-      guard let script = KanaTable.script(of: char) else { return false }
-      return !purchases.entitlements.canWrite(char, in: script.entitlementScript)
-    }
+    WordAccess.lockedScript(of: word, entitlements: purchases.entitlements) != nil
   }
 
   private static func script(of word: String) -> Script? {
-    word.compactMap { KanaTable.script(of: $0)?.entitlementScript }.first
+    WordAccess.script(of: word)
   }
 }
 
@@ -232,6 +261,16 @@ private struct ZukanCard: View {
           .stroke(selected ? Theme.accent : .white.opacity(0.8), lineWidth: selected ? 7 : 5)
       }
       .softShadow()
+      .overlay(alignment: .topTrailing) {
+        // 英語のことばがあるときの「ABC」の印（D93）。
+        if !EnglishWords.words(for: entry.word).isEmpty {
+          Text("ABC").font(.ui(18, bold: true)).foregroundStyle(.white)
+            .padding(.horizontal, 10).padding(.vertical, 4)
+            .background(Theme.blue, in: .capsule)
+            .padding(10)
+            .accessibilityHidden(true)
+        }
+      }
     }
     .buttonStyle(.plain)
     .accessibilityElement(children: .ignore)

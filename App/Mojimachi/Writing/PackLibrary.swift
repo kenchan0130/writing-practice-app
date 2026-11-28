@@ -10,6 +10,12 @@ enum PackLibrary {
     character(char, script: .hiragana)
   }
 
+  /// ことばの字1つ分の字のデータ。ひらがな・カタカナ・英字（小文字）を、字から決める（D199）。
+  static func character(forWordLetter char: Character) -> CharacterData? {
+    guard let script = KanaTable.script(of: char) else { return nil }
+    return character(char, script: script)
+  }
+
   static func character(_ char: Character, script: KanaScript) -> CharacterData? {
     guard let name = KanaTable.characterID(char, script: script) else { return nil }
     guard

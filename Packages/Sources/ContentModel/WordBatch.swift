@@ -14,6 +14,8 @@ public struct WordBatch: Sendable {
   public let seasons: [String: Season]
   /// ゆっくり はうことば。
   public let crawlers: Set<String>
+  /// このめぐりで足す、えいごの ことば（D199）。絵は日本語のことばの絵を使い回す。ことばの数にはふくめない。
+  public let english: [EnglishWord]
 
   public init(
     name: String,
@@ -22,7 +24,8 @@ public struct WordBatch: Sendable {
     notes: [String: String],
     artNames: [String: String] = [:],
     seasons: [String: Season] = [:],
-    crawlers: Set<String> = []
+    crawlers: Set<String> = [],
+    english: [EnglishWord] = []
   ) {
     self.name = name
     self.entries = entries
@@ -31,6 +34,7 @@ public struct WordBatch: Sendable {
     self.artNames = artNames
     self.seasons = seasons
     self.crawlers = crawlers
+    self.english = english
   }
 
   /// めぐりの一覧。**ここが共有する唯一の行**。新しいめぐりは、1行足すだけ（足す順がことばの順）。
@@ -39,6 +43,8 @@ public struct WordBatch: Sendable {
     .animals2,
     .school2,
     .food2,
+    .kataSeed,
+    .englishSeed,
   ]
 
   /// 今までのことば（`WordCatalog`・`WordMap`・`WordNotes`・`WordSeason` に書いてある分）。

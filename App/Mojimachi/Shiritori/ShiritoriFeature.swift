@@ -89,20 +89,25 @@ nonisolated struct ShiritoriFeature {
   }
 }
 
-/// しりとりに使うことば（アプリ側の決まり。D182）。絵があって、ひらがなの字で書けることばを集める。
+/// しりとりに使うことば（アプリ側の決まり。D182・D199）。絵があって、ひらがなかカタカナで書けることばを集める。
+/// えいごの ことばは入れない（日本語だけ。D45）。
+/// 続ける音は、ことばの読み（カタカナはひらがな）で決める。「ー」はその前の字の音、小さい字は大きい字の音（`ShiritoriKana`）。
 enum ShiritoriWords {
-  /// ことばの字がすべてひらがななら `.hiragana`、すべてカタカナなら `.katakana`、そのほかは nil。
+  /// ことばの字がすべてひらがななら `.hiragana`、すべてカタカナなら `.katakana`、そのほか（英語など）は nil。
   static func script(of text: String) -> Script? {
-    if text.allSatisfy({ KanaTable.script(of: $0) == .hiragana }) { return .hiragana }
-    if text.allSatisfy({ KanaTable.script(of: $0) == .katakana || $0 == "ー" }) { return .katakana }
-    return nil
+    switch WordText.script(of: text) {
+    case .hiragana: .hiragana
+    case .katakana: .katakana
+    case .abc, nil: nil
+    }
   }
 
   /// 鍵のかかったことばは、影絵で出る（押すと「おねがい」。D3・D45）。
+  /// おためしのことば（バス）は、書けることばに入れる（D93）。
   @MainActor static func pool(entitlements: Entitlements) -> ShiritoriPool {
     let texts = WordArt.words.map(\.entry.text).filter(WordArt.hasArt)
     return ShiritoriPool(
       texts: texts.filter { script(of: $0) != nil },
-      isLocked: { text in script(of: text).map { !entitlements.isUnlocked($0) } ?? true })
+      isLocked: { text in !WordAccess.canWrite(text, entitlements: entitlements) })
   }
 }

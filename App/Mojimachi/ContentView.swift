@@ -91,6 +91,16 @@ struct ContentView: View {
   }()
   /// ことば画面をテーマのことばのカードから開いたか（「←」の戻り先）。
   @State private var wordFromCards = false
+  /// テーマのことばのカードで、英語のことばを出しているか（「ABC」の旗。D67・D199）。
+  @State private var themeEnglish: Bool = {
+    #if DEBUG
+      return UserDefaults.standard.bool(forKey: "themeEnglish")
+    #else
+      return false
+    #endif
+  }()
+  /// ことば画面を、文字の地図のおためしのことばのカードから開いたか（「←」の戻り先。D92）。
+  @State private var wordFromMap = false
   /// ことば画面をずかんから開いたか（「←」の戻り先。D181）。
   @State private var wordFromZukan = false
   /// ことば画面を「もじから さがす」から開いたか（「←」の戻り先。D181）。
@@ -320,7 +330,17 @@ struct ContentView: View {
           cardChar = char
           self.screen = .card
         },
-        onLocked: { lockedScript = $0 }
+        onLocked: { lockedScript = $0 },
+        onTrialWord: { text in
+          wordStart = text
+          wordFromCard = false
+          wordFromCards = false
+          wordFromToday = false
+          wordFromZukan = false
+          wordFromLetterWords = false
+          wordFromMap = true
+          self.screen = .word
+        }
       )
       #if DEBUG
         .frame(
@@ -339,17 +359,25 @@ struct ContentView: View {
             wordFromToday = false
             wordFromZukan = false
             wordFromLetterWords = false
+            wordFromMap = false
             self.screen = .word
           },
-          onSearch: { self.screen = .letterWords })
+          onSearch: { self.screen = .letterWords },
+          onLocked: { lockedScript = $0 })
       }
     case .letter:
       WritingCanvasView(activity: activity, start: cardChar, onLocked: { lockedScript = $0 })
     case .word:
       WordWritingView(
         activity: activity, start: wordStart,
-        choices: wordFromCards ? selectedTheme.map { WordArt.index.words(in: $0) } : nil
+        choices: wordFromMap
+          ? wordStart.map { [$0] }
+          : wordFromCards
+            ? selectedTheme.map {
+              themeEnglish ? WordArt.index.englishWords(in: $0) : WordArt.index.words(in: $0)
+            } : nil
       ) { kind in
+        wordFromMap = false
         wordFromCard = false
         wordFromCards = false
         wordFromToday = false
@@ -391,19 +419,24 @@ struct ContentView: View {
           wordFromCards = false
           wordFromLetterWords = false
           wordFromZukan = true
+          wordFromMap = false
           self.screen = .word
         },
         onLocked: { lockedScript = $0 })
     case .letterWords:
       if let cardChar {
-        LetterWordsView(char: cardChar) { text in
-          wordStart = text
-          wordFromCard = false
-          wordFromCards = false
-          wordFromZukan = false
-          wordFromLetterWords = true
-          self.screen = .word
-        }
+        LetterWordsView(
+          char: cardChar,
+          onWord: { text in
+            wordStart = text
+            wordFromCard = false
+            wordFromCards = false
+            wordFromZukan = false
+            wordFromLetterWords = true
+            wordFromMap = false
+            self.screen = .word
+          },
+          onLocked: { lockedScript = $0 })
       }
     case .places:
       PlacesView(
@@ -412,6 +445,7 @@ struct ContentView: View {
           switch WordArt.index.entrance(of: place) {
           case .words(let theme):
             selectedTheme = theme
+            themeEnglish = false
             self.screen = .wordCards
           case .themes:
             self.screen = .themes
@@ -425,20 +459,25 @@ struct ContentView: View {
       if let selectedPlace {
         ThemesView(place: selectedPlace) { theme in
           selectedTheme = theme
+          themeEnglish = false
           self.screen = .wordCards
         }
       }
     case .wordCards:
       if let selectedTheme {
-        WordCardsView(theme: selectedTheme) { text in
+        WordCardsView(
+          theme: selectedTheme, english: $themeEnglish,
+          onSelect: { text in
           wordStart = text
           wordFromCard = false
           wordFromCards = true
           wordFromToday = false
           wordFromZukan = false
           wordFromLetterWords = false
+          wordFromMap = false
           self.screen = .word
-        }
+          },
+          onLocked: { lockedScript = $0 })
       }
     case .town:
       TownView(
@@ -463,6 +502,10 @@ struct ContentView: View {
     switch screen {
     case .letter: screen = cardChar == nil ? nil : .card
     case .card: screen = .map
+    case .word where wordFromMap:
+      wordFromMap = false
+      wordStart = nil
+      screen = .map
     case .word where wordFromCard:
       wordFromCard = false
       wordStart = nil
@@ -570,6 +613,7 @@ struct ContentView: View {
           wordFromCard = false
           wordFromCards = false
           wordFromToday = true
+          wordFromMap = false
           screen = .word
           Task {
             await VoicePlayer.shared.speak(sequence: [VoiceLine.todayWord.text, word])

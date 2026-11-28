@@ -746,3 +746,25 @@ voice_line_treat_box_open.caf,なにが でるかな？,,猫使ビィ,58（ノ�
 voice_line_treat_box_got.caf,やったね！ ステッカーが でたよ！,,猫使ビィ,58（ノーマル）,0.26.2,2026-11-27
 voice_line_sticker_hint.caf,ステッカーは、まちや ずかんに はれるよ,,猫使ビィ,59（おちつき）,0.26.2,2026-11-27
 voice_line_town_sleepy.caf,ふわあ…… ねむく なってきたね,ふわあ、ねむく なってきたね,猫使ビィ,59（おちつき）,0.26.2,2026-11-27
+voice_word_basu.caf,バス,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_zukan_basu.caf,バスは たくさんの ひとを のせて はしるよ,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_cat.caf,cat,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_dog.caf,dog,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_cow.caf,cow,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_pig.caf,pig,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_fox.caf,fox,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_bear.caf,bear,kana:ベ'ア,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_duck.caf,duck,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_hen.caf,hen,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_owl.caf,owl,kana:ア'ウル,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_bee.caf,bee,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_ant.caf,ant,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_frog.caf,frog,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_fish.caf,fish,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_egg.caf,egg,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_sun.caf,sun,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_moon.caf,moon,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_star.caf,star,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_hat.caf,hat,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_car.caf,car,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
+voice_english_bus.caf,bus,,猫使ビィ,59（おちつき）,0.26.2,2026-11-28
