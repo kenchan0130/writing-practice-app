@@ -131,6 +131,10 @@ struct ContentView: View {
   @State private var gateForSwitch = false
   private let store = ProgressStore.shared
   private var gate: ParentGate { gateStore.gate }
+  /// 子どもが書く画面（字・ことば・しりとりの ことば・はじめての流れの後半）にいるか（D197）。
+  private var isWritingScreen: Bool {
+    screen == .letter || screen == .word || screen == .shiritoriWord || onboarding == .child
+  }
 
   var body: some View {
     Group {
@@ -164,6 +168,10 @@ struct ContentView: View {
     // iCloud の取り込みを待ち終わってから決める（D63）。選んだ子が変わったときも決め直す（D23）。
     .onChange(of: store.isWaitingForFirstImport, initial: true) { evaluateOnboarding() }
     .onChange(of: store.currentProfileID) { evaluateOnboarding() }
+    // 書く画面にいるあいだは、消えた子の切り替えを待つ（D197）。
+    .onChange(of: isWritingScreen, initial: true) { _, writing in store.setWritingActive(writing) }
+    // iCloud のアカウントの見張りは、アプリを開いたときから始める（D197）。
+    .task { store.startAccountWatch() }
     // 鍵の画面を重ねているあいだは、後ろの画面を VoiceOver などから隠す（D160）。
     .accessibilityHidden(lockedScript != nil)
     .task {

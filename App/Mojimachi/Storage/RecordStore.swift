@@ -702,26 +702,64 @@ final class RecordStore {
       }
   }
 
-  /// プロフィールを保存する（あれば直し、なければ足す）。
-  func save(_ profile: Profile) {
-    let row: NSManagedObject
-    if let existing = fetch("ProfileRow").first(where: {
-      $0.value(forKey: "id") as? UUID == profile.id
-    }) {
-      row = existing
+  /// 保存先が読める状態か（開き直しの間は、読めない。読めないときに「行が無い」と決めない）。
+  var canRead: Bool { !container.persistentStoreCoordinator.persistentStores.isEmpty }
+
+  /// その子の行が保存先にあるか。読めなかったとき（開き直しの間など）は、消えたと決めず true（D197）。
+  func profileExists(_ id: UUID) -> Bool {
+    guard canRead else { return true }
+    let request = NSFetchRequest<NSManagedObject>(entityName: "ProfileRow")
+    request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+    guard let count = try? context.count(for: request) else { return true }
+    return count > 0
+  }
+
+  /// プロフィールの行を直す。行が無いときは何も書かず `.missing`（システムに消された子を、
+  /// 前の名前のままよみがえらせて、次のアカウントの iCloud に上げない。D197）。
+  @discardableResult
+  func update(_ profile: Profile) -> ProfileWriteOutcome {
+    guard canRead else { return .unreadable }
+    let request = NSFetchRequest<NSManagedObject>(entityName: "ProfileRow")
+    request.predicate = NSPredicate(format: "id == %@", profile.id as CVarArg)
+    // 読めなかったときは、行が無いとは決めない。
+    guard let rows = try? context.fetch(request) else { return .unreadable }
+    let outcome = ProfileWrite.update(canRead: true, rowExists: !rows.isEmpty)
+    guard let existing = rows.first, outcome == .updated else { return outcome }
+    write(profile, to: existing)
+    return outcome
+  }
+
+  /// プロフィールの行を足す（子を足す、最初の子を保存する、はじめての流れ。D197）。
+  /// 同じ ID の行がすでにあれば、二重にせず直す。
+  /// 保存できたら true。
+  @discardableResult
+  func insert(_ profile: Profile) -> Bool {
+    let existing = profileRow(profile.id)
+    if let existing {
+      return write(profile, to: existing)
     } else {
-      row = NSEntityDescription.insertNewObject(forEntityName: "ProfileRow", into: context)
+      let row = NSEntityDescription.insertNewObject(forEntityName: "ProfileRow", into: context)
       row.setValue(profile.id, forKey: "id")
       row.setValue(Date(), forKey: "date")
       row.setValue(Self.dataVersion, forKey: "dataVersion")
+      return write(profile, to: row)
     }
+  }
+
+  private func profileRow(_ id: UUID) -> NSManagedObject? {
+    let request = NSFetchRequest<NSManagedObject>(entityName: "ProfileRow")
+    request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+    return (try? context.fetch(request))?.first
+  }
+
+  private func write(_ profile: Profile, to row: NSManagedObject) -> Bool {
     row.setValue(profile.name, forKey: "name")
     row.setValue(profile.honorific.rawValue, forKey: "honorific")
     row.setValue(profile.face, forKey: "face")
     row.setValue(profile.handedness.rawValue, forKey: "handedness")
     row.setValue(Int64(profile.dailyGoal), forKey: "dailyGoal")
     row.setValue(profile.penColor?.rawValue, forKey: "penColor")
-    save()
+    return save()
   }
 
   /// プロフィールと、その子の記録・まちの物をすべて消す（取り返しのつかない操作。§5.3）。
@@ -738,14 +776,18 @@ final class RecordStore {
     save()
   }
 
-  private func save() {
-    guard context.hasChanges else { return }
+  /// 保存できたら true（変えたものが無いときも true）。
+  @discardableResult
+  private func save() -> Bool {
+    guard context.hasChanges else { return true }
     do {
       try context.save()
       lastSaved = Date()
+      return true
     } catch {
       Self.lastError = error
       context.rollback()
+      return false
     }
   }
 

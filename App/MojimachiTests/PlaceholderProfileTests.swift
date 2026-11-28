@@ -52,7 +52,7 @@ struct PlaceholderProfileTests {
     let (store, records) = makeStore()
     let placeholder = store.currentProfileID
     let real = Profile(name: "はると", face: "cat.fill")
-    records.save(real)  // iCloud から届いた
+    records.insert(real)  // iCloud から届いた
     store.reloadFromStore()
     #expect(store.currentProfileID == real.id)
     #expect(store.profiles.profiles.map(\.id) == [real.id])
@@ -67,7 +67,7 @@ struct PlaceholderProfileTests {
     mine.name = "みお"
     store.updateProfile(mine)
     let real = Profile(name: "はると", face: "cat.fill")
-    records.save(real)
+    records.insert(real)
     store.reloadFromStore()
     #expect(store.currentProfileID == mine.id)
     #expect(Set(store.profiles.profiles.map(\.id)) == [mine.id, real.id])
@@ -131,7 +131,7 @@ struct PlaceholderProfileTests {
     let (store, records) = makeStore()
     var old = try #require(store.currentProfile)
     let real = Profile(name: "はると", face: "cat.fill")
-    records.save(real)
+    records.insert(real)
     store.reloadFromStore()
     old.name = "ゆうと"
     store.updateProfile(old)
@@ -143,7 +143,7 @@ struct PlaceholderProfileTests {
     let (store, records) = makeStore()
     var typed = try #require(store.currentProfile)
     typed.name = "ゆうと"
-    records.save(Profile(name: "はると", face: "cat.fill"))
+    records.insert(Profile(name: "はると", face: "cat.fill"))
     store.reloadFromStore()
     store.applyOnboardingProfile(typed)
     #expect(store.currentProfile?.name == "はると")
@@ -156,7 +156,7 @@ struct PlaceholderProfileTests {
     var typed = try #require(store.currentProfile)
     typed.name = "ゆうと"
     let real = Profile(name: "", face: "cat.fill")
-    records.save(real)
+    records.insert(real)
     store.reloadFromStore()
     store.applyOnboardingProfile(typed)
     #expect(store.currentProfile?.id == real.id)
