@@ -4,11 +4,11 @@ import Testing
 
 @Suite("ことばの一覧（D78）")
 struct WordCatalogTests {
-  @Test("305語で、種類ごとの数が合う")
+  @Test("306語で、種類ごとの数が合う")
   func counts() {
-    #expect(WordCatalog.all.count == 305)
-    #expect(Set(WordCatalog.all.map(\.text)).count == 305)
-    #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 13)
+    #expect(WordCatalog.all.count == 306)
+    #expect(Set(WordCatalog.all.map(\.text)).count == 306)
+    #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 14)
     #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 45)
     #expect(WordCatalog.all.filter { $0.kind == .clothes }.count == 16)
     #expect(WordCatalog.all.filter { $0.kind == .flyer }.count == 19)
@@ -91,10 +91,12 @@ struct WordCatalogTests {
     #expect(!WordCatalog.crawls("ちょう"))
   }
 
-  @Test("すべてのことばの字が、ひらがなのパックにある")
+  @Test("すべてのことばの字が、文字のパックにある（ひらがなのことばはひらがな、カタカナのことばはカタカナ。D199）")
   func charactersExist() throws {
-    let chars = Set(try HiraganaPackTests.loadAll().map { Character($0.char) })
+    let hira = Set(try HiraganaPackTests.loadAll().map { Character($0.char) })
+    let kata = Set(try KatakanaWordPacks.load("kata").map { Character($0.char) })
     for entry in WordCatalog.all {
+      let chars = entry.isKatakana ? kata : hira
       for char in entry.text {
         #expect(chars.contains(char), "\(entry.text) の「\(char)」がない")
       }

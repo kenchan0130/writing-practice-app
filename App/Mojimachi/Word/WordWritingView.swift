@@ -129,7 +129,7 @@ struct WordWritingView: View {
           && model.flow?.continuationPoint == nil)
     ) { timeline in
       Canvas { context, size in
-        CanvasDrawing.guide(in: &context, size: size)
+        CanvasDrawing.guide(in: &context, size: size, letterLines: model.letterLines)
         let scale = size.width / 1000
         if let character = model.currentCharacter, !model.wordDone {
           switch model.mode {
@@ -222,7 +222,7 @@ struct WordWritingView: View {
     let image = WordArt.image(word: model.word, size: 600)
     let scene = TransformScene(
       size: size, lines: lines, colors: colors, objectImage: image, kind: model.kind,
-      word: model.word, character: ProgressStore.shared.mainCharacter)
+      word: model.baseWord, character: ProgressStore.shared.mainCharacter)
     scene.onFinished = { transformFinished = true }
     DispatchQueue.main.async {
       transform = scene

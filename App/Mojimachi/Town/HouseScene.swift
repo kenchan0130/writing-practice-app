@@ -184,7 +184,7 @@ final class HouseScene: SKScene {
 
   /// 物を置き場所に置く。棚・床の物は、絵の中身の下のはしを 置き場所の高さに合わせる。壁の物は 真ん中。
   private func makeThing(_ thing: Thing, slot: HouseSlot) -> SKSpriteNode {
-    let word = thing.object.word
+    let word = thing.object.baseWord
     let node = SKSpriteNode(texture: SKTexture(image: WordArt.image(word: word, size: 320)))
     node.name = thing.object.id.uuidString
     let side = objectSize * CGFloat(slot.scale)
@@ -210,7 +210,7 @@ final class HouseScene: SKScene {
         let thing = things.first(where: { $0.object.id == id })
       else { continue }
       if !reduceMotion { HouseMotion.bounce(sprite) }
-      VoicePlayer.shared.speak(thing.object.word)
+      VoicePlayer.shared.speak(thing.object.baseWord)
       return
     }
   }
@@ -260,9 +260,9 @@ final class HouseScene: SKScene {
     var current = home
     // 新しい物から順に回る（置き場所の番号ではなく、手に入れた時間の順）。
     for item in placed.sorted(by: { $0.thing.object.date > $1.thing.object.date }) {
-      guard let use = HouseLayout.use(for: item.thing.object.word) else { continue }
+      guard let use = HouseLayout.use(for: item.thing.object.baseWord) else { continue }
       let node = item.node
-      let content = WordArt.contentFrame(word: item.thing.object.word)
+      let content = WordArt.contentFrame(word: item.thing.object.baseWord)
       let thingX = node.position.x
       // 立つ場所: 床の物は、部屋の真ん中の側の となり。棚・壁の物は、その下の床（床の物の間）。
       let beside: CGPoint

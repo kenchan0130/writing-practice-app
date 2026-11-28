@@ -1,4 +1,5 @@
 import ContentModel
+import EntitlementKit
 import UIKit
 
 /// ことばの絵（原作の SVG。D163）。ことばの一覧は WordCatalog。
@@ -70,7 +71,24 @@ enum WordArt {
     "せっけん": "sekken", "はぶらし": "haburashi", "くし": "kushi", "かがみ": "kagami",
   ]
 
-  static let words: [Item] = WordCatalog.all.map { entry in
+  /// 日本語のことば（ひらがな・カタカナ）。えいごの ことばは `englishItems`（D199）。
+  static let words: [Item] = WordCatalog.all.map { item(for: $0) }
+
+  /// えいごの ことば。絵は、日本語のことばの絵を使い回す（cat は「ねこ」。D199）。
+  static let englishItems: [Item] = EnglishWords.entries.map { item(for: $0) }
+
+  /// 日本語も英語も合わせたことば（ことばを書く画面で引く）。
+  static let allItems: [Item] = words + englishItems
+
+  /// ことばから `Item` を引く。日本語・英語のどちらでもよい。
+  static func item(named text: String) -> Item? {
+    itemsByText[text]
+  }
+
+  private static let itemsByText: [String: Item] = Dictionary(
+    allItems.map { ($0.entry.text, $0) }, uniquingKeysWith: { first, _ in first })
+
+  private static func item(for entry: WordEntry) -> Item {
     let color: UIColor =
       switch entry.kind {
       case .vehicle: vehicleColor
@@ -85,7 +103,7 @@ enum WordArt {
       case .furniture: furnitureColor
       case .seasonal: seasonalColor
       }
-    return Item(entry: entry, asset: assets[entry.text] ?? "", color: color)
+    return Item(entry: entry, asset: assets[EnglishWords.base(of: entry.text)] ?? "", color: color)
   }
 
   /// 絵のあることば。地図に出すものは、ここから決める（D166）。
@@ -93,12 +111,14 @@ enum WordArt {
     assets.filter { UIImage(named: "word-" + $0.value) != nil }.keys)
 
   /// そのことばに絵があるか（しりとりに出すことばを決める。D182）。
-  static func hasArt(_ word: String) -> Bool { wordsWithArt.contains(word) }
+  /// えいごの ことばは、借りる日本語のことばの絵があればよい。
+  static func hasArt(_ word: String) -> Bool { wordsWithArt.contains(EnglishWords.base(of: word)) }
 
   /// まちの地図・テーマ・ことばの出し分け（D166）。絵のあることばだけが出る。
+  /// おためしのことば（バス・cat）は、テーマの中で鍵のことばの前に置く（D93）。
   static let index: WordMapIndex = {
     let known = wordsWithArt
-    return WordMapIndex { known.contains($0) }
+    return WordMapIndex(trialWords: Trial.words) { known.contains($0) }
   }()
 
   /// 空を飛ぶ物の動き方（D168）。鳥ははばたき、ひこうきはすべり、ききゅうはゆっくり上下する。
@@ -193,7 +213,7 @@ enum WordArt {
 
   /// ことばの絵のアセットの名前（SwiftUI の `Image(...)` に渡す）。
   static func assetName(for word: String) -> String {
-    "word-" + (assets[word] ?? "")
+    "word-" + (assets[EnglishWords.base(of: word)] ?? "")
   }
 
   static func assetName(_ item: Item) -> String { "word-" + item.asset }

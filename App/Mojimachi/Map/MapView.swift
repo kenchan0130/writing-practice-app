@@ -69,6 +69,8 @@ struct MapView: View {
   var onSelect: (Character) -> Void
   /// 鍵のかかった字を押した（鍵の画面へ。D160）。
   var onLocked: (Script) -> Void = { _ in }
+  /// おためしのことばのカードを押した（そのことばを書く画面へ。D92）。
+  var onTrialWord: (String) -> Void = { _ in }
   private let store = ProgressStore.shared
   private let purchases = PurchaseStore.shared
 
@@ -113,6 +115,9 @@ struct MapView: View {
             VStack(spacing: 16) {
               Spacer(minLength: 0)
               grid(decision: decision, cell: cell)
+              if let word = trialWord {
+                TrialWordCard(word: word) { onTrialWord(word) }
+              }
               Spacer(minLength: 0)
               if !landscape { legend }
             }
@@ -136,6 +141,7 @@ struct MapView: View {
     let gap = MapLayout.gap
     var rows = 0.0
     var extra = legendBelow ? Self.legendHeight : 2 * 16.0 + 12
+    if trialWord != nil { extra += TrialWordCard.height + 16 }
     if selection.script == .abc {
       rows = Double(AbcTable.grid(selection.abcPage).cells.count)
     } else {
@@ -312,6 +318,18 @@ struct MapView: View {
     return store.log.mapState(of: id)
   }
 
+  /// 文字の地図のその文字のページに置く、おためしのことば（バス・cat）。持っていない文字だけ（D92）。
+  /// パックを買ったあとは、テーマの中で書けるので、カードはいらない。子どもには「おためし」と見せない（D90）。
+  private var trialWord: String? {
+    let script = selection.script.entitlementScript
+    guard !purchases.entitlements.isUnlocked(script), let word = Trial.word(for: script),
+      WordArt.hasArt(word)
+    else { return nil }
+    // cat は、小文字のページだけ（おおもじ・すうじには出さない。D92）。
+    if script == .abc, selection.abcPage != .lower { return nil }
+    return word
+  }
+
   /// 鍵がかかっているか。おためしの字は開いている（D90・D94）。
   private func isLocked(_ char: Character) -> Bool {
     !purchases.entitlements.canWrite(char, in: selection.script.entitlementScript)
@@ -411,5 +429,40 @@ private struct MapSwitchButton: View {
     }
     .buttonStyle(.plain)
     .accessibilityAddTraits(selected ? .isSelected : [])
+  }
+}
+
+
+/// 文字の地図のページに置く、おためしのことばのカード（D92）。絵とことばを見せて、押すとすぐ書ける。
+/// 子どもには「おためし」とは見せない（D90）。
+private struct TrialWordCard: View {
+  var word: String
+  var action: () -> Void
+  static let height = 120.0
+
+  var body: some View {
+    Button {
+      SoundPlayer.shared.play(.tap)
+      action()
+    } label: {
+      HStack(spacing: 20) {
+        Image(WordArt.assetName(for: word)).resizable().scaledToFit()
+          .frame(width: 96, height: 96)
+          .accessibilityHidden(true)
+        Text(word).font(.learning(44)).foregroundStyle(Theme.ink)
+        Image(systemName: "pencil.line").font(.system(size: 36, weight: .bold))
+          .foregroundStyle(Theme.accent)
+      }
+      .padding(.horizontal, 28)
+      .frame(minWidth: 320, minHeight: Self.height)
+      .background(.white, in: .rect(cornerRadius: Theme.Radius.card))
+      .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card).stroke(Theme.accent, lineWidth: 4))
+      .softShadow()
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(word)
+    .accessibilityAddTraits(.isButton)
+    .accessibilityIdentifier("trialWordCard")
   }
 }

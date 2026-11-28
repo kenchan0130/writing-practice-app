@@ -76,10 +76,14 @@ enum TodayWord {
     let startOfDay = calendar.startOfDay(for: now)
     // きょう書いた分は入れない。書くと選び直しになって、開くたびに変わってしまうため。
     let written = Set(store.log.currentWords.filter { $0.date < startOfDay }.map(\.word))
-    let candidates = WordArt.words.map(\.entry.text).filter { text in
-      WordArt.hasArt(text)
-        && (ShiritoriWords.script(of: text).map { unlocked.contains($0) } ?? false)
-    }
+    // 開いていることば（日本語。パックを持っていれば英語も）と、まだ書いていないおためしのことばを1回（D93・D199）。
+    let all = (WordArt.words + WordArt.englishItems).map(\.entry.text).filter(WordArt.hasArt)
+    let candidates = DailyWord.eligible(
+      all,
+      isOpen: { text in
+        WordAccess.script(of: text).map { unlocked.contains($0) } ?? false
+      },
+      isTrial: Trial.words.contains, written: written)
     return DailyWord.pick(
       from: candidates, writtenBeforeToday: written, day: day(now: now, calendar: calendar),
       childID: store.currentProfileID.uuidString, isJapan: isJapan)

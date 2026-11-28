@@ -1,4 +1,5 @@
 import ContentModel
+import EntitlementKit
 import Foundation
 import JudgeKit
 import Observation
@@ -50,8 +51,17 @@ final class WordModel {
   /// `start` を渡すと、そのことばから始める（字のカードから。D101）。
   init(activity: WritingActivity, start: String? = nil, choices: [String]? = nil) {
     self.activity = activity
-    let chosen = choices?.compactMap { text in WordArt.words.first { $0.entry.text == text } }
-    items = (chosen?.isEmpty == false ? chosen : nil) ?? WordArt.words
+    // 鍵のかかったことばは、選べることばに入れない（D93）。日本語も英語も引ける（D199）。
+    let entitlements = PurchaseStore.shared.entitlements
+    let writable = { (item: WordArt.Item) in
+      WordAccess.canWrite(item.entry.text, entitlements: entitlements)
+    }
+    let chosen = choices?.compactMap { WordArt.item(named: $0) }.filter(writable)
+    // 選ぶことばを決めなかったとき: 英語のことばから入ったら英語のことば、ほかは日本語のことば。
+    let startsEnglish = start.map(EnglishWords.isEnglish) ?? false
+    items =
+      (chosen?.isEmpty == false ? chosen : nil)
+      ?? (startsEnglish ? WordArt.englishItems : WordArt.words).filter(writable)
     #if DEBUG
       // 確かめ用: `-word いぬ` でそのことばから始める。
       if let text = UserDefaults.standard.string(forKey: "word"),
@@ -67,8 +77,12 @@ final class WordModel {
   }
 
   var word: String { items[wordIndex].entry.text }
+  /// 絵や動きを決めるもとのことば（えいごの ことばは、借りた日本語のことば。D199）。
+  var baseWord: String { EnglishWords.base(of: word) }
   var asset: String { items[wordIndex].asset }
   var kind: WordKind { items[wordIndex].entry.kind }
+  /// 英語のことばは、十字の代わりに4本の線を引く（D180・D199）。
+  var letterLines: [Double]? { WordText.script(of: word) == .abc ? AbcTable.guideLines : nil }
   var currentCharacter: CharacterData? { flow?.current }
   var mode: PracticeStep? { flow?.mode }
   var progress: Double { flow?.progress ?? 0 }
@@ -127,6 +141,8 @@ final class WordModel {
     // 空のことばは まちに置かない。書いた記録（WordRecord）から、まちの空が しばらく変わる（D172）。
     // 体のことばも置かない。書いた記録から、まちで主人公が その動きを見せる（D175）。
     guard kind != .sky, kind != .bodyAction else { return }
+    // えいごの ことば（cat）は、そのまま置く。ねこと別のことばとして数える（D93）。
+    // 絵・動き・置き場所は、借りた日本語のことばで決める（`PlacedObject.baseWord`）。
     store.place(PlacedObject(word: word, symbol: asset, kind: kind))
   }
 
@@ -141,7 +157,7 @@ final class WordModel {
     judgeTask?.cancel()
     praiseTask?.cancel()
     charPraise = nil
-    let characters = word.compactMap { PackLibrary.hiragana($0) }
+    let characters = word.compactMap { PackLibrary.character(forWordLetter: $0) }
     flow = WordFlow(characters: characters, mastered: store.mastered, preset: store.preset)
     strokes = []
     lines = []
@@ -288,6 +304,10 @@ final class WordModel {
     issues: [JudgeIssue]
   ) {
     guard let character else { return }
+    // おためしのことばの中だけで書いた字には、スタンプを付けない（D93）。
+    guard let letter = character.char.first,
+      WordAccess.stamps(letter, entitlements: PurchaseStore.shared.entitlements)
+    else { return }
     store.record(
       CharacterRecord(
         date: Date(), characterID: character.id, stage: stage, passed: passed, rescued: rescued,

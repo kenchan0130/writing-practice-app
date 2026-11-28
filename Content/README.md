@@ -35,6 +35,29 @@
 - `Content/Art/references.md`: 節は最後に足すだけなので、両方の節を残す。
 - 画面の数を決めているテスト（`WordCatalogTests` の語数、`WordMapTests` のテーマ数など）は、マージの後に合う数へ直す。
 
+## カタカナのことば（D199）
+
+カタカナのことば（バス・パトカー・タクシー）は、ひらがなのことばと**同じめぐりの形**で書く。足すものが違うのは、字だけ。
+
+- `entries` に `WordEntry("パトカー", .vehicle)` のように、**字のとおりカタカナ**で書く（D7）。文字の種類（カタカナ）は、字から決まる（`WordText.script(of:)`）。印や別の一覧は足さない。長音「ー」と小さい字（ャ・ュ・ョ・ッ）も、カタカナの字として数える。
+- `themeWords` には、そのテーマのことばを書く。テーマの中では、ひらがなのことば → おためしのことば（バス）→ 鍵のカタカナのことば の順に自動で並ぶので、書く順は気にしなくてよい（D93）。
+- 字は、`Content/Packs/kata` に全部ある。書けない字（ヴ のように地図にない字など）がないか、`make test` が見る。
+- しりとりでは、読み（ひらがな）で続く。「ー」はその前の字の音、小さい字は大きい字の音。「ん」で終わることばは使われない。
+- 絵（`artNames` はローマ字。バスは `basu`）、ずかんの説明（`notes`）、声（`word_<ローマ字>`・`zukan_<ローマ字>`）は、ひらがなのことばと同じ。声の読みを直すときは、`lines.csv` の4列目に `kana:` で書く。
+- 見本は `WordBatches/BatchKataSeed.swift`（バス）と `Scripts/art/words_kataseed.py`。
+- カタカナのパックを持っていないと、バスのほかは鍵がかかる。おためしのことばを増やすときは、`Trial`（`EntitlementKit`）を直し、D90 を見る。
+
+## えいごの ことば（D199）
+
+えいごの ことばは、日本語のことばの**絵を使い回す**。絵も声の説明もいらず、`EnglishWord` を足すだけ。
+
+- `WordBatch(..., english: [EnglishWord("cat", japanese: "ねこ"), ...])` に足す。見本は `WordBatches/BatchEnglishSeed.swift`（はじめの20語）。あと約80語は、新しいめぐり（`entries: []` でよい）の `english` に足し、`WordBatch.all` に1行足す。
+- `text` は**小文字**の英字、3〜4文字のやさしいことば。`japanese` は、絵を借りる日本語のことば（`WordCatalog` にあって、絵のあるもの。カタカナのことばでもよい。bus は「バス」）。書くのは `abc` パックの小文字（`Content/Packs/abc`）。
+- 動きの種類（まちでの動き・変身）と季節は、借りる日本語のことばと同じ。しりとりには出ない。
+- そのテーマに、借りる日本語のことばがあれば、テーマの画面に「ABC」の旗が出る。パックがなければ cat だけが開き、ほかは影絵に鍵。
+- 声: `Content/Voices/lines.csv` に `english_<ことば>,<ことば>,ochitsuki,<読み>,` の行を足す（D180 と同じ猫使ビィ。エンジンの英語の読みで読む）。読みが合わないときだけ、4列目に `kana:` の読みを書く（`kana:ベ'ア`）。そのあと、4. のコマンドで声を作り直す。
+- `EnglishWords` を読む `KatakanaAndEnglishWordTests` が、重なり・小文字・字数・借りる先を確かめる。
+
 ## ステッカーと おたのしみ ボックス（D190）
 
 - 絵: `Scripts/art/stickers.sh`（Mac だけ）。`Scripts/art/stickers.py` で SVG を作り（`Content/Art/stickers/`・`Content/Art/parts/otanoshimi-*.svg`）、

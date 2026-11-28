@@ -1,3 +1,4 @@
+import EntitlementKit
 import PracticeKit
 import RecordKit
 import SpriteKit
@@ -102,6 +103,22 @@ struct TownView: View {
     return store.log.currentWords.map { BodyRecord(word: $0.word, date: $0.date) }
   }
 
+  /// すうじ あそび（D199）: いちばん新しく書いた数字（1〜9）の数のりんご。書いていなければ 0。
+  private var appleCount: Int {
+    #if DEBUG
+      // 確かめ用: `-apples 5` で、その数を見せる。
+      if UserDefaults.standard.object(forKey: "apples") != nil {
+        return UserDefaults.standard.integer(forKey: "apples")
+      }
+    #endif
+    return NumberPlay.appleCount(
+      in: store.log.currentCharacters.map {
+        NumberPlay.WriteRecord(
+          characterID: $0.characterID, date: $0.date, passed: $0.passed, rescued: $0.rescued)
+      },
+      canPlay: { PurchaseStore.shared.entitlements.canPlayNumber($0) })
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Text(title).font(.learning(40)).foregroundStyle(Theme.ink)
@@ -118,6 +135,7 @@ struct TownView: View {
             scene.show(store.placed, board: store.board)
             scene.setSky(skyRecords)
             scene.setBody(bodyRecords)
+            scene.setApples(appleCount)
             startTreats()
           }
           .onDisappear { tilt.stop() }
@@ -145,6 +163,7 @@ struct TownView: View {
             scene.setSky(skyRecords)
             scene.setBody(bodyRecords)
           }
+          .onChange(of: store.log.characters) { scene.setApples(appleCount) }
       }
       // キャラクターのいえの入口と おもちゃばこ（§3.1・D185）。まちの物に重ならないよう、まちの下の列に置く。
       if scene.layer == .town, stickerMode {

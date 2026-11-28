@@ -18,6 +18,17 @@ public enum DailyWord {
   /// 季節の印のあることばを選ぶ日の割合（日本のときだけ）。
   static let seasonalChance = 0.5
 
+  /// 選べることばを決める（D93・D199）。開いていることばと、まだ書いていないおためしのことば（1回だけ）。
+  /// - Parameters:
+  ///   - isOpen: そのことばが書けるか（パックを持っている、など）。
+  ///   - isTrial: おためしのことばか（バス・cat）。
+  ///   - written: これまでに書いたことば。おためしのことばは、書いたら出さない。
+  public static func eligible(
+    _ words: [String], isOpen: (String) -> Bool, isTrial: (String) -> Bool, written: Set<String>
+  ) -> [String] {
+    words.filter { isOpen($0) || (isTrial($0) && !written.contains($0)) }
+  }
+
   /// きょうのことばを選ぶ。
   /// - Parameters:
   ///   - words: 選べることば（絵があって、書けるもの）。

@@ -1,4 +1,5 @@
 import JudgeKit
+import PracticeKit
 import SwiftUI
 
 /// 1字書けたときのごほうび（D152）。画面を少し暗くして、大きなはなまる・星・ほめ言葉・紙ふぶきを出す。
@@ -6,6 +7,8 @@ import SwiftUI
 struct CelebrationView: View {
   var rating: Rating
   var char: Character
+  /// すうじ あそび: まちに出したりんごの数（D45・D67）。0 なら出さない。
+  var apples = 0
   /// 押したら閉じる（自動で進むのもやめる。D154）。
   var onTap: () -> Void
   /// 確かめ用: この秒数で止めて見せる。nil なら動かす。
@@ -63,6 +66,21 @@ struct CelebrationView: View {
             .shadow(color: .black.opacity(0.3), radius: 6, y: 3)
             .scaleEffect(0.8 + 0.2 * min(max((t - 0.4) / 0.3, 0), 1))
             .opacity(min(max((t - 0.4) / 0.3, 0), 1))
+          // すうじ あそび: 書いた数だけ、りんごが ぽんと出る。まちにも同じ数が出ている。
+          if apples > 0 {
+            HStack(spacing: 8) {
+              ForEach(0..<apples, id: \.self) { index in
+                let appear = min(max((t - 0.7 - Double(index) * 0.1) / 0.25, 0), 1)
+                Image(WordArt.assetName(for: NumberPlay.appleWord))
+                  .resizable().scaledToFit()
+                  .frame(width: 52, height: 52)
+                  .scaleEffect(0.4 + 0.6 * appear + 0.25 * sin(appear * .pi))
+                  .opacity(appear)
+              }
+            }
+            .accessibilityHidden(true)
+            .accessibilityIdentifier("apples")
+          }
         }
         if !reduceMotion { Confetti(time: t) }
       }

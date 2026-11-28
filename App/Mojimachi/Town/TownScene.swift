@@ -34,6 +34,8 @@ final class TownScene: SKScene {
   private var skyNodes: [SKNode] = []
   /// 体のことばを書いた記録と、動きを見せた時刻（D175）。こうえんの主人公（いれば）と、その動きの前に流れていた動き。
   private var bodyRecords: [BodyRecord] = []
+  /// すうじ あそび: かごに入れて見せる りんごの数（D199）。物ではないので、おもちゃばこや置き場所には入らない。
+  private var appleCount = 0
   private var bodyPlayedAt: Date?
   /// 動きの途中でまちを作り直したら（大きさが決まった直後など）、はじめから見せなおす。
   private var bodyInProgress = false
@@ -242,7 +244,7 @@ final class TownScene: SKScene {
     addChild(world)
     // 大きな景色が立つはばには、背景の木と家を出さない（D174）。
     let landmarkSpans = zip(sceneryObjects, plan.scenery).compactMap { object, place in
-      WordArt.landmarkFactor(object.word).map {
+      WordArt.landmarkFactor(object.baseWord).map {
         TownLayout.landmarkSpan(
           TownLayout.landmarkPlace(place, factor: $0), objectWidth: Double(objectSize))
       }
@@ -252,7 +254,7 @@ final class TownScene: SKScene {
       landMinX: plan.landMinX, landWidth: plan.landWidth, screenWidth: Double(size.width))
     let festiveSpots: [(object: PlacedObject, spot: FestiveSpot)] = festiveObjects.compactMap {
       item in
-      FestiveLayout.style(for: item.object.word).map {
+      FestiveLayout.style(for: item.object.baseWord).map {
         (item.object, FestiveLayout.spot(index: item.ordinal, style: $0, in: festiveArea))
       }
     }
@@ -282,11 +284,54 @@ final class TownScene: SKScene {
     for (object, slot) in zip(townObjects, plan.slots) {
       world.addChild(makeObject(object, slot: slot, objectSize: objectSize))
     }
+    addApples(to: world, objectSize: objectSize)
     addStickers(to: world)
     addPhaseTint()
     addDozer(to: world, objectSize: objectSize)
     applySky()
     applyBodyAction(objectSize: objectSize)
+  }
+
+  // MARK: すうじ あそび（D199）
+
+  /// 最後に書いた数字の数だけ、りんごを かごに入れて見せる。0 なら かごも出さない。
+  /// まちの左のほうの決まった所に置く。ほかの物を押し出さず、次の数字を書くまで同じ。
+  func setApples(_ count: Int) {
+    appleCount = count
+    guard layer == .town, let world = childNode(withName: "world") else { return }
+    world.childNode(withName: "apples")?.removeFromParent()
+    addApples(to: world, objectSize: unit * 0.23)
+  }
+
+  private func addApples(to world: SKNode, objectSize: CGFloat) {
+    guard layer == .town, appleCount > 0 else { return }
+    let basket = SKNode()
+    basket.name = "apples"
+    basket.position = CGPoint(x: landMinX + objectSize * 1.1, y: size.height * 0.1)
+    basket.zPosition = 21
+    let width = objectSize * 1.5
+    let body = shape(
+      SKShapeNode(
+        rect: CGRect(x: -width / 2, y: -objectSize * 0.25, width: width, height: objectSize * 0.4),
+        cornerRadius: 10),
+      fill: UIColor(red: 0.85, green: 0.6, blue: 0.3, alpha: 1), line: 4, z: 1)
+    let apple = objectSize * 0.42
+    let image = WordArt.image(word: NumberPlay.appleWord, size: 160)
+    let texture = SKTexture(image: image)
+    // 3つずつの山。下の段から うめる。
+    for index in 0..<appleCount {
+      let row = index / 3
+      let column = index % 3
+      let sprite = SKSpriteNode(texture: texture)
+      sprite.size = CGSize(width: apple, height: apple)
+      sprite.position = CGPoint(
+        x: (CGFloat(column) - 1) * apple * 0.8 + (row % 2 == 1 ? apple * 0.2 : 0),
+        y: objectSize * 0.15 + CGFloat(row) * apple * 0.55 + apple * 0.4)
+      sprite.zPosition = 0.5
+      basket.addChild(sprite)
+    }
+    basket.addChild(body)
+    world.addChild(basket)
   }
 
   // MARK: 主人公が動いて見せる（D175）
@@ -612,7 +657,7 @@ final class TownScene: SKScene {
     -> SKSpriteNode
   {
     // 絵は、保存した名前ではなく、ことばから決める（前に置いた物も新しい絵になる）。
-    let image = WordArt.image(word: object.word, size: 320)
+    let image = WordArt.image(word: object.baseWord, size: 320)
     let node = SKSpriteNode(texture: SKTexture(image: image))
     node.name = object.id.uuidString
     let side = objectSize * CGFloat(slot.scale)
@@ -626,12 +671,12 @@ final class TownScene: SKScene {
     switch slot.role {
     case .vehicle: driveVehicle(node, range: range, index: slot.index)
     case .animal:
-      if WordCatalog.crawls(object.word) {
+      if WordCatalog.crawls(object.baseWord) {
         crawlAnimal(node, range: range, index: slot.index)
       } else {
         trotAnimal(node, range: range, index: slot.index)
       }
-    case .flyer: glide(node, word: object.word, range: range, index: slot.index)
+    case .flyer: glide(node, word: object.baseWord, range: range, index: slot.index)
     }
     return node
   }
@@ -641,24 +686,24 @@ final class TownScene: SKScene {
     -> SKSpriteNode
   {
     // 大きな景色（やま・たき・たてもの）は、奥の列に立って大きくなり、ほかの景色より奥に描く（D174）。
-    let landmarkFactor = WordArt.landmarkFactor(object.word)
+    let landmarkFactor = WordArt.landmarkFactor(object.baseWord)
     let landmark = landmarkFactor != nil
     let place = landmarkFactor.map { TownLayout.landmarkPlace(place, factor: $0) } ?? place
-    let image = WordArt.image(word: object.word, size: 320)
+    let image = WordArt.image(word: object.baseWord, size: 320)
     let node = SKSpriteNode(texture: SKTexture(image: image))
     node.name = object.id.uuidString
-    let side = objectSize * CGFloat(place.scale) * CGFloat(WordArt.scenerySizeFactor(object.word))
+    let side = objectSize * CGFloat(place.scale) * CGFloat(WordArt.scenerySizeFactor(object.baseWord))
     node.size = CGSize(width: side, height: side)
     node.anchorPoint = CGPoint(x: 0.5, y: landmark ? 0 : 0.05)
     node.position = CGPoint(x: place.x, y: size.height * CGFloat(place.yFraction))
     // 動物の最も奥の段（z=13.6）より奥。手前の列ほど手前。大きな景色は、背景の木・家と同じ奥（丘の手前、草の向こう）。
     // 大きい物ほど奥。
     node.zPosition = landmark ? -60 - min(CGFloat(landmarkFactor ?? 0), 10) / 10 : 2 + CGFloat(1 - place.row) * 2
-    if Rolling.isRollable(object.word), !landmark {
+    if Rolling.isRollable(object.baseWord), !landmark {
       // 丸い くだもの・やさい・木の実: 傾けると転がる。押しても転がる（D133）。
-      makeRoller(node, word: object.word)
+      makeRoller(node, word: object.baseWord)
     }
-    if WordArt.sways(object.word) {
+    if WordArt.sways(object.baseWord) {
       // 花・草・木: ほんのすこし、根もとからゆれる（動きを減らすときは止める）。
       guard !reduceMotion else { return node }
       let angle: CGFloat = 0.04
@@ -684,7 +729,7 @@ final class TownScene: SKScene {
             ),
           ]),
           // しんごう・ふみきりは、出てきたあとに あかりが かわる（D174）。
-          .run { LampMotion.attach(to: node, word: object.word, reduceMotion: false) },
+          .run { LampMotion.attach(to: node, word: object.baseWord, reduceMotion: false) },
         ]))
     }
     return node
@@ -951,7 +996,7 @@ final class TownScene: SKScene {
   private func makeSwimmer(_ object: PlacedObject, slot: SwimSlot, objectSize: CGFloat)
     -> SKSpriteNode
   {
-    let image = WordArt.image(word: object.word, size: 320)
+    let image = WordArt.image(word: object.baseWord, size: 320)
     let node = SKSpriteNode(texture: SKTexture(image: image))
     node.name = object.id.uuidString
     let side = objectSize * CGFloat(slot.scale)
@@ -959,7 +1004,7 @@ final class TownScene: SKScene {
     node.position = CGPoint(x: slot.startX, y: size.height * CGFloat(slot.yFraction))
     node.zPosition = 20 - CGFloat(slot.yFraction) * 20
     let range = CGFloat(slot.minX)...CGFloat(slot.maxX)
-    let style = WordArt.swimStyle(object.word)
+    let style = WordArt.swimStyle(object.baseWord)
     if style == .frog { addLilyPad(to: node) }
     swim(node, style: style, range: range, index: slot.index)
     return node
@@ -1243,11 +1288,11 @@ final class TownScene: SKScene {
     var things: [(node: SKSpriteNode, slot: ParkSlot)] = []
     for (object, ordinal) in playObjects {
       let slot = plan.parkSlots[TownLayout.parkSlotIndex(ordinal: ordinal)]
-      let image = WordArt.image(word: object.word, size: 320)
+      let image = WordArt.image(word: object.baseWord, size: 320)
       let node = SKSpriteNode(texture: SKTexture(image: image))
       node.name = object.id.uuidString
       let big: CGFloat =
-        switch WordArt.playStyle(object.word) {
+        switch WordArt.playStyle(object.baseWord) {
         case .slide: 1.12
         case .sandbox: 1.05
         default: 1.0
@@ -1259,7 +1304,7 @@ final class TownScene: SKScene {
       node.zPosition = 20 - CGFloat(slot.yFraction) * 20
       world.addChild(node)
       PlayMotion.start(
-        node, word: object.word, phase: Double(slot.index) * 0.37, reduceMotion: reduceMotion)
+        node, word: object.baseWord, phase: Double(slot.index) * 0.37, reduceMotion: reduceMotion)
       things.append((node, slot))
     }
     guard let park = plan.park, !things.isEmpty else { return }
@@ -1449,7 +1494,7 @@ final class TownScene: SKScene {
     _ object: PlacedObject, spot: FestiveSpot, to world: SKNode, objectSize: CGFloat
   ) {
     let h = size.height
-    let image = WordArt.image(word: object.word, size: 320)
+    let image = WordArt.image(word: object.baseWord, size: 320)
     let node = SKSpriteNode(texture: SKTexture(image: image))
     node.name = object.id.uuidString
     let side = objectSize * CGFloat(spot.scale)
@@ -1460,7 +1505,7 @@ final class TownScene: SKScene {
     switch spot.style {
     case .hang:
       // 絵の上のはしを支点にする（絵のまわりの すきまの分だけ下げる）。
-      let content = WordArt.contentFrame(word: object.word)
+      let content = WordArt.contentFrame(word: object.baseWord)
       node.anchorPoint = CGPoint(x: content.midX, y: 1 - content.minY)
       node.zPosition = -30
       if let ropeY = spot.ropeY {
@@ -1472,7 +1517,7 @@ final class TownScene: SKScene {
         node.addChild(string)
       }
     case .stand:
-      let content = WordArt.contentFrame(word: object.word)
+      let content = WordArt.contentFrame(word: object.baseWord)
       node.anchorPoint = CGPoint(x: content.midX, y: 1 - content.maxY)
       // 景色（2〜4）と動物より奥、背景の木・家と はた より手前。
       node.zPosition = 1
@@ -1521,7 +1566,7 @@ final class TownScene: SKScene {
     var clothesCount = 0
     for object in placed where !shown.contains(object.id) {
       shown.insert(object.id)
-      let image = WordArt.image(word: object.word, size: 240)
+      let image = WordArt.image(word: object.baseWord, size: 240)
       let node = SKSpriteNode(texture: SKTexture(image: image))
       node.name = object.id.uuidString
       node.size = CGSize(width: 160, height: 160)

@@ -953,6 +953,39 @@
         }
       }
     },
+    "えいごの ことば": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English words"
+          }
+        }
+      }
+    },
+    "にほんごの ことば": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Japanese words"
+          }
+        }
+      }
+    },
+    "ねむっている ことば": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A sleeping word"
+          }
+        }
+      }
+    },
     "ことばを さがす": {
       "extractionState": "manual",
       "localizations": {

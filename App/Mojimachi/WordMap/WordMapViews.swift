@@ -1,4 +1,5 @@
 import ContentModel
+import EntitlementKit
 import PracticeKit
 import SwiftUI
 
@@ -47,26 +48,38 @@ struct PictureCard: View {
   var color: Color
   var size: CGFloat
   var font: Font
+  /// 鍵のかかったことば（影絵と鍵の印。押すと「おねがい」。D93・D160）。
+  var locked = false
   var action: () -> Void
 
   var body: some View {
     Button(action: action) {
       VStack(spacing: 8) {
-        Image(asset).resizable().scaledToFit()
+        Image(asset)
+          .renderingMode(locked ? .template : .original)
+          .resizable().scaledToFit()
+          .foregroundStyle(Theme.ink.opacity(0.28))
           .padding(.horizontal, 10)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
           .accessibilityHidden(true)
-        Text(title)
-          .font(font)
-          .foregroundStyle(Theme.ink)
-          .lineLimit(2)
-          .minimumScaleFactor(0.6)
-          .multilineTextAlignment(.center)
-          .padding(.horizontal, 14)
-          .frame(minHeight: 52)
-          .background(.white.opacity(0.9), in: .capsule)
-          .padding(.horizontal, 12)
-          .padding(.bottom, 14)
+        Group {
+          if locked {
+            Image(systemName: "lock.fill").font(.system(size: 30, weight: .bold))
+              .foregroundStyle(Theme.inkSoft)
+          } else {
+            Text(title)
+              .font(font)
+              .foregroundStyle(Theme.ink)
+              .lineLimit(2)
+              .minimumScaleFactor(0.6)
+              .multilineTextAlignment(.center)
+          }
+        }
+        .padding(.horizontal, 14)
+        .frame(minHeight: 52)
+        .background(.white.opacity(0.9), in: .capsule)
+        .padding(.horizontal, 12)
+        .padding(.bottom, 14)
       }
       .padding(.top, 14)
       .frame(width: size, height: size * 0.92)
@@ -78,7 +91,7 @@ struct PictureCard: View {
     }
     .buttonStyle(CardButtonStyle())
     .accessibilityElement(children: .ignore)
-    .accessibilityLabel(title)
+    .accessibilityLabel(locked ? String(localized: "ねむっている ことば") : title)
     .accessibilityAddTraits(.isButton)
   }
 }
@@ -284,9 +297,16 @@ struct ThemesView: View {
 // MARK: - ことばのカード
 
 /// ことばを選ぶ。押すと、そのことばを書く画面へ（D101）。
+/// 英語のことばがあるテーマには、「ABC」の旗を出す（D67・D92）。押すと、同じ絵の英語のことばに切り替わる。
+/// 鍵のかかったことば（カタカナのことば・英語のことば）は影絵に鍵の印で、押すと「おねがい」（D93・D160）。
 struct WordCardsView: View {
   var theme: WordTheme
+  /// 英語のことばを出しているか（書く画面から戻っても残す）。
+  @Binding var english: Bool
   var onSelect: (String) -> Void
+  /// 鍵のかかったことばを押した（鍵の画面へ）。
+  var onLocked: (EntitlementKit.Script) -> Void = { _ in }
+  private let purchases = PurchaseStore.shared
 
   private struct Word: Identifiable {
     var text: String
@@ -294,23 +314,68 @@ struct WordCardsView: View {
   }
 
   var body: some View {
-    let words = WordArt.index.words(in: theme).map(Word.init)
+    let index = WordArt.index
+    let hasEnglish = !index.englishWords(in: theme).isEmpty
+    let showsEnglish = english && hasEnglish
+    let texts = showsEnglish ? index.englishWords(in: theme) : index.words(in: theme)
+    let words = texts.map(Word.init)
+    let entitlements = purchases.entitlements
     GeometryReader { proxy in
       let layout = cardLayout(count: words.count, width: proxy.size.width, maxSize: 280)
       ScrollView {
         VStack(spacing: 24) {
-          Heading(text: theme.name)
+          ZStack {
+            Heading(text: theme.name)
+            if hasEnglish {
+              HStack {
+                Spacer()
+                LanguageFlag(english: showsEnglish) { english.toggle() }
+              }
+            }
+          }
           CardGrid(items: words, columns: layout.columns, size: layout.size) { word in
+            let lock = WordAccess.lockedScript(of: word.text, entitlements: entitlements)
             PictureCard(
               asset: WordArt.assetName(for: word.text), title: word.text,
-              color: PlaceStyle.color(theme.placeID), size: layout.size, font: .learning(40)
-            ) { onSelect(word.text) }
+              color: PlaceStyle.color(theme.placeID), size: layout.size, font: .learning(40),
+              locked: lock != nil
+            ) {
+              if let lock { onLocked(lock) } else { onSelect(word.text) }
+            }
+            .accessibilityIdentifier("wordCard-\(word.text)")
           }
         }
         .frame(maxWidth: .infinity, minHeight: proxy.size.height - 36)
         .padding(.vertical, 12)
         .padding(.bottom, 24)
+        .padding(.horizontal, 24)
       }
     }
+  }
+}
+
+/// 「ABC」の旗（D67）。だれでも押せる。英語のことばを出しているときは、日本語に戻す旗になる。
+private struct LanguageFlag: View {
+  var english: Bool
+  var action: () -> Void
+
+  var body: some View {
+    Button {
+      SoundPlayer.shared.play(.tap)
+      action()
+    } label: {
+      HStack(spacing: 10) {
+        Image(systemName: "flag.fill").font(.system(size: 32, weight: .bold))
+        Text(english ? "あいう" : "ABC").font(.ui(34, bold: true))
+      }
+      .foregroundStyle(.white)
+      .padding(.horizontal, 28)
+      .frame(minWidth: 148, minHeight: 104)
+      .background(Theme.blue.gradient, in: .rect(cornerRadius: Theme.Radius.button))
+      .softShadow()
+    }
+    .buttonStyle(.plain)
+    .accessibilityLabel(english ? String(localized: "にほんごの ことば") : String(localized: "えいごの ことば"))
+    .accessibilityIdentifier("languageFlag")
   }
 }

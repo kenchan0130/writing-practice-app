@@ -26,6 +26,12 @@ public enum ShiritoriKana {
     return smallToBig[plain] ?? plain
   }
 
+  /// ことばの読み（ひらがな）。カタカナのことば（バス・パトカー）はひらがなにする。「ー」と小さい字はそのまま（D199）。
+  /// 続けるときの音は `head`・`tail` が決める（「ー」はその前の字の音、小さい字は大きい字の音。D45）。
+  public static func reading(of word: String) -> String {
+    String(word.precomposedStringWithCanonicalMapping.map(hiragana))
+  }
+
   /// ことばの最初の字（しりとりで、前のことばの最後の字と合わせる字）。
   public static func head(of word: String) -> Character? {
     word.precomposedStringWithCanonicalMapping.first.map(normalized)

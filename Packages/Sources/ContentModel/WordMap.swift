@@ -163,15 +163,36 @@ public struct WordMapIndex: Sendable {
   }
 
   private let hasArt: @Sendable (String) -> Bool
+  private let trialWords: Set<String>
 
-  /// `hasArt` は、そのことばに絵があるか。
-  public init(hasArt: @escaping @Sendable (String) -> Bool) {
+  /// `hasArt` は、そのことばに絵があるか。`trialWords` は、おためしのことば（バス・cat。D90）。
+  public init(trialWords: Set<String> = [], hasArt: @escaping @Sendable (String) -> Bool) {
+    self.trialWords = trialWords
     self.hasArt = hasArt
   }
 
-  /// 絵のあることばだけを、テーマの順で。
+  /// 絵のあることばだけを、テーマの順で。ひらがなのことばが先、次におためしのことば、
+  /// 最後に鍵のかかる（かもしれない）カタカナのことば（D93）。同じ並びの中では、テーマに書いた順のまま。
   public func words(in theme: WordTheme) -> [String] {
-    theme.words.filter(hasArt)
+    Self.arranged(theme.words.filter(hasArt), trial: trialWords)
+  }
+
+  /// 英語のことばが出る順: おためしのことば（cat）が先、あとは、テーマの日本語のことばの順（`words(in:)`。
+  /// 同じ日本語のことばの英語は `EnglishWords` に書いた順）。旗で切り替えても、絵が同じ並びになる（D92・D199）。
+  /// 絵を借りる日本語のことばが、このテーマにあって、絵もあるものだけ。
+  /// ひとつもなければ、テーマの画面に「ABC」の旗は出さない（D67・D92）。
+  public func englishWords(in theme: WordTheme) -> [String] {
+    let found = words(in: theme).flatMap { EnglishWords.words(for: $0).map(\.text) }
+    return found.filter(trialWords.contains) + found.filter { !trialWords.contains($0) }
+  }
+
+  /// ひらがな → おためし → そのほかのカタカナ の順に、安定して並べる（D93）。
+  public static func arranged(_ words: [String], trial: Set<String>) -> [String] {
+    func rank(_ word: String) -> Int {
+      guard WordText.script(of: word) == .katakana else { return 0 }
+      return trial.contains(word) ? 1 : 2
+    }
+    return (0...2).flatMap { level in words.filter { rank($0) == level } }
   }
 
   /// 場所の中の、出すテーマ。
