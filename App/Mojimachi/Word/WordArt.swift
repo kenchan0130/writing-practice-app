@@ -167,13 +167,13 @@ enum WordArt {
     case "すべりだい": .slide
     case "こま", "かざぐるま": .top
     case "けんだま": .kendama
-    case "ふうせん", "かみひこうき", "うきわ": .balloon
+    case "ふうせん", "かみひこうき", "うきわ", "てまり", "おてだま", "はねつき": .balloon
     case "にんぎょう", "ぬいぐるみ": .doll
-    case "つみき", "おりがみ": .blocks
-    case "たいこ": .drum
-    case "ふえ": .flute
+    case "つみき", "おりがみ", "かるた", "すごろく", "おはじき", "だるまおとし", "かみしばい", "わなげ": .blocks
+    case "たいこ", "つづみ": .drum
+    case "ふえ", "たてぶえ": .flute
     case "すず": .bell
-    case "もっきん", "てっきん", "こと": .xylophone
+    case "もっきん", "てっきん", "こと", "しゃみせん": .xylophone
     case "なわとび": .rope
     case "てつぼう", "うんてい", "たけうま", "つなひき": .bar
     case "とびばこ", "たまいれ": .box

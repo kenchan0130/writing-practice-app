@@ -10,7 +10,7 @@ struct FestiveLayoutTests {
 
   @Test("季節の飾りは、どれも置き方が決まっている。ほかのことばには ない")
   func everyWord() {
-    #expect(Self.words.count == 17)
+    #expect(Self.words.count == 30)
     for word in Self.words {
       #expect(FestiveLayout.style(for: word) != nil, "\(word)")
     }

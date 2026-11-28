@@ -30,7 +30,8 @@ struct WordBatchTests {
       for (themeID, themeWords) in batch.themeWords {
         #expect(WordMap.theme(id: themeID) != nil, "\(batch.name): テーマ \(themeID) がない")
         for w in themeWords {
-          #expect(words.contains(w), "\(batch.name): \(themeID) の「\(w)」がめぐりにない")
+          // 新しいテーマには、ほかのめぐりのことばも入れてよい。
+          #expect(WordCatalog.entry(for: w) != nil, "\(batch.name): \(themeID) の「\(w)」がない")
         }
       }
       for key in Array(batch.notes.keys) + Array(batch.artNames.keys) + Array(batch.seasons.keys)

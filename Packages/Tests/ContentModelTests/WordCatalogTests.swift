@@ -4,21 +4,21 @@ import Testing
 
 @Suite("ことばの一覧（D78）")
 struct WordCatalogTests {
-  @Test("306語で、種類ごとの数が合う")
+  @Test("419語で、種類ごとの数が合う")
   func counts() {
-    #expect(WordCatalog.all.count == 306)
-    #expect(Set(WordCatalog.all.map(\.text)).count == 306)
-    #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 14)
-    #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 45)
+    #expect(WordCatalog.all.count == 419)
+    #expect(Set(WordCatalog.all.map(\.text)).count == 419)
+    #expect(WordCatalog.all.filter { $0.kind == .vehicle }.count == 17)
+    #expect(WordCatalog.all.filter { $0.kind == .animal }.count == 61)
     #expect(WordCatalog.all.filter { $0.kind == .clothes }.count == 16)
-    #expect(WordCatalog.all.filter { $0.kind == .flyer }.count == 19)
-    #expect(WordCatalog.all.filter { $0.kind == .scenery }.count == 101)
-    #expect(WordCatalog.all.filter { $0.kind == .swimmer }.count == 25)
+    #expect(WordCatalog.all.filter { $0.kind == .flyer }.count == 25)
+    #expect(WordCatalog.all.filter { $0.kind == .scenery }.count == 127)
+    #expect(WordCatalog.all.filter { $0.kind == .swimmer }.count == 37)
     #expect(WordCatalog.all.filter { $0.kind == .sky }.count == 10)
-    #expect(WordCatalog.all.filter { $0.kind == .plaything }.count == 28)
-    #expect(WordCatalog.all.filter { $0.kind == .bodyAction }.count == 8)
-    #expect(WordCatalog.all.filter { $0.kind == .furniture }.count == 23)
-    #expect(WordCatalog.all.filter { $0.kind == .seasonal }.count == 17)
+    #expect(WordCatalog.all.filter { $0.kind == .plaything }.count == 40)
+    #expect(WordCatalog.all.filter { $0.kind == .bodyAction }.count == 10)
+    #expect(WordCatalog.all.filter { $0.kind == .furniture }.count == 46)
+    #expect(WordCatalog.all.filter { $0.kind == .seasonal }.count == 30)
   }
 
   @Test("種類が正しい")
@@ -74,6 +74,27 @@ struct WordCatalogTests {
     #expect(WordCatalog.entry(for: "おべんとう")?.kind == .scenery)
     #expect(WordCatalog.entry(for: "き")?.kind == .scenery)
     #expect(WordCatalog.entry(for: "みずたまり")?.kind == .scenery)
+    // めぐり life3（D200）: くらしの物は いえの物、てんきの物は景色、行事は季節の飾り、からだは体のことば。
+    #expect(WordCatalog.entry(for: "かさ")?.kind == .furniture)
+    #expect(WordCatalog.entry(for: "れいぞうこ")?.kind == .furniture)
+    #expect(WordCatalog.entry(for: "おぼん")?.kind == .furniture)
+    #expect(WordCatalog.entry(for: "こおり")?.kind == .scenery)
+    #expect(WordCatalog.entry(for: "つらら")?.kind == .seasonal)
+    #expect(WordCatalog.entry(for: "おにのめん")?.kind == .seasonal)
+    #expect(WordCatalog.entry(for: "ひざ")?.kind == .bodyAction)
+    #expect(WordCatalog.entry(for: "ゆび")?.kind == .bodyAction)
+    // めぐり nature3（D201）。
+    #expect(WordCatalog.entry(for: "たい")?.kind == .swimmer)
+    #expect(WordCatalog.entry(for: "おしどり")?.kind == .swimmer)
+    #expect(WordCatalog.entry(for: "うぐいす")?.kind == .flyer)
+    #expect(WordCatalog.entry(for: "かわせみ")?.kind == .flyer)
+    #expect(WordCatalog.entry(for: "だちょう")?.kind == .animal)
+    #expect(WordCatalog.entry(for: "こうし")?.kind == .animal)
+    #expect(WordCatalog.entry(for: "こおろぎ")?.kind == .animal)
+    #expect(WordCatalog.entry(for: "うみ")?.kind == .scenery)
+    #expect(WordCatalog.entry(for: "ひがんばな")?.kind == .scenery)
+    #expect(WordCatalog.entry(for: "さぎ")?.kind == .animal)
+    #expect(WordCatalog.entry(for: "たか")?.kind == .flyer)
   }
 
   @Test("はう物は、むしの動物だけ（D169）。はねる動物や空の虫は はわない")
@@ -82,6 +103,7 @@ struct WordCatalogTests {
       WordCatalog.crawlers == [
         "かぶとむし", "てんとうむし", "かたつむり",
         "へび", "わに", "もぐら", "あり", "かまきり", "くわがた", "すずむし",
+        "だんごむし", "あおむし", "みのむし", "みみず", "かみきりむし", "しゃくとりむし", "かいこ", "なめくじ",
       ])
     for text in WordCatalog.crawlers {
       #expect(WordCatalog.entry(for: text)?.kind == .animal, "\(text)")

@@ -138,8 +138,10 @@ public enum WordMap {
     WordTheme("aki-fuyu-gyoji", "あき・ふゆの ぎょうじ", in: "kisetsu"),
   ]
 
-  /// 土台のことばの後ろに、めぐり（`WordBatch.all`）のことばを順に足したテーマ。
-  public static let themes: [WordTheme] = baseThemes.map { theme in
+  /// 土台のテーマ（`baseThemes`）と、めぐり（`WordBatch.all`）が自分のファイルで宣言した新しいテーマ（`WordBatch.newThemes`）。
+  /// どちらのテーマにも、めぐりのことば（`themeWords`）が、土台のことばの後ろに順に足される。
+  public static let themes: [WordTheme] = (baseThemes + WordBatch.all.flatMap(\.newThemes)).map {
+    theme in
     let extra = WordBatch.all.flatMap { $0.themeWords[theme.id] ?? [] }
     guard !extra.isEmpty else { return theme }
     return WordTheme(

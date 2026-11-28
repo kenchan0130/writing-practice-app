@@ -20,12 +20,14 @@ struct HouseLayoutTests {
 
   @Test("どの種類にも、置くことばがある。いえの物は、どれも使い方が決まっている")
   func everyWord() {
-    #expect(Self.words.count == 23)
+    #expect(Self.words.count == 46)
     for spot in HouseSpot.allCases {
       #expect(Self.words.contains { HouseLayout.spot(for: $0) == spot })
     }
+    // 合う動きが まだない物は、使わない（nil）。それ以外は、どれも使い方が決まっている。
+    let unused: Set<String> = ["ほうき", "かなづち", "でんわ", "かさ", "かぎ", "せんぷうき", "ばんそうこう"]
     for word in Self.words {
-      #expect(HouseLayout.use(for: word) != nil, "\(word)")
+      #expect((HouseLayout.use(for: word) == nil) == unused.contains(word), "\(word)")
     }
     #expect(HouseLayout.spot(for: "とけい") == .wall)
     #expect(HouseLayout.spot(for: "かがみ") == .wall)
