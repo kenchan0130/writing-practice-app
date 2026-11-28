@@ -3,7 +3,7 @@
 // 手元のビルドは 0.0.0 のまま。ビルド番号は Xcode Cloud が付ける。
 MARKETING_VERSION = 0.0.0
 
-// クラッシュの報告（Sentry）の送り先（D183）。空なら Sentry を動かさず、何も送らない。
-// リリースのビルドで、Xcode Cloud の環境変数 SENTRY_DSN で上書きする（人の作業。docs/release/release-checklist.md の S1）。
-// 値に `//` があると、xcconfig ではコメントになる。書くときは `https:/$()/…` のようにする。
-SENTRY_DSN =
+// クラッシュの報告（Sentry）の送り先（D183・D198）。DSN は公開してよい値なので、ここに書いて入れる（D198）。
+// DEBUG のビルドと UI テストは、この値があっても Sentry を動かさず、何も送らない（CrashReporting.start）。
+// 値に `//` があると、xcconfig ではコメントになる。そのため `https:/$()/…` と書く。
+SENTRY_DSN = https:/$()/60a47c89b77025e16b013bdb0885b5af@o259380.ingest.us.sentry.io/4512508344401920
