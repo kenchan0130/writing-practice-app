@@ -32,7 +32,7 @@ Sentry のコードとライブラリは入った（D183）。手順 1〜5 は�
 2. 【済】データの保管地域は米国。`privacy-policy.ja.md`・`.en.md` に書いた。
 3. 【済】サーバー側の設定: Data Scrubber と Default Scrubbers、IP アドレスを保存しない設定をオン。`$user.** || contexts.app.device_app_hash || contexts.device.id` を消す詳細ルールを入れた（D103）。
 4. 【済】DSN は `App/Config/Version.xcconfig` の `SENTRY_DSN` にコミットした（`https:/$()/…` の形。DSN は公開の値。Xcode Cloud の環境変数は使わない。D198）。DEBUG と UI テストは何も送らない。
-5. 【TODO 人】https://github.com/getsentry/sentry-cocoa を人が開いて、本物の公式か確かめる（`docs/dependencies.md`）。
+5. 【済】https://github.com/getsentry/sentry-cocoa を人が開いて、本物の公式か確かめた（2026-11-28。`docs/dependencies.md`）。
 6. 【TODO 人】TestFlight のビルドで、わざと落として Sentry に着くこと、着いたものに端末の名前・ID・ユーザーが入っていないことを見る。
 7. 【済】ASC の「App のプライバシー」に、診断 > クラッシュデータ（ユーザに関連付けない・追跡に使わない・アプリの機能）を入れて公開した（2026-11-28。メールアドレスとカスタマーサポートも。`app-store-metadata.md` §6）。
 
