@@ -1,18 +1,20 @@
 # Mojimachi Privacy Policy
 
 > [Working note for the developer. Do not publish this block.]
-> - Publish at `https://kenchan0130.github.io/apps/mojimachi/privacy` (English section or `/en`). Fill in every `TODO` first.
-> - Sentry is in the app as of 2026-11-27 (D183). It starts only in release builds that have a DSN, and sends crash information only (what is sent is locked by `CrashReportingTests`). There is no switch to turn it off. Before publishing: create the Sentry project, choose the data region, and write it in the `TODO` below (checklist S1).
-> - The menu names in English ("Children", "Manage Records", and so on) match the app's English parent area (D186; see `docs/glossary.md`). The app's English screens link to `.../privacy/en`, so publish this page there before submitting.
+> - Published (2026-11-28) as the Mojimachi section of the common policy page on the blog: `https://kenchan0130.github.io/apps/privacy` (Japanese `#もじまち`, English `#mojimachi`). The old URLs `/apps/mojimachi/privacy` and `/apps/mojimachi/privacy/en` redirect to those sections (D73, D198). The app keeps linking to the old URLs.
+> - **When you change this file, change the same section on the blog page too.** Keep both the same.
+> - Sentry is running (D183, D198). It starts only in release builds that have a DSN, and sends crash information only (what is sent is locked by `CrashReportingTests`). There is no switch to turn it off. Data is stored in the United States.
+> - The menu names in English ("Children", "Manage Records", and so on) match the app's English parent area (D186; see `docs/glossary.md`).
 > - Translation: the Japanese file is the source (D118). Use the terms in `docs/glossary.md`. Have another model check it.
+> - The contact is the Google Form. No email address is published.
 
-Effective date: TODO (the release day, e.g. Month D, 2026)
+Effective date: November 28, 2026
 
 Mojimachi ("the app") helps children aged about 4 to 7 practice writing letters on an iPad. The child-facing screens and voices are in Japanese. This page is written for parents and guardians. It explains what information the app handles.
 
 ## Who runs the app
 
-- Operator: TODO (the seller name shown on the App Store, D65)
+- Operator: kenchan0130
 - Contact: see "Contact" below.
 
 ## The short version
@@ -66,14 +68,14 @@ There is no setting to turn this off. Nothing is sent unless the app crashes. Th
 
 The crash information is not linked to a person or a child, and is not used for tracking or advertising.
 
-Where Sentry stores the data: TODO (write the region chosen in Sentry)
+Where Sentry stores the data: the United States. It is kept for up to 90 days.
 
 ### Contact form
 
 From the parent area, a parent can open a contact form. It is a Google Form that opens in Safari, with the app version and iPadOS version filled in to help us look into the problem. A parent decides whether to send it.
 
 - The text you write and an optional email address reach the operator.
-- The form is pre-filled only with the app name and the type of message. If you open it from "This judgment looks wrong", the name of the judgment setting is also filled in. The app does not put the app version, the iPadOS version, or the device model into the link. If you want to add them, the support screen shows them as text you can copy yourself. You can delete anything before you send.
+- The form is pre-filled with the app name, the type of message, the app version and the iPadOS version. If you open it from "This judgment looks wrong", the name of the judgment setting is also filled in. The app does not put the device model or any device ID into the link. You can delete anything before you send.
 - Google's privacy policy also applies to the form.
 - We use what you send only to reply. We delete it within 90 days after we finish the matter. We also delete it on request.
 - Please do not write a child's name or send a child's photo.
@@ -122,6 +124,6 @@ When we change this page, we update it and change the effective date above. For 
 
 ## Contact
 
-- Contact form: TODO (the same Google Form URL as in the app, or a link to the support page `https://kenchan0130.github.io/apps/mojimachi`)
+- Contact form: https://docs.google.com/forms/d/e/1FAIpQLSeKlnlVv1q5MRZm_DbZSmy-qpvAEYGkrueaeATx9xJyeY3j8g/viewform
+- Support page: https://kenchan0130.github.io/apps/mojimachi
 - We aim to reply within 3 days.
-- TODO: the developer's contact address (for example an email address). **The human decides and fills this in. It is not invented here.** Do not publish a street address or phone number (D65).

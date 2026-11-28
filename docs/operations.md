@@ -39,8 +39,8 @@
 
 ## 公開ページ
 
-- プライバシーポリシー: `https://kenchan0130.github.io/apps/mojimachi/privacy`（D73）
-- サポート: `https://kenchan0130.github.io/apps/mojimachi`。お問い合わせは既存アプリと同じ Google フォーム（D124）
+- プライバシーポリシー: 共通のページ `https://kenchan0130.github.io/apps/privacy` の、もじまちの節（日本語 `#もじまち`、英語 `#mojimachi`）。旧 URL `https://kenchan0130.github.io/apps/mojimachi/privacy`（と `/privacy/en`）は、その節へ移る。アプリのリンクは旧 URL のまま（D73・D198）。変えるときは、`docs/release/privacy-policy.*.md` とブログのページの両方を直す
+- サポート: `https://kenchan0130.github.io/apps/mojimachi`（D198）。お問い合わせは既存アプリと同じ Google フォーム（D124）
 
 ## 公開後（D119）
 

@@ -21,20 +21,20 @@
 | P9 | 直す | **【済】英語に対応していない** | プロジェクト全体（`.lproj`・`.xcstrings` なし。`developmentRegion = ja`） | D30・D116・D118 は、保護者用の画面・ストア・ポリシーを英語でも出すとしている。アプリの画面は日本語だけ。英語の説明を出すなら、日本語を学ぶアプリだと説明の最初に書く（D118。下書きに書いてある） | ストアの英語は説明文だけにするか、保護者用の画面を英語にするか決める | 人（決める）・AI。**直し方（D186）**: 保護者用の画面・はじめての流れの大人の画面・購入・端末の許可の文・商品名を英語にした（`Localizable.xcstrings`・`InfoPlist.xcstrings`・`Mojimachi.storekit`）。ストアの英語の文面は `app-store-metadata.md` §3。人が残すこと: ASC に English (U.S.) を足して文面を入れる、英語のプライバシーポリシー（`/privacy/en`）を公開する |
 | P10 | 確認 | **【済】輸出コンプライアンスの印がない** | `Info-extra.plist` | 毎回の提出で質問が出る | `ITSAppUsesNonExemptEncryption = NO` を足す（標準の暗号だけなので。ASC の質問で最新の内容を確かめる） | AI。**直し方（D183）**: ビルド設定に `ITSAppUsesNonExemptEncryption = NO` があったが、`INFOPLIST_KEY_` の接頭辞がなく、Info.plist に入っていなかった。`INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO` に直し、Release のビルドの Info.plist で `false` を確かめた |
 | P11 | 確認 | **`aps-environment` が `development`** | `Mojimachi.entitlements` | 配布用の署名では、Xcode が `production` に直す。アーカイブの権利を確かめる | アーカイブしたあと `codesign -d --entitlements :-` で見る。`UIBackgroundModes: remote-notification` は iCloud 同期のため（審査用のメモに書いた） | 人 |
-| P12 | 確認 | 公開ページが未公開 | `docs/operations.md` の「公開ページ」2つ | アプリの中のリンクと、ASC の提出に URL が要る。404 だと審査で止まる | `kenchan0130.github.io` のリポジトリに、サポートとポリシー（日英）を置く | 人（置く）・AI（下書き: `privacy-policy.*.md`） |
-| P13 | 確認 | ポリシーの `TODO`（運営者名・連絡先・施行日・Sentry の保管地域） | `privacy-policy.ja.md`・`.en.md` | 人にしか決められない。連絡先は作っていない | 人が決めて埋める | 人 |
+| P12 | 確認 | **【済】公開ページが未公開** | `docs/operations.md` の「公開ページ」2つ | アプリの中のリンクと、ASC の提出に URL が要る。404 だと審査で止まる | `kenchan0130.github.io` のリポジトリに、サポートとポリシー（日英）を置く | 人。**済（2026-11-28。D198）**: ポリシーは共通のページ `https://kenchan0130.github.io/apps/privacy`（日本語 `#もじまち`、英語 `#mojimachi`）。サポートは `https://kenchan0130.github.io/apps/mojimachi`。旧 URL `/apps/mojimachi/privacy`・`/apps/mojimachi/privacy/en` は節へ移る。アプリのリンクは旧 URL のまま |
+| P13 | 確認 | **【済】ポリシーの `TODO`（運営者名・連絡先・施行日・Sentry の保管地域）** | `privacy-policy.ja.md`・`.en.md` | 人にしか決められない | 人が決めて埋める | 人・AI。**済（2026-11-28。D198）**: 運営者 kenchan0130、施行日 2026年11月28日、保管地域は米国、連絡先は Google フォームだけ（メールアドレスは載せない）
 
-### 【TODO 人】S1: Sentry を動かすための作業
+### 【一部済】S1: Sentry を動かすための作業
 
-Sentry のコードとライブラリは入った（D183）。**DSN を入れないと、リリースのビルドでも何も送らない**。人が次をする。
+Sentry のコードとライブラリは入った（D183）。手順 1〜5 は済（2026-11-28。D198）。残りは 6 と 7 で、人がする。
 
-1. Sentry のプロジェクトを作る（プラットフォームは Apple・iOS）。
-2. **データの保管地域を選ぶ**（米国か EU）。選んだら、`privacy-policy.ja.md`・`.en.md` の「Sentry のデータの保管場所: TODO」を埋める。
-3. サーバー側の設定: IP アドレスを保存しない、個人情報の自動の削除をオン（D103）。
-4. DSN を、リリースのビルドのビルド設定 `SENTRY_DSN` に入れる（Xcode Cloud の環境変数。`App/Config/Version.xcconfig` の `SENTRY_DSN =` が空の既定。**DSN に `//` があるので、xcconfig に書くときは `https:/$()/…` にする**。環境変数で上書きするなら、ワークフローの設定で）。DSN はリポジトリにコミットしない。
-5. https://github.com/getsentry/sentry-cocoa を開いて、本物の公式か確かめる（`docs/dependencies.md`）。
-6. TestFlight のビルドで、わざと落として Sentry に着くこと、着いたものに端末の名前・ID・ユーザーが入っていないことを見る。
-7. ASC の「App のプライバシー」に、診断 > クラッシュデータ（ユーザに関連付けない・追跡に使わない・アプリの機能）を入れる（`app-store-metadata.md` §6）。
+1. 【済】Sentry のプロジェクト「mojimachi」（iOS）を、既存アプリと同じ組織に作った。使うのはエラーの監視だけ。
+2. 【済】データの保管地域は米国。`privacy-policy.ja.md`・`.en.md` に書いた。
+3. 【済】サーバー側の設定: Data Scrubber と Default Scrubbers、IP アドレスを保存しない設定をオン。`$user.** || contexts.app.device_app_hash || contexts.device.id` を消す詳細ルールを入れた（D103）。
+4. 【済】DSN は `App/Config/Version.xcconfig` の `SENTRY_DSN` にコミットした（`https:/$()/…` の形。DSN は公開の値。Xcode Cloud の環境変数は使わない。D198）。DEBUG と UI テストは何も送らない。
+5. 【TODO 人】https://github.com/getsentry/sentry-cocoa を人が開いて、本物の公式か確かめる（`docs/dependencies.md`）。
+6. 【TODO 人】TestFlight のビルドで、わざと落として Sentry に着くこと、着いたものに端末の名前・ID・ユーザーが入っていないことを見る。
+7. 【済】ASC の「App のプライバシー」に、診断 > クラッシュデータ（ユーザに関連付けない・追跡に使わない・アプリの機能）を入れて公開した（2026-11-28。メールアドレスとカスタマーサポートも。`app-store-metadata.md` §6）。
 
 ### 子どもの画面の確認（Kids カテゴリ）で問題がなかったもの
 
@@ -130,11 +130,11 @@ M0 の基準は、M1 に進む条件だった。D179 は「約300語で出す」
 | 配信する国の選択（EU と中国本土を外す） | AI | 済（2026-11-27。147の国・地域） | `app-store-metadata.md` §1 |
 | Kids カテゴリと年齢帯「5歳以下」を選ぶ（変えられない） | 人 | 未 | D51・D86 |
 | 年齢制限の質問票 | 人 | 未 | `app-store-metadata.md` §7 |
-| App のプライバシー（栄養成分表示） | 人 | 未 | `app-store-metadata.md` §6。P4 の判断のあとで |
+| App のプライバシー（栄養成分表示） | 人 | 済（2026-11-28 に ASC で公開） | `app-store-metadata.md` §6 |
 | 輸出コンプライアンス | 人 | 未 | P10（コードは済。ASC の質問に答える） |
 | コンテンツの権利（第三者のコンテンツ） | 人 | 未 | §1 のライセンスの義務 |
 | アプリ内課金の登録（4商品、ja・en、ファミリー共有、審査用のスクリーンショット） | AI | 済（2026-11-27。配信は EU 27か国と中国本土を除く147の国・地域） | `app-store-metadata.md` §4。P5・P6 のあとで |
-| プライバシーポリシーとサポートページの公開（日英） | 人 | 未 | P12 |
+| プライバシーポリシーとサポートページの公開（日英） | 人 | 済（2026-11-28。D198） | P12 |
 | 審査用のメモ（連絡先を入れる） | 人 | 未 | `app-store-metadata.md` §9 |
 | 子どもの画像を撮らない・個人情報を載せない（スクリーンショット） | 人 | 未 | `screenshots-plan.md` |
 | お問い合わせのフォーム（Google）が動く。種類の選択肢がフォームと一致 | 人 | 未 | `FeedbackForm.swift` の `formChoice`（「アプリの不具合」「ご要望」）。フォームの欄 ID が変わっていないか |
@@ -151,7 +151,7 @@ M0 の基準は、M1 に進む条件だった。D179 は「約300語で出す」
 | アイコンの画像を入れる | AI | 未 | P1 |
 | `PrivacyInfo.xcprivacy` を入れる | AI | 済（D183） | P2 |
 | 保護者用の画面の有効時間（5分） | AI | 済（D183） | P3 |
-| Sentry の判断と実装、またはスイッチを外す | 人・AI | コードは済（D183）。DSN などは人（S1） | P4 |
+| Sentry の判断と実装、またはスイッチを外す | 人・AI | コードは済（D183）。DSN・保管地域・サーバー側は済（D198）。残りは TestFlight での確認（S1 の 6） | P4 |
 | 商品の説明・名前をそろえる | 人・AI | コードと設計は済（D183）。ASC に入れるのは人 | P5・P6 |
 | `NSFaceIDUsageDescription`・`ITSAppUsesNonExemptEncryption` | AI | 済（D183） | P7・P10 |
 | バージョン: tagpr の最初のリリース（1.0.0） | 人 | 未 | `docs/operations.md`。リリースの PR をマージするとタグが打たれる |

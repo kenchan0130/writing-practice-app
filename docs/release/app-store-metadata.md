@@ -19,9 +19,9 @@
 | 価格 | 無料（アプリ内課金あり） | D2 |
 | 配信する国 | 全世界から **EU 27か国と中国本土を除く**。香港・台湾は配信。米国は配信（年齢確認の最新の案内に対応。`release-checklist.md`） | D52・D65 |
 | サポート URL | `https://kenchan0130.github.io/apps/mojimachi` | D73・`docs/operations.md` |
-| プライバシーポリシー URL | 日本語: `https://kenchan0130.github.io/apps/mojimachi/privacy`。英語: `https://kenchan0130.github.io/apps/mojimachi/privacy/en`（D186。アプリの英語の画面のリンクもこちら。本文は `privacy-policy.ja.md`・`privacy-policy.en.md`。**英語のページを公開してから提出する**【TODO】） | D73・D186 |
+| プライバシーポリシー URL | 日本語: `https://kenchan0130.github.io/apps/mojimachi/privacy`。英語: `https://kenchan0130.github.io/apps/mojimachi/privacy/en`（D186。アプリの英語の画面のリンクもこちら。本文は `privacy-policy.ja.md`・`privacy-policy.en.md`。英語のページは公開済み（2026-11-28。D198）。共通のポリシーのページ `https://kenchan0130.github.io/apps/privacy` の `#mojimachi` へ移る。URL は変えない） | D73・D186 |
 | マーケティング URL | 置かない（サポートページで足りる） | |
-| 著作権 | `© 2026 TODO（販売者名。本名。D65）` | 【TODO】 |
+| 著作権 | `2026 kenchan0130`（ASC に入れた。2026-11-28） | 済 |
 | 販売者名 | 本名（D50・D65） | |
 | 提供開始 | 手動で公開（`docs/operations.md`） | |
 
@@ -112,7 +112,7 @@
 | キーワード | `katakana,japanese,stroke order,tracing,alphabet,ABC,numbers,preschool,kids,nihongo,handwriting` | 94（100） |
 | サポート URL | `https://kenchan0130.github.io/apps/mojimachi` | |
 | プライバシーポリシー URL | `https://kenchan0130.github.io/apps/mojimachi/privacy/en` | |
-| 著作権 | `© 2026 TODO` | 【TODO】 |
+| 著作権 | `2026 kenchan0130` | 済 |
 
 - 名前とサブタイトルにある語（mojimachi・hiragana・writing・write・kana・watch・move）は、キーワードに入れない。
 - 日本のストアで英語の欄が検索に使われるかを確かめ、使われるなら日本語の検索語を補う【要確認】（D40）。
@@ -304,7 +304,7 @@ App Store Connect の「App のプライバシー」。D73・D103・D124・D148 
 | 保護者用の画面の有効時間（5分）が守られる | 守られる（D183）。操作のたびに5分先へ延び、開いているあいだ1秒ごとと、アプリに戻ったときに確かめて閉じる | `ParentGateFeature.swift`・`ContentView.swift`・`ParentAreaView.swift`。テスト: `ParentGateFeatureTests`・`ParentAreaTimeoutUITests` | OK |
 | 権限（位置・カメラ・マイクなど）を求めない | 求めない | Info.plist | OK |
 | プッシュ通知で子どもを誘導しない | 通知は使わない。`remote-notification` は iCloud 同期の裏の更新のためだけ（許可の確認は出ない） | `Info-extra.plist` | OK。審査用のメモに書く |
-| プライバシーポリシーがある・アプリの中からも行ける | 保護者用の画面の「サポート」にリンク。ページは未公開 | `SupportView.swift` | 【TODO】ページを公開する |
+| プライバシーポリシーがある・アプリの中からも行ける | 保護者用の画面の「サポート」にリンク。ページは公開済み（2026-11-28。D198） | `SupportView.swift` | 済 |
 | 子どもの画面にエラー・価格・「かう」を出さない | 出さない | D3・D117 | OK |
 | 評価のお願いを子どもに出さない | 保護者用の画面の「アプリを評価する」だけ | `SupportView.swift` | OK |
 | 収集を最小にする | 呼び名は任意。年齢・学年・生年月日は聞かない | `Profile.swift` | OK |
@@ -313,7 +313,7 @@ App Store Connect の「App のプライバシー」。D73・D103・D124・D148 
 
 ## 9. 審査用のメモ（App Review Information の下書き）
 
-【TODO】連絡先（名前・電話・メール）は人が入れる。ここでは作らない。サインインは要らない。
+連絡先（名前・電話・メール）は、個人情報保護士のアプリと同じものを ASC に入れた（2026-11-28。ここには書かない）。サインインは要らない。
 
 日本語でも英語でも書く。下は英語（審査する人向け）。
 
