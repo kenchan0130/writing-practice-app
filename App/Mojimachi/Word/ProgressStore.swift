@@ -237,7 +237,21 @@ final class ProgressStore {
       accountState = .unknown
     }
     // 同期をオフにしているときは、アカウントの印を調べない（iCloud に問い合わせない。D194）。
-    if syncsWithICloud { await evaluateAccountChange() }
+    if syncsWithICloud {
+      await evaluateAccountChange()
+      // サインアウトやアカウントの切り替えで、子の行が消えていないか確かめる（D197）。
+      // システムが行を消すのが少し遅れることがあるので、少し待ってもう一度確かめる。
+      checkProfileVanished()
+      try? await Task.sleep(for: .seconds(3))
+      checkProfileVanished()
+    }
+  }
+
+  /// アプリを開いたときに、iCloud のアカウントの見張りを始める（D197）。
+  /// 同期がオンのときだけ。保護者用の画面を開かなくても、サインアウトに気づけるようにする。
+  func startAccountWatch() {
+    guard syncsWithICloud, accountObserver == nil else { return }
+    Task { await refreshAccountState() }
   }
 
   private func handle(_ event: RecordStore.SyncEvent) {
@@ -275,9 +289,17 @@ final class ProgressStore {
   /// 保存していない最初の子を、保存する（子や保護者が何かしたとき。D194）。
   private func materializePlaceholder() {
     guard let id = placeholderID else { return }
+    guard let profile = profiles.profile(id) else {
+      placeholderID = nil
+      return
+    }
     placeholderID = nil
+    // 保存できなかったら、最初の子のまま残す（次の書き込みを「消えた」と見なさない。D197）。
+    guard records.insert(profile) else {
+      placeholderID = id
+      return
+    }
     defaults.set(true, forKey: Self.hadProfilesKey)
-    if let profile = profiles.profile(id) { records.save(profile) }
   }
 
   /// 待ちが終わっていたら、画面の中身を決める。取り込みで届いた子がいれば、その子を使う。
@@ -421,9 +443,33 @@ final class ProgressStore {
 
   /// ほかの iPad の変更を画面に反映する。
   func reloadFromStore() {
+    // 保存先を開き直している間は、0人に見えても消えたと決めない（D197）。
+    guard records.canRead else { return }
     wishes = records.loadWishes()
     let loaded = records.loadProfiles()
-    guard !loaded.isEmpty else { return }
+    switch ProfileVanish.reloadAction(
+      placeholderID: placeholderID, currentID: currentProfileID, loadedIDs: loaded.map(\.id))
+    {
+    case .keepPlaceholder:
+      // まだ何も届いていない。最初の子のまま待つ（D63・D194）。
+      return
+    case .vanished:
+      // 保存していた子が全員いなくなった。前の子の画面を残さない（D197）。
+      profileVanished()
+      return
+    case .currentGone:
+      // いまの子だけ消えた。ほかの iPad が消したのかもしれないので、保護者への知らせは出さない。
+      // 書く画面にいるあいだは、出てから切り替える（D197）。
+      profileVanished(notifies: false)
+      return
+    case .adopt:
+      // 消えた子がまた読めた。待っていた切り替えはやめる。
+      vanishPending = false
+    }
+    applyLoaded(loaded)
+  }
+
+  private func applyLoaded(_ loaded: [Profile]) {
     defaults.set(true, forKey: Self.hadProfilesKey)
     let preferred = defaults.string(forKey: "currentProfile").flatMap(UUID.init(uuidString:))
     let decision = ProfileAdoption.resolve(
@@ -435,6 +481,92 @@ final class ProgressStore {
     placed = records.loadPlaced(profile: currentProfileID)
     moves = records.loadMoves(profile: currentProfileID)
     stickerEvents = records.loadStickerEvents(profile: currentProfileID)
+  }
+
+  // MARK: - 子の行が消えたとき（D197）
+
+  /// 子の行が消えたと分かって、画面の切り替えを待っている。待つあいだは、保存先に何も書かない。
+  private(set) var vanishPending = false
+  /// 子どもが書く画面にいる（ContentView が知らせる）。書く画面を出るまで、切り替えを待つ。
+  private var isWritingActive = false
+
+  /// 子の行が消えたかを判断してよいか。保存先が読めないとき、メモリの中だけで動いているときは、
+  /// 空に見えても消えたとは決めない（D197）。
+  private var canJudgeVanish: Bool {
+    records.canRead && records.openFallback != .memoryOnly
+  }
+
+  func setWritingActive(_ active: Bool) {
+    isWritingActive = active
+    if !active, vanishPending { switchAwayFromVanished() }
+  }
+
+  /// いまの子の行がまだあるか確かめる。消えていれば、消えた子の扱いにする。
+  func checkProfileVanished() {
+    guard canJudgeVanish, !vanishPending else { return }
+    guard
+      ProfileVanish.isVanished(
+        profileID: currentProfileID, placeholderID: placeholderID,
+        rowExists: records.profileExists(currentProfileID))
+    else { return }
+    profileVanished()
+  }
+
+  /// 子の行が消えていた。保護者に知らせ、画面は書く画面を出てから切り替える。
+  /// 待つあいだは、保存先に書かない（消えた子の ID で行を作らない）。
+  private func profileVanished(notifies: Bool = true) {
+    if notifies, accountNotice == nil { showAccountNotice(.dataMissing) }
+    switch ProfileVanish.switchTiming(isWriting: isWritingActive) {
+    case .now: switchAwayFromVanished()
+    case .deferred: vanishPending = true
+    }
+  }
+
+  /// 消えた子の画面の中身を捨てる。残っている子がいればその子に、いなければ、名前のない新しい子
+  /// （新しい ID。前の名前・顔などは写さない。D194 の形）にする。
+  private func switchAwayFromVanished() {
+    vanishPending = false
+    let loaded = records.canRead ? records.loadProfiles() : []
+    if !loaded.isEmpty {
+      applyLoaded(loaded)
+      return
+    }
+    let fresh = Profile(name: "", face: Self.faces[0])
+    placeholderID = fresh.id
+    profiles = ProfileList(profiles: [fresh])
+    currentProfileID = fresh.id
+    defaults.removeObject(forKey: "currentProfile")
+    log = LearningLog()
+    placed = []
+    moves = []
+    stickerEvents = []
+    wishes = []
+    childOnboardingLeft = []
+  }
+
+  /// その子の記録を書いてよいか決める。最初の子（まだ保存していない）なら、先に保存する（D194）。
+  /// 行が消えていたら、書かずに、消えた子の扱いにする（D197）。
+  private func writeGate(for id: UUID) -> ProfileVanish.WriteGate {
+    let isPlaceholder = placeholderID == id
+    let gate = ProfileVanish.writeGate(
+      switchPending: vanishPending, isPlaceholder: isPlaceholder,
+      rowExists: isPlaceholder || !canJudgeVanish || records.profileExists(id))
+    switch gate {
+    case .write:
+      materializePlaceholder()
+      // 最初の子を保存できなかったら、保存先には書かない。
+      if placeholderID == id { return .memoryOnly }
+    case .drop:
+      guard id == currentProfileID else {
+        reloadFromStore()
+        return .drop
+      }
+      profileVanished()
+      // 書く画面にいて切り替えを待つなら、画面の中だけ変える。
+      return vanishPending ? .memoryOnly : .drop
+    case .memoryOnly: break
+    }
+    return gate
   }
 
   private let defaults: UserDefaults
@@ -532,9 +664,11 @@ final class ProgressStore {
 
   /// 鍵のかかったもので「おねがい」を押した（D160）。記録するだけで、購入は開かない。
   func makeWish(item: String, date: Date = Date()) {
-    materializePlaceholder()
+    let gate = writeGate(for: currentProfileID)
+    guard gate != .drop else { return }
     let wish = Wish(profileID: currentProfileID, item: item, date: date)
     wishes.append(wish)
+    guard gate == .write else { return }
     records.append(wish)
     lastSaved = records.lastSaved
   }
@@ -553,22 +687,28 @@ final class ProgressStore {
   }
 
   func record(_ record: CharacterRecord) {
-    materializePlaceholder()
+    let gate = writeGate(for: currentProfileID)
+    guard gate != .drop else { return }
     log.append(record)
+    guard gate == .write else { return }
     records.append(log.characters.last ?? record, profile: currentProfileID)
     lastSaved = records.lastSaved
   }
 
   func record(_ record: WordRecord) {
-    materializePlaceholder()
+    let gate = writeGate(for: currentProfileID)
+    guard gate != .drop else { return }
     log.append(record)
+    guard gate == .write else { return }
     records.append(log.words.last ?? record, profile: currentProfileID)
     lastSaved = records.lastSaved
   }
 
   func place(_ object: PlacedObject) {
-    materializePlaceholder()
+    let gate = writeGate(for: currentProfileID)
+    guard gate != .drop else { return }
     placed.append(object)
+    guard gate == .write else { return }
     records.append(object, profile: currentProfileID)
     lastSaved = records.lastSaved
   }
@@ -576,12 +716,14 @@ final class ProgressStore {
   /// おもちゃばこの物を出す（D74・D82）。出してからいちばん長い物と入れ替わる。行を足すだけ。
   func takeOut(_ id: UUID, date: Date = Date()) {
     let rows = board.takeOut(id, moves: moves, date: date)
-    if !rows.isEmpty { materializePlaceholder() }
+    guard !rows.isEmpty else { return }
+    let gate = writeGate(for: currentProfileID)
+    guard gate != .drop else { return }
     for row in rows {
       moves.append(row)
-      records.append(row, profile: currentProfileID)
+      if gate == .write { records.append(row, profile: currentProfileID) }
     }
-    if !rows.isEmpty { lastSaved = records.lastSaved }
+    if gate == .write { lastSaved = records.lastSaved }
   }
 
   // MARK: - おたのしみ ボックスとステッカー（§3.3・§3.5・D54・D190）
@@ -630,8 +772,10 @@ final class ProgressStore {
   }
 
   private func append(_ event: StickerEvent) {
-    materializePlaceholder()
+    let gate = writeGate(for: currentProfileID)
+    guard gate != .drop else { return }
     stickerEvents.append(event)
+    guard gate == .write else { return }
     records.append(event, profile: currentProfileID)
     lastSaved = records.lastSaved
   }
@@ -662,9 +806,13 @@ final class ProgressStore {
   /// 「記録だけリセット」（D19・§6.3）。その子の記録だけ。まちの物と設定は残す。
   func resetRecords(of id: UUID? = nil) {
     let id = id ?? currentProfileID
+    // 最初の子は、どの子の操作でも先に保存する（D194）。
     materializePlaceholder()
-    records.appendReset(profile: id)
+    let gate = writeGate(for: id)
+    guard gate != .drop else { return }
     if id == currentProfileID { log.reset() }
+    guard gate == .write else { return }
+    records.appendReset(profile: id)
     lastSaved = records.lastSaved
   }
 
@@ -690,7 +838,7 @@ final class ProgressStore {
   func addProfile(_ profile: Profile) -> Bool {
     guard profiles.add(profile) else { return false }
     materializePlaceholder()
-    records.save(profile)
+    records.insert(profile)
     lastSaved = records.lastSaved
     return true
   }
@@ -715,11 +863,42 @@ final class ProgressStore {
   func updateProfile(_ profile: Profile) {
     // 捨てた最初の子（本物に入れ替わったあと）を、保存し直さない（D194）。
     guard profiles.profile(profile.id) != nil else { return }
-    profiles.update(profile)
-    if placeholderID == profile.id { placeholderID = nil }
-    materializePlaceholder()
-    defaults.set(true, forKey: Self.hadProfilesKey)
-    records.save(profile)
+    // 消えた子の切り替えを待つあいだは、画面の中だけ直す（D197）。
+    guard !vanishPending else {
+      profiles.update(profile)
+      return
+    }
+    if placeholderID == profile.id {
+      // 最初の子を、はっきり作る（D194）。
+      profiles.update(profile)
+      placeholderID = nil
+      if records.insert(profile) {
+        defaults.set(true, forKey: Self.hadProfilesKey)
+      } else {
+        placeholderID = profile.id
+      }
+    } else {
+      // 直すだけ。行が消えていたら足さない（前の子の名前を、次の iCloud に上げない。D197）。
+      switch records.update(profile) {
+      case .updated, .inserted:
+        break
+      case .unreadable:
+        // 読めないだけ。消えたとは決めず、画面の中だけ直す。
+        profiles.update(profile)
+        return
+      case .missing:
+        if canJudgeVanish {
+          profileVanished()
+          // 切り替えを待つなら、画面の中だけ直す（ペンの色を選べるように）。
+          if vanishPending { profiles.update(profile) }
+        } else {
+          profiles.update(profile)
+        }
+        return
+      }
+      profiles.update(profile)
+      defaults.set(true, forKey: Self.hadProfilesKey)
+    }
     lastSaved = records.lastSaved
   }
 
